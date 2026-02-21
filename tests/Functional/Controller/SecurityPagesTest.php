@@ -2,8 +2,12 @@
 
 namespace App\Tests\Functional\Controller;
 
+use App\Entity\User;
+use App\Enum\UserStatus;
 use App\Repository\UserRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class SecurityPagesTest extends WebTestCase
 {
@@ -25,6 +29,64 @@ final class SecurityPagesTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('h1', 'Creer un compte');
         self::assertSame('Creer mon compte', trim($crawler->filter('button[type="submit"]')->text()));
+    }
+
+    public function testLoginFormAuthenticatesActiveUser(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('login_ok_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $this->createActiveUser($email, $password);
+
+        $crawler = $client->request('GET', '/login');
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            'email' => $email,
+            'password' => $password,
+        ]));
+
+        self::assertResponseRedirects('/login');
+        $client->followRedirect();
+        self::assertSelectorTextContains('body', sprintf('Connecte en tant que %s.', $email));
+    }
+
+    public function testLoginFormShowsErrorWithWrongPassword(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('login_ko_%s@example.com', bin2hex(random_bytes(8)));
+        $this->createActiveUser($email, 'password123');
+
+        $crawler = $client->request('GET', '/login');
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            'email' => $email,
+            'password' => 'wrong-password',
+        ]));
+
+        self::assertResponseRedirects('/login');
+        $crawler = $client->followRedirect();
+        self::assertResponseIsSuccessful();
+        self::assertSame($email, $crawler->filter('#inputEmail')->attr('value'));
+        self::assertSelectorTextContains('body', 'Invalid credentials.');
+    }
+
+    public function testLogoutDisconnectsAuthenticatedUser(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('logout_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $this->createActiveUser($email, $password);
+
+        $crawler = $client->request('GET', '/login');
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            'email' => $email,
+            'password' => $password,
+        ]));
+        $client->followRedirect();
+        self::assertSelectorTextContains('body', sprintf('Connecte en tant que %s.', $email));
+
+        $client->request('GET', '/logout');
+        self::assertResponseStatusCodeSame(302);
+        $client->followRedirect();
+        self::assertSelectorTextNotContains('body', sprintf('Connecte en tant que %s.', $email));
     }
 
     public function testRegisterFormCreatesUserAndRedirectsToLogin(): void
@@ -89,5 +151,25 @@ final class SecurityPagesTest extends WebTestCase
 
         self::assertResponseStatusCodeSame(422);
         self::assertSelectorTextContains('body', 'Your password should be at least 6 characters');
+    }
+
+    private function createActiveUser(string $email, string $plainPassword): User
+    {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        /** @var UserPasswordHasherInterface $hasher */
+        $hasher = static::getContainer()->get(UserPasswordHasherInterface::class);
+
+        $user = new User();
+        $user->setEmail($email);
+        $user->setRoles(['ROLE_USER']);
+        $user->setStatus(UserStatus::ACTIVE);
+        $user->setIsVerified(true);
+        $user->setPassword($hasher->hashPassword($user, $plainPassword));
+
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        return $user;
     }
 }
