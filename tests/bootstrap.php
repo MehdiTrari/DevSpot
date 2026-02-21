@@ -18,31 +18,26 @@ if ('test' === ($_SERVER['APP_ENV'] ?? $_ENV['APP_ENV'] ?? null)) {
 
     if (\is_string($kernelClass) && class_exists($kernelClass)) {
         $kernel = new $kernelClass('test', true);
-        $kernel->boot();
-
-        $entityManager = $kernel->getContainer()->get('doctrine')->getManager();
-        $metadata = $entityManager->getMetadataFactory()->getAllMetadata();
-
-        if ([] !== $metadata) {
-            $schemaTool = new SchemaTool($entityManager);
-
-            // NOTE:
         $booted = false;
 
         try {
             $kernel->boot();
             $booted = true;
 
-            $entityManager = $kernel->getContainer()->get('doctrine')->getManager();
-            $metadata = $entityManager->getMetadataFactory()->getAllMetadata();
+            $container = $kernel->getContainer();
 
-            if ([] !== $metadata) {
-                $schemaTool = new SchemaTool($entityManager);
-                $schemaTool->dropSchema($metadata);
-                $schemaTool->createSchema($metadata);
+            if ($container->has('doctrine')) {
+                $entityManager = $container->get('doctrine')->getManager();
+                $metadata = $entityManager->getMetadataFactory()->getAllMetadata();
+
+                if ([] !== $metadata) {
+                    $schemaTool = new SchemaTool($entityManager);
+                    $schemaTool->dropSchema($metadata);
+                    $schemaTool->createSchema($metadata);
+                }
+
+                $entityManager->clear();
             }
-
-            $entityManager->clear();
         } finally {
             if ($booted) {
                 $kernel->shutdown();
