@@ -53,6 +53,7 @@ class Experience
     {
         $this->technologies = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = $this->createdAt;
     }
 
     public function getId(): ?int
