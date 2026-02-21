@@ -25,6 +25,15 @@ if ('test' === ($_SERVER['APP_ENV'] ?? $_ENV['APP_ENV'] ?? null)) {
 
         if ([] !== $metadata) {
             $schemaTool = new SchemaTool($entityManager);
+
+            // NOTE:
+            // We intentionally drop and recreate the database schema in the test bootstrap.
+            // This runs once per test process. When using paratest, each worker has its own
+            // bootstrap and (typically, via TEST_TOKEN) its own database, so isolation is preserved.
+            //
+            // Be aware that for complex schemas this can impact test performance, because each
+            // parallel worker will repeat the schema creation. If this becomes a bottleneck,
+            // consider using database snapshots, migrations-based setups, or fixtures instead.
             $schemaTool->dropSchema($metadata);
             $schemaTool->createSchema($metadata);
         }
