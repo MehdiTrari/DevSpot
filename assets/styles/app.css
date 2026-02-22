@@ -1,5 +1,4 @@
 @import "tailwindcss";
 
-body {
-    background-color: skyblue;
-}
+@source "../../templates/**/*.html.twig";
+@source "../**/*.js";

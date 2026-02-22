@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-md rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-xl shadow-violet-100/60 backdrop-blur sm:p-8">
+        <div class="mb-6">
+            <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-yellow-700">
+                <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                Espace public
+            </p>
+            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Connexion</h1>
+            <p class="mt-2 text-sm text-slate-500">Accede a ton espace DevSpot.</p>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        {% for message in app.flashes('verify_email_error') %}
+            <div class="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        {% if error %}
+            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {{ error.messageKey|trans(error.messageData, 'security') }}
+            </div>
+        {% endif %}
+
+        {% if app.user %}
+            <div class="mb-4 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-700">
+                Connecte en tant que {{ app.user.userIdentifier }}.
+                <a class="ml-1 font-semibold underline decoration-violet-300 underline-offset-2" href="{{ logout_path() }}">Se deconnecter</a>
+            </div>
+        {% endif %}
+
+        <form method="post" class="space-y-4">
+            <div class="space-y-1">
+                <label for="inputEmail" class="block text-sm font-medium text-slate-700">Email</label>
+                <input
+                    type="email"
+                    value="{{ last_username }}"
+                    name="email"
+                    id="inputEmail"
+                    class="block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100"
+                    autocomplete="email"
+                    required
+                    autofocus
+                >
+            </div>
+
+            <div class="space-y-1">
+                <label for="inputPassword" class="block text-sm font-medium text-slate-700">Mot de passe</label>
+                <input
+                    type="password"
+                    name="password"
+                    id="inputPassword"
+                    class="block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+
+            <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
+
+            <label class="inline-flex items-center gap-2 text-sm text-slate-600">
+                <input type="checkbox" name="_remember_me" class="h-4 w-4 rounded border-violet-300 text-violet-600 focus:ring-violet-500">
+                Se souvenir de moi
+            </label>
+
+            <button class="w-full rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700 focus:outline-none focus:ring-4 focus:ring-violet-200" type="submit">
+                Se connecter
+            </button>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-slate-500">
+            Pas encore de compte ?
+            <a href="{{ path('app_register') }}" class="font-semibold text-violet-700 underline decoration-violet-300 underline-offset-2">Creer un compte</a>
+        </p>
+    </section>
+{% endblock %}

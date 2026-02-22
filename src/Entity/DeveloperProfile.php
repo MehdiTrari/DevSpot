@@ -114,6 +114,7 @@ class DeveloperProfile
         $this->profileSkills = new ArrayCollection();
         $this->contactMessages = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
+        $this->updatedAt = $this->createdAt;
     }
 
     public function getId(): ?int

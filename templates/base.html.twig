@@ -2,16 +2,32 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-        {% endblock %}
-
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{% block title %}DevSpot{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><circle cx=%2264%22 cy=%2264%22 r=%2260%22 fill=%22%236d28d9%22/><circle cx=%2296%22 cy=%2232%22 r=%2216%22 fill=%22%23facc15%22/></svg>">
+        {% block stylesheets %}{% endblock %}
         {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
+            {% if app.environment != 'test' %}
+                {% block importmap %}{{ importmap('app') }}{% endblock %}
+            {% endif %}
         {% endblock %}
     </head>
-    <body>
-        {% block body %}{% endblock %}
+    <body class="min-h-screen bg-white text-slate-900 antialiased">
+        <div class="relative min-h-screen overflow-hidden">
+            <div class="pointer-events-none absolute -top-24 -left-20 h-72 w-72 rounded-full bg-violet-200/70 blur-3xl"></div>
+            <div class="pointer-events-none absolute -right-16 top-1/3 h-64 w-64 rounded-full bg-yellow-200/70 blur-3xl"></div>
+            <div class="pointer-events-none absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-violet-100/80 blur-3xl"></div>
+
+            <header class="relative z-10 mx-auto w-full max-w-6xl px-4 pt-6 sm:px-6 lg:px-8">
+                <a href="{{ path('app_login') }}" class="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white/90 px-4 py-2 text-sm font-semibold text-violet-700 shadow-sm backdrop-blur">
+                    <span class="h-2.5 w-2.5 rounded-full bg-yellow-300"></span>
+                    DevSpot
+                </a>
+            </header>
+
+            <main class="relative z-10 mx-auto flex min-h-[calc(100vh-84px)] w-full max-w-6xl items-center justify-center px-4 pb-8 pt-4 sm:px-6 lg:px-8">
+                {% block body %}{% endblock %}
+            </main>
+        </div>
     </body>
 </html>
