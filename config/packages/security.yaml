@@ -40,6 +40,7 @@ security:
             # switch_user: true
 
     role_hierarchy:
+        ROLE_APPLICANT: ROLE_USER
         ROLE_RECRUITER: ROLE_USER
         ROLE_ADMIN: [ROLE_USER, ROLE_RECRUITER]
         ROLE_SUPER_ADMIN: [ROLE_ADMIN, ROLE_ALLOWED_TO_SWITCH]
