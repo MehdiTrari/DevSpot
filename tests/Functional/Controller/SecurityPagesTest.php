@@ -109,6 +109,21 @@ final class SecurityPagesTest extends WebTestCase
         self::assertSelectorTextContains('body', 'Votre compte est en attente de validation.');
     }
 
+    public function testSuspendedUserCannotLogin(): void
+    {
+        $this->assertUserWithStatusCannotLogin(UserStatus::SUSPENDED);
+    }
+
+    public function testBannedUserCannotLogin(): void
+    {
+        $this->assertUserWithStatusCannotLogin(UserStatus::BANNED);
+    }
+
+    public function testDeletedUserCannotLogin(): void
+    {
+        $this->assertUserWithStatusCannotLogin(UserStatus::DELETED);
+    }
+
     public function testRegisterFormCreatesUserAndRedirectsToLogin(): void
     {
         $client = static::createClient();
@@ -176,6 +191,26 @@ final class SecurityPagesTest extends WebTestCase
     private function createActiveUser(string $email, string $plainPassword): User
     {
         return $this->createUserWithStatus($email, $plainPassword, UserStatus::ACTIVE);
+    }
+
+    private function assertUserWithStatusCannotLogin(UserStatus $status): void
+    {
+        $client = static::createClient();
+        $email = sprintf('%s_%s@example.com', strtolower($status->name), bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $this->createUserWithStatus($email, $password, $status);
+
+        $crawler = $client->request('GET', '/login');
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            'email' => $email,
+            'password' => $password,
+        ]));
+
+        self::assertResponseRedirects('/login');
+        $crawler = $client->followRedirect();
+        self::assertResponseIsSuccessful();
+        self::assertSame($email, $crawler->filter('#inputEmail')->attr('value'));
+        self::assertSelectorTextContains('body', 'Votre compte ne peut pas se connecter.');
     }
 
     private function createUserWithStatus(string $email, string $plainPassword, UserStatus $status): User
