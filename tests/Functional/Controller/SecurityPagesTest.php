@@ -89,6 +89,26 @@ final class SecurityPagesTest extends WebTestCase
         self::assertSelectorTextNotContains('body', sprintf('Connecte en tant que %s.', $email));
     }
 
+    public function testPendingUserCannotLogin(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('pending_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $this->createUserWithStatus($email, $password, UserStatus::PENDING);
+
+        $crawler = $client->request('GET', '/login');
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            'email' => $email,
+            'password' => $password,
+        ]));
+
+        self::assertResponseRedirects('/login');
+        $crawler = $client->followRedirect();
+        self::assertResponseIsSuccessful();
+        self::assertSame($email, $crawler->filter('#inputEmail')->attr('value'));
+        self::assertSelectorTextContains('body', 'Votre compte est en attente de validation.');
+    }
+
     public function testRegisterFormCreatesUserAndRedirectsToLogin(): void
     {
         $client = static::createClient();
@@ -155,6 +175,11 @@ final class SecurityPagesTest extends WebTestCase
 
     private function createActiveUser(string $email, string $plainPassword): User
     {
+        return $this->createUserWithStatus($email, $plainPassword, UserStatus::ACTIVE);
+    }
+
+    private function createUserWithStatus(string $email, string $plainPassword, UserStatus $status): User
+    {
         /** @var EntityManagerInterface $entityManager */
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
         /** @var UserPasswordHasherInterface $hasher */
@@ -163,7 +188,7 @@ final class SecurityPagesTest extends WebTestCase
         $user = new User();
         $user->setEmail($email);
         $user->setRoles(['ROLE_USER']);
-        $user->setStatus(UserStatus::ACTIVE);
+        $user->setStatus($status);
         $user->setIsVerified(true);
         $user->setPassword($hasher->hashPassword($user, $plainPassword));
 
