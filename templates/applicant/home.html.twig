@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon espace | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-3xl rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-xl shadow-violet-100/60 backdrop-blur sm:p-8">
+        <div class="mb-6">
+            <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-yellow-700">
+                <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                Espace candidat
+            </p>
+            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Bienvenue sur ton espace</h1>
+            <p class="mt-2 text-sm text-slate-500">
+                Cette page est volontairement minimale pour le moment.
+            </p>
+        </div>
+
+        {% for message in app.flashes('success') %}
+            <div class="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        {% for message in app.flashes('info') %}
+            <div class="mb-3 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-800">
+                {{ message }}
+            </div>
+        {% endfor %}
+
+        <div class="rounded-2xl border border-violet-100 bg-violet-50/70 p-5">
+            <p class="text-sm text-violet-800">
+                Prochaine étape : créer ton profil développeur.
+            </p>
+            <a
+                href="{{ path('app_applicant_profile_create') }}"
+                class="mt-4 inline-flex items-center justify-center rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700 focus:outline-none focus:ring-4 focus:ring-violet-200"
+            >
+                Créer mon profil dev
+            </a>
+        </div>
+    </section>
+{% endblock %}

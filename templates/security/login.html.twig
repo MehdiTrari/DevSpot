@@ -10,7 +10,7 @@
                 Espace public
             </p>
             <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Connexion</h1>
-            <p class="mt-2 text-sm text-slate-500">Accede a ton espace DevSpot.</p>
+            <p class="mt-2 text-sm text-slate-500">Accède à ton espace DevSpot.</p>
         </div>
 
         {% for message in app.flashes('success') %}
@@ -33,8 +33,8 @@
 
         {% if app.user %}
             <div class="mb-4 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-700">
-                Connecte en tant que {{ app.user.userIdentifier }}.
-                <a class="ml-1 font-semibold underline decoration-violet-300 underline-offset-2" href="{{ logout_path() }}">Se deconnecter</a>
+                Connecté en tant que {{ app.user.userIdentifier }}.
+                <a class="ml-1 font-semibold underline decoration-violet-300 underline-offset-2" href="{{ logout_path() }}">Se déconnecter</a>
             </div>
         {% endif %}
 
@@ -79,7 +79,7 @@
 
         <p class="mt-6 text-center text-sm text-slate-500">
             Pas encore de compte ?
-            <a href="{{ path('app_register') }}" class="font-semibold text-violet-700 underline decoration-violet-300 underline-offset-2">Creer un compte</a>
+            <a href="{{ path('app_register') }}" class="font-semibold text-violet-700 underline decoration-violet-300 underline-offset-2">Créer un compte</a>
         </p>
     </section>
 {% endblock %}

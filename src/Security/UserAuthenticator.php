@@ -70,6 +70,11 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
             return new RedirectResponse($targetPath);
         }
 
+        $user = $token->getUser();
+        if ($user instanceof User && in_array('ROLE_APPLICANT', $user->getRoles(), true)) {
+            return new RedirectResponse($this->urlGenerator->generate('app_applicant_home'));
+        }
+
         return new RedirectResponse($this->urlGenerator->generate('app_login'));
     }
 
