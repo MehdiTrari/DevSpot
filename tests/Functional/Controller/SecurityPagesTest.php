@@ -93,6 +93,11 @@ final class SecurityPagesTest extends WebTestCase
             'developer_profile[lastName]' => 'Martin',
             'developer_profile[headline]' => 'Developpeuse Symfony',
             'developer_profile[bio]' => 'Profil créé depuis un test fonctionnel.',
+            'developer_profile[city]' => 'Lyon',
+            'developer_profile[country]' => 'France',
+            'developer_profile[locationType]' => 'remote',
+            'developer_profile[experienceLevel]' => 'junior',
+            'developer_profile[yearsExperience]' => '2',
         ]));
 
         self::assertResponseRedirects('/applicant');
