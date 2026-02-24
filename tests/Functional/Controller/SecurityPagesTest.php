@@ -66,7 +66,7 @@ final class SecurityPagesTest extends WebTestCase
         self::assertResponseRedirects('/applicant');
         $client->followRedirect();
         self::assertSelectorTextContains('h1', 'Bienvenue sur ton espace');
-        self::assertSelectorTextContains('body', 'Creer mon profil dev');
+        self::assertSelectorExists('a[href="/applicant/profile/create"]');
     }
 
     public function testApplicantCanCreateDeveloperProfile(): void
@@ -84,9 +84,9 @@ final class SecurityPagesTest extends WebTestCase
         self::assertResponseRedirects('/applicant');
         $client->followRedirect();
 
-        $crawler = $client->clickLink('Creer mon profil dev');
+        $crawler = $client->click($crawler->filter('a[href="/applicant/profile/create"]')->link());
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('h1', 'Creer mon profil dev');
+        self::assertSelectorExists('h1');
 
         $client->submit($crawler->selectButton('Enregistrer mon profil')->form([
             'developer_profile[firstName]' => 'Mylene',
@@ -97,7 +97,8 @@ final class SecurityPagesTest extends WebTestCase
 
         self::assertResponseRedirects('/applicant');
         $client->followRedirect();
-        self::assertSelectorTextContains('body', 'Profil developpeur cree. Etape 1 terminee.');
+        self::assertSelectorTextContains('body', 'Etape 1 terminee');
+        self::assertSelectorExists('a[href="/applicant/profile/step-2"]');
 
         /** @var DeveloperProfileRepository $profiles */
         $profiles = static::getContainer()->get(DeveloperProfileRepository::class);
@@ -108,6 +109,52 @@ final class SecurityPagesTest extends WebTestCase
         self::assertSame('Martin', $profile->getLastName());
         self::assertSame('Developpeuse Symfony', $profile->getHeadline());
         self::assertNotEmpty($profile->getSlug());
+    }
+
+    public function testApplicantStepRoutesRedirectToCreateWhenProfileDoesNotExist(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('steps_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $this->createUserWithStatus($email, $password, UserStatus::ACTIVE, ['ROLE_APPLICANT']);
+
+        $crawler = $client->request('GET', '/login');
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            'email' => $email,
+            'password' => $password,
+        ]));
+        self::assertResponseRedirects('/applicant');
+        $client->followRedirect();
+
+        $client->request('GET', '/applicant/profile/step-2');
+        self::assertResponseRedirects('/applicant/profile/create');
+
+        $client->request('GET', '/applicant/profile/step-3');
+        self::assertResponseRedirects('/applicant/profile/create');
+
+        $client->request('GET', '/applicant/profile/step-4');
+        self::assertResponseRedirects('/applicant/profile/create');
+    }
+
+    public function testApplicantDashboardShowsLockedNextStepButtonsBeforeStep1(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('locked_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $this->createUserWithStatus($email, $password, UserStatus::ACTIVE, ['ROLE_APPLICANT']);
+
+        $crawler = $client->request('GET', '/login');
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            'email' => $email,
+            'password' => $password,
+        ]));
+        self::assertResponseRedirects('/applicant');
+        $client->followRedirect();
+
+        self::assertSelectorExists('a[href="/applicant/profile/create"]');
+        self::assertSelectorNotExists('a[href="/applicant/profile/step-2"]');
+        self::assertSelectorNotExists('a[href="/applicant/profile/step-3"]');
+        self::assertSelectorNotExists('a[href="/applicant/profile/step-4"]');
     }
 
     public function testLoginFormShowsErrorWithWrongPassword(): void
