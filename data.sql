@@ -52,3 +52,46 @@ INSERT INTO technology (name, category) VALUES
 ('HTML', 'Frontend'),
 ('CSS', 'Frontend'),
 ('Tailwind CSS', 'Frontend');
+
+INSERT INTO position (name) VALUES
+('Software Developer'),
+('Backend Developer'),
+('Frontend Developer'),
+('Full Stack Developer'),
+('Web Developer'),
+('Mobile Developer'),
+
+('Symfony Developer'),
+('PHP Developer'),
+('JavaScript Developer'),
+('React Developer'),
+('Vue.js Developer'),
+('Node.js Developer'),
+
+('DevOps Engineer'),
+('Cloud Engineer'),
+('Site Reliability Engineer'),
+
+('Data Engineer'),
+('Data Scientist'),
+('Machine Learning Engineer'),
+
+('QA Engineer'),
+('Test Automation Engineer'),
+
+('System Administrator'),
+('Network Engineer'),
+
+('Cybersecurity Engineer'),
+('Security Analyst'),
+
+('Technical Lead'),
+('Engineering Manager'),
+('CTO'),
+
+('Product Manager'),
+('Product Owner'),
+('Scrum Master'),
+
+('UI/UX Designer'),
+('UX Researcher');

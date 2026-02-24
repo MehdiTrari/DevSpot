@@ -1,9 +1,8 @@
 {% extends 'base.html.twig' %}
-{% use 'form_div_layout.html.twig' %}
+
+{% form_theme profileForm 'form/my_theme.html.twig' _self %}
 
 {% block title %}Étape 2 | DevSpot{% endblock %}
-
-{% form_theme profileForm _self %}
 
 {% block body %}
     <section class="w-full max-w-4xl rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-xl shadow-violet-100/60 backdrop-blur sm:p-8">
@@ -12,7 +11,7 @@
                 <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
                 Profil développeur
             </p>
-            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Étape 2 - Expériences, éducation, skills</h1>
+            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Étape 2 - Expériences, éducation, compétences</h1>
             <p class="mt-2 text-sm text-slate-500">Ajoute au moins une expérience, une formation et une compétence.</p>
         </div>
 
@@ -172,46 +171,9 @@
     </script>
 {% endblock %}
 
-{# --- FORM THEME TAILWIND --- #}
-
-{% block form_row %}
-    <div class="mb-4">
-        {{ form_label(form) }}
-        {{ form_widget(form) }}
-        {{ form_errors(form) }}
-        {{ form_help(form) }}
-    </div>
-{% endblock %}
-
-{% block form_label %}
-    {% set label_attr = label_attr|merge({'class': (label_attr.class|default('') ~ ' block text-sm font-medium text-slate-700 mb-1.5')|trim}) %}
-    {{ parent() }}
-{% endblock %}
-
-{% block form_widget_simple %}
-    {% set attr = attr|merge({'class': (attr.class|default('') ~ ' block w-full rounded-xl border-slate-200 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm transition duration-150 ease-in-out py-2.5')|trim}) %}
-    {{ parent() }}
-{% endblock %}
-
-{% block textarea_widget %}
-    {% set attr = attr|merge({'class': (attr.class|default('') ~ ' block w-full rounded-xl border-slate-200 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm transition duration-150 ease-in-out py-2.5')|trim}) %}
-    {{ parent() }}
-{% endblock %}
-
-{% block choice_widget_collapsed %}
-    {% set attr = attr|merge({'class': (attr.class|default('') ~ ' block w-full rounded-xl border-slate-200 shadow-sm focus:border-violet-500 focus:ring-violet-500 sm:text-sm transition duration-150 ease-in-out py-2.5')|trim}) %}
-    {{ parent() }}
-{% endblock %}
-
-{% block form_errors %}
-    {% if errors|length > 0 %}
-        <p class="mt-1 text-sm text-red-600">{{ errors[0].message }}</p>
-    {% endif %}
-{% endblock %}
-
 {# Layout Grid pour les sous-formulaires #}
 {% block _developer_profile_experiences_entry_widget %}
-    <div class="grid grid-cols-1 gap-x-4 gap-y-2 md:grid-cols-2">
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2 p-2">
         {% for child in form %}
             <div class="{{ child.vars.name in ['description', 'bio'] ? 'md:col-span-2' : '' }}">
                 {{ form_row(child) }}
@@ -231,10 +193,11 @@
 {% endblock %}
 
 {% block _developer_profile_profileSkills_entry_widget %}
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 items-start">
+    <div class="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2 p-2">
         {% for child in form %}
-            {{ form_row(child) }}
+            <div class="{{ child.vars.name == 'years' ? 'sm:col-span-1' : '' }}">
+                {{ form_row(child) }}
+            </div>
         {% endfor %}
     </div>
 {% endblock %}
-
