@@ -18,9 +18,6 @@ class Position
     #[ORM\Column(length: 255, unique: true)]
     private ?string $name = null;
 
-    #[ORM\Column]
-    private \DateTimeImmutable $createdAt;
-
     /**
      * @var Collection<int, DeveloperProfile>
      */
@@ -30,7 +27,6 @@ class Position
     public function __construct()
     {
         $this->developerProfiles = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -48,11 +44,6 @@ class Position
         $this->name = $name;
 
         return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
     }
 
     /**

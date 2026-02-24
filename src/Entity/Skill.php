@@ -21,9 +21,6 @@ class Skill
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $category = null;
 
-    #[ORM\Column]
-    private \DateTimeImmutable $createdAt;
-
     /**
      * @var Collection<int, ProfileSkill>
      */
@@ -33,7 +30,6 @@ class Skill
     public function __construct()
     {
         $this->profileSkills = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -63,11 +59,6 @@ class Skill
         $this->category = $category;
 
         return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
     }
 
     /**

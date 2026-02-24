@@ -31,10 +31,12 @@
                     <p class="font-medium text-slate-900">{{ app.user.email }}</p>
                     <p class="mt-1">
                         Statut profil :
-                        {% if profile %}
-                            <span class="font-semibold text-emerald-700">créé</span>
-                        {% else %}
+                        {% if profile is null %}
                             <span class="font-semibold text-amber-700">à créer</span>
+                        {% elseif doneCount < 4 %}
+                            <span class="font-semibold text-violet-700">en cours</span>
+                        {% else %}
+                            <span class="font-semibold text-emerald-700">créé</span>
                         {% endif %}
                     </p>
                 </div>

@@ -1,0 +1,60 @@
+# Front-only translations for values stored in English in DB.
+# Pattern used by forms:
+# - skill.<normalized_name>
+# - technology.<normalized_name>
+# - position.<normalized_name>
+
+skill:
+  communication: Communication
+  teamwork: Travail en équipe
+  problem_solving: Resolution de problèmes
+  leadership: Leadership
+  adaptability: Adaptabilité
+  time_management: Gestion du temps
+  critical_thinking: Esprit critique
+  creativity: Créativité
+  php: PHP
+  symfony: Symfony
+  laravel: Laravel
+  javascript: JavaScript
+  typescript: TypeScript
+  react: React
+  vue_js: Vue.js
+  node_js: Node.js
+  sql: SQL
+  mysql: MySQL
+  postgresql: PostgreSQL
+  docker: Docker
+  git: Git
+  html: HTML
+  css: CSS
+  tailwind_css: Tailwind CSS
+
+technology:
+  php: PHP
+  symfony: Symfony
+  laravel: Laravel
+  javascript: JavaScript
+  typescript: TypeScript
+  react: React
+  vue_js: Vue.js
+  node_js: Node.js
+  mysql: MySQL
+  postgresql: PostgreSQL
+  docker: Docker
+  kubernetes: Kubernetes
+  redis: Redis
+  elasticsearch: Elasticsearch
+  html: HTML
+  css: CSS
+  tailwind_css: Tailwind CSS
+
+position:
+  backend_developer: Développeur Back-end
+  frontend_developer: Développeur Front-end
+  full_stack_developer: Développeur Full-stack
+  mobile_developer: Développeur Mobile
+  devops_engineer: Ingénieur DevOps
+  qa_engineer: Ingénieur QA
+  data_engineer: Data Engineer
+  software_engineer: Ingénieur Logiciel

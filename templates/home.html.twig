@@ -1,0 +1,77 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-4xl rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-xl shadow-violet-100/60 backdrop-blur sm:p-8">
+        <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+                <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-yellow-700">
+                    <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                    Espace public
+                </p>
+                <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Bienvenue sur DevSpot</h1>
+                <p class="mt-2 text-sm text-slate-500">
+                    {% if app.user %}
+                        Connecte en tant que {{ app.user.userIdentifier }}.
+                    {% else %}
+                        Decouvre DevSpot et connecte-toi pour acceder a ton espace.
+                    {% endif %}
+                </p>
+            </div>
+
+            {% if app.user %}
+                <a href="{{ logout_path() }}"
+                   class="inline-flex items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">
+                    Se deconnecter
+                </a>
+            {% else %}
+                <div class="flex gap-2">
+                    <a href="{{ path('app_login') }}" class="inline-flex items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">
+                        Se connecter
+                    </a>
+                    <a href="{{ path('app_register') }}" class="inline-flex items-center justify-center rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700">
+                        Créer un compte
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-700">Mon espace</h2>
+                <p class="mt-2 text-sm text-slate-600">
+                    Accède à ton dashboard et à tes informations.
+                </p>
+
+                {% if app.user and is_granted('ROLE_APPLICANT') %}
+                    <a href="{{ path('app_applicant_home') }}"
+                       class="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700">
+                        Dashboard / Profil candidat
+                    </a>
+                {% elseif app.user %}
+                    <div class="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
+                        Dashboard spécifique non configuré pour ton role pour le moment.
+                    </div>
+                {% else %}
+                    <div class="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
+                        Connecte-toi pour accéder à ton dashboard et à ton profil.
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-700">Compte</h2>
+                {% if app.user %}
+                    <ul class="mt-3 space-y-2 text-sm text-slate-700">
+                        <li>Email : <span class="font-medium text-slate-900">{{ app.user.userIdentifier }}</span></li>
+                        <li>Roles : <span class="font-medium text-slate-900">{{ app.user.roles|join(', ') }}</span></li>
+                    </ul>
+                {% else %}
+                    <p class="mt-2 text-sm text-slate-600">Aucune session active pour le moment.</p>
+                    <p class="mt-1 text-xs text-slate-500">Connecte-toi pour voir tes informations de compte.</p>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+{% endblock %}

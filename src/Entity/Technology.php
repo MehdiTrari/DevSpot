@@ -21,9 +21,6 @@ class Technology
     #[ORM\Column(length: 255)]
     private ?string $category = null;
 
-    #[ORM\Column]
-    private \DateTimeImmutable $createdAt;
-
     /**
      * @var Collection<int, Experience>
      */
@@ -33,7 +30,6 @@ class Technology
     public function __construct()
     {
         $this->experiences = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -63,11 +59,6 @@ class Technology
         $this->category = $category;
 
         return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
     }
 
     /**
