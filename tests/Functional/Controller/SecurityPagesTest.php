@@ -82,7 +82,7 @@ final class SecurityPagesTest extends WebTestCase
             'password' => $password,
         ]));
         self::assertResponseRedirects('/applicant');
-        $client->followRedirect();
+        $crawler = $client->followRedirect();
 
         $crawler = $client->click($crawler->filter('a[href="/applicant/profile/create"]')->link());
         self::assertResponseIsSuccessful();
