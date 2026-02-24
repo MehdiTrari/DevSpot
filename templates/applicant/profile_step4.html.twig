@@ -1,18 +1,18 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Etape 4 | DevSpot{% endblock %}
+{% block title %}Étape 4 | DevSpot{% endblock %}
 
 {% block body %}
     <section class="w-full max-w-2xl rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-xl shadow-violet-100/60 backdrop-blur sm:p-8">
         <div class="mb-6">
-            <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-yellow-700"><span class="h-2 w-2 rounded-full bg-yellow-400"></span>Profil developpeur</p>
-            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Etape 4 - Postes recherches</h1>
-            <p class="mt-2 text-sm text-slate-500">Selectionne les postes que tu recherches.</p>
+            <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-yellow-700"><span class="h-2 w-2 rounded-full bg-yellow-400"></span>Profil développeur</p>
+            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Étape 4 - Postes recherchés</h1>
+            <p class="mt-2 text-sm text-slate-500">Sélectionne les postes que tu recherches.</p>
         </div>
 
         {{ form_start(profileForm, {attr: {class: 'space-y-4'}}) }}
             {{ form_row(profileForm.desiredPositions, {
-                label: 'Postes recherches',
+                label: 'Postes recherchés',
                 attr: { class: 'block min-h-28 w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900' }
             }) }}
 

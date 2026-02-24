@@ -1,16 +1,16 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Etape 2 | DevSpot{% endblock %}
+{% block title %}Étape 2 | DevSpot{% endblock %}
 
 {% block body %}
     <section class="w-full max-w-4xl rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-xl shadow-violet-100/60 backdrop-blur sm:p-8">
         <div class="mb-6">
             <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-yellow-700">
                 <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
-                Profil developpeur
+                Profil développeur
             </p>
-            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Etape 2 - Experiences, education, skills</h1>
-            <p class="mt-2 text-sm text-slate-500">Ajoute au moins une experience, une formation et une competence.</p>
+            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Étape 2 - Expériences, éducation, skills</h1>
+            <p class="mt-2 text-sm text-slate-500">Ajoute au moins une expérience, une formation et une compétence.</p>
         </div>
 
         {% if form_errors(profileForm) %}
@@ -27,7 +27,7 @@
                         </div>
                         <button type="button" class="rounded-lg border border-violet-200 bg-white px-3 py-2 text-xs font-semibold text-violet-700" data-collection-add="#profile-skills-list">Ajouter</button>
                     </div>
-                    <div id="profile-skills-list" class="space-y-3" data-collection-list data-empty-text="Aucun skill ajoute." data-index="{{ profileForm.profileSkills|length }}" data-prototype="{{ form_widget(profileForm.profileSkills.vars.prototype)|e('html_attr') }}">
+                    <div id="profile-skills-list" class="space-y-3" data-collection-list data-empty-text="Aucun skill ajouté." data-index="{{ profileForm.profileSkills|length }}" data-prototype="{{ form_widget(profileForm.profileSkills.vars.prototype)|e('html_attr') }}">
                         {% for item in profileForm.profileSkills %}
                             <div class="rounded-xl border border-violet-100 bg-white p-4" data-collection-item>
                                 {{ form_widget(item) }}
@@ -41,12 +41,12 @@
                 <div class="rounded-2xl border border-violet-100 bg-violet-50/40 p-4">
                     <div class="mb-3 flex items-center justify-between gap-3">
                         <div>
-                            <h2 class="text-sm font-semibold uppercase tracking-wide text-violet-800">Experiences</h2>
-                            <p class="text-xs text-slate-500">Experiences pro et technologies utilisees.</p>
+                            <h2 class="text-sm font-semibold uppercase tracking-wide text-violet-800">Expériences</h2>
+                            <p class="text-xs text-slate-500">Expériences pro et technologies utilisées.</p>
                         </div>
                         <button type="button" class="rounded-lg border border-violet-200 bg-white px-3 py-2 text-xs font-semibold text-violet-700" data-collection-add="#experiences-list">Ajouter</button>
                     </div>
-                    <div id="experiences-list" class="space-y-3" data-collection-list data-empty-text="Aucune experience ajoutee." data-index="{{ profileForm.experiences|length }}" data-prototype="{{ form_widget(profileForm.experiences.vars.prototype)|e('html_attr') }}">
+                    <div id="experiences-list" class="space-y-3" data-collection-list data-empty-text="Aucune expérience ajoutée." data-index="{{ profileForm.experiences|length }}" data-prototype="{{ form_widget(profileForm.experiences.vars.prototype)|e('html_attr') }}">
                         {% for item in profileForm.experiences %}
                             <div class="rounded-xl border border-violet-100 bg-white p-4" data-collection-item>
                                 {{ form_widget(item) }}
@@ -60,12 +60,12 @@
                 <div class="rounded-2xl border border-violet-100 bg-violet-50/40 p-4">
                     <div class="mb-3 flex items-center justify-between gap-3">
                         <div>
-                            <h2 class="text-sm font-semibold uppercase tracking-wide text-violet-800">Education</h2>
+                            <h2 class="text-sm font-semibold uppercase tracking-wide text-violet-800">Éducation</h2>
                             <p class="text-xs text-slate-500">Formations principales.</p>
                         </div>
                         <button type="button" class="rounded-lg border border-violet-200 bg-white px-3 py-2 text-xs font-semibold text-violet-700" data-collection-add="#education-list">Ajouter</button>
                     </div>
-                    <div id="education-list" class="space-y-3" data-collection-list data-empty-text="Aucune formation ajoutee." data-index="{{ profileForm.education|length }}" data-prototype="{{ form_widget(profileForm.education.vars.prototype)|e('html_attr') }}">
+                    <div id="education-list" class="space-y-3" data-collection-list data-empty-text="Aucune formation ajoutée." data-index="{{ profileForm.education|length }}" data-prototype="{{ form_widget(profileForm.education.vars.prototype)|e('html_attr') }}">
                         {% for item in profileForm.education %}
                             <div class="rounded-xl border border-violet-100 bg-white p-4" data-collection-item>
                                 {{ form_widget(item) }}
@@ -110,7 +110,7 @@
                 const empty = document.createElement('p');
                 empty.className = 'text-sm text-slate-500';
                 empty.dataset.collectionEmpty = '';
-                empty.textContent = list.dataset.emptyText || 'Aucun element ajoute.';
+                empty.textContent = list.dataset.emptyText || 'Aucun élément ajouté.';
                 list.appendChild(empty);
             };
 

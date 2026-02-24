@@ -41,7 +41,7 @@ final class ApplicantController extends AbstractController
         $user = $this->getApplicantUser();
 
         if (null !== $user->getDeveloperProfile()) {
-            $this->addFlash('info', 'Ton profil developpeur existe deja.');
+            $this->addFlash('info', 'Ton profil développeur existe déjà.');
 
             return $this->redirectToRoute('app_applicant_profile_step1');
         }
@@ -59,7 +59,7 @@ final class ApplicantController extends AbstractController
             $entityManager->persist($profile);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Profil developpeur cree. Etape 1 terminee.');
+            $this->addFlash('success', 'Profil développeur créé. Étape 1 terminée.');
 
             return $this->redirectToRoute('app_applicant_home');
         }
@@ -83,7 +83,7 @@ final class ApplicantController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', 'Etape 1 mise a jour.');
+            $this->addFlash('success', 'Étape 1 mise à jour.');
 
             return $this->redirectToRoute('app_applicant_home');
         }
@@ -107,7 +107,7 @@ final class ApplicantController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', 'Etape 2 mise a jour.');
+            $this->addFlash('success', 'Étape 2 mise à jour.');
 
             return $this->redirectToRoute('app_applicant_home');
         }
@@ -131,7 +131,7 @@ final class ApplicantController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', 'Etape 3 mise a jour.');
+            $this->addFlash('success', 'Étape 3 mise à jour.');
 
             return $this->redirectToRoute('app_applicant_home');
         }
@@ -155,7 +155,7 @@ final class ApplicantController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-            $this->addFlash('success', 'Etape 4 mise a jour.');
+            $this->addFlash('success', 'Étape 4 mise à jour.');
 
             return $this->redirectToRoute('app_applicant_home');
         }
@@ -214,22 +214,22 @@ final class ApplicantController extends AbstractController
             'step1' => [
                 'done' => $step1Done,
                 'route' => null === $profile ? 'app_applicant_profile_create' : 'app_applicant_profile_step1',
-                'label' => 'Etape 1 - Infos générales',
+                'label' => 'Étape 1 - Infos générales',
             ],
             'step2' => [
                 'done' => $step2Done,
                 'route' => 'app_applicant_profile_step2',
-                'label' => 'Etape 2 - Expériences, éducation, skills',
+                'label' => 'Étape 2 - Expériences, éducation, skills',
             ],
             'step3' => [
                 'done' => $step3Done,
                 'route' => 'app_applicant_profile_step3',
-                'label' => 'Etape 3 - Liens externes',
+                'label' => 'Étape 3 - Liens externes',
             ],
             'step4' => [
                 'done' => $step4Done,
                 'route' => 'app_applicant_profile_step4',
-                'label' => 'Etape 4 - Postes recherchés',
+                'label' => 'Étape 4 - Postes recherchés',
             ],
         ];
     }

@@ -1,16 +1,16 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Creer mon profil | DevSpot{% endblock %}
+{% block title %}Créer mon profil | DevSpot{% endblock %}
 
 {% block body %}
     <section class="w-full max-w-2xl rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-xl shadow-violet-100/60 backdrop-blur sm:p-8">
         <div class="mb-6">
             <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-yellow-700">
                 <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
-                Profil developpeur
+                Profil développeur
             </p>
-            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Creer mon profil dev</h1>
-            <p class="mt-2 text-sm text-slate-500">Etape 1 sur 4 - informations generales.</p>
+            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Créer mon profil dev</h1>
+            <p class="mt-2 text-sm text-slate-500">Étape 1 sur 4 - informations générales.</p>
         </div>
 
         {% if form_errors(profileForm) %}
@@ -21,11 +21,11 @@
 
         {{ form_start(profileForm, {attr: {class: 'space-y-4'}}) }}
             <div class="grid gap-4 sm:grid-cols-2">
-                {{ form_row(profileForm.firstName, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', placeholder: 'Prenom' } }) }}
+                {{ form_row(profileForm.firstName, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', placeholder: 'Prénom' } }) }}
                 {{ form_row(profileForm.lastName, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', placeholder: 'Nom' } }) }}
             </div>
 
-            {{ form_row(profileForm.headline, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', placeholder: 'Ex: Developpeur Symfony / React' } }) }}
+            {{ form_row(profileForm.headline, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', placeholder: 'Ex: Développeur Symfony / React' } }) }}
 
             <div class="grid gap-4 sm:grid-cols-2">
                 {{ form_row(profileForm.city, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', placeholder: 'Ville' } }) }}
@@ -37,7 +37,7 @@
                 {{ form_row(profileForm.experienceLevel, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900' } }) }}
             </div>
 
-            {{ form_row(profileForm.yearsExperience, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', min: 0, placeholder: 'Annees d experience' } }) }}
+            {{ form_row(profileForm.yearsExperience, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', min: 0, placeholder: "Années d'expérience" } }) }}
             {{ form_row(profileForm.bio, { attr: { class: 'block min-h-28 w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', placeholder: 'Bio' } }) }}
 
             <div class="flex items-center gap-3">

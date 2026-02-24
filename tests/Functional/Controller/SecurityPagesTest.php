@@ -47,7 +47,7 @@ final class SecurityPagesTest extends WebTestCase
 
         self::assertResponseRedirects('/login');
         $client->followRedirect();
-        self::assertSelectorTextContains('body', sprintf('Connecte en tant que %s.', $email));
+        self::assertSelectorTextContains('body', sprintf('Connecté en tant que %s.', $email));
     }
 
     public function testApplicantIsRedirectedToApplicantHomeAfterLogin(): void
@@ -97,7 +97,7 @@ final class SecurityPagesTest extends WebTestCase
 
         self::assertResponseRedirects('/applicant');
         $client->followRedirect();
-        self::assertSelectorTextContains('body', 'Etape 1 terminee');
+        self::assertSelectorTextContains('body', 'Étape 1 terminée');
         self::assertSelectorExists('a[href="/applicant/profile/step-2"]');
 
         /** @var DeveloperProfileRepository $profiles */
@@ -189,12 +189,12 @@ final class SecurityPagesTest extends WebTestCase
             'password' => $password,
         ]));
         $client->followRedirect();
-        self::assertSelectorTextContains('body', sprintf('Connecte en tant que %s.', $email));
+        self::assertSelectorTextContains('body', sprintf('Connecté en tant que %s.', $email));
 
         $client->request('GET', '/logout');
         self::assertResponseStatusCodeSame(302);
         $client->followRedirect();
-        self::assertSelectorTextNotContains('body', sprintf('Connecte en tant que %s.', $email));
+        self::assertSelectorTextNotContains('body', sprintf('Connecté en tant que %s.', $email));
     }
 
     public function testPendingUserCannotLogin(): void
@@ -293,7 +293,7 @@ final class SecurityPagesTest extends WebTestCase
         ]));
 
         self::assertResponseStatusCodeSame(422);
-        self::assertSelectorTextContains('body', 'Le mot de passe doit contenir au moins 8 caracteres, une minuscule, une majuscule, un chiffre et un caractere special.');
+        self::assertSelectorTextContains('body', 'Le mot de passe doit contenir au moins 8 caractères, une minuscule, une majuscule, un chiffre et un caractère spécial.');
     }
 
     public function testRegisterFormShowsErrorWhenPasswordIsNotComplexEnough(): void
@@ -308,7 +308,7 @@ final class SecurityPagesTest extends WebTestCase
         ]));
 
         self::assertResponseStatusCodeSame(422);
-        self::assertSelectorTextContains('body', 'Le mot de passe doit contenir au moins 8 caracteres, une minuscule, une majuscule, un chiffre et un caractere special.');
+        self::assertSelectorTextContains('body', 'Le mot de passe doit contenir au moins 8 caractères, une minuscule, une majuscule, un chiffre et un caractère spécial.');
     }
     private function createActiveUser(string $email, string $plainPassword): User
     {

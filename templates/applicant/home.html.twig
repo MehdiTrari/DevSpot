@@ -23,7 +23,7 @@
                         <div class="h-2.5 w-full rounded-full bg-slate-200">
                             <div class="h-2.5 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-300" style="width: {{ progressPercent }}%;"></div>
                         </div>
-                        <p class="mt-2 text-xs text-slate-500">{{ progressPercent }}% complete</p>
+                        <p class="mt-2 text-xs text-slate-500">{{ progressPercent }}% complété</p>
                     </div>
                 </div>
 
@@ -32,7 +32,7 @@
                     <p class="mt-1">
                         Statut profil :
                         {% if profile %}
-                            <span class="font-semibold text-emerald-700">crée</span>
+                            <span class="font-semibold text-emerald-700">créé</span>
                         {% else %}
                             <span class="font-semibold text-amber-700">à créer</span>
                         {% endif %}
@@ -51,7 +51,7 @@
         <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
             <div class="rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-lg shadow-violet-100/40">
                 {% if profile is null %}
-                    <h2 class="text-xl font-semibold text-violet-900">Créer votre profil developpeur</h2>
+                    <h2 class="text-xl font-semibold text-violet-900">Créer votre profil développeur</h2>
                     <p class="mt-2 text-sm leading-6 text-slate-600">Commence par l'étape 1 pour créer le profil puis reviens ici pour avancer.</p>
                     <a href="{{ path('app_applicant_profile_create') }}" class="mt-5 inline-flex items-center justify-center rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700">Créer mon profil dev</a>
                 {% else %}
@@ -100,33 +100,33 @@
                     {% set canStep4 = profile is not null and checklist.step3.done %}
                     <div class="mt-4 space-y-3">
                         <a href="{{ path(checklist.step1.route) }}" class="flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition {{ profile is null ? 'bg-violet-600 text-white hover:bg-violet-700' : 'border border-violet-200 bg-white text-violet-700 hover:bg-violet-50' }}">
-                            {{ profile is null ? 'Créer mon profil dev' : 'Etape 1 : Infos générales' }}
+                            {{ profile is null ? 'Créer mon profil dev' : 'Étape 1 : Infos générales' }}
                         </a>
                         {% if canStep2 %}
                             <a href="{{ path('app_applicant_profile_step2') }}" class="flex w-full items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">
-                                Etape 2 : Expériences / Education / Skills
+                                Étape 2 : Expériences / Éducation / Skills
                             </a>
                         {% else %}
                             <div class="flex w-full cursor-not-allowed items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-400">
-                                Etape 2 : Expériences / Education / Skills
+                                Étape 2 : Expériences / Éducation / Skills
                             </div>
                         {% endif %}
                         {% if canStep3 %}
                             <a href="{{ path('app_applicant_profile_step3') }}" class="flex w-full items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">
-                                Etape 3 : Liens externes
+                                Étape 3 : Liens externes
                             </a>
                         {% else %}
                             <div class="flex w-full cursor-not-allowed items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-400">
-                                Etape 3 : Liens externes
+                                Étape 3 : Liens externes
                             </div>
                         {% endif %}
                         {% if canStep4 %}
                             <a href="{{ path('app_applicant_profile_step4') }}" class="flex w-full items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">
-                                Etape 4 : Postes recherchés
+                                Étape 4 : Postes recherchés
                             </a>
                         {% else %}
                             <div class="flex w-full cursor-not-allowed items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-400">
-                                Etape 4 : Postes recherchés
+                                Étape 4 : Postes recherchés
                             </div>
                         {% endif %}
                     </div>

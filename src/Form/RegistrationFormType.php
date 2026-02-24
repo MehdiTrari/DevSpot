@@ -44,7 +44,7 @@ class RegistrationFormType extends AbstractType
                     ),
                     new Regex(
                         pattern: '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d]).{8,}$/',
-                        message: 'Le mot de passe doit contenir au moins 8 caractères, une minuscule, une majuscule, un chiffre et un caractere special.',
+                        message: 'Le mot de passe doit contenir au moins 8 caractères, une minuscule, une majuscule, un chiffre et un caractère spécial.',
                     ),
                 ],
             ])

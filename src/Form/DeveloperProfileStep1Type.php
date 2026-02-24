@@ -35,11 +35,11 @@ class DeveloperProfileStep1Type extends AbstractType
             ->add('experienceLevel', EnumType::class, [
                 'class' => ExperienceLevel::class,
                 'required' => false,
-                'placeholder' => "Choisir un niveau d'experience",
+                'placeholder' => "Choisir un niveau d'expérience",
                 'choice_label' => static fn (ExperienceLevel $choice) => match ($choice) {
                     ExperienceLevel::INTERN => 'Stagiaire',
                     ExperienceLevel::JUNIOR => 'Junior',
-                    ExperienceLevel::MID => 'Confirme',
+                    ExperienceLevel::MID => 'Confirmé',
                     ExperienceLevel::SENIOR => 'Senior',
                     ExperienceLevel::LEAD => 'Lead',
                 },
