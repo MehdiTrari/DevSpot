@@ -8,6 +8,7 @@ use App\Enum\ExperienceLevel;
 use App\Enum\LocationType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -76,6 +77,33 @@ class DeveloperProfileType extends AbstractType
                 'required' => false,
                 'multiple' => true,
                 'expanded' => false,
+            ])
+            ->add('profileSkills', CollectionType::class, [
+                'entry_type' => ProfileSkillType::class,
+                'entry_options' => ['label' => false],
+                'allow_add' => true,
+                'allow_delete' => true,
+                'by_reference' => false,
+                'required' => false,
+                'prototype' => true,
+            ])
+            ->add('experiences', CollectionType::class, [
+                'entry_type' => ExperienceType::class,
+                'entry_options' => ['label' => false],
+                'allow_add' => true,
+                'allow_delete' => true,
+                'by_reference' => false,
+                'required' => false,
+                'prototype' => true,
+            ])
+            ->add('education', CollectionType::class, [
+                'entry_type' => EducationType::class,
+                'entry_options' => ['label' => false],
+                'allow_add' => true,
+                'allow_delete' => true,
+                'by_reference' => false,
+                'required' => false,
+                'prototype' => true,
             ])
         ;
     }

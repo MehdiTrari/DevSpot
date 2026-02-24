@@ -85,19 +85,19 @@ class DeveloperProfile
     /**
      * @var Collection<int, Experience>
      */
-    #[ORM\OneToMany(targetEntity: Experience::class, mappedBy: 'developerProfile')]
+    #[ORM\OneToMany(targetEntity: Experience::class, mappedBy: 'developerProfile', cascade: ['persist'])]
     private Collection $experiences;
 
     /**
      * @var Collection<int, Education>
      */
-    #[ORM\OneToMany(targetEntity: Education::class, mappedBy: 'developerProfile')]
+    #[ORM\OneToMany(targetEntity: Education::class, mappedBy: 'developerProfile', cascade: ['persist'])]
     private Collection $education;
 
     /**
      * @var Collection<int, ProfileSkill>
      */
-    #[ORM\OneToMany(targetEntity: ProfileSkill::class, mappedBy: 'developerProfile', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: ProfileSkill::class, mappedBy: 'developerProfile', cascade: ['persist'], orphanRemoval: true)]
     private Collection $profileSkills;
 
     /**

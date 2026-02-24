@@ -4,7 +4,10 @@ namespace App\Controller;
 
 use App\Entity\DeveloperProfile;
 use App\Entity\User;
-use App\Form\DeveloperProfileType;
+use App\Form\DeveloperProfileStep1Type;
+use App\Form\DeveloperProfileStep2Type;
+use App\Form\DeveloperProfileStep3Type;
+use App\Form\DeveloperProfileStep4Type;
 use App\Repository\DeveloperProfileRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +22,13 @@ final class ApplicantController extends AbstractController
     #[IsGranted('ROLE_APPLICANT')]
     public function home(): Response
     {
-        return $this->render('applicant/home.html.twig');
+        $user = $this->getApplicantUser();
+        $profile = $user->getDeveloperProfile();
+
+        return $this->render('applicant/home.html.twig', [
+            'profile' => $profile,
+            'checklist' => $this->buildChecklist($profile),
+        ]);
     }
 
     #[Route('/applicant/profile/create', name: 'app_applicant_profile_create')]
@@ -28,21 +37,17 @@ final class ApplicantController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         DeveloperProfileRepository $developerProfileRepository,
-    ): Response
-    {
-        $user = $this->getUser();
-        if (!$user instanceof User) {
-            throw $this->createAccessDeniedException();
-        }
+    ): Response {
+        $user = $this->getApplicantUser();
 
         if (null !== $user->getDeveloperProfile()) {
-            $this->addFlash('info', 'Ton profil developpeur existe déja.');
+            $this->addFlash('info', 'Ton profil developpeur existe deja.');
 
-            return $this->redirectToRoute('app_applicant_home');
+            return $this->redirectToRoute('app_applicant_profile_step1');
         }
 
         $profile = new DeveloperProfile();
-        $form = $this->createForm(DeveloperProfileType::class, $profile);
+        $form = $this->createForm(DeveloperProfileStep1Type::class, $profile);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -54,7 +59,7 @@ final class ApplicantController extends AbstractController
             $entityManager->persist($profile);
             $entityManager->flush();
 
-            $this->addFlash('success', 'Profil développeur créé.');
+            $this->addFlash('success', 'Profil developpeur cree. Etape 1 terminee.');
 
             return $this->redirectToRoute('app_applicant_home');
         }
@@ -62,6 +67,171 @@ final class ApplicantController extends AbstractController
         return $this->render('applicant/create_profile.html.twig', [
             'profileForm' => $form,
         ]);
+    }
+
+    #[Route('/applicant/profile/step-1', name: 'app_applicant_profile_step1')]
+    #[IsGranted('ROLE_APPLICANT')]
+    public function editProfileStep1(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $profile = $this->getApplicantUser()->getDeveloperProfile();
+        if (!$profile instanceof DeveloperProfile) {
+            return $this->redirectToRoute('app_applicant_profile_create');
+        }
+
+        $form = $this->createForm(DeveloperProfileStep1Type::class, $profile);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', 'Etape 1 mise a jour.');
+
+            return $this->redirectToRoute('app_applicant_home');
+        }
+
+        return $this->render('applicant/profile_step1.html.twig', [
+            'profileForm' => $form,
+        ]);
+    }
+
+    #[Route('/applicant/profile/step-2', name: 'app_applicant_profile_step2')]
+    #[IsGranted('ROLE_APPLICANT')]
+    public function editProfileStep2(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $profile = $this->getApplicantUser()->getDeveloperProfile();
+        if (!$profile instanceof DeveloperProfile) {
+            return $this->redirectToRoute('app_applicant_profile_create');
+        }
+
+        $form = $this->createForm(DeveloperProfileStep2Type::class, $profile);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', 'Etape 2 mise a jour.');
+
+            return $this->redirectToRoute('app_applicant_home');
+        }
+
+        return $this->render('applicant/profile_step2.html.twig', [
+            'profileForm' => $form,
+        ]);
+    }
+
+    #[Route('/applicant/profile/step-3', name: 'app_applicant_profile_step3')]
+    #[IsGranted('ROLE_APPLICANT')]
+    public function editProfileStep3(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $profile = $this->getApplicantUser()->getDeveloperProfile();
+        if (!$profile instanceof DeveloperProfile) {
+            return $this->redirectToRoute('app_applicant_profile_create');
+        }
+
+        $form = $this->createForm(DeveloperProfileStep3Type::class, $profile);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', 'Etape 3 mise a jour.');
+
+            return $this->redirectToRoute('app_applicant_home');
+        }
+
+        return $this->render('applicant/profile_step3.html.twig', [
+            'profileForm' => $form,
+        ]);
+    }
+
+    #[Route('/applicant/profile/step-4', name: 'app_applicant_profile_step4')]
+    #[IsGranted('ROLE_APPLICANT')]
+    public function editProfileStep4(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $profile = $this->getApplicantUser()->getDeveloperProfile();
+        if (!$profile instanceof DeveloperProfile) {
+            return $this->redirectToRoute('app_applicant_profile_create');
+        }
+
+        $form = $this->createForm(DeveloperProfileStep4Type::class, $profile);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', 'Etape 4 mise a jour.');
+
+            return $this->redirectToRoute('app_applicant_home');
+        }
+
+        return $this->render('applicant/profile_step4.html.twig', [
+            'profileForm' => $form,
+        ]);
+    }
+
+    private function getApplicantUser(): User
+    {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $user;
+    }
+
+    /**
+     * @return array<string, array{done: bool, route: string, label: string}>
+     */
+    private function buildChecklist(?DeveloperProfile $profile): array
+    {
+        $step1Done = false;
+        $step2Done = false;
+        $step3Done = false;
+        $step4Done = false;
+
+        if ($profile instanceof DeveloperProfile) {
+            $step1Done =
+                '' !== trim((string) ($profile->getFirstName() ?? '')) &&
+                '' !== trim((string) ($profile->getLastName() ?? '')) &&
+                '' !== trim((string) ($profile->getHeadline() ?? '')) &&
+                '' !== trim((string) ($profile->getCity() ?? '')) &&
+                '' !== trim((string) ($profile->getCountry() ?? '')) &&
+                null !== $profile->getLocationType() &&
+                null !== $profile->getExperienceLevel() &&
+                null !== $profile->getYearsExperience() &&
+                '' !== trim((string) ($profile->getBio() ?? ''));
+
+            $step2Done =
+                $profile->getExperiences()->count() > 0 &&
+                $profile->getEducation()->count() > 0 &&
+                $profile->getProfileSkills()->count() > 0;
+
+            $step3Done =
+                '' !== trim((string) ($profile->getGithubUrl() ?? '')) ||
+                '' !== trim((string) ($profile->getLinkedinUrl() ?? '')) ||
+                '' !== trim((string) ($profile->getPortfolioUrl() ?? ''));
+
+            $step4Done = $profile->getDesiredPositions()->count() > 0;
+        }
+
+        return [
+            'step1' => [
+                'done' => $step1Done,
+                'route' => null === $profile ? 'app_applicant_profile_create' : 'app_applicant_profile_step1',
+                'label' => 'Etape 1 - Infos générales',
+            ],
+            'step2' => [
+                'done' => $step2Done,
+                'route' => 'app_applicant_profile_step2',
+                'label' => 'Etape 2 - Expériences, éducation, skills',
+            ],
+            'step3' => [
+                'done' => $step3Done,
+                'route' => 'app_applicant_profile_step3',
+                'label' => 'Etape 3 - Liens externes',
+            ],
+            'step4' => [
+                'done' => $step4Done,
+                'route' => 'app_applicant_profile_step4',
+                'label' => 'Etape 4 - Postes recherchés',
+            ],
+        ];
     }
 
     private function generateProfileSlug(DeveloperProfile $profile, DeveloperProfileRepository $developerProfileRepository): string

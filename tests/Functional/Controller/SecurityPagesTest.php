@@ -66,7 +66,7 @@ final class SecurityPagesTest extends WebTestCase
         self::assertResponseRedirects('/applicant');
         $client->followRedirect();
         self::assertSelectorTextContains('h1', 'Bienvenue sur ton espace');
-        self::assertSelectorTextContains('body', 'Créer mon profil dev');
+        self::assertSelectorTextContains('body', 'Creer mon profil dev');
     }
 
     public function testApplicantCanCreateDeveloperProfile(): void
@@ -84,9 +84,9 @@ final class SecurityPagesTest extends WebTestCase
         self::assertResponseRedirects('/applicant');
         $client->followRedirect();
 
-        $crawler = $client->clickLink('Créer mon profil dev');
+        $crawler = $client->clickLink('Creer mon profil dev');
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('h1', 'Créer mon profil dev');
+        self::assertSelectorTextContains('h1', 'Creer mon profil dev');
 
         $client->submit($crawler->selectButton('Enregistrer mon profil')->form([
             'developer_profile[firstName]' => 'Mylene',
@@ -97,7 +97,7 @@ final class SecurityPagesTest extends WebTestCase
 
         self::assertResponseRedirects('/applicant');
         $client->followRedirect();
-        self::assertSelectorTextContains('body', 'Profil développeur créé.');
+        self::assertSelectorTextContains('body', 'Profil developpeur cree. Etape 1 terminee.');
 
         /** @var DeveloperProfileRepository $profiles */
         $profiles = static::getContainer()->get(DeveloperProfileRepository::class);
@@ -193,7 +193,7 @@ final class SecurityPagesTest extends WebTestCase
 
         $client->submit($crawler->selectButton('Créer mon compte')->form([
             'registration_form[email]' => $email,
-            'registration_form[plainPassword]' => 'password123',
+            'registration_form[plainPassword]' => 'Password123!',
             'registration_form[agreeTerms]' => 1,
         ]));
 
@@ -218,7 +218,7 @@ final class SecurityPagesTest extends WebTestCase
         $crawler = $client->request('GET', '/register');
         $client->submit($crawler->selectButton('Créer mon compte')->form([
             'registration_form[email]' => $email,
-            'registration_form[plainPassword]' => 'password123',
+            'registration_form[plainPassword]' => 'Password123!',
             'registration_form[agreeTerms]' => 1,
         ]));
         self::assertResponseRedirects('/login');
@@ -226,7 +226,7 @@ final class SecurityPagesTest extends WebTestCase
         $crawler = $client->request('GET', '/register');
         $client->submit($crawler->selectButton('Créer mon compte')->form([
             'registration_form[email]' => $email,
-            'registration_form[plainPassword]' => 'password123',
+            'registration_form[plainPassword]' => 'Password123!',
             'registration_form[agreeTerms]' => 1,
         ]));
 
@@ -246,9 +246,23 @@ final class SecurityPagesTest extends WebTestCase
         ]));
 
         self::assertResponseStatusCodeSame(422);
-        self::assertSelectorTextContains('body', 'Your password should be at least 6 characters');
+        self::assertSelectorTextContains('body', 'Le mot de passe doit contenir au moins 8 caracteres, une minuscule, une majuscule, un chiffre et un caractere special.');
     }
 
+    public function testRegisterFormShowsErrorWhenPasswordIsNotComplexEnough(): void
+    {
+        $client = static::createClient();
+        $crawler = $client->request('GET', '/register');
+
+        $client->submit($crawler->selectButton('Créer mon compte')->form([
+            'registration_form[email]' => sprintf('weak_%s@example.com', bin2hex(random_bytes(8))),
+            'registration_form[plainPassword]' => 'password123',
+            'registration_form[agreeTerms]' => 1,
+        ]));
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('body', 'Le mot de passe doit contenir au moins 8 caracteres, une minuscule, une majuscule, un chiffre et un caractere special.');
+    }
     private function createActiveUser(string $email, string $plainPassword): User
     {
         return $this->createUserWithStatus($email, $plainPassword, UserStatus::ACTIVE);
@@ -294,3 +308,8 @@ final class SecurityPagesTest extends WebTestCase
         return $user;
     }
 }
+
+
+
+
+

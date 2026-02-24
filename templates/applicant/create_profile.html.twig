@@ -1,16 +1,16 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Créer mon profil | DevSpot{% endblock %}
+{% block title %}Creer mon profil | DevSpot{% endblock %}
 
 {% block body %}
     <section class="w-full max-w-2xl rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-xl shadow-violet-100/60 backdrop-blur sm:p-8">
         <div class="mb-6">
             <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-yellow-700">
                 <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
-                Profil développeur
+                Profil developpeur
             </p>
-            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Créer mon profil dev</h1>
-            <p class="mt-2 text-sm text-slate-500">Commence par les informations essentielles.</p>
+            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Creer mon profil dev</h1>
+            <p class="mt-2 text-sm text-slate-500">Etape 1 sur 4 - informations generales.</p>
         </div>
 
         {% if form_errors(profileForm) %}
@@ -21,158 +21,33 @@
 
         {{ form_start(profileForm, {attr: {class: 'space-y-4'}}) }}
             <div class="grid gap-4 sm:grid-cols-2">
-                {{ form_row(profileForm.firstName, {
-                    row_attr: {class: 'space-y-1'},
-                    label_attr: {class: 'block text-sm font-medium text-slate-700'},
-                    attr: {
-                        class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100',
-                        placeholder: 'Prénom'
-                    }
-                }) }}
-
-                {{ form_row(profileForm.lastName, {
-                    row_attr: {class: 'space-y-1'},
-                    label_attr: {class: 'block text-sm font-medium text-slate-700'},
-                    attr: {
-                        class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100',
-                        placeholder: 'Nom'
-                    }
-                }) }}
+                {{ form_row(profileForm.firstName, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', placeholder: 'Prenom' } }) }}
+                {{ form_row(profileForm.lastName, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', placeholder: 'Nom' } }) }}
             </div>
 
-            {{ form_row(profileForm.headline, {
-                row_attr: {class: 'space-y-1'},
-                label_attr: {class: 'block text-sm font-medium text-slate-700'},
-                attr: {
-                    class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100',
-                    placeholder: 'Ex: Développeur full-stack Symfony / React'
-                }
-            }) }}
+            {{ form_row(profileForm.headline, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', placeholder: 'Ex: Developpeur Symfony / React' } }) }}
 
             <div class="grid gap-4 sm:grid-cols-2">
-                {{ form_row(profileForm.city, {
-                    row_attr: {class: 'space-y-1'},
-                    label_attr: {class: 'block text-sm font-medium text-slate-700'},
-                    attr: {
-                        class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100',
-                        placeholder: 'Ville (optionnel)'
-                    }
-                }) }}
-
-                {{ form_row(profileForm.country, {
-                    row_attr: {class: 'space-y-1'},
-                    label_attr: {class: 'block text-sm font-medium text-slate-700'},
-                    attr: {
-                        class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100',
-                        placeholder: 'Pays (optionnel)'
-                    }
-                }) }}
+                {{ form_row(profileForm.city, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', placeholder: 'Ville' } }) }}
+                {{ form_row(profileForm.country, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', placeholder: 'Pays' } }) }}
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2">
-                {{ form_row(profileForm.locationType, {
-                    row_attr: {class: 'space-y-1'},
-                    label_attr: {class: 'block text-sm font-medium text-slate-700'},
-                    attr: {
-                        class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100'
-                    }
-                }) }}
-
-                {{ form_row(profileForm.experienceLevel, {
-                    row_attr: {class: 'space-y-1'},
-                    label_attr: {class: 'block text-sm font-medium text-slate-700'},
-                    attr: {
-                        class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100'
-                    }
-                }) }}
+                {{ form_row(profileForm.locationType, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900' } }) }}
+                {{ form_row(profileForm.experienceLevel, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900' } }) }}
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-2">
-                {{ form_row(profileForm.yearsExperience, {
-                    row_attr: {class: 'space-y-1'},
-                    label_attr: {class: 'block text-sm font-medium text-slate-700'},
-                    attr: {
-                        class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100',
-                        min: 0,
-                        placeholder: 'Ex: 3'
-                    }
-                }) }}
+            {{ form_row(profileForm.yearsExperience, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', min: 0, placeholder: 'Annees d experience' } }) }}
+            {{ form_row(profileForm.bio, { attr: { class: 'block min-h-28 w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', placeholder: 'Bio' } }) }}
 
-                <div class="space-y-1">
-                    <label class="block text-sm font-medium text-slate-700">Visibilite</label>
-                    <div class="flex min-h-[52px] items-center justify-between rounded-xl border border-violet-100 bg-violet-50/70 px-4 py-3">
-                        <div class="pr-3">
-                            <div class="flex items-center gap-2">
-                                <p class="text-sm font-medium text-slate-800">Rendre mon profil public</p>
-                                <span class="group relative inline-flex cursor-help items-center justify-center">
-                                    <span class="flex h-4 w-4 items-center justify-center rounded-full border border-violet-300 bg-white text-[10px] font-semibold text-violet-700">i</span>
-                                    <span class="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden w-52 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-center text-xs text-white shadow-lg group-hover:block">
-                                        Modifiable par la suite.
-                                    </span>
-                                </span>
-                            </div>
-                            <p class="text-xs text-slate-500">Visible par les recruteurs sur la plateforme.</p>
-                        </div>
-                        {{ form_widget(profileForm.isPublic, {
-                            attr: {
-                                class: 'h-4 w-4 rounded border-violet-300 text-violet-600 focus:ring-violet-500'
-                            }
-                        }) }}
-                    </div>
-                    {{ form_errors(profileForm.isPublic) }}
-                </div>
+            <div class="flex items-center gap-3">
+                <a href="{{ path('app_applicant_home') }}" class="inline-flex items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">
+                    Retour dashboard
+                </a>
+                <button type="submit" class="flex-1 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700 focus:outline-none focus:ring-4 focus:ring-violet-200">
+                    Enregistrer mon profil
+                </button>
             </div>
-
-            {{ form_row(profileForm.bio, {
-                row_attr: {class: 'space-y-1'},
-                label_attr: {class: 'block text-sm font-medium text-slate-700'},
-                attr: {
-                    class: 'block min-h-28 w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100',
-                    placeholder: 'Quelques lignes pour te présenter (optionnel)'
-                }
-            }) }}
-
-            <div class="grid gap-4 sm:grid-cols-1">
-                {{ form_row(profileForm.githubUrl, {
-                    row_attr: {class: 'space-y-1'},
-                    label_attr: {class: 'block text-sm font-medium text-slate-700'},
-                    attr: {
-                        class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100',
-                        placeholder: 'https://github.com/ton-compte'
-                    }
-                }) }}
-
-                {{ form_row(profileForm.linkedinUrl, {
-                    row_attr: {class: 'space-y-1'},
-                    label_attr: {class: 'block text-sm font-medium text-slate-700'},
-                    attr: {
-                        class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100',
-                        placeholder: 'https://linkedin.com/in/ton-profil'
-                    }
-                }) }}
-
-                {{ form_row(profileForm.portfolioUrl, {
-                    row_attr: {class: 'space-y-1'},
-                    label_attr: {class: 'block text-sm font-medium text-slate-700'},
-                    attr: {
-                        class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100',
-                        placeholder: 'https://ton-portfolio.dev'
-                    }
-                }) }}
-            </div>
-
-            {{ form_row(profileForm.desiredPositions, {
-                row_attr: {class: 'space-y-1'},
-                label: 'Postes recherches',
-                label_attr: {class: 'block text-sm font-medium text-slate-700'},
-                attr: {
-                    class: 'block min-h-28 w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100'
-                }
-            }) }}
-
-            <button type="submit" class="w-full rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700 focus:outline-none focus:ring-4 focus:ring-violet-200">
-                Enregistrer mon profil
-            </button>
         {{ form_end(profileForm) }}
     </section>
 {% endblock %}
