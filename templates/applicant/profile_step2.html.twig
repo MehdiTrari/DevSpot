@@ -1,0 +1,137 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Étape 2 | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-4xl rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-xl shadow-violet-100/60 backdrop-blur sm:p-8">
+        <div class="mb-6">
+            <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-yellow-700">
+                <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                Profil développeur
+            </p>
+            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Étape 2 - Expériences, éducation, skills</h1>
+            <p class="mt-2 text-sm text-slate-500">Ajoute au moins une expérience, une formation et une compétence.</p>
+        </div>
+
+        {% if form_errors(profileForm) %}
+            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ form_errors(profileForm) }}</div>
+        {% endif %}
+
+        {{ form_start(profileForm, {attr: {class: 'space-y-4'}}) }}
+            <div class="space-y-4">
+                <div class="rounded-2xl border border-violet-100 bg-violet-50/40 p-4">
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                        <div>
+                            <h2 class="text-sm font-semibold uppercase tracking-wide text-violet-800">Skills</h2>
+                            <p class="text-xs text-slate-500">Skills techniques et niveau.</p>
+                        </div>
+                        <button type="button" class="rounded-lg border border-violet-200 bg-white px-3 py-2 text-xs font-semibold text-violet-700" data-collection-add="#profile-skills-list">Ajouter</button>
+                    </div>
+                    <div id="profile-skills-list" class="space-y-3" data-collection-list data-empty-text="Aucun skill ajouté." data-index="{{ profileForm.profileSkills|length }}" data-prototype="{{ form_widget(profileForm.profileSkills.vars.prototype)|e('html_attr') }}">
+                        {% for item in profileForm.profileSkills %}
+                            <div class="rounded-xl border border-violet-100 bg-white p-4" data-collection-item>
+                                {{ form_widget(item) }}
+                                <button type="button" class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700" data-collection-remove>Supprimer</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {{ form_errors(profileForm.profileSkills) }}
+                </div>
+
+                <div class="rounded-2xl border border-violet-100 bg-violet-50/40 p-4">
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                        <div>
+                            <h2 class="text-sm font-semibold uppercase tracking-wide text-violet-800">Expériences</h2>
+                            <p class="text-xs text-slate-500">Expériences pro et technologies utilisées.</p>
+                        </div>
+                        <button type="button" class="rounded-lg border border-violet-200 bg-white px-3 py-2 text-xs font-semibold text-violet-700" data-collection-add="#experiences-list">Ajouter</button>
+                    </div>
+                    <div id="experiences-list" class="space-y-3" data-collection-list data-empty-text="Aucune expérience ajoutée." data-index="{{ profileForm.experiences|length }}" data-prototype="{{ form_widget(profileForm.experiences.vars.prototype)|e('html_attr') }}">
+                        {% for item in profileForm.experiences %}
+                            <div class="rounded-xl border border-violet-100 bg-white p-4" data-collection-item>
+                                {{ form_widget(item) }}
+                                <button type="button" class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700" data-collection-remove>Supprimer</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {{ form_errors(profileForm.experiences) }}
+                </div>
+
+                <div class="rounded-2xl border border-violet-100 bg-violet-50/40 p-4">
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                        <div>
+                            <h2 class="text-sm font-semibold uppercase tracking-wide text-violet-800">Éducation</h2>
+                            <p class="text-xs text-slate-500">Formations principales.</p>
+                        </div>
+                        <button type="button" class="rounded-lg border border-violet-200 bg-white px-3 py-2 text-xs font-semibold text-violet-700" data-collection-add="#education-list">Ajouter</button>
+                    </div>
+                    <div id="education-list" class="space-y-3" data-collection-list data-empty-text="Aucune formation ajoutée." data-index="{{ profileForm.education|length }}" data-prototype="{{ form_widget(profileForm.education.vars.prototype)|e('html_attr') }}">
+                        {% for item in profileForm.education %}
+                            <div class="rounded-xl border border-violet-100 bg-white p-4" data-collection-item>
+                                {{ form_widget(item) }}
+                                <button type="button" class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700" data-collection-remove>Supprimer</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {{ form_errors(profileForm.education) }}
+                </div>
+            </div>
+
+            {% do profileForm.profileSkills.setRendered() %}
+            {% do profileForm.experiences.setRendered() %}
+            {% do profileForm.education.setRendered() %}
+
+            <div class="flex items-center gap-3">
+                <a href="{{ path('app_applicant_home') }}" class="inline-flex items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">Retour dashboard</a>
+                <button type="submit" class="flex-1 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700">Enregistrer l'étape 2</button>
+            </div>
+        {{ form_end(profileForm) }}
+    </section>
+
+    <script>
+        (() => {
+            const makeItem = (list) => {
+                const index = Number(list.dataset.index || '0');
+                const prototype = (list.dataset.prototype || '').replaceAll('__name__', String(index));
+                list.dataset.index = String(index + 1);
+
+                const empty = list.querySelector('[data-collection-empty]');
+                if (empty) empty.remove();
+
+                const item = document.createElement('div');
+                item.className = 'rounded-xl border border-violet-100 bg-white p-4';
+                item.setAttribute('data-collection-item', '');
+                item.innerHTML = prototype + '<button type="button" class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700" data-collection-remove>Supprimer</button>';
+                list.appendChild(item);
+            };
+
+            const ensureEmptyState = (list) => {
+                if (list.querySelector('[data-collection-item]') || list.querySelector('[data-collection-empty]')) return;
+                const empty = document.createElement('p');
+                empty.className = 'text-sm text-slate-500';
+                empty.dataset.collectionEmpty = '';
+                empty.textContent = list.dataset.emptyText || 'Aucun élément ajouté.';
+                list.appendChild(empty);
+            };
+
+            document.querySelectorAll('[data-collection-list]').forEach(ensureEmptyState);
+
+            document.addEventListener('click', (event) => {
+                const addButton = event.target.closest('[data-collection-add]');
+                if (addButton) {
+                    const selector = addButton.getAttribute('data-collection-add');
+                    const list = selector ? document.querySelector(selector) : null;
+                    if (list) makeItem(list);
+                    return;
+                }
+
+                const removeButton = event.target.closest('[data-collection-remove]');
+                if (!removeButton) return;
+                const item = removeButton.closest('[data-collection-item]');
+                const list = item ? item.closest('[data-collection-list]') : null;
+                if (item) item.remove();
+                if (list) ensureEmptyState(list);
+            });
+        })();
+    </script>
+{% endblock %}

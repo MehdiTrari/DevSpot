@@ -9,10 +9,10 @@
                 <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
                 Nouveau compte
             </p>
-            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Creer un compte</h1>
+            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Créer un compte</h1>
             <p class="mt-2 text-sm text-slate-500">Inscris-toi puis confirme ton email.</p>
             <p class="mt-3 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-700">
-                Apres confirmation email, le compte reste en attente de validation administrateur.
+                Après confirmation email, le compte reste en attente de validation administrateur.
             </p>
         </div>
 
@@ -44,31 +44,51 @@
                 }
             }) }}
 
-            {{ form_row(registrationForm.plainPassword, {
-                label: 'Mot de passe',
-                row_attr: {class: 'space-y-1'},
-                label_attr: {class: 'block text-sm font-medium text-slate-700'},
-                attr: {
-                    class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100',
-                    placeholder: '6 caracteres minimum'
-                }
-            }) }}
+            {% if registrationForm.email.vars.errors|length > 0 %}
+                <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {{ form_errors(registrationForm.email) }}
+                </div>
+            {% endif %}
 
-            {{ form_row(registrationForm.agreeTerms, {
-                label: "J'accepte les conditions d'utilisation",
-                row_attr: {class: 'rounded-xl border border-violet-100 bg-violet-50/70 px-4 py-3'},
-                label_attr: {class: 'ml-2 text-sm text-slate-700'},
-                attr: {class: 'h-4 w-4 rounded border-violet-300 text-violet-600 focus:ring-violet-500'}
-            }) }}
+            <div class="space-y-1">
+                {{ form_label(registrationForm.plainPassword, 'Mot de passe', {
+                    label_attr: {class: 'block text-sm font-medium text-slate-700'}
+                }) }}
+                {{ form_widget(registrationForm.plainPassword, {
+                    attr: {
+                        class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100',
+                        placeholder: '8+ caractères, majuscule, chiffre, symbole'
+                    }
+                }) }}
+            </div>
+
+            {% if registrationForm.plainPassword.vars.errors|length > 0 %}
+                <div class="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {{ form_errors(registrationForm.plainPassword) }}
+                </div>
+            {% endif %}
+
+            <div class="rounded-xl border border-violet-100 bg-violet-50/70 px-4 py-3">
+                <label for="{{ registrationForm.agreeTerms.vars.id }}" class="flex items-center gap-3 text-sm text-slate-700">
+                    {{ form_widget(registrationForm.agreeTerms, {
+                        attr: {class: 'h-4 w-4 rounded border-violet-300 text-violet-600 focus:ring-violet-500'}
+                    }) }}
+                    <span class="ml-2">J'accepte les conditions d'utilisation</span>
+                </label>
+                {{ form_errors(registrationForm.agreeTerms) }}
+            </div>
 
             <button type="submit" class="w-full rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700 focus:outline-none focus:ring-4 focus:ring-violet-200">
-                Creer mon compte
+                Créer mon compte
             </button>
         {{ form_end(registrationForm) }}
 
         <p class="mt-6 text-center text-sm text-slate-500">
-            Deja inscrit ?
+            Déjà inscrit ?
             <a href="{{ path('app_login') }}" class="font-semibold text-violet-700 underline decoration-violet-300 underline-offset-2">Se connecter</a>
         </p>
     </section>
 {% endblock %}
+
+
+

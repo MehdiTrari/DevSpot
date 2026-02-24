@@ -4,6 +4,7 @@ namespace App\Tests\Functional\Controller;
 
 use App\Entity\User;
 use App\Enum\UserStatus;
+use App\Repository\DeveloperProfileRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -27,8 +28,8 @@ final class SecurityPagesTest extends WebTestCase
         $crawler = $client->request('GET', '/register');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('h1', 'Creer un compte');
-        self::assertSame('Creer mon compte', trim($crawler->filter('button[type="submit"]')->text()));
+        self::assertSelectorTextContains('h1', 'Créer un compte');
+        self::assertSame('Créer mon compte', trim($crawler->filter('button[type="submit"]')->text()));
     }
 
     public function testLoginFormAuthenticatesActiveUser(): void
@@ -46,7 +47,119 @@ final class SecurityPagesTest extends WebTestCase
 
         self::assertResponseRedirects('/login');
         $client->followRedirect();
-        self::assertSelectorTextContains('body', sprintf('Connecte en tant que %s.', $email));
+        self::assertSelectorTextContains('body', sprintf('Connecté en tant que %s.', $email));
+    }
+
+    public function testApplicantIsRedirectedToApplicantHomeAfterLogin(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('applicant_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $this->createUserWithStatus($email, $password, UserStatus::ACTIVE, ['ROLE_APPLICANT']);
+
+        $crawler = $client->request('GET', '/login');
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            'email' => $email,
+            'password' => $password,
+        ]));
+
+        self::assertResponseRedirects('/applicant');
+        $client->followRedirect();
+        self::assertSelectorTextContains('h1', 'Bienvenue sur ton espace');
+        self::assertSelectorExists('a[href="/applicant/profile/create"]');
+    }
+
+    public function testApplicantCanCreateDeveloperProfile(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('profile_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $this->createUserWithStatus($email, $password, UserStatus::ACTIVE, ['ROLE_APPLICANT']);
+
+        $crawler = $client->request('GET', '/login');
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            'email' => $email,
+            'password' => $password,
+        ]));
+        self::assertResponseRedirects('/applicant');
+        $crawler = $client->followRedirect();
+
+        $crawler = $client->click($crawler->filter('a[href="/applicant/profile/create"]')->link());
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('h1');
+
+        $client->submit($crawler->selectButton('Enregistrer mon profil')->form([
+            'developer_profile[firstName]' => 'Mylene',
+            'developer_profile[lastName]' => 'Martin',
+            'developer_profile[headline]' => 'Developpeuse Symfony',
+            'developer_profile[bio]' => 'Profil créé depuis un test fonctionnel.',
+            'developer_profile[city]' => 'Lyon',
+            'developer_profile[country]' => 'France',
+            'developer_profile[locationType]' => 'remote',
+            'developer_profile[experienceLevel]' => 'junior',
+            'developer_profile[yearsExperience]' => '2',
+        ]));
+
+        self::assertResponseRedirects('/applicant');
+        $client->followRedirect();
+        self::assertSelectorTextContains('body', 'Étape 1 terminée');
+        self::assertSelectorExists('a[href="/applicant/profile/step-2"]');
+
+        /** @var DeveloperProfileRepository $profiles */
+        $profiles = static::getContainer()->get(DeveloperProfileRepository::class);
+        $profile = $profiles->findOneBy(['user' => static::getContainer()->get(UserRepository::class)->findOneBy(['email' => $email])]);
+
+        self::assertNotNull($profile);
+        self::assertSame('Mylene', $profile->getFirstName());
+        self::assertSame('Martin', $profile->getLastName());
+        self::assertSame('Developpeuse Symfony', $profile->getHeadline());
+        self::assertNotEmpty($profile->getSlug());
+    }
+
+    public function testApplicantStepRoutesRedirectToCreateWhenProfileDoesNotExist(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('steps_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $this->createUserWithStatus($email, $password, UserStatus::ACTIVE, ['ROLE_APPLICANT']);
+
+        $crawler = $client->request('GET', '/login');
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            'email' => $email,
+            'password' => $password,
+        ]));
+        self::assertResponseRedirects('/applicant');
+        $client->followRedirect();
+
+        $client->request('GET', '/applicant/profile/step-2');
+        self::assertResponseRedirects('/applicant/profile/create');
+
+        $client->request('GET', '/applicant/profile/step-3');
+        self::assertResponseRedirects('/applicant/profile/create');
+
+        $client->request('GET', '/applicant/profile/step-4');
+        self::assertResponseRedirects('/applicant/profile/create');
+    }
+
+    public function testApplicantDashboardShowsLockedNextStepButtonsBeforeStep1(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('locked_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $this->createUserWithStatus($email, $password, UserStatus::ACTIVE, ['ROLE_APPLICANT']);
+
+        $crawler = $client->request('GET', '/login');
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            'email' => $email,
+            'password' => $password,
+        ]));
+        self::assertResponseRedirects('/applicant');
+        $client->followRedirect();
+
+        self::assertSelectorExists('a[href="/applicant/profile/create"]');
+        self::assertSelectorNotExists('a[href="/applicant/profile/step-2"]');
+        self::assertSelectorNotExists('a[href="/applicant/profile/step-3"]');
+        self::assertSelectorNotExists('a[href="/applicant/profile/step-4"]');
     }
 
     public function testLoginFormShowsErrorWithWrongPassword(): void
@@ -81,12 +194,12 @@ final class SecurityPagesTest extends WebTestCase
             'password' => $password,
         ]));
         $client->followRedirect();
-        self::assertSelectorTextContains('body', sprintf('Connecte en tant que %s.', $email));
+        self::assertSelectorTextContains('body', sprintf('Connecté en tant que %s.', $email));
 
         $client->request('GET', '/logout');
         self::assertResponseStatusCodeSame(302);
         $client->followRedirect();
-        self::assertSelectorTextNotContains('body', sprintf('Connecte en tant que %s.', $email));
+        self::assertSelectorTextNotContains('body', sprintf('Connecté en tant que %s.', $email));
     }
 
     public function testPendingUserCannotLogin(): void
@@ -130,9 +243,9 @@ final class SecurityPagesTest extends WebTestCase
         $crawler = $client->request('GET', '/register');
         $email = sprintf('test_%s@example.com', bin2hex(random_bytes(8)));
 
-        $client->submit($crawler->selectButton('Creer mon compte')->form([
+        $client->submit($crawler->selectButton('Créer mon compte')->form([
             'registration_form[email]' => $email,
-            'registration_form[plainPassword]' => 'password123',
+            'registration_form[plainPassword]' => 'Password123!',
             'registration_form[agreeTerms]' => 1,
         ]));
 
@@ -155,17 +268,17 @@ final class SecurityPagesTest extends WebTestCase
         $email = sprintf('duplicate_%s@example.com', bin2hex(random_bytes(8)));
 
         $crawler = $client->request('GET', '/register');
-        $client->submit($crawler->selectButton('Creer mon compte')->form([
+        $client->submit($crawler->selectButton('Créer mon compte')->form([
             'registration_form[email]' => $email,
-            'registration_form[plainPassword]' => 'password123',
+            'registration_form[plainPassword]' => 'Password123!',
             'registration_form[agreeTerms]' => 1,
         ]));
         self::assertResponseRedirects('/login');
 
         $crawler = $client->request('GET', '/register');
-        $client->submit($crawler->selectButton('Creer mon compte')->form([
+        $client->submit($crawler->selectButton('Créer mon compte')->form([
             'registration_form[email]' => $email,
-            'registration_form[plainPassword]' => 'password123',
+            'registration_form[plainPassword]' => 'Password123!',
             'registration_form[agreeTerms]' => 1,
         ]));
 
@@ -178,16 +291,30 @@ final class SecurityPagesTest extends WebTestCase
         $client = static::createClient();
         $crawler = $client->request('GET', '/register');
 
-        $client->submit($crawler->selectButton('Creer mon compte')->form([
+        $client->submit($crawler->selectButton('Créer mon compte')->form([
             'registration_form[email]' => sprintf('short_%s@example.com', bin2hex(random_bytes(8))),
             'registration_form[plainPassword]' => '123',
             'registration_form[agreeTerms]' => 1,
         ]));
 
         self::assertResponseStatusCodeSame(422);
-        self::assertSelectorTextContains('body', 'Your password should be at least 6 characters');
+        self::assertSelectorTextContains('body', 'Le mot de passe doit contenir au moins 8 caractères, une minuscule, une majuscule, un chiffre et un caractère spécial.');
     }
 
+    public function testRegisterFormShowsErrorWhenPasswordIsNotComplexEnough(): void
+    {
+        $client = static::createClient();
+        $crawler = $client->request('GET', '/register');
+
+        $client->submit($crawler->selectButton('Créer mon compte')->form([
+            'registration_form[email]' => sprintf('weak_%s@example.com', bin2hex(random_bytes(8))),
+            'registration_form[plainPassword]' => 'password123',
+            'registration_form[agreeTerms]' => 1,
+        ]));
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('body', 'Le mot de passe doit contenir au moins 8 caractères, une minuscule, une majuscule, un chiffre et un caractère spécial.');
+    }
     private function createActiveUser(string $email, string $plainPassword): User
     {
         return $this->createUserWithStatus($email, $plainPassword, UserStatus::ACTIVE);
@@ -213,7 +340,7 @@ final class SecurityPagesTest extends WebTestCase
         self::assertSelectorTextContains('body', 'Votre compte ne peut pas se connecter.');
     }
 
-    private function createUserWithStatus(string $email, string $plainPassword, UserStatus $status): User
+    private function createUserWithStatus(string $email, string $plainPassword, UserStatus $status, array $roles = ['ROLE_USER']): User
     {
         /** @var EntityManagerInterface $entityManager */
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
@@ -222,7 +349,7 @@ final class SecurityPagesTest extends WebTestCase
 
         $user = new User();
         $user->setEmail($email);
-        $user->setRoles(['ROLE_USER']);
+        $user->setRoles($roles);
         $user->setStatus($status);
         $user->setIsVerified(true);
         $user->setPassword($hasher->hashPassword($user, $plainPassword));
@@ -233,3 +360,8 @@ final class SecurityPagesTest extends WebTestCase
         return $user;
     }
 }
+
+
+
+
+

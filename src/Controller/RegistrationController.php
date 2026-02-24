@@ -54,7 +54,7 @@ class RegistrationController extends AbstractController
                     ->htmlTemplate('registration/confirmation_email.html.twig')
             );
 
-            $this->addFlash('success', 'Compte créé. Vérifie ton email. Votre compte restera en attente de validation.');
+            $this->addFlash('success', 'Compte créé. Vérifie tes mails. Ton compte restera en attente de validation.');
 
             return $this->redirectToRoute('app_login');
         }
