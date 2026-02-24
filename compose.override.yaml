@@ -3,8 +3,17 @@ services:
 ###> doctrine/doctrine-bundle ###
   database:
     ports:
-      - "5432"
+      - "5433:5432"
 ###< doctrine/doctrine-bundle ###
+
+  adminer:
+    image: adminer
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./docker/adminer/adminer.css:/var/www/html/adminer.css:ro
+    depends_on:
+      - database
 
 ###> symfony/mailer ###
   mailer:
