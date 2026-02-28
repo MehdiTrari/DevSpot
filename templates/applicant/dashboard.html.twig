@@ -15,6 +15,7 @@
                     </p>
                     <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Bienvenue sur ton espace</h1>
                     <p class="mt-2 text-sm text-slate-500">Compléter ton profil en 4 étapes avec retour dashboard entre chaque étape.</p>
+                    {% if doneCount < 4 %}
                     <div class="mt-4 max-w-xl">
                         <div class="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-500">
                             <span>Progression du profil</span>
@@ -25,6 +26,7 @@
                         </div>
                         <p class="mt-2 text-xs text-slate-500">{{ progressPercent }}% complété</p>
                     </div>
+                    {% endif %}
                 </div>
 
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
@@ -137,3 +139,4 @@
         </div>
     </section>
 {% endblock %}
+

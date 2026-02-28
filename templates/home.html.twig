@@ -13,9 +13,9 @@
                 <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Bienvenue sur DevSpot</h1>
                 <p class="mt-2 text-sm text-slate-500">
                     {% if app.user %}
-                        Connecte en tant que {{ app.user.userIdentifier }}.
+                        Connecté en tant que {{ app.user.userIdentifier }}.
                     {% else %}
-                        Decouvre DevSpot et connecte-toi pour acceder a ton espace.
+                        Découvre DevSpot et connecte-toi pour accéder à ton espace.
                     {% endif %}
                 </p>
             </div>
@@ -23,7 +23,7 @@
             {% if app.user %}
                 <a href="{{ logout_path() }}"
                    class="inline-flex items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">
-                    Se deconnecter
+                    Se déconnecter
                 </a>
             {% else %}
                 <div class="flex gap-2">
