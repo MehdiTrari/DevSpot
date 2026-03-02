@@ -13,7 +13,7 @@
             <p class="mt-2 text-sm text-slate-500">Étape 1 sur 4 - informations générales.</p>
         </div>
 
-        {% if form_errors(profileForm) %}
+        {% if profileForm.vars.errors|length > 0 %}
             <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {{ form_errors(profileForm) }}
             </div>
@@ -39,6 +39,8 @@
 
             {{ form_row(profileForm.yearsExperience, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', min: 0, placeholder: "Années d'expérience" } }) }}
             {{ form_row(profileForm.bio, { attr: { class: 'block min-h-28 w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900', placeholder: 'Bio' } }) }}
+
+            {{ form_row(profileForm.avatarFile, { attr: { class: 'block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900' } }) }}
 
             <div class="flex items-center gap-3">
                 <a href="{{ path('app_applicant_home') }}" class="inline-flex items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">

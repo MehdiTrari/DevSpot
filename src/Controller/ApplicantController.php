@@ -11,6 +11,9 @@ use App\Form\DeveloperProfileStep4Type;
 use App\Repository\DeveloperProfileRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -55,6 +58,7 @@ final class ApplicantController extends AbstractController
             $user->setDeveloperProfile($profile);
             $profile->setIsPublic(false);
             $profile->setSlug($this->generateProfileSlug($profile, $developerProfileRepository));
+            $this->handleAvatarUpload($form, $profile);
 
             $entityManager->persist($profile);
             $entityManager->flush();
@@ -82,6 +86,7 @@ final class ApplicantController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $this->handleAvatarUpload($form, $profile);
             $entityManager->flush();
             $this->addFlash('success', 'Étape 1 mise à jour.');
 
@@ -262,5 +267,51 @@ final class ApplicantController extends AbstractController
         $ascii = strtolower(trim($ascii));
 
         return preg_replace('/[^a-z0-9]+/', '', $ascii) ?? '';
+    }
+
+    private function handleAvatarUpload(FormInterface $form, DeveloperProfile $profile): void
+    {
+        $avatarFile = $form->get('avatarFile')->getData();
+        if (!$avatarFile instanceof UploadedFile) {
+            return;
+        }
+
+        $uploadDirectory = $this->getParameter('kernel.project_dir').'/public/uploads/avatars';
+        if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0777, true) && !is_dir($uploadDirectory)) {
+            throw new \RuntimeException('Le dossier de téléversement des avatars est introuvable.');
+        }
+
+        $this->removePreviousAvatar($profile, $uploadDirectory);
+
+        $extension = strtolower($avatarFile->getClientOriginalExtension());
+        if ('' === $extension) {
+            $extension = strtolower(pathinfo($avatarFile->getClientOriginalName(), PATHINFO_EXTENSION));
+        }
+        if ('' === $extension) {
+            $extension = 'bin';
+        }
+        $slug = $profile->getSlug() ?: 'profil';
+        $fileName = sprintf('%s-%s.%s', $slug, substr(bin2hex(random_bytes(4)), 0, 8), strtolower($extension));
+
+        try {
+            $avatarFile->move($uploadDirectory, $fileName);
+        } catch (FileException $exception) {
+            throw new \RuntimeException('Impossible d\'enregistrer la photo de profil.', 0, $exception);
+        }
+
+        $profile->setAvatarPath('uploads/avatars/'.$fileName);
+    }
+
+    private function removePreviousAvatar(DeveloperProfile $profile, string $uploadDirectory): void
+    {
+        $currentAvatarPath = $profile->getAvatarPath();
+        if (null === $currentAvatarPath || !str_starts_with($currentAvatarPath, 'uploads/avatars/')) {
+            return;
+        }
+
+        $currentFilePath = $this->getParameter('kernel.project_dir').'/public/'.$currentAvatarPath;
+        if (is_file($currentFilePath) && str_starts_with(dirname($currentFilePath), $uploadDirectory)) {
+            @unlink($currentFilePath);
+        }
     }
 }
