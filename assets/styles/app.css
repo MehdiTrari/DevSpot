@@ -2,3 +2,7 @@
 
 @source "../../templates/**/*.html.twig";
 @source "../**/*.js";
+
+.turbo-progress-bar {
+	@apply bg-emerald-500;
+}

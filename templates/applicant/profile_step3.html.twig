@@ -5,22 +5,47 @@
 {% block title %}Étape 3 | DevSpot{% endblock %}
 
 {% block body %}
-    <section class="w-full max-w-2xl rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-xl shadow-violet-100/60 backdrop-blur sm:p-8">
-        <div class="mb-6">
-            <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-yellow-700"><span class="h-2 w-2 rounded-full bg-yellow-400"></span>Profil développeur</p>
-            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Étape 3 - Liens externes</h1>
-            <p class="mt-2 text-sm text-slate-500">Ajoute GitHub, LinkedIn ou portfolio.</p>
+    {# Carte en verre fumé #}
+    <section class="w-full max-w-2xl rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:bg-slate-900/60 hover:shadow-emerald-500/10 sm:p-10">
+        
+        {# EN-TÊTE #}
+        <div class="mb-8">
+            <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-300">
+                <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] animate-pulse"></span>
+                Profil développeur
+            </p>
+            <h1 class="text-3xl font-semibold tracking-tight text-white">Étape 3 - Liens externes</h1>
+            <p class="mt-2 text-[15px] text-slate-400">Ajoute ton GitHub, LinkedIn ou portfolio.</p>
         </div>
 
-        {{ form_start(profileForm, {attr: {class: 'space-y-4'}}) }}
-            {{ form_row(profileForm.githubUrl) }}
-            {{ form_row(profileForm.linkedinUrl) }}
-            {{ form_row(profileForm.portfolioUrl) }}
-
-            <div class="flex items-center gap-3">
-                <a href="{{ path('app_applicant_home') }}" class="inline-flex items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">Retour dashboard</a>
-                <button type="submit" class="flex-1 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700">Enregistrer l'étape 3</button>
+        {# FORMULAIRE #}
+        {{ form_start(profileForm, {attr: {class: 'space-y-6'}}) }}
+            
+            {# 
+               Les champs sont automatiquement stylisés en Dark Mode par my_theme.html.twig
+               On les regroupe simplement dans un div pour s'assurer que l'espacement est régulier.
+            #}
+            <div class="space-y-5">
+                {{ form_row(profileForm.githubUrl) }}
+                {{ form_row(profileForm.linkedinUrl) }}
+                {{ form_row(profileForm.portfolioUrl) }}
             </div>
+
+            {# ZONE D'ACTIONS #}
+            <div class="mt-10 flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-3">
+                {# Bouton Secondaire #}
+                <a href="{{ path('app_applicant_home') }}" 
+                   class="inline-flex w-full sm:w-auto items-center justify-center rounded-full border border-white/10 bg-white/5 px-6 py-4 text-[15px] font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 active:scale-95">
+                    Retour dashboard
+                </a>
+                
+                {# Bouton Principal Émeraude #}
+                <button type="submit" 
+                        class="flex w-full flex-1 items-center justify-center rounded-full bg-emerald-500 px-6 py-4 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95 focus:outline-none focus:ring-4 focus:ring-emerald-500/30">
+                    Enregistrer l'étape 3
+                </button>
+            </div>
+            
         {{ form_end(profileForm) }}
     </section>
 {% endblock %}
