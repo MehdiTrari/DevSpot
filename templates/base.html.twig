@@ -1,12 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <title>{% block title %}DevSpot{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><circle cx=%2264%22 cy=%2264%22 r=%2260%22 fill=%22%236d28d9%22/><circle cx=%2296%22 cy=%2232%22 r=%2216%22 fill=%22%23facc15%22/></svg>">
+        
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><circle cx=%2264%22 cy=%2264%22 r=%2260%22 fill=%22%230071E3%22/><circle cx=%2296%22 cy=%2232%22 r=%2216%22 fill=%22%23F5F5F7%22/></svg>">
+        
         {% block stylesheets %}
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+            <style>
+                /* Style du calendrier Flatpickr */
+                .flatpickr-calendar {
+                    border-radius: 1.5rem !important;
+                    border: 1px solid rgba(0,0,0,0.05) !important;
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important;
+                    padding: 8px !important;
+                    font-family: inherit !important;
+                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+                }
+                .flatpickr-day.selected {
+                    background: #0071E3 !important;
+                    border-color: #0071E3 !important;
+                }
+
+                /* ✨ NOS ANIMATIONS APPLE MAGIQUES EN CSS PUR ✨ */
+                @keyframes appleSlideUp {
+                    0% { opacity: 0; transform: translateY(24px); }
+                    100% { opacity: 1; transform: translateY(0); }
+                }
+                @keyframes appleFadeIn {
+                    0% { opacity: 0; }
+                    100% { opacity: 1; }
+                }
+
+                /* Les classes qu'on va utiliser sur nos éléments */
+                .apple-fade {
+                    animation: appleFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+                }
+                .apple-slide-up {
+                    animation: appleSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+                }
+                .apple-slide-up-delay-1 {
+                    animation: appleSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+                }
+                .apple-slide-up-delay-2 {
+                    animation: appleSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+                }
+            </style>
         {% endblock %}
 
         {% block javascripts %}
@@ -21,30 +62,38 @@
                         locale: "fr",
                         dateFormat: "d/m/Y",
                         allowInput: true,
-                        onReady: function(selectedDates, dateStr, instance) {
-                            instance.calendarContainer.classList.add('shadow-2xl');
-                        }
+                        disableMobile: "true",
                     });
                 });
             </script>
         {% endblock %}
     </head>
-    <body class="min-h-screen bg-white text-slate-900 antialiased">
+    
+    <body class="min-h-screen bg-[#F5F5F7] text-[#1D1D1F] font-sans antialiased selection:bg-[#0071E3] selection:text-white">
         <div class="relative min-h-screen overflow-hidden">
-            <div class="pointer-events-none absolute -top-24 -left-20 h-72 w-72 rounded-full bg-violet-200/70 blur-3xl"></div>
-            <div class="pointer-events-none absolute -right-16 top-1/3 h-64 w-64 rounded-full bg-yellow-200/70 blur-3xl"></div>
-            <div class="pointer-events-none absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-violet-100/80 blur-3xl"></div>
-
-            <header class="relative z-10 mx-auto w-full max-w-6xl px-4 pt-6 sm:px-6 lg:px-8">
-                <a href="{{ path('app_home') }}" class="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white/90 px-4 py-2 text-sm font-semibold text-violet-700 shadow-sm backdrop-blur">
-                    <span class="h-2.5 w-2.5 rounded-full bg-yellow-300"></span>
-                    DevSpot
-                </a>
+            
+            {# Les blobs avec la classe apple-fade #}
+            <div class="apple-fade pointer-events-none absolute -top-32 -left-20 h-96 w-96 rounded-full bg-[#0071E3]/5 blur-[100px]"></div>
+            <div class="apple-fade pointer-events-none absolute -right-32 top-1/4 h-96 w-96 rounded-full bg-[#5AC8FA]/5 blur-[100px]" style="animation-delay: 0.2s;"></div>
+            
+            {# HEADER avec apple-slide-up #}
+            <header class="apple-slide-up relative z-10 mx-auto w-full max-w-6xl px-4 pt-6 sm:px-6 lg:px-8">
+                <nav class="flex items-center">
+                    <a href="{{ path('app_home') }}" class="group inline-flex items-center gap-2.5 rounded-full border border-white/50 bg-white/70 px-4 py-2 text-[15px] font-semibold tracking-tight text-[#1D1D1F] shadow-[0_4px_20px_rgb(0,0,0,0.03)] backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] active:scale-95">
+                        <span class="relative flex h-2.5 w-2.5 items-center justify-center">
+                            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#0071E3] opacity-40"></span>
+                            <span class="relative inline-flex h-2 w-2 rounded-full bg-[#0071E3] transition-transform duration-300 group-hover:scale-110"></span>
+                        </span>
+                        DevSpot
+                    </a>
+                </nav>
             </header>
 
-            <main class="relative z-10 mx-auto flex min-h-[calc(100vh-84px)] w-full max-w-6xl items-center justify-center px-4 pb-8 pt-4 sm:px-6 lg:px-8">
+            {# MAIN avec apple-slide-up-delay-1 (il apparaîtra juste après le header) #}
+            <main class="apple-slide-up-delay-1 relative z-10 mx-auto flex min-h-[calc(100vh-84px)] w-full max-w-6xl items-center justify-center px-4 pb-12 pt-8 sm:px-6 lg:px-8">
                 {% block body %}{% endblock %}
             </main>
+            
         </div>
     </body>
 </html>

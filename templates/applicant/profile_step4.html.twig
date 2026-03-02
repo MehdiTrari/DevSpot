@@ -1,27 +1,48 @@
 {% extends 'base.html.twig' %}
 
+{# On fait bien appel à ton nouveau thème magique ! #}
 {% form_theme profileForm 'form/my_theme.html.twig' %}
 
 {% block title %}Étape 4 | DevSpot{% endblock %}
 
 {% block body %}
-    <section class="w-full max-w-2xl rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-xl shadow-violet-100/60 backdrop-blur sm:p-8">
-        <div class="mb-6">
-            <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-yellow-700"><span class="h-2 w-2 rounded-full bg-yellow-400"></span>Profil développeur</p>
-            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Étape 4 - Postes recherchés</h1>
-            <p class="mt-2 text-sm text-slate-500">Sélectionne les postes que tu recherches.</p>
+    <section class="w-full max-w-2xl rounded-[2.5rem] border border-white/40 bg-white/70 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] sm:p-10">
+        
+        {# EN-TÊTE #}
+        <div class="mb-8">
+            <p class="mb-4 inline-flex items-center gap-2 rounded-full bg-[#F5F5F7] px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#86868B]">
+                <span class="h-2 w-2 rounded-full bg-[#0071E3] shadow-[0_0_8px_rgba(0,113,227,0.4)] animate-pulse"></span>
+                Profil développeur
+            </p>
+            <h1 class="text-3xl font-semibold tracking-tight text-[#1D1D1F]">Étape 4 - Postes recherchés</h1>
+            <p class="mt-2 text-[15px] text-[#86868B]">Sélectionne les postes que tu recherches.</p>
         </div>
 
-        {{ form_start(profileForm, {attr: {class: 'space-y-4'}}) }}
+        {# FORMULAIRE #}
+        {{ form_start(profileForm, {attr: {class: 'space-y-6'}}) }}
+            
+            {# 
+               Grâce à ton form_theme, on n'a plus besoin de redéfinir toutes les classes Tailwind !
+               On ajoute juste une hauteur minimale si c'est un select multiple ou un textarea.
+            #}
             {{ form_row(profileForm.desiredPositions, {
                 label: 'Postes recherchés',
-                attr: { class: 'block min-h-28 w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900' }
+                attr: { class: 'min-h-[120px]' }
             }) }}
 
-            <div class="flex items-center gap-3">
-                <a href="{{ path('app_applicant_home') }}" class="inline-flex items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">Retour dashboard</a>
-                <button type="submit" class="flex-1 rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700">Enregistrer l'étape 4</button>
+            {# ZONE D'ACTIONS #}
+            <div class="mt-8 flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-3">
+                <a href="{{ path('app_applicant_home') }}" 
+                   class="inline-flex w-full sm:w-auto items-center justify-center rounded-full bg-[#F5F5F7] px-6 py-4 text-[15px] font-semibold text-[#1D1D1F] transition-all duration-300 hover:scale-[1.02] hover:bg-[#E8E8ED] active:scale-95">
+                    Retour dashboard
+                </a>
+                
+                <button type="submit" 
+                        class="flex w-full flex-1 items-center justify-center rounded-full bg-[#0071E3] px-6 py-4 text-[15px] font-semibold text-white shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-[#0077ED] active:scale-95 focus:outline-none focus:ring-4 focus:ring-[#0071E3]/20">
+                    Enregistrer l'étape 4
+                </button>
             </div>
+            
         {{ form_end(profileForm) }}
     </section>
 {% endblock %}

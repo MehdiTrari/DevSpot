@@ -5,91 +5,108 @@
 {% block body %}
     {% set doneCount = [checklist.step1.done, checklist.step2.done, checklist.step3.done, checklist.step4.done]|filter(v => v)|length %}
     {% set progressPercent = doneCount * 25 %}
-    <section class="w-full max-w-5xl space-y-6">
-        <div class="rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-xl shadow-violet-100/60 backdrop-blur sm:p-8">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    
+    <section class="w-full max-w-5xl space-y-8 font-sans">
+        
+        {# HEADER - Style "Glassmorphism" Apple #}
+        <div class="rounded-[2.5rem] border border-white/40 bg-white/70 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)]">
+            <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                    <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-yellow-700">
-                        <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                    <p class="mb-3 inline-flex items-center gap-2 rounded-full bg-[#F5F5F7] px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#86868B]">
+                        <span class="h-2 w-2 rounded-full bg-[#0071E3] shadow-[0_0_8px_rgba(0,113,227,0.6)] animate-pulse"></span>
                         Espace candidat
                     </p>
-                    <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Bienvenue sur ton espace</h1>
-                    <p class="mt-2 text-sm text-slate-500">Compléter ton profil en 4 étapes avec retour dashboard entre chaque étape.</p>
+                    <h1 class="text-4xl font-semibold tracking-tight text-[#1D1D1F]">Bienvenue sur ton espace.</h1>
+                    <p class="mt-2 text-[15px] text-[#86868B]">Complète ton profil en 4 étapes simples.</p>
+                    
                     {% if doneCount < 4 %}
-                    <div class="mt-4 max-w-xl">
-                        <div class="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <div class="mt-8 max-w-xl group">
+                        <div class="mb-3 flex items-center justify-between text-xs font-medium uppercase tracking-wider text-[#86868B]">
                             <span>Progression du profil</span>
-                            <span>{{ doneCount }}/4</span>
+                            <span class="text-[#1D1D1F]">{{ doneCount }}/4</span>
                         </div>
-                        <div class="h-2.5 w-full rounded-full bg-slate-200">
-                            <div class="h-2.5 rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-300" style="width: {{ progressPercent }}%;"></div>
+                        <div class="h-1.5 w-full overflow-hidden rounded-full bg-[#F5F5F7] shadow-inner">
+                            <div class="h-1.5 rounded-full bg-[#0071E3] transition-all duration-700 ease-out" style="width: {{ progressPercent }}%;"></div>
                         </div>
-                        <p class="mt-2 text-xs text-slate-500">{{ progressPercent }}% complété</p>
+                        <p class="mt-3 text-sm text-[#86868B] transition-colors group-hover:text-[#1D1D1F]">{{ progressPercent }}% complété</p>
                     </div>
                     {% endif %}
                 </div>
 
-                <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
-                    <p class="font-medium text-slate-900">{{ app.user.email }}</p>
-                    <p class="mt-1">
-                        Statut profil :
+                <div class="rounded-2xl bg-[#F5F5F7] p-5 text-[15px] text-[#1D1D1F] transition-transform duration-300 hover:scale-[1.02]">
+                    <p class="font-medium">{{ app.user.email }}</p>
+                    <p class="mt-2 text-[#86868B]">
+                        Statut :
                         {% if profile is null %}
-                            <span class="font-semibold text-amber-700">à créer</span>
+                            <span class="font-semibold text-[#FF3B30]">À créer</span>
                         {% elseif doneCount < 4 %}
-                            <span class="font-semibold text-violet-700">en cours</span>
+                            <span class="font-semibold text-[#0071E3]">En cours</span>
                         {% else %}
-                            <span class="font-semibold text-emerald-700">créé</span>
+                            <span class="font-semibold text-[#34C759]">Terminé</span>
                         {% endif %}
                     </p>
                 </div>
             </div>
         </div>
 
-        {% for message in app.flashes('success') %}
-            <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{{ message }}</div>
-        {% endfor %}
-        {% for message in app.flashes('info') %}
-            <div class="rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-800">{{ message }}</div>
-        {% endfor %}
+        {# FLASH MESSAGES - Style Notifications macOS #}
+        <div class="space-y-3">
+            {% for message in app.flashes('success') %}
+                <div class="animate-fade-in-down rounded-2xl border border-[#34C759]/20 bg-[#34C759]/10 px-5 py-4 text-[15px] font-medium text-[#1D1D1F] backdrop-blur-md">
+                    {{ message }}
+                </div>
+            {% endfor %}
+            {% for message in app.flashes('info') %}
+                <div class="animate-fade-in-down rounded-2xl border border-[#0071E3]/20 bg-[#0071E3]/10 px-5 py-4 text-[15px] font-medium text-[#1D1D1F] backdrop-blur-md">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
 
+        {# CONTENU PRINCIPAL #}
         <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div class="rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-lg shadow-violet-100/40">
+            
+            {# COLONNE GAUCHE - Profil #}
+            <div class="rounded-[2rem] border border-gray-100 bg-white p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
                 {% if profile is null %}
-                    <h2 class="text-xl font-semibold text-violet-900">Créer votre profil développeur</h2>
-                    <p class="mt-2 text-sm leading-6 text-slate-600">Commence par l'étape 1 pour créer le profil puis reviens ici pour avancer.</p>
-                    <a href="{{ path('app_applicant_profile_create') }}" class="mt-5 inline-flex items-center justify-center rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700">Créer mon profil dev</a>
+                    <h2 class="text-2xl font-semibold tracking-tight text-[#1D1D1F]">Créer votre profil développeur</h2>
+                    <p class="mt-3 text-[15px] leading-relaxed text-[#86868B]">Commence par l'étape 1 pour créer le profil puis reviens ici pour avancer.</p>
+                    <a href="{{ path('app_applicant_profile_create') }}" class="mt-8 inline-flex items-center justify-center rounded-full bg-[#0071E3] px-6 py-3.5 text-[15px] font-semibold text-white shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-[#0077ED] active:scale-95">
+                        Créer mon profil
+                    </a>
                 {% else %}
-                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <div>
-                            <h2 class="text-xl font-semibold text-violet-900">{{ profile.firstName ?: 'Profil' }} {{ profile.lastName ?: '' }}</h2>
-                            <p class="mt-1 text-sm font-medium text-violet-700">{{ profile.headline ?: 'Headline non renseignée' }}</p>
+                            <h2 class="text-2xl font-semibold tracking-tight text-[#1D1D1F]">{{ profile.firstName ?: 'Profil' }} {{ profile.lastName ?: '' }}</h2>
+                            <p class="mt-2 text-[15px] font-medium text-[#86868B]">{{ profile.headline ?: 'Headline non renseignée' }}</p>
                         </div>
-                        <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ profile.public ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700' }}">{{ profile.public ? 'Profil public' : 'Profil privé' }}</span>
+                        <span class="inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide {{ profile.public ? 'bg-[#34C759]/10 text-[#34C759]' : 'bg-[#F5F5F7] text-[#86868B]' }}">
+                            {{ profile.public ? 'Public' : 'Privé' }}
+                        </span>
                     </div>
-                    {# <div class="mt-5 grid gap-3 sm:grid-cols-2">
-                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Slug</p>
-                            <p class="mt-1 text-sm font-medium text-slate-900">{{ profile.slug }}</p>
-                        </div>
-                        <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Progression</p>
-                            <p class="mt-1 text-sm font-medium text-slate-900">{{ doneCount }}/4 étapes complétées</p>
-                        </div>
-                    </div> #}
                 {% endif %}
             </div>
 
-            <aside class="space-y-4">
-                <div class="rounded-3xl border border-violet-100 bg-white/95 p-5 shadow-lg shadow-violet-100/30">
-                    <h2 class="text-sm font-semibold uppercase tracking-wide text-violet-700">Checklist</h2>
-                    <ul class="mt-4 space-y-3 text-sm text-slate-700">
+            {# COLONNE DROITE - Sidebar #}
+            <aside class="space-y-6">
+                
+                {# CHECKLIST #}
+                <div class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
+                    <h2 class="text-xs font-semibold uppercase tracking-wider text-[#86868B]">Progression</h2>
+                    <ul class="mt-5 space-y-3 text-[15px]">
                         {% for key, item in checklist %}
                             {% set index = loop.index %}
-                            <li class="rounded-xl border {{ item.done ? 'border-emerald-200 bg-emerald-50/60' : 'border-slate-200 bg-white' }} p-3">
-                                <div class="flex items-start gap-3">
-                                    <span class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full {{ item.done ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500' }}">{{ index }}</span>
-                                    <div class="min-w-0 flex-1">
-                                        <p class="font-medium {{ item.done ? 'text-emerald-800' : 'text-slate-800' }}">{{ item.label }}</p>
+                            <li class="group rounded-2xl border border-transparent p-3 transition-colors duration-300 hover:bg-[#F5F5F7]">
+                                <div class="flex items-start gap-4">
+                                    <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors duration-300 {{ item.done ? 'bg-[#0071E3] text-white shadow-sm' : 'bg-[#F5F5F7] text-[#86868B] group-hover:bg-white' }}">
+                                        {% if item.done %}
+                                            ✓
+                                        {% else %}
+                                            {{ index }}
+                                        {% endif %}
+                                    </span>
+                                    <div class="min-w-0 flex-1 pt-0.5">
+                                        <p class="font-medium transition-colors duration-300 {{ item.done ? 'text-[#1D1D1F]' : 'text-[#86868B] group-hover:text-[#1D1D1F]' }}">{{ item.label }}</p>
                                     </div>
                                 </div>
                             </li>
@@ -97,40 +114,46 @@
                     </ul>
                 </div>
 
-                <div class="rounded-3xl border border-slate-200 bg-white/95 p-5 shadow-lg shadow-slate-100/40">
-                    <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-700">Actions rapides</h2>
+                {# ACTIONS RAPIDES #}
+                <div class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
+                    <h2 class="text-xs font-semibold uppercase tracking-wider text-[#86868B]">Actions rapides</h2>
+                    
                     {% set canStep2 = profile is not null and checklist.step1.done %}
                     {% set canStep3 = profile is not null and checklist.step2.done %}
                     {% set canStep4 = profile is not null and checklist.step3.done %}
-                    <div class="mt-4 space-y-3">
-                        <a href="{{ path(checklist.step1.route) }}" class="flex w-full items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition {{ profile is null ? 'bg-violet-600 text-white hover:bg-violet-700' : 'border border-violet-200 bg-white text-violet-700 hover:bg-violet-50' }}">
-                            {{ profile is null ? 'Créer mon profil dev' : 'Étape 1 : Infos générales' }}
+                    
+                    <div class="mt-5 space-y-3">
+                        <a href="{{ path(checklist.step1.route) }}" class="flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-semibold transition-all duration-300 active:scale-95 {{ profile is null ? 'bg-[#0071E3] text-white hover:bg-[#0077ED] shadow-sm' : 'bg-[#F5F5F7] text-[#1D1D1F] hover:bg-[#E8E8ED]' }}">
+                            {{ profile is null ? 'Créer mon profil' : 'Étape 1 : Infos générales' }}
                         </a>
+                        
                         {% if canStep2 %}
-                            <a href="{{ path('app_applicant_profile_step2') }}" class="flex w-full items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">
-                                Étape 2 : Expériences / Éducation / Compétences
+                            <a href="{{ path('app_applicant_profile_step2') }}" class="flex w-full items-center justify-center rounded-2xl bg-[#F5F5F7] px-5 py-3.5 text-[15px] font-semibold text-[#1D1D1F] transition-all duration-300 hover:bg-[#E8E8ED] active:scale-95">
+                                Étape 2 : Expériences
                             </a>
                         {% else %}
-                            <div class="flex w-full cursor-not-allowed items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-400">
-                                Étape 2 : Expériences / Éducation / Compétences
+                            <div class="flex w-full cursor-not-allowed items-center justify-center rounded-2xl bg-gray-50 px-5 py-3.5 text-[15px] font-medium text-gray-400 opacity-60">
+                                Étape 2 : Expériences
                             </div>
                         {% endif %}
+
                         {% if canStep3 %}
-                            <a href="{{ path('app_applicant_profile_step3') }}" class="flex w-full items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">
+                            <a href="{{ path('app_applicant_profile_step3') }}" class="flex w-full items-center justify-center rounded-2xl bg-[#F5F5F7] px-5 py-3.5 text-[15px] font-semibold text-[#1D1D1F] transition-all duration-300 hover:bg-[#E8E8ED] active:scale-95">
                                 Étape 3 : Liens externes
                             </a>
                         {% else %}
-                            <div class="flex w-full cursor-not-allowed items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-400">
+                            <div class="flex w-full cursor-not-allowed items-center justify-center rounded-2xl bg-gray-50 px-5 py-3.5 text-[15px] font-medium text-gray-400 opacity-60">
                                 Étape 3 : Liens externes
                             </div>
                         {% endif %}
+
                         {% if canStep4 %}
-                            <a href="{{ path('app_applicant_profile_step4') }}" class="flex w-full items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">
-                                Étape 4 : Postes recherchés
+                            <a href="{{ path('app_applicant_profile_step4') }}" class="flex w-full items-center justify-center rounded-2xl bg-[#F5F5F7] px-5 py-3.5 text-[15px] font-semibold text-[#1D1D1F] transition-all duration-300 hover:bg-[#E8E8ED] active:scale-95">
+                                Étape 4 : Postes
                             </a>
                         {% else %}
-                            <div class="flex w-full cursor-not-allowed items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-400">
-                                Étape 4 : Postes recherchés
+                            <div class="flex w-full cursor-not-allowed items-center justify-center rounded-2xl bg-gray-50 px-5 py-3.5 text-[15px] font-medium text-gray-400 opacity-60">
+                                Étape 4 : Postes
                             </div>
                         {% endif %}
                     </div>
@@ -139,4 +162,3 @@
         </div>
     </section>
 {% endblock %}
-

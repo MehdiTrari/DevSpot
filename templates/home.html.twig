@@ -3,74 +3,101 @@
 {% block title %}Accueil | DevSpot{% endblock %}
 
 {% block body %}
-    <section class="w-full max-w-4xl rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-xl shadow-violet-100/60 backdrop-blur sm:p-8">
-        <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <section class="w-full max-w-4xl rounded-[2.5rem] border border-white/40 bg-white/70 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] sm:p-10">
+        
+        {# HEADER DE LA CARTE #}
+        <div class="mb-10 flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
             <div>
-                <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-yellow-700">
-                    <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
+                <p class="mb-3 inline-flex items-center gap-2 rounded-full bg-[#F5F5F7] px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#86868B]">
+                    <span class="h-2 w-2 rounded-full bg-[#34C759] shadow-[0_0_8px_rgba(52,199,89,0.4)] animate-pulse"></span>
                     Espace public
                 </p>
-                <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Bienvenue sur DevSpot</h1>
-                <p class="mt-2 text-sm text-slate-500">
+                <h1 class="text-4xl font-semibold tracking-tight text-[#1D1D1F]">Bienvenue sur DevSpot.</h1>
+                <p class="mt-2 text-[15px] leading-relaxed text-[#86868B]">
                     {% if app.user %}
-                        Connecté en tant que {{ app.user.userIdentifier }}.
+                        Connecté en tant que <span class="font-medium text-[#1D1D1F]">{{ app.user.userIdentifier }}</span>.
                     {% else %}
                         Découvre DevSpot et connecte-toi pour accéder à ton espace.
                     {% endif %}
                 </p>
             </div>
 
-            {% if app.user %}
-                <a href="{{ logout_path() }}"
-                   class="inline-flex items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">
-                    Se déconnecter
-                </a>
-            {% else %}
-                <div class="flex gap-2">
-                    <a href="{{ path('app_login') }}" class="inline-flex items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">
-                        Se connecter
+            {# BOUTONS D'ACTION PRINCIPAUX #}
+            <div class="shrink-0">
+                {% if app.user %}
+                    <a href="{{ logout_path() }}"
+                       class="inline-flex items-center justify-center rounded-full bg-[#F5F5F7] px-6 py-3.5 text-[15px] font-semibold text-[#FF3B30] transition-all duration-300 hover:scale-[1.02] hover:bg-[#FFEBEA] active:scale-95">
+                        Se déconnecter
                     </a>
-                    <a href="{{ path('app_register') }}" class="inline-flex items-center justify-center rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700">
-                        Créer un compte
-                    </a>
-                </div>
-            {% endif %}
-        </div>
-
-        <div class="grid gap-4 sm:grid-cols-2">
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-700">Mon espace</h2>
-                <p class="mt-2 text-sm text-slate-600">
-                    Accède à ton dashboard et à tes informations.
-                </p>
-
-                {% if app.user and is_granted('ROLE_APPLICANT') %}
-                    <a href="{{ path('app_applicant_home') }}"
-                       class="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700">
-                        Dashboard / Profil candidat
-                    </a>
-                {% elseif app.user %}
-                    <div class="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
-                        Dashboard spécifique non configuré pour ton role pour le moment.
-                    </div>
                 {% else %}
-                    <div class="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-500">
-                        Connecte-toi pour accéder à ton dashboard et à ton profil.
+                    <div class="flex flex-col gap-3 sm:flex-row sm:gap-2">
+                        <a href="{{ path('app_login') }}" 
+                           class="inline-flex items-center justify-center rounded-full bg-[#F5F5F7] px-6 py-3.5 text-[15px] font-semibold text-[#1D1D1F] transition-all duration-300 hover:scale-[1.02] hover:bg-[#E8E8ED] active:scale-95">
+                            Se connecter
+                        </a>
+                        <a href="{{ path('app_register') }}" 
+                           class="inline-flex items-center justify-center rounded-full bg-[#0071E3] px-6 py-3.5 text-[15px] font-semibold text-white shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-[#0077ED] active:scale-95">
+                            Créer un compte
+                        </a>
                     </div>
                 {% endif %}
             </div>
+        </div>
 
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                <h2 class="text-sm font-semibold uppercase tracking-wide text-slate-700">Compte</h2>
-                {% if app.user %}
-                    <ul class="mt-3 space-y-2 text-sm text-slate-700">
-                        <li>Email : <span class="font-medium text-slate-900">{{ app.user.userIdentifier }}</span></li>
-                        <li>Roles : <span class="font-medium text-slate-900">{{ app.user.roles|join(', ') }}</span></li>
-                    </ul>
-                {% else %}
-                    <p class="mt-2 text-sm text-slate-600">Aucune session active pour le moment.</p>
-                    <p class="mt-1 text-xs text-slate-500">Connecte-toi pour voir tes informations de compte.</p>
-                {% endif %}
+        {# GRILLE DE CONTENU #}
+        <div class="grid gap-6 sm:grid-cols-2">
+            
+            {# CARTE : MON ESPACE #}
+            <div class="group rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-[#86868B]">Mon espace</h2>
+                <p class="mt-2 text-[15px] leading-relaxed text-[#1D1D1F]">
+                    Accède à ton dashboard et à tes informations.
+                </p>
+
+                <div class="mt-6">
+                    {% if app.user and is_granted('ROLE_APPLICANT') %}
+                        <a href="{{ path('app_applicant_home') }}"
+                           class="inline-flex w-full items-center justify-center rounded-2xl bg-[#0071E3] px-5 py-3.5 text-[15px] font-semibold text-white shadow-sm transition-all duration-300 group-hover:bg-[#0077ED] active:scale-95">
+                            Dashboard / Profil
+                        </a>
+                    {% elseif app.user %}
+                        <div class="flex w-full items-center justify-center rounded-2xl bg-[#F5F5F7] px-5 py-3.5 text-[15px] font-medium text-[#86868B]">
+                            Dashboard spécifique non configuré
+                        </div>
+                    {% else %}
+                        <div class="flex w-full items-center justify-center rounded-2xl bg-gray-50 px-5 py-3.5 text-[15px] font-medium text-gray-400 opacity-60">
+                            Connexion requise
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# CARTE : COMPTE #}
+            <div class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-[#86868B]">Compte</h2>
+                <div class="mt-4">
+                    {% if app.user %}
+                        <ul class="space-y-4 text-[15px]">
+                            <li class="flex flex-col gap-1 border-b border-gray-50 pb-3">
+                                <span class="text-[#86868B]">Email</span>
+                                <span class="font-medium text-[#1D1D1F]">{{ app.user.userIdentifier }}</span>
+                            </li>
+                            <li class="flex flex-col gap-1">
+                                <span class="text-[#86868B]">Rôles</span>
+                                <span class="inline-flex flex-wrap gap-2">
+                                    {% for role in app.user.roles %}
+                                        <span class="rounded-lg bg-[#F5F5F7] px-2.5 py-1 text-xs font-semibold text-[#1D1D1F]">{{ role }}</span>
+                                    {% endfor %}
+                                </span>
+                            </li>
+                        </ul>
+                    {% else %}
+                        <div class="flex h-[100px] flex-col items-center justify-center text-center">
+                            <p class="text-[15px] font-medium text-[#1D1D1F]">Aucune session active</p>
+                            <p class="mt-1 text-sm text-[#86868B]">Connecte-toi pour voir tes informations.</p>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </section>

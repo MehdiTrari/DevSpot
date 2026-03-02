@@ -3,63 +3,68 @@
 {% block title %}Connexion | DevSpot{% endblock %}
 
 {% block body %}
-    <section class="w-full max-w-md rounded-3xl border border-violet-100 bg-white/95 p-6 shadow-xl shadow-violet-100/60 backdrop-blur sm:p-8">
-        <div class="mb-6">
-            <p class="mb-2 inline-flex items-center gap-2 rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-yellow-700">
-                <span class="h-2 w-2 rounded-full bg-yellow-400"></span>
-                Espace public
-            </p>
-            <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Connexion</h1>
-            <p class="mt-2 text-sm text-slate-500">Accède à ton espace DevSpot.</p>
+    <section class="w-full max-w-md rounded-[2.5rem] border border-white/40 bg-white/70 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] sm:p-10">
+        
+        {# EN-TÊTE #}
+        <div class="mb-8 text-center">
+            <h1 class="text-3xl font-semibold tracking-tight text-[#1D1D1F]">Connexion</h1>
+            <p class="mt-2 text-[15px] text-[#86868B]">Accède à ton espace DevSpot.</p>
         </div>
 
-        {% for message in app.flashes('success') %}
-            <div class="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-                {{ message }}
-            </div>
-        {% endfor %}
+        {# MESSAGES FLASH ET ERREURS #}
+        <div class="space-y-3 mb-6">
+            {% for message in app.flashes('success') %}
+                <div class="rounded-2xl bg-[#34C759]/10 px-5 py-3.5 text-[15px] font-medium text-[#34C759]">
+                    {{ message }}
+                </div>
+            {% endfor %}
 
-        {% for message in app.flashes('verify_email_error') %}
-            <div class="mb-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {{ message }}
-            </div>
-        {% endfor %}
+            {% for message in app.flashes('verify_email_error') %}
+                <div class="rounded-2xl bg-[#FF3B30]/10 px-5 py-3.5 text-[15px] font-medium text-[#FF3B30]">
+                    {{ message }}
+                </div>
+            {% endfor %}
 
-        {% if error %}
-            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                {{ error.messageKey|trans(error.messageData, 'security') }}
-            </div>
-        {% endif %}
+            {% if error %}
+                <div class="rounded-2xl bg-[#FF3B30]/10 px-5 py-3.5 text-[15px] font-medium text-[#FF3B30]">
+                    {{ error.messageKey|trans(error.messageData, 'security') }}
+                </div>
+            {% endif %}
 
-        {% if app.user %}
-            <div class="mb-4 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-700">
-                Connecté en tant que {{ app.user.userIdentifier }}.
-                <a class="ml-1 font-semibold underline decoration-violet-300 underline-offset-2" href="{{ logout_path() }}">Se déconnecter</a>
-            </div>
-        {% endif %}
+            {% if app.user %}
+                <div class="rounded-2xl bg-[#F5F5F7] px-5 py-3.5 text-[15px] font-medium text-[#1D1D1F]">
+                    Connecté en tant que {{ app.user.userIdentifier }}.
+                    <a class="ml-1 font-semibold text-[#0071E3] hover:underline" href="{{ logout_path() }}">Se déconnecter</a>
+                </div>
+            {% endif %}
+        </div>
 
-        <form method="post" class="space-y-4">
-            <div class="space-y-1">
-                <label for="inputEmail" class="block text-sm font-medium text-slate-700">Email</label>
+        {# FORMULAIRE #}
+        <form method="post" class="space-y-5">
+            
+            <div class="space-y-1.5">
+                <label for="inputEmail" class="block pl-1 text-sm font-medium text-[#1D1D1F]">Email</label>
                 <input
                     type="email"
                     value="{{ last_username }}"
                     name="email"
                     id="inputEmail"
-                    class="block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100"
+                    class="block w-full rounded-2xl border border-gray-200 bg-[#F5F5F7] px-5 py-3.5 text-[15px] text-[#1D1D1F] outline-none transition-all duration-300 placeholder:text-[#86868B] focus:border-[#0071E3] focus:bg-white focus:ring-4 focus:ring-[#0071E3]/20"
+                    placeholder="nom@exemple.com"
                     autocomplete="email"
                     required
                     autofocus
                 >
             </div>
 
-            <div class="space-y-1">
-                <label for="inputPassword" class="block text-sm font-medium text-slate-700">Mot de passe</label>
+            <div class="space-y-1.5">
+                <label for="inputPassword" class="block pl-1 text-sm font-medium text-[#1D1D1F]">Mot de passe</label>
                 <input
                     type="password"
                     name="password"
                     id="inputPassword"
-                    class="block w-full rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:ring-4 focus:ring-violet-100"
+                    class="block w-full rounded-2xl border border-gray-200 bg-[#F5F5F7] px-5 py-3.5 text-[15px] text-[#1D1D1F] outline-none transition-all duration-300 placeholder:text-[#86868B] focus:border-[#0071E3] focus:bg-white focus:ring-4 focus:ring-[#0071E3]/20"
+                    placeholder="••••••••"
                     autocomplete="current-password"
                     required
                 >
@@ -67,19 +72,27 @@
 
             <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
 
-            <label class="inline-flex items-center gap-2 text-sm text-slate-600">
-                <input type="checkbox" name="_remember_me" class="h-4 w-4 rounded border-violet-300 text-violet-600 focus:ring-violet-500">
-                Se souvenir de moi
-            </label>
+            <div class="pt-1">
+                <label class="group inline-flex cursor-pointer items-center gap-3">
+                    <div class="relative flex items-center">
+                        <input type="checkbox" name="_remember_me" class="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-300 bg-[#F5F5F7] transition-all checked:border-[#0071E3] checked:bg-[#0071E3] focus:outline-none focus:ring-4 focus:ring-[#0071E3]/20">
+                        <svg class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100" width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 5L4.5 8.5L11 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <span class="text-[15px] font-medium text-[#86868B] transition-colors group-hover:text-[#1D1D1F]">Se souvenir de moi</span>
+                </label>
+            </div>
 
-            <button class="w-full rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-violet-700 focus:outline-none focus:ring-4 focus:ring-violet-200" type="submit">
+            <button class="mt-4 w-full rounded-full bg-[#0071E3] px-5 py-4 text-[15px] font-semibold text-white shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-[#0077ED] active:scale-95 focus:outline-none focus:ring-4 focus:ring-[#0071E3]/20" type="submit">
                 Se connecter
             </button>
         </form>
 
-        <p class="mt-6 text-center text-sm text-slate-500">
+        {# PIED DE CARTE #}
+        <p class="mt-8 text-center text-[15px] text-[#86868B]">
             Pas encore de compte ?
-            <a href="{{ path('app_register') }}" class="font-semibold text-violet-700 underline decoration-violet-300 underline-offset-2">Créer un compte</a>
+            <a href="{{ path('app_register') }}" class="font-semibold text-[#0071E3] transition-colors hover:text-[#0077ED] hover:underline">Créer un compte</a>
         </p>
     </section>
 {% endblock %}
