@@ -75,20 +75,40 @@
             
             {# Les blobs avec la classe apple-fade (Opacité et taille augmentées pour bien ressortir) #}
             <div class="apple-fade pointer-events-none absolute -top-32 -left-20 h-[500px] w-[500px] rounded-full bg-emerald-500/40 blur-[120px]"></div>
-            <div class="apple-fade pointer-events-none absolute -right-32 top-1/4 h-[500px] w-[500px] rounded-full bg-yellow-400/30 blur-[120px]" style="animation-delay: 0.2s;"></div>
+            <div class="apple-fade pointer-events-none absolute -right-32 top-1/4 h-[500px] w-[500px] rounded-full bg-emerald-600/40 blur-[120px]" style="animation-delay: 0.2s;"></div>
             <div class="apple-fade pointer-events-none absolute bottom-0 left-1/4 h-[600px] w-[600px] rounded-full bg-emerald-600/40 blur-[120px]" style="animation-delay: 0.4s;"></div>
 
-            {# HEADER avec apple-slide-up #}
-            <header class="apple-slide-up relative z-10 mx-auto w-full max-w-6xl px-4 pt-6 sm:px-6 lg:px-8">
-                <nav class="flex items-center">
-                    {# Style "Glassmorphism Dark" pour le bouton DevSpot #}
-                    <a href="{{ path('app_home') }}" class="group inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[15px] font-semibold tracking-tight text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95">
-                        <span class="relative flex h-2.5 w-2.5 items-center justify-center">
-                            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-yellow-400 opacity-40"></span>
-                            <span class="relative inline-flex h-2 w-2 rounded-full bg-yellow-400 transition-transform duration-300 group-hover:scale-110"></span>
-                        </span>
-                        DevSpot
-                    </a>
+            {# HEADER stable (sans animation) #}
+            <header class="relative z-10 mx-auto w-full max-w-6xl px-4 pt-6 sm:px-6 lg:px-8">
+                <nav class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3">
+                        {# Style "Glassmorphism Dark" pour le bouton DevSpot #}
+                        <a href="{{ path('app_home') }}" class="group inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[15px] font-semibold tracking-tight text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95">
+                            <span class="relative flex h-2.5 w-2.5 items-center justify-center">
+                                <span class="absolute inline-flex h-full w-full rounded-full bg-yellow-400/40"></span>
+                                <span class="relative inline-flex h-2 w-2 rounded-full bg-yellow-400 transition-transform duration-300 group-hover:scale-110"></span>
+                            </span>
+                            DevSpot
+                        </a>
+
+                        {% if app.user and is_granted('ROLE_APPLICANT') %}
+                            <a href="{{ path('app_applicant_home') }}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[15px] font-semibold tracking-tight text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95">
+                                Dashboard
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex items-center">
+                        {% if app.user %}
+                            <a href="{{ logout_path() }}" class="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 px-4 py-2 text-[15px] font-semibold tracking-tight text-red-400 shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-red-500 hover:text-white active:scale-95">
+                                Se déconnecter
+                            </a>
+                        {% else %}
+                            <a href="{{ path('app_login') }}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[15px] font-semibold tracking-tight text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95">
+                                Se connecter
+                            </a>
+                        {% endif %}
+                    </div>
                 </nav>
             </header>
 

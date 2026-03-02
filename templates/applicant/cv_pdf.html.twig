@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: DejaVu Sans, sans-serif; color: #0f172a; font-size: 12px; }
+        .header { border-bottom: 2px solid #10b981; padding-bottom: 12px; margin-bottom: 14px; }
+        h1 { margin: 0; font-size: 24px; }
+        .headline { margin-top: 6px; color: #334155; font-size: 14px; }
+        .meta { margin-top: 6px; color: #475569; }
+        .section { margin-top: 16px; }
+        .section-title { font-size: 14px; font-weight: 700; color: #065f46; margin-bottom: 8px; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; }
+        .item { margin-bottom: 10px; }
+        .item-title { font-weight: 700; }
+        .item-sub { color: #475569; }
+        .badge { display: inline-block; border: 1px solid #10b981; color: #065f46; background: #ecfdf5; padding: 2px 8px; border-radius: 999px; margin-right: 6px; margin-bottom: 6px; font-size: 10px; }
+        .row { margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{ profile.firstName }} {{ profile.lastName }}</h1>
+        <div class="headline">{{ profile.headline ?: 'Headline non renseignée' }}</div>
+        <div class="meta">
+            {{ profile.city ?: 'Ville non renseignée' }}, {{ profile.country ?: 'Pays non renseigné' }}
+            {% if profile.yearsExperience is not null %} · {{ profile.yearsExperience }} an{{ profile.yearsExperience > 1 ? 's' : '' }} d'expérience{% endif %}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Profil</div>
+        <div>{{ profile.bio ?: 'Bio non renseignée.' }}</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Compétences</div>
+        <div class="row">
+            {% for profileSkill in profile.profileSkills %}
+                <span class="badge">
+                    {{ profileSkill.skill.name }}
+                    {% if profileSkill.level %} - {{ profileSkill.level.value }}{% endif %}
+                    {% if profileSkill.years is not null %} ({{ profileSkill.years }} ans){% endif %}
+                </span>
+            {% else %}
+                Aucune compétence renseignée.
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Expériences</div>
+        {% for experience in experiences %}
+            <div class="item">
+                <div class="item-title">{{ experience.title }} · {{ experience.companyName }}</div>
+                <div class="item-sub">
+                    {{ experience.startDate ? experience.startDate|date('m/Y') : 'N/A' }} -
+                    {{ experience.isCurrent ? 'Aujourd\'hui' : (experience.endDate ? experience.endDate|date('m/Y') : 'N/A') }}
+                </div>
+                <div>{{ experience.description }}</div>
+            </div>
+        {% else %}
+            <div>Aucune expérience renseignée.</div>
+        {% endfor %}
+    </div>
+
+    <div class="section">
+        <div class="section-title">Formations</div>
+        {% for item in education %}
+            <div class="item">
+                <div class="item-title">{{ item.schoolName }}</div>
+                <div class="item-sub">
+                    {{ item.degree ?: 'Diplôme non renseigné' }}{% if item.field %} · {{ item.field }}{% endif %}
+                    {% if item.startDate or item.endDate %}
+                        · {{ item.startDate ? item.startDate|date('m/Y') : 'N/A' }} - {{ item.endDate ? item.endDate|date('m/Y') : 'N/A' }}
+                    {% endif %}
+                </div>
+                {% if item.description %}<div>{{ item.description }}</div>{% endif %}
+            </div>
+        {% else %}
+            <div>Aucune formation renseignée.</div>
+        {% endfor %}
+    </div>
+
+    <div class="section">
+        <div class="section-title">Postes recherchés</div>
+        <div class="row">
+            {% for position in profile.desiredPositions %}
+                <span class="badge">{{ position.name }}</span>
+            {% else %}
+                Aucun poste renseigné.
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
