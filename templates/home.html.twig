@@ -21,7 +21,12 @@
                 <h1 class="text-4xl font-semibold tracking-tight text-white">Bienvenue sur DevSpot.</h1>
                 <p class="mt-2 text-[15px] leading-relaxed text-slate-400">
                     {% if app.user %}
-                        Connecté en tant que <span class="font-medium text-white">{{ app.user.userIdentifier }}</span>.
+                        Connecté en tant que <span class="font-medium text-white">
+                            {% if is_granted('ROLE_APPLICANT') %}
+                                candidat.
+                            {% else %}
+                                recruteur.
+                            {% endif %}
                     {% else %}
                         Découvre DevSpot et connecte-toi pour accéder à ton espace.
                     {% endif %}
