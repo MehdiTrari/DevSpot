@@ -5,20 +5,20 @@
 {% block title %}Étape 2 | DevSpot{% endblock %}
 
 {% block body %}
-    <section class="w-full max-w-4xl rounded-[2.5rem] border border-white/40 bg-white/70 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] sm:p-10">
+    <section class="w-full max-w-4xl rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:bg-slate-900/60 hover:shadow-emerald-500/10 sm:p-10">
         
         {# EN-TÊTE #}
         <div class="mb-10">
-            <p class="mb-4 inline-flex items-center gap-2 rounded-full bg-[#F5F5F7] px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#86868B]">
-                <span class="h-2 w-2 rounded-full bg-[#0071E3] shadow-[0_0_8px_rgba(0,113,227,0.4)] animate-pulse"></span>
+            <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-300">
+                <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] animate-pulse"></span>
                 Profil développeur
             </p>
-            <h1 class="text-3xl font-semibold tracking-tight text-[#1D1D1F]">Étape 2 - Parcours & Compétences</h1>
-            <p class="mt-2 text-[15px] text-[#86868B]">Ajoute au moins une expérience, une formation et une compétence.</p>
+            <h1 class="text-3xl font-semibold tracking-tight text-white">Étape 2 - Parcours & Compétences</h1>
+            <p class="mt-2 text-[15px] text-slate-400">Ajoute au moins une expérience, une formation et une compétence.</p>
         </div>
 
         {% if profileForm.vars.errors|length > 0 %}
-            <div class="mb-6 rounded-2xl bg-[#FF3B30]/10 px-5 py-3.5 text-[15px] font-medium text-[#FF3B30] animate-fade-in-down">
+            <div class="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3.5 text-[15px] font-medium text-red-400 animate-fade-in-down">
                 {{ form_errors(profileForm) }}
             </div>
         {% endif %}
@@ -28,16 +28,16 @@
             <div class="space-y-8">
                 
                 {# --- SECTION SKILLS --- #}
-                <div class="rounded-[2rem] border border-gray-100 bg-[#F5F5F7]/50 p-6 sm:p-8">
+                <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 sm:p-8">
                     <div class="mb-6">
-                        <h2 class="text-xl font-semibold tracking-tight text-[#1D1D1F]">Compétences techniques & soft skills</h2>
-                        <p class="mt-1 text-[15px] text-[#86868B]">Langages, frameworks, outils et qualités humaines.</p>
+                        <h2 class="text-xl font-semibold tracking-tight text-white">Compétences techniques & soft skills</h2>
+                        <p class="mt-1 text-[15px] text-slate-400">Langages, frameworks, outils et qualités humaines.</p>
                     </div>
                     
                     <div id="profile-skills-list" class="grid grid-cols-1 gap-4 sm:grid-cols-2" data-collection-list data-empty-text="Aucune compétence ajoutée." data-index="{{ profileForm.profileSkills|length }}" data-prototype="{{ form_widget(profileForm.profileSkills.vars.prototype)|e('html_attr') }}">
                         {% for item in profileForm.profileSkills %}
-                            <div class="group relative rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-md" data-collection-item>
-                                <button type="button" class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-400 shadow-sm opacity-0 ring-1 ring-gray-200 transition-all duration-300 hover:bg-[#FF3B30] hover:text-white hover:ring-[#FF3B30] group-hover:opacity-100" data-collection-remove title="Supprimer">
+                            <div class="group relative rounded-2xl border border-white/10 bg-slate-800/50 p-5 shadow-sm transition-all duration-300 hover:bg-slate-800/80" data-collection-item>
+                                <button type="button" class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-slate-400 shadow-sm opacity-0 ring-1 ring-white/10 transition-all duration-300 hover:bg-red-500 hover:text-white hover:ring-red-500 group-hover:opacity-100" data-collection-remove title="Supprimer">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
                                 <div class="space-y-2">
@@ -47,7 +47,7 @@
                         {% endfor %}
                     </div>
                     
-                    <button type="button" class="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-200 bg-white/50 py-4 text-[15px] font-medium text-[#86868B] transition-all duration-300 hover:border-[#0071E3] hover:bg-[#0071E3]/5 hover:text-[#0071E3]" data-collection-add="#profile-skills-list">
+                    <button type="button" class="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/20 bg-white/5 py-4 text-[15px] font-medium text-slate-400 transition-all duration-300 hover:border-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-500" data-collection-add="#profile-skills-list">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" /></svg>
                         Ajouter une compétence
                     </button>
@@ -55,16 +55,16 @@
                 </div>
 
                 {# --- SECTION EXPERIENCES --- #}
-                <div class="rounded-[2rem] border border-gray-100 bg-[#F5F5F7]/50 p-6 sm:p-8">
+                <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 sm:p-8">
                     <div class="mb-6">
-                        <h2 class="text-xl font-semibold tracking-tight text-[#1D1D1F]">Expériences Professionnelles</h2>
-                        <p class="mt-1 text-[15px] text-[#86868B]">Détaille tes expériences passées et les technologies utilisées.</p>
+                        <h2 class="text-xl font-semibold tracking-tight text-white">Expériences Professionnelles</h2>
+                        <p class="mt-1 text-[15px] text-slate-400">Détaille tes expériences passées et les technologies utilisées.</p>
                     </div>
 
                     <div id="experiences-list" class="space-y-4" data-collection-list data-empty-text="Aucune expérience ajoutée." data-index="{{ profileForm.experiences|length }}" data-prototype="{{ form_widget(profileForm.experiences.vars.prototype)|e('html_attr') }}">
                         {% for item in profileForm.experiences %}
-                            <div class="group relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md sm:p-8" data-collection-item>
-                                <button type="button" class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-400 shadow-sm opacity-0 ring-1 ring-gray-200 transition-all duration-300 hover:bg-[#FF3B30] hover:text-white hover:ring-[#FF3B30] group-hover:opacity-100" data-collection-remove title="Supprimer">
+                            <div class="group relative rounded-2xl border border-white/10 bg-slate-800/50 p-6 shadow-sm transition-all duration-300 hover:bg-slate-800/80 sm:p-8" data-collection-item>
+                                <button type="button" class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-slate-400 shadow-sm opacity-0 ring-1 ring-white/10 transition-all duration-300 hover:bg-red-500 hover:text-white hover:ring-red-500 group-hover:opacity-100" data-collection-remove title="Supprimer">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
                                 <div>
@@ -74,7 +74,7 @@
                         {% endfor %}
                     </div>
 
-                    <button type="button" class="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-200 bg-white/50 py-4 text-[15px] font-medium text-[#86868B] transition-all duration-300 hover:border-[#0071E3] hover:bg-[#0071E3]/5 hover:text-[#0071E3]" data-collection-add="#experiences-list">
+                    <button type="button" class="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/20 bg-white/5 py-4 text-[15px] font-medium text-slate-400 transition-all duration-300 hover:border-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-500" data-collection-add="#experiences-list">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" /></svg>
                         Ajouter une expérience
                     </button>
@@ -82,16 +82,16 @@
                 </div>
 
                 {# --- SECTION EDUCATION --- #}
-                <div class="rounded-[2rem] border border-gray-100 bg-[#F5F5F7]/50 p-6 sm:p-8">
+                <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 sm:p-8">
                     <div class="mb-6">
-                        <h2 class="text-xl font-semibold tracking-tight text-[#1D1D1F]">Formation & Éducation</h2>
-                        <p class="mt-1 text-[15px] text-[#86868B]">Indique tes diplômes et certifications.</p>
+                        <h2 class="text-xl font-semibold tracking-tight text-white">Formation & Éducation</h2>
+                        <p class="mt-1 text-[15px] text-slate-400">Indique tes diplômes et certifications.</p>
                     </div>
 
                     <div id="education-list" class="space-y-4" data-collection-list data-empty-text="Aucune formation ajoutée." data-index="{{ profileForm.education|length }}" data-prototype="{{ form_widget(profileForm.education.vars.prototype)|e('html_attr') }}">
                         {% for item in profileForm.education %}
-                            <div class="group relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md sm:p-8" data-collection-item>
-                                <button type="button" class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-400 shadow-sm opacity-0 ring-1 ring-gray-200 transition-all duration-300 hover:bg-[#FF3B30] hover:text-white hover:ring-[#FF3B30] group-hover:opacity-100" data-collection-remove title="Supprimer">
+                            <div class="group relative rounded-2xl border border-white/10 bg-slate-800/50 p-6 shadow-sm transition-all duration-300 hover:bg-slate-800/80 sm:p-8" data-collection-item>
+                                <button type="button" class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-slate-400 shadow-sm opacity-0 ring-1 ring-white/10 transition-all duration-300 hover:bg-red-500 hover:text-white hover:ring-red-500 group-hover:opacity-100" data-collection-remove title="Supprimer">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
                                 <div>
@@ -101,7 +101,7 @@
                         {% endfor %}
                     </div>
 
-                    <button type="button" class="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-gray-200 bg-white/50 py-4 text-[15px] font-medium text-[#86868B] transition-all duration-300 hover:border-[#0071E3] hover:bg-[#0071E3]/5 hover:text-[#0071E3]" data-collection-add="#education-list">
+                    <button type="button" class="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/20 bg-white/5 py-4 text-[15px] font-medium text-slate-400 transition-all duration-300 hover:border-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-500" data-collection-add="#education-list">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" /></svg>
                         Ajouter une formation
                     </button>
@@ -116,12 +116,12 @@
             {# ZONE D'ACTIONS #}
             <div class="mt-10 flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-3">
                 <a href="{{ path('app_applicant_home') }}" 
-                   class="inline-flex w-full sm:w-auto items-center justify-center rounded-full bg-[#F5F5F7] px-6 py-4 text-[15px] font-semibold text-[#1D1D1F] transition-all duration-300 hover:scale-[1.02] hover:bg-[#E8E8ED] active:scale-95">
+                   class="inline-flex w-full sm:w-auto items-center justify-center rounded-full border border-white/10 bg-white/5 px-6 py-4 text-[15px] font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 active:scale-95">
                     Retour dashboard
                 </a>
                 
                 <button type="submit" 
-                        class="flex w-full flex-1 items-center justify-center rounded-full bg-[#0071E3] px-6 py-4 text-[15px] font-semibold text-white shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-[#0077ED] active:scale-95 focus:outline-none focus:ring-4 focus:ring-[#0071E3]/20">
+                        class="flex w-full flex-1 items-center justify-center rounded-full bg-emerald-500 px-6 py-4 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95 focus:outline-none focus:ring-4 focus:ring-emerald-500/30">
                     Enregistrer l'étape 2
                 </button>
             </div>
@@ -140,18 +140,18 @@
                 if (empty) empty.remove();
 
                 const item = document.createElement('div');
-                item.className = 'group relative rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:shadow-md sm:p-8 animate-fade-in-down';
+                // Mise à jour des classes Dark Mode pour les éléments générés via JS
+                item.className = 'group relative rounded-2xl border border-white/10 bg-slate-800/50 p-6 shadow-sm transition-all duration-300 hover:bg-slate-800/80 sm:p-8 animate-fade-in-down';
                 item.setAttribute('data-collection-item', '');
                 
-                // Nouvelle icône de suppression façon iOS (petite croix déportée en haut à droite)
-                const deleteBtn = `<button type="button" class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white text-gray-400 shadow-sm opacity-0 ring-1 ring-gray-200 transition-all duration-300 hover:bg-[#FF3B30] hover:text-white hover:ring-[#FF3B30] group-hover:opacity-100" data-collection-remove title="Supprimer">
+                // Icône de suppression adaptée au Dark Mode
+                const deleteBtn = `<button type="button" class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-slate-400 shadow-sm opacity-0 ring-1 ring-white/10 transition-all duration-300 hover:bg-red-500 hover:text-white hover:ring-red-500 group-hover:opacity-100" data-collection-remove title="Supprimer">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                   </button>`;
                 
                 item.innerHTML = deleteBtn + '<div>' + prototype + '</div>';
                 list.appendChild(item);
                 
-                // On réinitialise flatpickr pour les nouveaux champs date s'il y en a
                 if (typeof flatpickr !== 'undefined') {
                     flatpickr(item.querySelectorAll('.js-datepicker'), {
                         locale: "fr",
@@ -171,7 +171,7 @@
                 if (list.querySelector('[data-collection-empty]')) return;
                 
                 const empty = document.createElement('p');
-                empty.className = 'text-[15px] text-[#86868B] italic py-3 text-center';
+                empty.className = 'text-[15px] text-slate-500 italic py-3 text-center';
                 empty.dataset.collectionEmpty = '';
                 empty.textContent = list.dataset.emptyText || 'Aucun élément ajouté.';
                 list.appendChild(empty);
@@ -193,7 +193,6 @@
                 const item = removeButton.closest('[data-collection-item]');
                 const list = item ? item.closest('[data-collection-list]') : null;
                 if (item) {
-                    // Petite animation de suppression
                     item.style.opacity = '0';
                     item.style.transform = 'scale(0.95)';
                     setTimeout(() => {

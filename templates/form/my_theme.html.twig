@@ -13,7 +13,7 @@
 {# --- LABEL --- #}
 {% block form_label %}
     {% if label is not same as(false) %}
-        {% set label_attr = label_attr|merge({'class': (label_attr.class|default('') ~ ' block pl-1 text-[15px] font-medium text-[#1D1D1F]')|trim}) %}
+        {% set label_attr = label_attr|merge({'class': (label_attr.class|default('') ~ ' block pl-1 text-[15px] font-medium text-slate-200')|trim}) %}
         <label {% with { attr: label_attr } %}{{ block('attributes') }}{% endwith %}>
             {{- label|trans -}}
         </label>
@@ -24,7 +24,7 @@
 {% block form_widget_simple %}
     {% set type = type|default('text') %}
     {% set attr = attr|merge({
-        'class': (attr.class|default('') ~ ' block w-full rounded-2xl border border-gray-200 bg-[#F5F5F7] px-4 py-3.5 text-[15px] text-[#1D1D1F] outline-none transition-all duration-300 placeholder:text-[#86868B] focus:border-[#0071E3] focus:bg-white focus:ring-4 focus:ring-[#0071E3]/20 shadow-sm')|trim
+        'class': (attr.class|default('') ~ ' block w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 text-[15px] text-white outline-none transition-all duration-300 placeholder:text-slate-500 focus:border-emerald-500 focus:bg-white/10 focus:ring-4 focus:ring-emerald-500/20 shadow-inner')|trim
     }) %}
     <input type="{{ type }}" {{ block('widget_attributes') }} {% if value is not empty %}value="{{ value }}"{% endif %}/>
 {% endblock %}
@@ -32,7 +32,7 @@
 {# --- TEXTAREA --- #}
 {% block textarea_widget %}
     {% set attr = attr|merge({
-        'class': (attr.class|default('') ~ ' block w-full min-h-[120px] rounded-2xl border border-gray-200 bg-[#F5F5F7] px-4 py-3.5 text-[15px] text-[#1D1D1F] outline-none transition-all duration-300 placeholder:text-[#86868B] focus:border-[#0071E3] focus:bg-white focus:ring-4 focus:ring-[#0071E3]/20 shadow-sm')|trim
+        'class': (attr.class|default('') ~ ' block w-full min-h-[120px] rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 text-[15px] text-white outline-none transition-all duration-300 placeholder:text-slate-500 focus:border-emerald-500 focus:bg-white/10 focus:ring-4 focus:ring-emerald-500/20 shadow-inner')|trim
     }) %}
     <textarea {{ block('widget_attributes') }}>{{ value }}</textarea>
 {% endblock %}
@@ -40,24 +40,24 @@
 {# --- SELECT (Choice) --- #}
 {% block choice_widget_collapsed %}
     {% set attr = attr|merge({
-        'class': (attr.class|default('') ~ ' block w-full appearance-none rounded-2xl border border-gray-200 bg-[#F5F5F7] px-4 py-3.5 pr-10 text-[15px] text-[#1D1D1F] outline-none transition-all duration-300 focus:border-[#0071E3] focus:bg-white focus:ring-4 focus:ring-[#0071E3]/20 shadow-sm cursor-pointer relative z-10')|trim
+        'class': (attr.class|default('') ~ ' block w-full appearance-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 pr-10 text-[15px] text-white outline-none transition-all duration-300 focus:border-emerald-500 focus:bg-white/10 focus:ring-4 focus:ring-emerald-500/20 shadow-inner cursor-pointer relative z-10')|trim
     }) %}
     <div class="relative group">
         <select {{ block('widget_attributes') }}>
             {% if placeholder is not none %}
-                <option value="" {% if required and value is empty %} selected="selected"{% endif %}>{{ placeholder|trans }}</option>
+                <option value="" {% if required and value is empty %} selected="selected"{% endif %} class="bg-slate-900">{{ placeholder|trans }}</option>
             {% endif %}
             {% if preferred_choices|length > 0 %}
                 {% set options = preferred_choices %}
                 {{ block('choice_widget_options') }}
-                <option disabled="disabled">{{ separator }}</option>
+                <option disabled="disabled" class="bg-slate-900">{{ separator }}</option>
             {% endif %}
             {% set options = choices %}
             {{ block('choice_widget_options') }}
         </select>
         
         {# Flèche iOS style pour le select #}
-        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[#86868B] group-focus-within:text-[#0071E3] transition-colors duration-300">
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-focus-within:text-emerald-500 transition-colors duration-300">
             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
             </svg>
@@ -65,16 +65,30 @@
     </div>
 {% endblock %}
 
+{# --- OPTIONS DU SELECT (Pour éviter qu'elles soient invisibles sur fond sombre) --- #}
+{% block choice_widget_options %}
+    {% for group_label, choice in options %}
+        {% if choice is iterable %}
+            <optgroup label="{{ choice_translation_domain is same as(false) ? group_label : group_label|trans({}, choice_translation_domain) }}" class="bg-slate-900 font-semibold">
+                {% set options = choice %}
+                {{ block('choice_widget_options') }}
+            </optgroup>
+        {% else %}
+            <option value="{{ choice.value }}" {% if choice.attr %}{% with { attr: choice.attr } %}{{ block('attributes') }}{% endwith %}{% endif %}{% if choice is selectedchoice(value) %} selected="selected"{% endif %} class="bg-slate-900 text-slate-100">{{ choice_translation_domain is same as(false) ? choice.label : choice.label|trans({}, choice_translation_domain) }}</option>
+        {% endif %}
+    {% endfor %}
+{% endblock %}
+
 {# --- DATE PICKER (Flatpickr) --- #}
 {% block date_widget %}
     {% set attr = attr|merge({
-        'class': (attr.class|default('') ~ ' block w-full rounded-2xl border border-gray-200 bg-[#F5F5F7] px-4 py-3.5 pr-10 text-[15px] text-[#1D1D1F] outline-none transition-all duration-300 placeholder:text-[#86868B] focus:border-[#0071E3] focus:bg-white focus:ring-4 focus:ring-[#0071E3]/20 shadow-sm js-datepicker cursor-pointer')|trim,
+        'class': (attr.class|default('') ~ ' block w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 pr-10 text-[15px] text-white outline-none transition-all duration-300 placeholder:text-slate-500 focus:border-emerald-500 focus:bg-white/10 focus:ring-4 focus:ring-emerald-500/20 shadow-inner js-datepicker cursor-pointer')|trim,
         'placeholder': 'Sélectionner une date...',
         'readonly': 'readonly' 
     }) %}
     <div class="relative group">
         <input type="text" {{ block('widget_attributes') }} {% if value is not empty %}value="{{ value }}"{% endif %}/>
-        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-[#86868B] group-focus-within:text-[#0071E3] transition-colors duration-300">
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-slate-500 group-focus-within:text-emerald-500 transition-colors duration-300">
             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
@@ -85,7 +99,7 @@
 {# --- ERRORS --- #}
 {% block form_errors %}
     {% if errors|length > 0 %}
-        <p class="pl-1 mt-1.5 text-sm font-medium text-[#FF3B30] animate-fade-in-down">
+        <p class="pl-1 mt-1.5 text-sm font-medium text-red-400 animate-fade-in-down">
             {{ errors[0].message }}
         </p>
     {% endif %}
@@ -94,6 +108,6 @@
 {# --- HELP TEXT --- #}
 {% block form_help %}
     {% if help is not empty %}
-        <p class="pl-1 mt-1.5 text-[13px] text-[#86868B]">{{ help }}</p>
+        <p class="pl-1 mt-1.5 text-[13px] text-slate-400">{{ help }}</p>
     {% endif %}
 {% endblock %}

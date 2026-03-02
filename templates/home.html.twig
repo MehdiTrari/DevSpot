@@ -3,19 +3,25 @@
 {% block title %}Accueil | DevSpot{% endblock %}
 
 {% block body %}
-    <section class="w-full max-w-4xl rounded-[2.5rem] border border-white/40 bg-white/70 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] sm:p-10">
+    {# Carte principale en verre fumé #}
+    <section class="w-full max-w-4xl rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:bg-slate-900/60 hover:shadow-emerald-500/10 sm:p-10">
         
         {# HEADER DE LA CARTE #}
         <div class="mb-10 flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
             <div>
-                <p class="mb-3 inline-flex items-center gap-2 rounded-full bg-[#F5F5F7] px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#86868B]">
-                    <span class="h-2 w-2 rounded-full bg-[#34C759] shadow-[0_0_8px_rgba(52,199,89,0.4)] animate-pulse"></span>
+                {# Badge translucide avec indicateur pulse #}
+                <p class="mb-3 inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-300">
+                    {# L'indicateur lumineux repensé #}
+                    <span class="relative flex h-2.5 w-2.5 items-center justify-center">
+                        <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60"></span>
+                        <span class="relative inline-flex h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+                    </span>
                     Espace public
                 </p>
-                <h1 class="text-4xl font-semibold tracking-tight text-[#1D1D1F]">Bienvenue sur DevSpot.</h1>
-                <p class="mt-2 text-[15px] leading-relaxed text-[#86868B]">
+                <h1 class="text-4xl font-semibold tracking-tight text-white">Bienvenue sur DevSpot.</h1>
+                <p class="mt-2 text-[15px] leading-relaxed text-slate-400">
                     {% if app.user %}
-                        Connecté en tant que <span class="font-medium text-[#1D1D1F]">{{ app.user.userIdentifier }}</span>.
+                        Connecté en tant que <span class="font-medium text-white">{{ app.user.userIdentifier }}</span>.
                     {% else %}
                         Découvre DevSpot et connecte-toi pour accéder à ton espace.
                     {% endif %}
@@ -25,18 +31,21 @@
             {# BOUTONS D'ACTION PRINCIPAUX #}
             <div class="shrink-0">
                 {% if app.user %}
+                    {# Bouton de déconnexion stylisé #}
                     <a href="{{ logout_path() }}"
-                       class="inline-flex items-center justify-center rounded-full bg-[#F5F5F7] px-6 py-3.5 text-[15px] font-semibold text-[#FF3B30] transition-all duration-300 hover:scale-[1.02] hover:bg-[#FFEBEA] active:scale-95">
+                       class="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 px-6 py-3.5 text-[15px] font-semibold text-red-400 transition-all duration-300 hover:scale-[1.02] hover:bg-red-500 hover:text-white active:scale-95">
                         Se déconnecter
                     </a>
                 {% else %}
                     <div class="flex flex-col gap-3 sm:flex-row sm:gap-2">
+                        {# Bouton de connexion "Ghost" #}
                         <a href="{{ path('app_login') }}" 
-                           class="inline-flex items-center justify-center rounded-full bg-[#F5F5F7] px-6 py-3.5 text-[15px] font-semibold text-[#1D1D1F] transition-all duration-300 hover:scale-[1.02] hover:bg-[#E8E8ED] active:scale-95">
+                           class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-6 py-3.5 text-[15px] font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 active:scale-95">
                             Se connecter
                         </a>
+                        {# Bouton principal Émeraude #}
                         <a href="{{ path('app_register') }}" 
-                           class="inline-flex items-center justify-center rounded-full bg-[#0071E3] px-6 py-3.5 text-[15px] font-semibold text-white shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-[#0077ED] active:scale-95">
+                           class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 py-3.5 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95">
                             Créer un compte
                         </a>
                     </div>
@@ -48,24 +57,24 @@
         <div class="grid gap-6 sm:grid-cols-2">
             
             {# CARTE : MON ESPACE #}
-            <div class="group rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
-                <h2 class="text-xs font-semibold uppercase tracking-wider text-[#86868B]">Mon espace</h2>
-                <p class="mt-2 text-[15px] leading-relaxed text-[#1D1D1F]">
-                    Accède à ton dashboard et à tes informations.
+            <div class="group rounded-[2rem] border border-white/10 bg-slate-800/50 p-6 shadow-sm transition-all duration-500 hover:bg-slate-800/80">
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Mon espace</h2>
+                <p class="mt-2 text-[15px] leading-relaxed text-white">
+                    Accède à ton profil.
                 </p>
 
                 <div class="mt-6">
                     {% if app.user and is_granted('ROLE_APPLICANT') %}
                         <a href="{{ path('app_applicant_home') }}"
-                           class="inline-flex w-full items-center justify-center rounded-2xl bg-[#0071E3] px-5 py-3.5 text-[15px] font-semibold text-white shadow-sm transition-all duration-300 group-hover:bg-[#0077ED] active:scale-95">
-                            Dashboard / Profil
+                           class="inline-flex w-full items-center justify-center rounded-2xl bg-emerald-500 px-5 py-3.5 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95">
+                            Dashboard
                         </a>
                     {% elseif app.user %}
-                        <div class="flex w-full items-center justify-center rounded-2xl bg-[#F5F5F7] px-5 py-3.5 text-[15px] font-medium text-[#86868B]">
+                        <div class="flex w-full items-center justify-center rounded-2xl bg-white/5 px-5 py-3.5 text-[15px] font-medium text-slate-400">
                             Dashboard spécifique non configuré
                         </div>
                     {% else %}
-                        <div class="flex w-full items-center justify-center rounded-2xl bg-gray-50 px-5 py-3.5 text-[15px] font-medium text-gray-400 opacity-60">
+                        <div class="flex w-full items-center justify-center rounded-2xl bg-white/5 px-5 py-3.5 text-[15px] font-medium text-slate-500 opacity-60">
                             Connexion requise
                         </div>
                     {% endif %}
@@ -73,32 +82,33 @@
             </div>
 
             {# CARTE : COMPTE #}
-            <div class="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)]">
-                <h2 class="text-xs font-semibold uppercase tracking-wider text-[#86868B]">Compte</h2>
+            <div class="rounded-[2rem] border border-white/10 bg-slate-800/50 p-6 shadow-sm transition-all duration-500 hover:bg-slate-800/80">
+                <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Compte</h2>
                 <div class="mt-4">
                     {% if app.user %}
                         <ul class="space-y-4 text-[15px]">
-                            <li class="flex flex-col gap-1 border-b border-gray-50 pb-3">
-                                <span class="text-[#86868B]">Email</span>
-                                <span class="font-medium text-[#1D1D1F]">{{ app.user.userIdentifier }}</span>
+                            <li class="flex flex-col gap-1 border-b border-white/5 pb-3">
+                                <span class="text-slate-400">Email</span>
+                                <span class="font-medium text-white">{{ app.user.userIdentifier }}</span>
                             </li>
                             <li class="flex flex-col gap-1">
-                                <span class="text-[#86868B]">Rôles</span>
+                                <span class="text-slate-400">Rôles</span>
                                 <span class="inline-flex flex-wrap gap-2">
                                     {% for role in app.user.roles %}
-                                        <span class="rounded-lg bg-[#F5F5F7] px-2.5 py-1 text-xs font-semibold text-[#1D1D1F]">{{ role }}</span>
+                                        <span class="rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold text-slate-300">{{ role }}</span>
                                     {% endfor %}
                                 </span>
                             </li>
                         </ul>
                     {% else %}
                         <div class="flex h-[100px] flex-col items-center justify-center text-center">
-                            <p class="text-[15px] font-medium text-[#1D1D1F]">Aucune session active</p>
-                            <p class="mt-1 text-sm text-[#86868B]">Connecte-toi pour voir tes informations.</p>
+                            <p class="text-[15px] font-medium text-white">Aucune session active</p>
+                            <p class="mt-1 text-sm text-slate-400">Connecte-toi pour voir tes informations.</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
+            
         </div>
     </section>
 {% endblock %}

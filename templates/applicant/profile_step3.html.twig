@@ -5,23 +5,24 @@
 {% block title %}Étape 3 | DevSpot{% endblock %}
 
 {% block body %}
-    <section class="w-full max-w-2xl rounded-[2.5rem] border border-white/40 bg-white/70 p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] sm:p-10">
+    {# Carte en verre fumé #}
+    <section class="w-full max-w-2xl rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:bg-slate-900/60 hover:shadow-emerald-500/10 sm:p-10">
         
         {# EN-TÊTE #}
         <div class="mb-8">
-            <p class="mb-4 inline-flex items-center gap-2 rounded-full bg-[#F5F5F7] px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-[#86868B]">
-                <span class="h-2 w-2 rounded-full bg-[#0071E3] shadow-[0_0_8px_rgba(0,113,227,0.4)] animate-pulse"></span>
+            <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-300">
+                <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] animate-pulse"></span>
                 Profil développeur
             </p>
-            <h1 class="text-3xl font-semibold tracking-tight text-[#1D1D1F]">Étape 3 - Liens externes</h1>
-            <p class="mt-2 text-[15px] text-[#86868B]">Ajoute ton GitHub, LinkedIn ou portfolio.</p>
+            <h1 class="text-3xl font-semibold tracking-tight text-white">Étape 3 - Liens externes</h1>
+            <p class="mt-2 text-[15px] text-slate-400">Ajoute ton GitHub, LinkedIn ou portfolio.</p>
         </div>
 
         {# FORMULAIRE #}
         {{ form_start(profileForm, {attr: {class: 'space-y-6'}}) }}
             
             {# 
-               Les champs sont automatiquement stylisés par my_theme.html.twig
+               Les champs sont automatiquement stylisés en Dark Mode par my_theme.html.twig
                On les regroupe simplement dans un div pour s'assurer que l'espacement est régulier.
             #}
             <div class="space-y-5">
@@ -31,14 +32,16 @@
             </div>
 
             {# ZONE D'ACTIONS #}
-            <div class="mt-8 flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-3">
+            <div class="mt-10 flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-3">
+                {# Bouton Secondaire #}
                 <a href="{{ path('app_applicant_home') }}" 
-                   class="inline-flex w-full sm:w-auto items-center justify-center rounded-full bg-[#F5F5F7] px-6 py-4 text-[15px] font-semibold text-[#1D1D1F] transition-all duration-300 hover:scale-[1.02] hover:bg-[#E8E8ED] active:scale-95">
+                   class="inline-flex w-full sm:w-auto items-center justify-center rounded-full border border-white/10 bg-white/5 px-6 py-4 text-[15px] font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 active:scale-95">
                     Retour dashboard
                 </a>
                 
+                {# Bouton Principal Émeraude #}
                 <button type="submit" 
-                        class="flex w-full flex-1 items-center justify-center rounded-full bg-[#0071E3] px-6 py-4 text-[15px] font-semibold text-white shadow-sm transition-all duration-300 hover:scale-[1.02] hover:bg-[#0077ED] active:scale-95 focus:outline-none focus:ring-4 focus:ring-[#0071E3]/20">
+                        class="flex w-full flex-1 items-center justify-center rounded-full bg-emerald-500 px-6 py-4 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95 focus:outline-none focus:ring-4 focus:ring-emerald-500/30">
                     Enregistrer l'étape 3
                 </button>
             </div>
