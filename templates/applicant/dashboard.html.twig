@@ -15,6 +15,7 @@
                     </p>
                     <h1 class="text-3xl font-semibold tracking-tight text-violet-900">Bienvenue sur ton espace</h1>
                     <p class="mt-2 text-sm text-slate-500">Compléter ton profil en 4 étapes avec retour dashboard entre chaque étape.</p>
+                    {% if doneCount < 4 %}
                     <div class="mt-4 max-w-xl">
                         <div class="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-slate-500">
                             <span>Progression du profil</span>
@@ -25,16 +26,19 @@
                         </div>
                         <p class="mt-2 text-xs text-slate-500">{{ progressPercent }}% complété</p>
                     </div>
+                    {% endif %}
                 </div>
 
                 <div class="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
                     <p class="font-medium text-slate-900">{{ app.user.email }}</p>
                     <p class="mt-1">
                         Statut profil :
-                        {% if profile %}
-                            <span class="font-semibold text-emerald-700">créé</span>
-                        {% else %}
+                        {% if profile is null %}
                             <span class="font-semibold text-amber-700">à créer</span>
+                        {% elseif doneCount < 4 %}
+                            <span class="font-semibold text-violet-700">en cours</span>
+                        {% else %}
+                            <span class="font-semibold text-emerald-700">créé</span>
                         {% endif %}
                     </p>
                 </div>
@@ -104,11 +108,11 @@
                         </a>
                         {% if canStep2 %}
                             <a href="{{ path('app_applicant_profile_step2') }}" class="flex w-full items-center justify-center rounded-xl border border-violet-200 bg-white px-4 py-3 text-sm font-semibold text-violet-700 transition hover:bg-violet-50">
-                                Étape 2 : Expériences / Éducation / Skills
+                                Étape 2 : Expériences / Éducation / Compétences
                             </a>
                         {% else %}
                             <div class="flex w-full cursor-not-allowed items-center justify-center rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-400">
-                                Étape 2 : Expériences / Éducation / Skills
+                                Étape 2 : Expériences / Éducation / Compétences
                             </div>
                         {% endif %}
                         {% if canStep3 %}
@@ -135,3 +139,4 @@
         </div>
     </section>
 {% endblock %}
+

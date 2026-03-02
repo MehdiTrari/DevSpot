@@ -14,22 +14,29 @@ class EducationType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('schoolName')
+            ->add('schoolName', null, [
+                'label' => 'École',
+            ])
             ->add('degree', null, [
+                'label' => 'Diplôme',
                 'required' => false,
             ])
             ->add('field', null, [
+                'label' => 'Domaine',
                 'required' => false,
             ])
             ->add('startDate', DateType::class, [
+                'label' => 'Date de début',
                 'widget' => 'single_text',
                 'required' => false,
             ])
             ->add('endDate', DateType::class, [
+                'label' => 'Date de fin',
                 'widget' => 'single_text',
                 'required' => false,
             ])
             ->add('description', TextareaType::class, [
+                'label' => 'Description',
                 'required' => false,
             ])
         ;

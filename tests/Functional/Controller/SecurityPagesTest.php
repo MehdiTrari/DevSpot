@@ -45,9 +45,9 @@ final class SecurityPagesTest extends WebTestCase
             'password' => $password,
         ]));
 
-        self::assertResponseRedirects('/login');
+        self::assertResponseRedirects('/');
         $client->followRedirect();
-        self::assertSelectorTextContains('body', sprintf('Connecté en tant que %s.', $email));
+        self::assertSelectorTextContains('body', $email);
     }
 
     public function testApplicantIsRedirectedToApplicantHomeAfterLogin(): void
@@ -63,10 +63,10 @@ final class SecurityPagesTest extends WebTestCase
             'password' => $password,
         ]));
 
-        self::assertResponseRedirects('/applicant');
-        $client->followRedirect();
-        self::assertSelectorTextContains('h1', 'Bienvenue sur ton espace');
-        self::assertSelectorExists('a[href="/applicant/profile/create"]');
+        self::assertResponseRedirects('/');
+        $crawler = $client->followRedirect();
+        self::assertSelectorTextContains('h1', 'Bienvenue sur DevSpot');
+        self::assertSelectorExists('a[href="/applicant"]');
     }
 
     public function testApplicantCanCreateDeveloperProfile(): void
@@ -81,9 +81,11 @@ final class SecurityPagesTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/applicant');
+        self::assertResponseRedirects('/');
         $crawler = $client->followRedirect();
 
+        $crawler = $client->click($crawler->filter('a[href="/applicant"]')->link());
+        self::assertResponseIsSuccessful();
         $crawler = $client->click($crawler->filter('a[href="/applicant/profile/create"]')->link());
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('h1');
@@ -128,7 +130,7 @@ final class SecurityPagesTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/applicant');
+        self::assertResponseRedirects('/');
         $client->followRedirect();
 
         $client->request('GET', '/applicant/profile/step-2');
@@ -153,9 +155,12 @@ final class SecurityPagesTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/applicant');
-        $client->followRedirect();
+        self::assertResponseRedirects('/');
+        $crawler = $client->followRedirect();
 
+        self::assertSelectorExists('a[href="/applicant"]');
+        $crawler = $client->click($crawler->filter('a[href="/applicant"]')->link());
+        self::assertResponseIsSuccessful();
         self::assertSelectorExists('a[href="/applicant/profile/create"]');
         self::assertSelectorNotExists('a[href="/applicant/profile/step-2"]');
         self::assertSelectorNotExists('a[href="/applicant/profile/step-3"]');
@@ -194,12 +199,12 @@ final class SecurityPagesTest extends WebTestCase
             'password' => $password,
         ]));
         $client->followRedirect();
-        self::assertSelectorTextContains('body', sprintf('Connecté en tant que %s.', $email));
+        self::assertSelectorTextContains('body', $email);
 
         $client->request('GET', '/logout');
         self::assertResponseStatusCodeSame(302);
         $client->followRedirect();
-        self::assertSelectorTextNotContains('body', sprintf('Connecté en tant que %s.', $email));
+        self::assertSelectorTextNotContains('body', $email);
     }
 
     public function testPendingUserCannotLogin(): void

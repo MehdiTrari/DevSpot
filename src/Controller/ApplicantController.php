@@ -25,7 +25,7 @@ final class ApplicantController extends AbstractController
         $user = $this->getApplicantUser();
         $profile = $user->getDeveloperProfile();
 
-        return $this->render('applicant/home.html.twig', [
+        return $this->render('applicant/dashboard.html.twig', [
             'profile' => $profile,
             'checklist' => $this->buildChecklist($profile),
         ]);
