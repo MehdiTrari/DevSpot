@@ -57,7 +57,38 @@
             <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
             <script src="https://npmcdn.com/flatpickr/dist/l10n/fr.js"></script>
             <script>
-                document.addEventListener('DOMContentLoaded', () => {
+                const initUiBehaviors = () => {
+                    const notificationStack = document.querySelector('[data-notification-stack="true"]');
+
+                    const buildNotificationElement = (message, type = 'info') => {
+                        const styles = {
+                            success: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300',
+                            info: 'border-yellow-400/20 bg-yellow-400/10 text-yellow-300',
+                            error: 'border-red-500/20 bg-red-500/10 text-red-300',
+                        };
+
+                        const closeStyles = {
+                            success: 'text-emerald-200/90 hover:text-emerald-100',
+                            info: 'text-yellow-200/90 hover:text-yellow-100',
+                            error: 'text-red-200/90 hover:text-red-100',
+                        };
+
+                        const element = document.createElement('div');
+                        const styleKey = styles[type] ? type : 'info';
+                        element.setAttribute('data-notification-autodismiss', 'true');
+                        element.setAttribute('data-notification-duration', '4000');
+                        element.className = `pointer-events-auto rounded-2xl border px-5 py-3.5 text-[15px] font-medium shadow-xl backdrop-blur-md transition-all duration-300 ease-out ${styles[styleKey]}`;
+                        element.innerHTML = `
+                            <div class="flex items-start justify-between gap-4">
+                                <p class="leading-relaxed"></p>
+                                <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 transition ${closeStyles[styleKey]}">×</button>
+                            </div>
+                        `;
+                        element.querySelector('p').textContent = message;
+
+                        return element;
+                    };
+
                     flatpickr(".js-datepicker", {
                         locale: "fr",
                         dateFormat: "d/m/Y",
@@ -65,11 +96,16 @@
                         disableMobile: "true",
                     });
 
-                    const flashElements = document.querySelectorAll('[data-flash-autodismiss="true"]');
+                    const flashElements = document.querySelectorAll('[data-notification-autodismiss="true"]');
 
                     flashElements.forEach((flashElement) => {
+                        if (flashElement.dataset.notificationInitialized === 'true') {
+                            return;
+                        }
+                        flashElement.dataset.notificationInitialized = 'true';
+
                         let dismissed = false;
-                        const duration = Number.parseInt(flashElement.dataset.flashDuration ?? '5000', 10);
+                        const duration = Number.parseInt(flashElement.dataset.notificationDuration ?? '4000', 10);
 
                         const dismiss = () => {
                             if (dismissed) {
@@ -77,22 +113,122 @@
                             }
 
                             dismissed = true;
-                            flashElement.classList.add('opacity-0', 'translate-y-1');
                             flashElement.style.pointerEvents = 'none';
+                            flashElement.style.overflow = 'hidden';
 
-                            window.setTimeout(() => {
-                                flashElement.remove();
-                            }, 320);
+                            const computedStyle = window.getComputedStyle(flashElement);
+                            const currentHeight = flashElement.offsetHeight;
+
+                            flashElement.style.maxHeight = `${currentHeight}px`;
+                            flashElement.style.marginTop = computedStyle.marginTop;
+                            flashElement.style.marginBottom = computedStyle.marginBottom;
+                            flashElement.style.paddingTop = computedStyle.paddingTop;
+                            flashElement.style.paddingBottom = computedStyle.paddingBottom;
+                            flashElement.style.borderTopWidth = computedStyle.borderTopWidth;
+                            flashElement.style.borderBottomWidth = computedStyle.borderBottomWidth;
+                            flashElement.style.transition = 'max-height 420ms cubic-bezier(0.16, 1, 0.3, 1), margin 420ms cubic-bezier(0.16, 1, 0.3, 1), padding 420ms cubic-bezier(0.16, 1, 0.3, 1), border-width 420ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease, transform 300ms ease';
+
+                            requestAnimationFrame(() => {
+                                requestAnimationFrame(() => {
+                                    flashElement.style.opacity = '0';
+                                    flashElement.style.transform = 'translateY(6px)';
+                                    flashElement.style.maxHeight = '0px';
+                                    flashElement.style.marginTop = '0px';
+                                    flashElement.style.marginBottom = '0px';
+                                    flashElement.style.paddingTop = '0px';
+                                    flashElement.style.paddingBottom = '0px';
+                                    flashElement.style.borderTopWidth = '0px';
+                                    flashElement.style.borderBottomWidth = '0px';
+                                });
+                            });
+
+                            flashElement.setAttribute('aria-hidden', 'true');
                         };
 
-                        const closeButton = flashElement.querySelector('[data-flash-close="true"]');
+                        const closeButton = flashElement.querySelector('[data-notification-close="true"]');
                         if (closeButton) {
                             closeButton.addEventListener('click', dismiss);
                         }
 
-                        window.setTimeout(dismiss, Number.isNaN(duration) ? 5000 : duration);
+                        window.setTimeout(dismiss, Number.isNaN(duration) ? 4000 : duration);
                     });
-                });
+
+                    const visibilityForms = document.querySelectorAll('[data-visibility-toggle="true"]');
+
+                    visibilityForms.forEach((formElement) => {
+                        if (formElement.dataset.visibilityInitialized === 'true') {
+                            return;
+                        }
+                        formElement.dataset.visibilityInitialized = 'true';
+
+                        formElement.addEventListener('submit', async (event) => {
+                            event.preventDefault();
+
+                            const submitButton = formElement.querySelector('[data-visibility-button="true"]');
+                            const hiddenVisibilityInput = formElement.querySelector('[data-visibility-value="true"]');
+                            const badge = formElement.parentElement?.querySelector('[data-visibility-badge="true"]');
+
+                            if (!submitButton || !hiddenVisibilityInput || !badge) {
+                                formElement.submit();
+                                return;
+                            }
+
+                            submitButton.setAttribute('disabled', 'disabled');
+                            submitButton.classList.add('opacity-70', 'cursor-not-allowed');
+
+                            try {
+                                const response = await fetch(formElement.action, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json',
+                                    },
+                                    body: new FormData(formElement),
+                                    credentials: 'same-origin',
+                                });
+
+                                const payload = await response.json();
+
+                                if (!response.ok || !payload.success) {
+                                    const errorMessage = payload?.message ?? 'Action impossible, merci de réessayer.';
+                                    if (notificationStack) {
+                                        notificationStack.prepend(buildNotificationElement(errorMessage, payload?.type ?? 'error'));
+                                        initUiBehaviors();
+                                    }
+                                    return;
+                                }
+
+                                const isPublic = payload.isPublic === true;
+                                badge.textContent = isPublic ? 'Public' : 'Privé';
+                                badge.classList.remove('border-emerald-500/30', 'bg-emerald-500/10', 'text-emerald-400', 'border-white/10', 'bg-white/5', 'text-slate-400');
+                                if (isPublic) {
+                                    badge.classList.add('border-emerald-500/30', 'bg-emerald-500/10', 'text-emerald-400');
+                                } else {
+                                    badge.classList.add('border-white/10', 'bg-white/5', 'text-slate-400');
+                                }
+
+                                hiddenVisibilityInput.value = isPublic ? '0' : '1';
+                                submitButton.textContent = isPublic ? 'Passer en privé' : 'Passer en public';
+
+                                if (notificationStack) {
+                                    notificationStack.prepend(buildNotificationElement(payload.message ?? 'Visibilité mise à jour.', payload.type ?? 'success'));
+                                    initUiBehaviors();
+                                }
+                            } catch (_error) {
+                                if (notificationStack) {
+                                    notificationStack.prepend(buildNotificationElement('Erreur réseau, merci de réessayer.', 'error'));
+                                    initUiBehaviors();
+                                }
+                            } finally {
+                                submitButton.removeAttribute('disabled');
+                                submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
+                            }
+                        });
+                    });
+                };
+
+                document.addEventListener('DOMContentLoaded', initUiBehaviors);
+                document.addEventListener('turbo:load', initUiBehaviors);
             </script>
         {% endblock %}
     </head>
@@ -119,6 +255,48 @@
                     </a>
                 </nav>
             </header>
+
+            <div class="pointer-events-none fixed inset-x-0 top-6 z-50">
+                <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+                    <div data-notification-stack="true" class="ml-auto flex w-full max-w-sm flex-col gap-3">
+                        {% for message in app.flashes('success') %}
+                            <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-3.5 text-[15px] font-medium text-emerald-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
+                                <div class="flex items-start justify-between gap-4">
+                                    <p class="leading-relaxed">{{ message }}</p>
+                                    <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 text-emerald-200/90 transition hover:text-emerald-100">×</button>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                        {% for message in app.flashes('info') %}
+                            <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-5 py-3.5 text-[15px] font-medium text-yellow-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
+                                <div class="flex items-start justify-between gap-4">
+                                    <p class="leading-relaxed">{{ message }}</p>
+                                    <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 text-yellow-200/90 transition hover:text-yellow-100">×</button>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                        {% for message in app.flashes('verify_email_error') %}
+                            <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3.5 text-[15px] font-medium text-red-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
+                                <div class="flex items-start justify-between gap-4">
+                                    <p class="leading-relaxed">{{ message }}</p>
+                                    <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 text-red-200/90 transition hover:text-red-100">×</button>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                        {% for message in app.flashes('error') %}
+                            <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3.5 text-[15px] font-medium text-red-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
+                                <div class="flex items-start justify-between gap-4">
+                                    <p class="leading-relaxed">{{ message }}</p>
+                                    <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 text-red-200/90 transition hover:text-red-100">×</button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
 
             {# MAIN avec apple-slide-up-delay-1 #}
             <main class="apple-slide-up-delay-1 relative z-10 mx-auto flex min-h-[calc(100vh-84px)] w-full max-w-6xl items-center justify-center px-4 pb-12 pt-8 sm:px-6 lg:px-8">

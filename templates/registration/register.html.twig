@@ -23,24 +23,6 @@
 
         {# MESSAGES FLASH ET ERREURS GLOBALES #}
         <div class="space-y-3 mb-6">
-            {% for flash_error in app.flashes('verify_email_error') %}
-                <div data-flash-autodismiss="true" data-flash-duration="5500" class="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3.5 text-[15px] font-medium text-red-400 animate-fade-in-down transition-all duration-300 ease-out">
-                    <div class="flex items-start justify-between gap-4">
-                        <p class="leading-relaxed">{{ flash_error }}</p>
-                        <button type="button" data-flash-close="true" aria-label="Fermer le message" class="shrink-0 text-red-300/90 transition hover:text-red-200">×</button>
-                    </div>
-                </div>
-            {% endfor %}
-
-            {% for message in app.flashes('success') %}
-                <div data-flash-autodismiss="true" data-flash-duration="5000" class="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-3.5 text-[15px] font-medium text-emerald-400 animate-fade-in-down transition-all duration-300 ease-out">
-                    <div class="flex items-start justify-between gap-4">
-                        <p class="leading-relaxed">{{ message }}</p>
-                        <button type="button" data-flash-close="true" aria-label="Fermer le message" class="shrink-0 text-emerald-300/90 transition hover:text-emerald-200">×</button>
-                    </div>
-                </div>
-            {% endfor %}
-
             {% if registrationForm.vars.errors|length > 0 %}
                 <div class="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3.5 text-[15px] font-medium text-red-400 animate-fade-in-down">
                     {{ form_errors(registrationForm) }}
