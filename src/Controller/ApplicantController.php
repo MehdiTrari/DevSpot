@@ -13,6 +13,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -168,6 +169,204 @@ final class ApplicantController extends AbstractController
         return $this->render('applicant/profile_step4.html.twig', [
             'profileForm' => $form,
         ]);
+    }
+
+    #[Route('/applicant/portfolio/generate', name: 'app_applicant_portfolio_generate')]
+    #[IsGranted('ROLE_APPLICANT')]
+    public function generatePortfolio(EntityManagerInterface $entityManager): Response
+    {
+        $profile = $this->getApplicantUser()->getDeveloperProfile();
+
+        if (!$profile instanceof DeveloperProfile) {
+            $this->addFlash('info', 'Tu dois d\'abord créer ton profil développeur.');
+
+            return $this->redirectToRoute('app_applicant_profile_create');
+        }
+
+        $checklist = $this->buildChecklist($profile);
+        $isComplete = !in_array(false, array_column($checklist, 'done'), true);
+
+        if (!$isComplete) {
+            $this->addFlash('info', 'Complète les 4 étapes avant de générer ton portfolio.');
+
+            return $this->redirectToRoute('app_applicant_home');
+        }
+
+        if (null === $profile->getPortfolioGeneratedAt()) {
+            $profile->setPortfolioGeneratedAt(new \DateTimeImmutable());
+            $entityManager->flush();
+        }
+
+        return $this->render('applicant/portfolio_generating.html.twig', [
+            'portfolioUrl' => $this->generateUrl('app_public_profile_show', ['slug' => $profile->getSlug()]),
+        ]);
+    }
+
+    #[Route('/applicant/cv/generate', name: 'app_applicant_cv_generate')]
+    #[IsGranted('ROLE_APPLICANT')]
+    public function generateCv(): Response
+    {
+        $profile = $this->getApplicantUser()->getDeveloperProfile();
+
+        if (!$profile instanceof DeveloperProfile) {
+            $this->addFlash('info', 'Tu dois d\'abord créer ton profil développeur.');
+
+            return $this->redirectToRoute('app_applicant_profile_create');
+        }
+
+        $checklist = $this->buildChecklist($profile);
+        $isComplete = !in_array(false, array_column($checklist, 'done'), true);
+
+        if (!$isComplete) {
+            $this->addFlash('info', 'Complète les 4 étapes avant de générer ton CV.');
+
+            return $this->redirectToRoute('app_applicant_home');
+        }
+
+        return $this->render('applicant/cv_generating.html.twig', [
+            'cvUrl' => $this->generateUrl('app_applicant_cv_download'),
+            'returnUrl' => $this->generateUrl('app_applicant_home'),
+        ]);
+    }
+
+    #[Route('/applicant/cv/download', name: 'app_applicant_cv_download')]
+    #[IsGranted('ROLE_APPLICANT')]
+    public function downloadCv(EntityManagerInterface $entityManager): Response
+    {
+        $profile = $this->getApplicantUser()->getDeveloperProfile();
+
+        if (!$profile instanceof DeveloperProfile) {
+            $this->addFlash('info', 'Tu dois d\'abord créer ton profil développeur.');
+
+            return $this->redirectToRoute('app_applicant_profile_create');
+        }
+
+        $checklist = $this->buildChecklist($profile);
+        $isComplete = !in_array(false, array_column($checklist, 'done'), true);
+
+        if (!$isComplete) {
+            $this->addFlash('info', 'Complète les 4 étapes avant de générer ton CV.');
+
+            return $this->redirectToRoute('app_applicant_home');
+        }
+
+        $experiences = $profile->getExperiences()->toArray();
+        usort(
+            $experiences,
+            static fn ($left, $right) => ($right->getStartDate()?->getTimestamp() ?? 0) <=> ($left->getStartDate()?->getTimestamp() ?? 0)
+        );
+
+        $education = $profile->getEducation()->toArray();
+        usort(
+            $education,
+            static fn ($left, $right) => ($right->getStartDate()?->getTimestamp() ?? 0) <=> ($left->getStartDate()?->getTimestamp() ?? 0)
+        );
+
+        $options = new Options();
+        $options->set('defaultFont', 'DejaVu Sans');
+        $options->set('isRemoteEnabled', false);
+
+        $dompdf = new Dompdf($options);
+        $html = $this->renderView('applicant/cv_pdf.html.twig', [
+            'profile' => $profile,
+            'experiences' => $experiences,
+            'education' => $education,
+        ]);
+
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4');
+        $dompdf->render();
+        $pdf = $dompdf->output();
+
+        $uploadDirectory = $this->getParameter('kernel.project_dir').'/public/uploads/cv';
+        if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0777, true) && !is_dir($uploadDirectory)) {
+            throw new \RuntimeException('Le dossier de génération des CV est introuvable.');
+        }
+
+        $safeSlug = $profile->getSlug() ?: 'profil';
+        $fileName = sprintf('%s-cv.pdf', $safeSlug);
+        $filePath = $uploadDirectory.'/'.$fileName;
+        file_put_contents($filePath, $pdf);
+
+        $profile->setCvPdfPath('uploads/cv/'.$fileName);
+        $entityManager->flush();
+
+        $response = new Response($pdf);
+        $response->headers->set('Content-Type', 'application/pdf');
+        $disposition = $response->headers->makeDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $fileName);
+        $response->headers->set('Content-Disposition', $disposition);
+
+        return $response;
+    }
+
+    #[Route('/applicant/profile/visibility', name: 'app_applicant_profile_visibility', methods: ['POST'])]
+    #[IsGranted('ROLE_APPLICANT')]
+    public function toggleProfileVisibility(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $isAsync = $request->isXmlHttpRequest() || str_contains((string) $request->headers->get('Accept'), 'application/json');
+        $profile = $this->getApplicantUser()->getDeveloperProfile();
+
+        if (!$profile instanceof DeveloperProfile) {
+            if ($isAsync) {
+                return new JsonResponse([
+                    'success' => false,
+                    'type' => 'info',
+                    'message' => 'Tu dois d\'abord créer ton profil développeur.',
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            $this->addFlash('info', 'Tu dois d\'abord créer ton profil développeur.');
+
+            return $this->redirectToRoute('app_applicant_profile_create');
+        }
+
+        if (!$this->isCsrfTokenValid('toggle_visibility', (string) $request->request->get('_token'))) {
+            if ($isAsync) {
+                return new JsonResponse([
+                    'success' => false,
+                    'type' => 'error',
+                    'message' => 'Action invalide, merci de réessayer.',
+                ], Response::HTTP_FORBIDDEN);
+            }
+
+            $this->addFlash('info', 'Action invalide, merci de réessayer.');
+
+            return $this->redirectToRoute('app_applicant_home');
+        }
+
+        $makePublic = '1' === (string) $request->request->get('is_public');
+
+        if ($makePublic && null === $profile->getPortfolioGeneratedAt()) {
+            if ($isAsync) {
+                return new JsonResponse([
+                    'success' => false,
+                    'type' => 'info',
+                    'message' => 'Génère d\'abord ton portfolio avant de le rendre public.',
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            $this->addFlash('info', 'Génère d\'abord ton portfolio avant de le rendre public.');
+
+            return $this->redirectToRoute('app_applicant_home');
+        }
+
+        $profile->setIsPublic($makePublic);
+        $entityManager->flush();
+
+        $message = $makePublic ? 'Ton portfolio est maintenant public.' : 'Ton portfolio est maintenant privé.';
+
+        if ($isAsync) {
+            return new JsonResponse([
+                'success' => true,
+                'type' => 'success',
+                'message' => $message,
+                'isPublic' => $makePublic,
+            ]);
+        }
+
+        $this->addFlash('success', $message);
+
+        return $this->redirectToRoute('app_applicant_home');
     }
 
     private function getApplicantUser(): User
