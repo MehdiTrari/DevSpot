@@ -70,7 +70,7 @@ final class ApplicantController extends AbstractController
 
             $this->addFlash('success', 'Profil développeur créé. Étape 1 terminée.');
 
-            return $this->redirectToRoute('app_applicant_home');
+            return $this->redirectToRoute('app_applicant_profile_step2');
         }
 
         return $this->render('applicant/create_profile.html.twig', [
@@ -95,7 +95,7 @@ final class ApplicantController extends AbstractController
             $entityManager->flush();
             $this->addFlash('success', 'Étape 1 mise à jour.');
 
-            return $this->redirectToRoute('app_applicant_home');
+            return $this->redirectToRoute('app_applicant_profile_step2');
         }
 
         return $this->render('applicant/profile_step1.html.twig', [
@@ -119,7 +119,7 @@ final class ApplicantController extends AbstractController
             $entityManager->flush();
             $this->addFlash('success', 'Étape 2 mise à jour.');
 
-            return $this->redirectToRoute('app_applicant_home');
+            return $this->redirectToRoute('app_applicant_profile_step3');
         }
 
         return $this->render('applicant/profile_step2.html.twig', [
@@ -143,7 +143,7 @@ final class ApplicantController extends AbstractController
             $entityManager->flush();
             $this->addFlash('success', 'Étape 3 mise à jour.');
 
-            return $this->redirectToRoute('app_applicant_home');
+            return $this->redirectToRoute('app_applicant_profile_step4');
         }
 
         return $this->render('applicant/profile_step3.html.twig', [
