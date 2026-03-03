@@ -103,6 +103,26 @@ final class ApplicantController extends AbstractController
         ]);
     }
 
+    #[Route('/applicant/profile/avatar/delete', name: 'app_applicant_avatar_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_APPLICANT')]
+    public function deleteAvatar(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $profile = $this->getApplicantUser()->getDeveloperProfile();
+        if (!$profile instanceof DeveloperProfile) {
+            return new JsonResponse(['success' => false], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (!$this->isCsrfTokenValid('delete_avatar', (string) $request->request->get('_token'))) {
+            return new JsonResponse(['success' => false], Response::HTTP_FORBIDDEN);
+        }
+
+        $this->removePreviousAvatar($profile, $this->getParameter('kernel.project_dir') . '/public/uploads/avatars');
+        $profile->setAvatarPath(null);
+        $entityManager->flush();
+
+        return new JsonResponse(['success' => true]);
+    }
+
     #[Route('/applicant/profile/step-2', name: 'app_applicant_profile_step2')]
     #[IsGranted('ROLE_APPLICANT')]
     public function editProfileStep2(Request $request, EntityManagerInterface $entityManager): Response

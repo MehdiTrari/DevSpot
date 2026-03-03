@@ -29,9 +29,7 @@
                     {% if profile.avatarPath %}
                         <img src="{{ asset(profile.avatarPath) }}" alt="Avatar de {{ profile.firstName }} {{ profile.lastName }}" class="h-16 w-16 rounded-2xl border border-white/15 object-cover sm:h-20 sm:w-20">
                     {% else %}
-                        <div class="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/15 bg-white/5 text-lg font-semibold text-white sm:h-20 sm:w-20 sm:text-xl">
-                            {{ (profile.firstName|default('P'))|slice(0, 1)|upper }}{{ (profile.lastName|default(''))|slice(0, 1)|upper }}
-                        </div>
+                        <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Photo de profil par défaut" class="h-16 w-16 rounded-2xl border border-white/15 object-cover sm:h-20 sm:w-20">
                     {% endif %}
 
                     <div>

@@ -54,12 +54,23 @@
             {# SECTION AVATAR (Adaptée au Dark Mode) #}
             <div class="mt-8 space-y-5">
                 {% if profileForm.vars.data.avatarPath %}
-                    <div class="flex items-center gap-5 rounded-2xl border border-white/10 bg-white/5 p-5">
-                        <img src="{{ asset(profileForm.vars.data.avatarPath) }}" alt="Photo de profil" class="h-20 w-20 rounded-full object-cover shadow-sm ring-4 ring-slate-800">
-                        <div>
-                            <p class="text-[15px] font-medium text-white">Photo actuelle</p>
-                            <p class="mt-0.5 text-[13px] text-slate-400">Elle s'affiche sur ton profil public.</p>
+                    <div class="flex items-center justify-between gap-5 rounded-2xl border border-white/10 bg-white/5 p-5">
+                        <div class="flex items-center gap-5">
+                            <img src="{{ asset(profileForm.vars.data.avatarPath) }}" alt="Photo de profil" class="h-20 w-20 rounded-full object-cover shadow-sm ring-4 ring-slate-800">
+                            <div>
+                                <p class="text-[15px] font-medium text-white">Photo actuelle</p>
+                                <p class="mt-0.5 text-[13px] text-slate-400">Elle s'affiche sur ton profil public.</p>
+                            </div>
                         </div>
+                        <button type="button" 
+                                id="deleteAvatarBtn"
+                                data-csrf-token="{{ csrf_token('delete_avatar') }}"
+                                class="inline-flex items-center justify-center h-10 w-10 rounded-full border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                                title="Supprimer la photo de profil">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
                     </div>
                 {% endif %}
                 
@@ -83,4 +94,46 @@
             
         {{ form_end(profileForm) }}
     </section>
+
+    <script>
+        document.getElementById('deleteAvatarBtn')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            
+            if (!confirm('Es-tu sûr de vouloir supprimer ta photo de profil?')) {
+                return;
+            }
+
+            const btn = e.target.closest('button');
+            const csrfToken = btn.getAttribute('data-csrf-token');
+            
+            if (!csrfToken) {
+                alert('Token de sécurité manquant');
+                return;
+            }
+
+            try {
+                const response = await fetch('{{ path('app_applicant_avatar_delete') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    body: new URLSearchParams({
+                        '_token': csrfToken
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    // Recharger la page pour afficher les changements
+                    window.location.reload();
+                } else {
+                    alert('Erreur lors de la suppression de la photo');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('Une erreur est survenue');
+            }
+        });
+    </script>
 {% endblock %}
