@@ -50,26 +50,6 @@
             </div>
         </div>
 
-        {# FLASH MESSAGES #}
-        <div class="space-y-3">
-            {% for message in app.flashes('success') %}
-                <div data-flash-autodismiss="true" data-flash-duration="5000" class="animate-fade-in-down rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-4 text-[15px] font-medium text-emerald-400 backdrop-blur-md transition-all duration-300 ease-out">
-                    <div class="flex items-start justify-between gap-4">
-                        <p class="leading-relaxed">{{ message }}</p>
-                        <button type="button" data-flash-close="true" aria-label="Fermer le message" class="shrink-0 text-emerald-300/90 transition hover:text-emerald-200">×</button>
-                    </div>
-                </div>
-            {% endfor %}
-            {% for message in app.flashes('info') %}
-                <div data-flash-autodismiss="true" data-flash-duration="5000" class="animate-fade-in-down rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-5 py-4 text-[15px] font-medium text-yellow-400 backdrop-blur-md transition-all duration-300 ease-out">
-                    <div class="flex items-start justify-between gap-4">
-                        <p class="leading-relaxed">{{ message }}</p>
-                        <button type="button" data-flash-close="true" aria-label="Fermer le message" class="shrink-0 text-yellow-300/90 transition hover:text-yellow-200">×</button>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-
         {# CONTENU PRINCIPAL #}
         <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
             
@@ -88,14 +68,14 @@
                             <p class="mt-2 text-[15px] font-medium text-slate-400">{{ profile.headline ?: 'Headline non renseignée' }}</p>
                         </div>
                         <div class="flex items-center gap-3">
-                            <form method="post" action="{{ path('app_applicant_profile_visibility') }}">
+                            <form method="post" action="{{ path('app_applicant_profile_visibility') }}" data-visibility-toggle="true">
                                 <input type="hidden" name="_token" value="{{ csrf_token('toggle_visibility') }}">
-                                <input type="hidden" name="is_public" value="{{ profile.public ? '0' : '1' }}">
-                                <button type="submit" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold tracking-wide text-white transition-all duration-300 hover:bg-white/10 active:scale-95">
+                                <input type="hidden" name="is_public" value="{{ profile.public ? '0' : '1' }}" data-visibility-value="true">
+                                <button type="submit" data-visibility-button="true" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold tracking-wide text-white transition-all duration-300 hover:bg-white/10 active:scale-95">
                                     {{ profile.public ? 'Passer en privé' : 'Passer en public' }}
                                 </button>
                             </form>
-                            <span class="inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide border {{ profile.public ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : 'border-white/10 bg-white/5 text-slate-400' }}">
+                            <span data-visibility-badge="true" class="inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide border {{ profile.public ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400' : 'border-white/10 bg-white/5 text-slate-400' }}">
                                 {{ profile.public ? 'Public' : 'Privé' }}
                             </span>
                         </div>

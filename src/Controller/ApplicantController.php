@@ -15,6 +15,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -306,15 +307,32 @@ final class ApplicantController extends AbstractController
     #[IsGranted('ROLE_APPLICANT')]
     public function toggleProfileVisibility(Request $request, EntityManagerInterface $entityManager): Response
     {
+        $isAsync = $request->isXmlHttpRequest() || str_contains((string) $request->headers->get('Accept'), 'application/json');
         $profile = $this->getApplicantUser()->getDeveloperProfile();
 
         if (!$profile instanceof DeveloperProfile) {
+            if ($isAsync) {
+                return new JsonResponse([
+                    'success' => false,
+                    'type' => 'info',
+                    'message' => 'Tu dois d\'abord créer ton profil développeur.',
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
             $this->addFlash('info', 'Tu dois d\'abord créer ton profil développeur.');
 
             return $this->redirectToRoute('app_applicant_profile_create');
         }
 
         if (!$this->isCsrfTokenValid('toggle_visibility', (string) $request->request->get('_token'))) {
+            if ($isAsync) {
+                return new JsonResponse([
+                    'success' => false,
+                    'type' => 'error',
+                    'message' => 'Action invalide, merci de réessayer.',
+                ], Response::HTTP_FORBIDDEN);
+            }
+
             $this->addFlash('info', 'Action invalide, merci de réessayer.');
 
             return $this->redirectToRoute('app_applicant_home');
@@ -323,6 +341,14 @@ final class ApplicantController extends AbstractController
         $makePublic = '1' === (string) $request->request->get('is_public');
 
         if ($makePublic && null === $profile->getPortfolioGeneratedAt()) {
+            if ($isAsync) {
+                return new JsonResponse([
+                    'success' => false,
+                    'type' => 'info',
+                    'message' => 'Génère d\'abord ton portfolio avant de le rendre public.',
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
             $this->addFlash('info', 'Génère d\'abord ton portfolio avant de le rendre public.');
 
             return $this->redirectToRoute('app_applicant_home');
@@ -331,7 +357,18 @@ final class ApplicantController extends AbstractController
         $profile->setIsPublic($makePublic);
         $entityManager->flush();
 
-        $this->addFlash('success', $makePublic ? 'Ton portfolio est maintenant public.' : 'Ton portfolio est maintenant privé.');
+        $message = $makePublic ? 'Ton portfolio est maintenant public.' : 'Ton portfolio est maintenant privé.';
+
+        if ($isAsync) {
+            return new JsonResponse([
+                'success' => true,
+                'type' => 'success',
+                'message' => $message,
+                'isPublic' => $makePublic,
+            ]);
+        }
+
+        $this->addFlash('success', $message);
 
         return $this->redirectToRoute('app_applicant_home');
     }
