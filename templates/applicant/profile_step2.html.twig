@@ -36,11 +36,16 @@
                     
                     <div id="profile-skills-list" class="grid grid-cols-1 gap-4 sm:grid-cols-2" data-collection-list data-empty-text="Aucune compétence ajoutée." data-index="{{ profileForm.profileSkills|length }}" data-prototype="{{ form_widget(profileForm.profileSkills.vars.prototype)|e('html_attr') }}">
                         {% for item in profileForm.profileSkills %}
-                            <div class="group relative rounded-2xl border border-white/10 bg-slate-800/50 p-5 shadow-sm transition-all duration-300 hover:bg-slate-800/80" data-collection-item>
+                            <div class="group relative rounded-2xl border border-white/10 bg-slate-800/50 p-5 shadow-sm transition-all duration-300 hover:bg-slate-800/80 {% if item.vars.data.id %}bg-slate-800/40{% endif %}" data-collection-item {% if item.vars.data.id %}data-readonly="true"{% endif %}>
+                                {% if item.vars.data.id %}
+                                    <div class="mb-3 inline-flex items-center rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2.5 py-0.5 text-xs font-semibold text-yellow-400">
+                                        Non modifiable
+                                    </div>
+                                {% endif %}
                                 <button type="button" class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-slate-400 shadow-sm opacity-0 ring-1 ring-white/10 transition-all duration-300 hover:bg-red-500 hover:text-white hover:ring-red-500 group-hover:opacity-100" data-collection-remove title="Supprimer">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
-                                <div class="space-y-2">
+                                <div class="space-y-2 {% if item.vars.data.id %}pointer-events-none opacity-60{% endif %}">
                                     {{ form_widget(item) }}
                                 </div>
                             </div>
@@ -63,11 +68,16 @@
 
                     <div id="experiences-list" class="space-y-4" data-collection-list data-empty-text="Aucune expérience ajoutée." data-index="{{ profileForm.experiences|length }}" data-prototype="{{ form_widget(profileForm.experiences.vars.prototype)|e('html_attr') }}">
                         {% for item in profileForm.experiences %}
-                            <div class="group relative rounded-2xl border border-white/10 bg-slate-800/50 p-6 shadow-sm transition-all duration-300 hover:bg-slate-800/80 sm:p-8" data-collection-item>
+                            <div class="group relative rounded-2xl border border-white/10 bg-slate-800/50 p-6 shadow-sm transition-all duration-300 hover:bg-slate-800/80 sm:p-8 {% if item.vars.data.id %}bg-slate-800/40{% endif %}" data-collection-item {% if item.vars.data.id %}data-readonly="true"{% endif %}>
+                                {% if item.vars.data.id %}
+                                    <div class="mb-4 inline-flex items-center rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2.5 py-0.5 text-xs font-semibold text-yellow-400">
+                                        Non modifiable
+                                    </div>
+                                {% endif %}
                                 <button type="button" class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-slate-400 shadow-sm opacity-0 ring-1 ring-white/10 transition-all duration-300 hover:bg-red-500 hover:text-white hover:ring-red-500 group-hover:opacity-100" data-collection-remove title="Supprimer">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
-                                <div>
+                                <div {% if item.vars.data.id %}class="pointer-events-none opacity-60"{% endif %}>
                                     {{ form_widget(item) }}
                                 </div>
                             </div>
@@ -90,11 +100,16 @@
 
                     <div id="education-list" class="space-y-4" data-collection-list data-empty-text="Aucune formation ajoutée." data-index="{{ profileForm.education|length }}" data-prototype="{{ form_widget(profileForm.education.vars.prototype)|e('html_attr') }}">
                         {% for item in profileForm.education %}
-                            <div class="group relative rounded-2xl border border-white/10 bg-slate-800/50 p-6 shadow-sm transition-all duration-300 hover:bg-slate-800/80 sm:p-8" data-collection-item>
+                            <div class="group relative rounded-2xl border border-white/10 bg-slate-800/50 p-6 shadow-sm transition-all duration-300 hover:bg-slate-800/80 sm:p-8 {% if item.vars.data.id %}bg-slate-800/40{% endif %}" data-collection-item {% if item.vars.data.id %}data-readonly="true"{% endif %}>
+                                {% if item.vars.data.id %}
+                                    <div class="mb-4 inline-flex items-center rounded-full border border-yellow-500/30 bg-yellow-500/10 px-2.5 py-0.5 text-xs font-semibold text-yellow-400">
+                                        Non modifiable
+                                    </div>
+                                {% endif %}
                                 <button type="button" class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-slate-400 shadow-sm opacity-0 ring-1 ring-white/10 transition-all duration-300 hover:bg-red-500 hover:text-white hover:ring-red-500 group-hover:opacity-100" data-collection-remove title="Supprimer">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
-                                <div>
+                                <div {% if item.vars.data.id %}class="pointer-events-none opacity-60"{% endif %}>
                                     {{ form_widget(item) }}
                                 </div>
                             </div>
@@ -115,14 +130,16 @@
 
             {# ZONE D'ACTIONS #}
             <div class="mt-10 flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-3">
-                <a href="{{ path('app_applicant_home') }}" 
-                   class="inline-flex w-full sm:w-auto items-center justify-center rounded-full border border-white/10 bg-white/5 px-6 py-4 text-[15px] font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 active:scale-95">
+                <button type="button"
+                        id="backBtn"
+                        class="inline-flex w-full sm:w-auto items-center justify-center rounded-full border border-white/10 bg-white/5 px-6 py-4 text-[15px] font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 active:scale-95">
                     Retour dashboard
-                </a>
+                </button>
                 
-                <button type="submit" 
+                <button type="submit"
+                        id="submitBtn"
                         class="flex w-full flex-1 items-center justify-center rounded-full bg-emerald-500 px-6 py-4 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95 focus:outline-none focus:ring-4 focus:ring-emerald-500/30">
-                    Enregistrer l'étape 2
+                    Étape suivante
                 </button>
             </div>
         {{ form_end(profileForm) }}
@@ -155,7 +172,9 @@
                 if (typeof flatpickr !== 'undefined') {
                     flatpickr(item.querySelectorAll('.js-datepicker'), {
                         locale: "fr",
-                        dateFormat: "d/m/Y",
+                        dateFormat: "Y-m-d",
+                        altInput: true,
+                        altFormat: "d/m/Y",
                         allowInput: true,
                         disableMobile: "true"
                     });
@@ -202,6 +221,125 @@
                 }
             });
         })();
+
+        // Rendre les inputs des éléments read-only existants en lecture seule
+        document.querySelectorAll('[data-readonly="true"]').forEach(item => {
+            const inputs = item.querySelectorAll('input:not([data-collection-remove]), select, textarea');
+            inputs.forEach(input => {
+                // Utiliser readonly pour les inputs et textareas au lieu de disabled
+                // Cela empêche les modifications tout en gardant les valeurs dans la soumission
+                if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
+                    input.setAttribute('readonly', 'readonly');
+                } else if (input.tagName === 'SELECT') {
+                    // Pour les select, ajouter un event listener pour bloquer les changements
+                    input.addEventListener('change', (e) => {
+                        e.preventDefault();
+                        e.target.value = e.target.defaultValue || '';
+                    });
+                }
+                input.style.cursor = 'not-allowed';
+            });
+        });
+
+        // Modale de confirmation
+        const confirmationModal = (() => {
+            const modal = document.createElement('div');
+            modal.id = 'confirmationModal';
+            modal.className = 'fixed inset-0 z-50 flex items-center justify-center hidden bg-black/50 backdrop-blur-sm';
+            modal.innerHTML = `
+                <div class="rounded-[2rem] border border-white/10 bg-slate-900 p-8 shadow-2xl max-w-md w-full mx-4">
+                    <h2 class="text-xl font-semibold text-white mb-2">Changements non enregistrés</h2>
+                    <p class="text-slate-300 mb-6">Vous avez des modifications non enregistrées. Voulez-vous les enregistrer avant de continuer?</p>
+                    <div class="flex flex-col gap-3 sm:flex-row-reverse">
+                        <button id="modalSaveBtn" class="flex-1 rounded-full bg-emerald-500 px-6 py-3 text-[15px] font-bold text-slate-950 hover:bg-emerald-400 transition-all">
+                            Enregistrer
+                        </button>
+                        <button id="modalDiscardBtn" class="flex-1 rounded-full border border-white/10 bg-white/5 px-6 py-3 text-[15px] font-semibold text-white hover:bg-white/10 transition-all">
+                            Continuer sans enregistrer
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            return modal;
+        })();
+
+        const form = document.querySelector('form');
+        const backBtn = document.getElementById('backBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const modalSaveBtn = document.getElementById('modalSaveBtn');
+        const modalDiscardBtn = document.getElementById('modalDiscardBtn');
+        
+        let hasChanges = false;
+        let targetUrl = null;
+        let shouldReturnToDashboard = false;
+
+        // Sauvegarder l'état initial du formulaire
+        let initialFormState = {};
+        form.querySelectorAll('input, select, textarea').forEach(field => {
+            // Ignorer les champs hidden et file
+            if (field.name && field.type !== 'hidden' && field.type !== 'file') {
+                initialFormState[field.name] = field.value || '';
+            }
+        });
+
+        // Détecter les changements du formulaire
+        const checkFormChanges = () => {
+            hasChanges = false;
+            form.querySelectorAll('input, select, textarea').forEach(field => {
+                if (field.name && field.type !== 'hidden' && field.type !== 'file') {
+                    if (field.value !== initialFormState[field.name]) {
+                        hasChanges = true;
+                    }
+                }
+            });
+        };
+
+        form.addEventListener('change', checkFormChanges);
+        form.addEventListener('input', checkFormChanges);
+        
+        // Détecter les changements dans les collections via les clics de suppression et d'ajout
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('[data-collection-remove]') || e.target.closest('[data-collection-add]')) {
+                setTimeout(checkFormChanges, 100);
+            }
+        }, true);
+
+        // Gestion du bouton retour
+        if (backBtn) {
+            backBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                checkFormChanges(); // Vérifier les changements avant de décider
+                if (hasChanges) {
+                    targetUrl = '{{ path('app_applicant_home') }}';
+                    shouldReturnToDashboard = true;
+                    confirmationModal.classList.remove('hidden');
+                } else {
+                    // Pas de changements, rediriger directement
+                    window.location.href = '{{ path('app_applicant_home') }}';
+                }
+            });
+        }
+
+        // Bouton Enregistrer dans la modale
+        modalSaveBtn.addEventListener('click', () => {
+            confirmationModal.classList.add('hidden');
+            
+            // Ajouter un input hidden pour indiquer le retour au dashboard
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = '_return_to_dashboard';
+            input.value = '1';
+            form.appendChild(input);
+            
+            submitBtn.click();
+        });
+
+        // Bouton Continuer sans enregistrer
+        modalDiscardBtn.addEventListener('click', () => {
+            confirmationModal.classList.add('hidden');
+            window.location.href = targetUrl;
+        });
     </script>
 {% endblock %}
 
