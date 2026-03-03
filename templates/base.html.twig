@@ -64,6 +64,34 @@
                         allowInput: true,
                         disableMobile: "true",
                     });
+
+                    const flashElements = document.querySelectorAll('[data-flash-autodismiss="true"]');
+
+                    flashElements.forEach((flashElement) => {
+                        let dismissed = false;
+                        const duration = Number.parseInt(flashElement.dataset.flashDuration ?? '5000', 10);
+
+                        const dismiss = () => {
+                            if (dismissed) {
+                                return;
+                            }
+
+                            dismissed = true;
+                            flashElement.classList.add('opacity-0', 'translate-y-1');
+                            flashElement.style.pointerEvents = 'none';
+
+                            window.setTimeout(() => {
+                                flashElement.remove();
+                            }, 320);
+                        };
+
+                        const closeButton = flashElement.querySelector('[data-flash-close="true"]');
+                        if (closeButton) {
+                            closeButton.addEventListener('click', dismiss);
+                        }
+
+                        window.setTimeout(dismiss, Number.isNaN(duration) ? 5000 : duration);
+                    });
                 });
             </script>
         {% endblock %}
