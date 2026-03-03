@@ -9,6 +9,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: DeveloperProfileRepository::class)]
 class DeveloperProfile
@@ -19,12 +20,18 @@ class DeveloperProfile
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le prénom est obligatoire.')]
+    #[Assert\Length(max: 255)]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le nom est obligatoire.')]
+    #[Assert\Length(max: 255)]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le titre est obligatoire.')]
+    #[Assert\Length(max: 255)]
     private ?string $headline = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -89,18 +96,21 @@ class DeveloperProfile
      * @var Collection<int, Experience>
      */
     #[ORM\OneToMany(targetEntity: Experience::class, mappedBy: 'developerProfile', cascade: ['persist'])]
+    #[Assert\Valid]
     private Collection $experiences;
 
     /**
      * @var Collection<int, Education>
      */
     #[ORM\OneToMany(targetEntity: Education::class, mappedBy: 'developerProfile', cascade: ['persist'])]
+    #[Assert\Valid]
     private Collection $education;
 
     /**
      * @var Collection<int, ProfileSkill>
      */
     #[ORM\OneToMany(targetEntity: ProfileSkill::class, mappedBy: 'developerProfile', cascade: ['persist'], orphanRemoval: true)]
+    #[Assert\Valid]
     private Collection $profileSkills;
 
     /**
