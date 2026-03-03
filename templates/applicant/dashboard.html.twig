@@ -53,13 +53,19 @@
         {# FLASH MESSAGES #}
         <div class="space-y-3">
             {% for message in app.flashes('success') %}
-                <div class="animate-fade-in-down rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-4 text-[15px] font-medium text-emerald-400 backdrop-blur-md">
-                    {{ message }}
+                <div data-flash-autodismiss="true" data-flash-duration="5000" class="animate-fade-in-down rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-4 text-[15px] font-medium text-emerald-400 backdrop-blur-md transition-all duration-300 ease-out">
+                    <div class="flex items-start justify-between gap-4">
+                        <p class="leading-relaxed">{{ message }}</p>
+                        <button type="button" data-flash-close="true" aria-label="Fermer le message" class="shrink-0 text-emerald-300/90 transition hover:text-emerald-200">×</button>
+                    </div>
                 </div>
             {% endfor %}
             {% for message in app.flashes('info') %}
-                <div class="animate-fade-in-down rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-5 py-4 text-[15px] font-medium text-yellow-400 backdrop-blur-md">
-                    {{ message }}
+                <div data-flash-autodismiss="true" data-flash-duration="5000" class="animate-fade-in-down rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-5 py-4 text-[15px] font-medium text-yellow-400 backdrop-blur-md transition-all duration-300 ease-out">
+                    <div class="flex items-start justify-between gap-4">
+                        <p class="leading-relaxed">{{ message }}</p>
+                        <button type="button" data-flash-close="true" aria-label="Fermer le message" class="shrink-0 text-yellow-300/90 transition hover:text-yellow-200">×</button>
+                    </div>
                 </div>
             {% endfor %}
         </div>
