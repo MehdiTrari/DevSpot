@@ -21,12 +21,7 @@
                 <h1 class="text-4xl font-semibold tracking-tight text-white">Bienvenue sur DevSpot.</h1>
                 <p class="mt-2 text-[15px] leading-relaxed text-slate-400">
                     {% if app.user %}
-                        Connecté en tant que <span class="font-medium text-white">
-                            {% if is_granted('ROLE_APPLICANT') %}
-                                candidat.
-                            {% else %}
-                                recruteur.
-                            {% endif %}
+                        Connecté en tant que <span class="font-medium text-white">{{ is_granted('ROLE_APPLICANT') ? 'candidat' : 'recruteur' }}</span>.
                     {% else %}
                         Découvre DevSpot et connecte-toi pour accéder à ton espace.
                     {% endif %}
@@ -34,28 +29,17 @@
             </div>
 
             {# BOUTONS D'ACTION PRINCIPAUX #}
-            <div class="shrink-0">
-                {% if app.user %}
-                    {# Bouton de déconnexion stylisé #}
-                    <a href="{{ logout_path() }}"
-                       class="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 px-6 py-3.5 text-[15px] font-semibold text-red-400 transition-all duration-300 hover:scale-[1.02] hover:bg-red-500 hover:text-white active:scale-95">
-                        Se déconnecter
-                    </a>
-                {% else %}
+            {% if not app.user %}
+                <div class="shrink-0">
                     <div class="flex flex-col gap-3 sm:flex-row sm:gap-2">
-                        {# Bouton de connexion "Ghost" #}
-                        <a href="{{ path('app_login') }}" 
-                           class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-6 py-3.5 text-[15px] font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 active:scale-95">
-                            Se connecter
-                        </a>
                         {# Bouton principal Émeraude #}
                         <a href="{{ path('app_register') }}" 
                            class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 py-3.5 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95">
                             Créer un compte
                         </a>
                     </div>
-                {% endif %}
-            </div>
+                </div>
+            {% endif %}
         </div>
 
         {# GRILLE DE CONTENU #}

@@ -72,6 +72,9 @@ class DeveloperProfile
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $portfolioUrl = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $portfolioGeneratedAt = null;
+
     #[ORM\OneToOne(inversedBy: 'developerProfile', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
@@ -327,6 +330,18 @@ class DeveloperProfile
     public function setPortfolioUrl(?string $portfolioUrl): static
     {
         $this->portfolioUrl = $portfolioUrl;
+
+        return $this;
+    }
+
+    public function getPortfolioGeneratedAt(): ?\DateTimeImmutable
+    {
+        return $this->portfolioGeneratedAt;
+    }
+
+    public function setPortfolioGeneratedAt(?\DateTimeImmutable $portfolioGeneratedAt): static
+    {
+        $this->portfolioGeneratedAt = $portfolioGeneratedAt;
 
         return $this;
     }

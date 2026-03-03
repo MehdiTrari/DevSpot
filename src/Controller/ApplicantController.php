@@ -9,6 +9,8 @@ use App\Form\DeveloperProfileStep2Type;
 use App\Form\DeveloperProfileStep3Type;
 use App\Form\DeveloperProfileStep4Type;
 use App\Repository\DeveloperProfileRepository;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormInterface;
@@ -17,6 +19,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -32,6 +35,7 @@ final class ApplicantController extends AbstractController
         return $this->render('applicant/dashboard.html.twig', [
             'profile' => $profile,
             'checklist' => $this->buildChecklist($profile),
+            'portfolioGenerated' => $profile instanceof DeveloperProfile && null !== $profile->getPortfolioGeneratedAt(),
         ]);
     }
 
@@ -66,7 +70,7 @@ final class ApplicantController extends AbstractController
 
             $this->addFlash('success', 'Profil développeur créé. Étape 1 terminée.');
 
-            return $this->redirectToRoute('app_applicant_home');
+            return $this->redirectToRoute('app_applicant_profile_step2');
         }
 
         return $this->render('applicant/create_profile.html.twig', [
@@ -91,7 +95,7 @@ final class ApplicantController extends AbstractController
             $entityManager->flush();
             $this->addFlash('success', 'Étape 1 mise à jour.');
 
-            return $this->redirectToRoute('app_applicant_home');
+            return $this->redirectToRoute('app_applicant_profile_step2');
         }
 
         return $this->render('applicant/profile_step1.html.twig', [
@@ -115,7 +119,7 @@ final class ApplicantController extends AbstractController
             $entityManager->flush();
             $this->addFlash('success', 'Étape 2 mise à jour.');
 
-            return $this->redirectToRoute('app_applicant_home');
+            return $this->redirectToRoute('app_applicant_profile_step3');
         }
 
         return $this->render('applicant/profile_step2.html.twig', [
@@ -139,7 +143,7 @@ final class ApplicantController extends AbstractController
             $entityManager->flush();
             $this->addFlash('success', 'Étape 3 mise à jour.');
 
-            return $this->redirectToRoute('app_applicant_home');
+            return $this->redirectToRoute('app_applicant_profile_step4');
         }
 
         return $this->render('applicant/profile_step3.html.twig', [

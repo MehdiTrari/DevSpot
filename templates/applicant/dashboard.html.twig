@@ -80,6 +80,21 @@
                             </span>
                         </div>
                     </div>
+                    
+                    {% if doneCount == 4 %}
+                        {% if portfolioGenerated|default(false) %}
+                            <a href="{{ path('app_public_profile_show', { slug: profile.slug }) }}" class="mt-6 inline-flex w-full items-center justify-center rounded-2xl border border-emerald-400/30 bg-emerald-500 px-5 py-3.5 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:scale-[1.01] hover:bg-emerald-400 active:scale-95">
+                                Accéder à mon portfolio
+                            </a>
+                        {% else %}
+                            <a href="{{ path('app_applicant_portfolio_generate') }}" class="mt-6 inline-flex w-full items-center justify-center rounded-2xl border border-emerald-400/30 bg-emerald-500 px-5 py-3.5 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:scale-[1.01] hover:bg-emerald-400 active:scale-95">
+                                Générer mon portfolio
+                            </a>
+                        {% endif %}
+                        <a href="{{ path('app_applicant_cv_generate') }}" class="mt-6 inline-flex w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-white/10 active:scale-95">
+                            {{ profile.cvPdfPath ? 'Régénérer mon CV (PDF)' : 'Générer mon CV (PDF)' }}
+                        </a>
+                    {% endif %}
                 {% endif %}
             </div>
 
@@ -109,7 +124,7 @@
                         {% endfor %}
                     </ul>
                 </div>
-
+                                
                 {# ACTIONS RAPIDES #}
                 <div class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
                     <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Actions rapides</h2>
@@ -119,38 +134,44 @@
                     {% set canStep4 = profile is not null and checklist.step3.done %}
                     
                     <div class="mt-5 space-y-3">
-                        <a href="{{ path(checklist.step1.route) }}" class="flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-semibold transition-all duration-300 active:scale-95 border {{ profile is null ? 'border-emerald-500 bg-emerald-500 text-slate-950 hover:bg-emerald-400 shadow-lg shadow-emerald-500/20' : 'border-white/10 bg-white/5 text-white hover:bg-white/10' }}">
-                            {{ profile is null ? 'Créer mon profil' : 'Étape 1 : Infos générales' }}
-                        </a>
-                        
-                        {% if canStep2 %}
-                            <a href="{{ path('app_applicant_profile_step2') }}" class="flex w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-white/10 active:scale-95">
-                                Étape 2 : Expériences
+                        {% if doneCount == 4 and profile is not null %}
+                            <a href="{{ path('app_applicant_profile_step1') }}" class="flex w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-white/10 active:scale-95">
+                                Modifier
                             </a>
                         {% else %}
-                            <div class="flex w-full cursor-not-allowed items-center justify-center rounded-2xl border border-transparent bg-white/5 px-5 py-3.5 text-[15px] font-medium text-slate-600 opacity-50">
-                                Étape 2 : Expériences
-                            </div>
-                        {% endif %}
+                            <a href="{{ path(checklist.step1.route) }}" class="flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-semibold transition-all duration-300 active:scale-95 border {{ profile is null ? 'border-emerald-500 bg-emerald-500 text-slate-950 hover:bg-emerald-400 shadow-lg shadow-emerald-500/20' : 'border-white/10 bg-white/5 text-white hover:bg-white/10' }}">
+                                {{ profile is null ? 'Créer mon profil' : 'Étape 1 : Infos générales' }}
+                            </a>
+                            
+                            {% if canStep2 %}
+                                <a href="{{ path('app_applicant_profile_step2') }}" class="flex w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-white/10 active:scale-95">
+                                    Étape 2 : Expériences
+                                </a>
+                            {% else %}
+                                <div class="flex w-full cursor-not-allowed items-center justify-center rounded-2xl border border-transparent bg-white/5 px-5 py-3.5 text-[15px] font-medium text-slate-600 opacity-50">
+                                    Étape 2 : Expériences
+                                </div>
+                            {% endif %}
 
-                        {% if canStep3 %}
-                            <a href="{{ path('app_applicant_profile_step3') }}" class="flex w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-white/10 active:scale-95">
-                                Étape 3 : Liens externes
-                            </a>
-                        {% else %}
-                            <div class="flex w-full cursor-not-allowed items-center justify-center rounded-2xl border border-transparent bg-white/5 px-5 py-3.5 text-[15px] font-medium text-slate-600 opacity-50">
-                                Étape 3 : Liens externes
-                            </div>
-                        {% endif %}
+                            {% if canStep3 %}
+                                <a href="{{ path('app_applicant_profile_step3') }}" class="flex w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-white/10 active:scale-95">
+                                    Étape 3 : Liens externes
+                                </a>
+                            {% else %}
+                                <div class="flex w-full cursor-not-allowed items-center justify-center rounded-2xl border border-transparent bg-white/5 px-5 py-3.5 text-[15px] font-medium text-slate-600 opacity-50">
+                                    Étape 3 : Liens externes
+                                </div>
+                            {% endif %}
 
-                        {% if canStep4 %}
-                            <a href="{{ path('app_applicant_profile_step4') }}" class="flex w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-white/10 active:scale-95">
-                                Étape 4 : Postes
-                            </a>
-                        {% else %}
-                            <div class="flex w-full cursor-not-allowed items-center justify-center rounded-2xl border border-transparent bg-white/5 px-5 py-3.5 text-[15px] font-medium text-slate-600 opacity-50">
-                                Étape 4 : Postes
-                            </div>
+                            {% if canStep4 %}
+                                <a href="{{ path('app_applicant_profile_step4') }}" class="flex w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-white/10 active:scale-95">
+                                    Étape 4 : Postes
+                                </a>
+                            {% else %}
+                                <div class="flex w-full cursor-not-allowed items-center justify-center rounded-2xl border border-transparent bg-white/5 px-5 py-3.5 text-[15px] font-medium text-slate-600 opacity-50">
+                                    Étape 4 : Postes
+                                </div>
+                            {% endif %}
                         {% endif %}
                     </div>
                 </div>

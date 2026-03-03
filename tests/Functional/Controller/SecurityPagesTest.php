@@ -103,10 +103,11 @@ final class SecurityPagesTest extends WebTestCase
             'developer_profile[yearsExperience]' => '2',
         ]));
 
-        self::assertResponseRedirects('/applicant');
+        self::assertResponseRedirects('/applicant/profile/step-2');
         $client->followRedirect();
-        self::assertSelectorTextContains('body', 'Mylene Martin');
-        self::assertSelectorExists('a[href="/applicant/profile/step-2"]');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('h1', 'Étape 2');
+        self::assertSelectorExists('button[type="submit"]');
 
         /** @var DeveloperProfileRepository $profiles */
         $profiles = static::getContainer()->get(DeveloperProfileRepository::class);
@@ -157,7 +158,7 @@ final class SecurityPagesTest extends WebTestCase
             $form['developer_profile[avatarFile]']->upload($imagePath);
             $client->submit($form);
 
-            self::assertResponseRedirects('/applicant');
+            self::assertResponseRedirects('/applicant/profile/step-2');
             $client->followRedirect();
             self::assertResponseIsSuccessful();
 
