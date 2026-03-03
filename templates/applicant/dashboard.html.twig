@@ -17,9 +17,10 @@
                         Espace candidat
                     </p>
                     <h1 class="text-4xl font-semibold tracking-tight text-white">Bienvenue sur ton espace.</h1>
-                    <p class="mt-2 text-[15px] text-slate-400">Complète ton profil en 4 étapes simples.</p>
+                    <p class="mt-2 text-[15px] text-slate-400">Ton profil développeur semble complété.</p>
                     
                     {% if doneCount < 4 %}
+                    <p class="mt-2 text-[15px] text-slate-400">Complète ton profil en 4 étapes simples.</p>
                     <div class="mt-8 max-w-xl group">
                         <div class="mb-3 flex items-center justify-between text-xs font-medium uppercase tracking-wider text-slate-400">
                             <span>Progression du profil</span>
@@ -34,9 +35,8 @@
                 </div>
 
                 {# ENCART UTILISATEUR #}
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-5 text-[15px] text-white transition-transform duration-300 hover:scale-[1.02] shadow-inner">
-                    <p class="font-medium">{{ app.user.email }}</p>
-                    <p class="mt-2 text-slate-400">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-3 text-[15px] text-white transition-transform duration-300 hover:scale-[1.02] shadow-inner">
+                    <p class="text-slate-400">
                         Statut :
                         {% if profile is null %}
                             <span class="font-semibold text-red-400">À créer</span>
