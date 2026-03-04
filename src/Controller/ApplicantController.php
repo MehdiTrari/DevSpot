@@ -158,6 +158,13 @@ final class ApplicantController extends AbstractController
             return $this->redirectToRoute('app_applicant_profile_create');
         }
 
+        $checklist = $this->buildChecklist($profile);
+        if (!$checklist['step2']['done']) {
+            $this->addFlash('info', 'Impossible de passer à l\'étape 3 : il faut au moins une compétence et une formation.');
+
+            return $this->redirectToRoute('app_applicant_profile_step2');
+        }
+
         $form = $this->createForm(DeveloperProfileStep3Type::class, $profile);
         $form->handleRequest($request);
 
@@ -430,7 +437,6 @@ final class ApplicantController extends AbstractController
                 '' !== trim((string) ($profile->getBio() ?? ''));
 
             $step2Done =
-                $profile->getExperiences()->count() > 0 &&
                 $profile->getEducation()->count() > 0 &&
                 $profile->getProfileSkills()->count() > 0;
 
