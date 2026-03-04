@@ -14,7 +14,7 @@
                 Profil développeur
             </p>
             <h1 class="text-3xl font-semibold tracking-tight text-white">Étape 2 - Parcours & Compétences</h1>
-            <p class="mt-2 text-[15px] text-slate-400">Ajoute au moins une expérience, une formation et une compétence.</p>
+            <p class="mt-2 text-[15px] text-slate-400">Ajoute au moins une formation et une compétence.</p>
         </div>
 
         {% if profileForm.vars.errors|length > 0 %}
@@ -198,7 +198,11 @@
 
             document.querySelectorAll('[data-collection-list]').forEach(ensureEmptyState);
 
-            document.addEventListener('click', (event) => {
+            if (window.__profileStep2CollectionClickHandler) {
+                document.removeEventListener('click', window.__profileStep2CollectionClickHandler);
+            }
+
+            window.__profileStep2CollectionClickHandler = (event) => {
                 const addButton = event.target.closest('[data-collection-add]');
                 if (addButton) {
                     const selector = addButton.getAttribute('data-collection-add');
@@ -219,7 +223,9 @@
                         if (list) ensureEmptyState(list);
                     }, 300);
                 }
-            });
+            };
+
+            document.addEventListener('click', window.__profileStep2CollectionClickHandler);
         })();
 
         // Rendre les inputs des éléments read-only existants en lecture seule

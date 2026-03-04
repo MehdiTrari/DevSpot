@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Enum\SkillLevel;
 use App\Repository\ProfileSkillRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: ProfileSkillRepository::class)]
 #[ORM\Table(
@@ -28,6 +29,7 @@ class ProfileSkill
 
     #[ORM\ManyToOne(inversedBy: 'profileSkills')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: 'La compétence est obligatoire.')]
     private ?Skill $skill = null;
 
     #[ORM\Column(nullable: true, enumType: SkillLevel::class)]
