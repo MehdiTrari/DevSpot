@@ -155,7 +155,9 @@
                 if (typeof flatpickr !== 'undefined') {
                     flatpickr(item.querySelectorAll('.js-datepicker'), {
                         locale: "fr",
-                        dateFormat: "d/m/Y",
+                        dateFormat: "Y-m-d",
+                        altInput: true,
+                        altFormat: "d/m/Y",
                         allowInput: true,
                         disableMobile: "true"
                     });

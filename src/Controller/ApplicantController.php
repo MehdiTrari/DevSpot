@@ -92,6 +92,7 @@ final class ApplicantController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->handleAvatarUpload($form, $profile);
+            $profile->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
             $this->addFlash('success', 'Étape 1 mise à jour.');
 
@@ -136,6 +137,7 @@ final class ApplicantController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $profile->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
             $this->addFlash('success', 'Étape 2 mise à jour.');
 
@@ -160,6 +162,7 @@ final class ApplicantController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $profile->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
             $this->addFlash('success', 'Étape 3 mise à jour.');
 
@@ -184,6 +187,7 @@ final class ApplicantController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $profile->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
             $this->addFlash('success', 'Étape 4 mise à jour.');
 
