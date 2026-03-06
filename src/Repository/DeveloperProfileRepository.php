@@ -16,6 +16,37 @@ class DeveloperProfileRepository extends ServiceEntityRepository
         parent::__construct($registry, DeveloperProfile::class);
     }
 
+    /**
+     * @return DeveloperProfile[]
+     */
+    public function findPublicGeneratedProfilesPaginated(int $page, int $limit): array
+    {
+        $safePage = max(1, $page);
+        $safeLimit = max(1, $limit);
+
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.isPublic = :isPublic')
+            ->andWhere('d.portfolioGeneratedAt IS NOT NULL')
+            ->setParameter('isPublic', true)
+            ->orderBy('d.portfolioGeneratedAt', 'DESC')
+            ->addOrderBy('d.updatedAt', 'DESC')
+            ->setFirstResult(($safePage - 1) * $safeLimit)
+            ->setMaxResults($safeLimit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countPublicGeneratedProfiles(): int
+    {
+        return (int) $this->createQueryBuilder('d')
+            ->select('COUNT(d.id)')
+            ->andWhere('d.isPublic = :isPublic')
+            ->andWhere('d.portfolioGeneratedAt IS NOT NULL')
+            ->setParameter('isPublic', true)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     //    /**
     //     * @return DeveloperProfile[] Returns an array of DeveloperProfile objects
     //     */
