@@ -47,7 +47,7 @@ final class SecurityPagesTest extends WebTestCase
 
         self::assertResponseRedirects('/');
         $client->followRedirect();
-        self::assertSelectorTextContains('body', $email);
+        self::assertSelectorTextContains('body', 'Connecté en tant que recruteur');
         self::assertSelectorExists('a[href="/logout"]');
     }
 
@@ -315,14 +315,14 @@ final class SecurityPagesTest extends WebTestCase
             'password' => $password,
         ]));
         $client->followRedirect();
-        self::assertSelectorTextContains('body', $email);
+        self::assertSelectorTextContains('body', 'Connecté en tant que recruteur');
         self::assertSelectorExists('a[href="/logout"]');
 
         $client->request('GET', '/logout');
         self::assertResponseStatusCodeSame(302);
         $client->followRedirect();
-        self::assertSelectorTextNotContains('body', $email);
-        self::assertSelectorTextNotContains('body', $email);
+        self::assertSelectorTextNotContains('body', 'Connecté en tant que');
+        self::assertSelectorNotExists('a[href="/logout"]');
     }
 
     public function testPendingUserCannotLogin(): void
