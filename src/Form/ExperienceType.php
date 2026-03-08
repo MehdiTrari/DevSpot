@@ -33,12 +33,19 @@ class ExperienceType extends AbstractType
                 'widget' => 'single_text',
             ])
             ->add('endDate', DateType::class, [
-                'label' => 'Date de fin',
+                'label' => 'Date de fin (non applicable si poste actuel)',
                 'widget' => 'single_text',
+                'required' => false,
+                'attr' => [
+                    'data-end-date-field' => 'true',
+                ],
             ])
             ->add('isCurrent', CheckboxType::class, [
                 'label' => 'Poste actuel',
                 'required' => false,
+                'attr' => [
+                    'data-is-current-toggle' => 'true',
+                ],
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
