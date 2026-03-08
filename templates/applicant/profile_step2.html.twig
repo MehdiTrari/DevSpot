@@ -210,6 +210,55 @@
 
             document.addEventListener('click', window.__profileStep2CollectionClickHandler);
         })();
+
+        // Gestion du toggle "Poste actuel" pour masquer/afficher endDate
+        function initializeExperienceToggle() {
+            const experiences = document.querySelectorAll('[data-collection-item]');
+            
+            experiences.forEach((item) => {
+                const isCurrentToggle = item.querySelector('[data-is-current-toggle]');
+                if (!isCurrentToggle) return;
+                
+                // Chercher le champ endDate en remontant le DOM
+                const endDateInput = item.querySelector('[data-end-date-field]');
+                if (!endDateInput) return;
+                
+                // Trouver le conteneur parent immédiat du champ endDate
+                const endDateContainer = endDateInput.closest('div[class*="mb-"]') || endDateInput.closest('div');
+                if (!endDateContainer) return;
+                
+                const toggleVisibility = () => {
+                    if (isCurrentToggle.checked) {
+                        endDateContainer.style.display = 'none';
+                    } else {
+                        endDateContainer.style.display = '';
+                    }
+                };
+                
+                // Initialiser l'état au chargement
+                toggleVisibility();
+                
+                // Ajouter un listener au checkbox
+                isCurrentToggle.addEventListener('change', toggleVisibility);
+            });
+        }
+
+        // Initialiser au chargement de la page
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeExperienceToggle);
+        } else {
+            initializeExperienceToggle();
+        }
+
+        // Réinitialiser lors de chaque ajout d'expérience
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('[data-collection-add="#experiences-list"]')) {
+                setTimeout(initializeExperienceToggle, 100);
+            }
+        });
+
+        // Réinitialiser au chargement Turbo
+        document.addEventListener('turbo:load', initializeExperienceToggle);
     </script>
 {% endblock %}
 
