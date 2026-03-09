@@ -38,7 +38,7 @@ final class ProfileController extends AbstractController
         }
 
         if (!$profile->isPublic() && $request->isMethod('POST')) {
-            throw $this->createAccessDeniedException('Impossible d envoyer un message a un profil prive.');
+            throw $this->createAccessDeniedException('Impossible d\'envoyer un message à un profil privé.');
         }
 
         $contactFormView = null;
@@ -63,7 +63,7 @@ final class ProfileController extends AbstractController
                 $entityManager->persist($contactMessage);
                 $entityManager->flush();
 
-                $this->addFlash('success', 'Votre message a bien ete envoye au developpeur.');
+                $this->addFlash('success', 'Votre message a bien été envoyé au développeur.');
 
                 return $this->redirectToRoute('app_public_profile_show', [
                     'slug' => $profile->getSlug(),

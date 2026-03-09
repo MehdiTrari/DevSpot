@@ -28,7 +28,7 @@ class ContactMessageType extends AbstractType
             ->add('recruiterEmail', EmailType::class, [
                 'label' => 'Email',
                 'constraints' => [
-                    new NotBlank(message: 'L email est obligatoire.'),
+                    new NotBlank(message: 'L\'email est obligatoire.'),
                     new Email(message: 'Merci de saisir un email valide.'),
                     new Length(max: 255),
                 ],
@@ -45,7 +45,7 @@ class ContactMessageType extends AbstractType
                 'label' => 'Message',
                 'constraints' => [
                     new NotBlank(message: 'Le message est obligatoire.'),
-                    new Length(min: 10, max: 5000, minMessage: 'Le message doit contenir au moins {{ limit }} caracteres.'),
+                    new Length(min: 10, max: 5000, minMessage: 'Le message doit contenir au moins {{ limit }} caractères.'),
                 ],
                 'attr' => [
                     'rows' => 6,
