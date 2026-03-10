@@ -87,16 +87,16 @@ final class ProfileEditTest extends WebTestCase
         $client = static::createClient();
 
         $client->request('GET', '/applicant/profile/step-1');
-        self::assertResponseRedirects('/login');
+        self::assertResponseRedirects('/403');
 
         $client->request('GET', '/applicant/profile/step-2');
-        self::assertResponseRedirects('/login');
+        self::assertResponseRedirects('/403');
 
         $client->request('GET', '/applicant/profile/step-3');
-        self::assertResponseRedirects('/login');
+        self::assertResponseRedirects('/403');
 
         $client->request('GET', '/applicant/profile/step-4');
-        self::assertResponseRedirects('/login');
+        self::assertResponseRedirects('/403');
     }
 
     public function testStep1ValidationRejectsTooLongFields(): void
@@ -162,7 +162,7 @@ final class ProfileEditTest extends WebTestCase
         $slug = $profile->getSlug();
 
         $client->request('GET', '/profil/' . $slug);
-        self::assertResponseStatusCodeSame(403);
+        self::assertResponseRedirects('/403');
     }
 
     public function testOwnerCanViewOwnPrivateProfile(): void
