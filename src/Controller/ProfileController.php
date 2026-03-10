@@ -9,9 +9,12 @@ use App\Form\ContactMessageType;
 use App\Repository\ContactMessageRepository;
 use App\Repository\DeveloperProfileRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class ProfileController extends AbstractController
@@ -22,6 +25,8 @@ final class ProfileController extends AbstractController
         Request $request,
         DeveloperProfileRepository $developerProfileRepository,
         ContactMessageRepository $contactMessageRepository,
+        #[Autowire(service: 'html_sanitizer.sanitizer.contact_message')]
+        HtmlSanitizerInterface $contactMessageSanitizer,
         EntityManagerInterface $entityManager,
     ): Response
     {
@@ -65,20 +70,38 @@ final class ProfileController extends AbstractController
             $contactForm->handleRequest($request);
 
             if ($contactForm->isSubmitted() && $contactForm->isValid()) {
-                $contactMessage->setDeveloperProfile($profile);
-                $contactMessage->setIsRead(false);
-                if (null === $contactMessage->getSubject()) {
-                    $contactMessage->setSubject('');
+                $sanitizedRecruiterName = trim($contactMessageSanitizer->sanitize((string) $contactMessage->getRecruiterName()));
+                $sanitizedSubject = trim($contactMessageSanitizer->sanitize((string) ($contactMessage->getSubject() ?? '')));
+                $sanitizedMessage = trim($contactMessageSanitizer->sanitize((string) $contactMessage->getMessage()));
+
+                $contactMessage->setRecruiterName($sanitizedRecruiterName);
+                $contactMessage->setSubject($sanitizedSubject);
+                $contactMessage->setMessage($sanitizedMessage);
+
+                if ('' === $sanitizedRecruiterName) {
+                    $contactForm->get('recruiterName')->addError(new FormError('Le nom contient trop de contenu HTML non autorisé.'));
                 }
 
-                $entityManager->persist($contactMessage);
-                $entityManager->flush();
+                if (mb_strlen($sanitizedMessage) < 10) {
+                    $contactForm->get('message')->addError(new FormError('Le message contient trop de contenu HTML non autorisé.'));
+                }
 
-                $this->addFlash('success', 'Votre message a bien été envoyé au développeur.');
+                if ($contactForm->isValid()) {
+                    $contactMessage->setDeveloperProfile($profile);
+                    $contactMessage->setIsRead(false);
+                    if (null === $contactMessage->getSubject()) {
+                        $contactMessage->setSubject('');
+                    }
 
-                return $this->redirectToRoute('app_public_profile_show', [
-                    'slug' => $profile->getSlug(),
-                ]);
+                    $entityManager->persist($contactMessage);
+                    $entityManager->flush();
+
+                    $this->addFlash('success', 'Votre message a bien été envoyé au développeur.');
+
+                    return $this->redirectToRoute('app_public_profile_show', [
+                        'slug' => $profile->getSlug(),
+                    ]);
+                }
             }
 
             $contactFormView = $contactForm->createView();
