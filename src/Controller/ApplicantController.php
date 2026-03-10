@@ -70,6 +70,10 @@ final class ApplicantController extends AbstractController
 
             $this->addFlash('success', 'Profil développeur créé. Étape 1 terminée.');
 
+            if ($request->request->has('_return_to_dashboard')) {
+                return $this->redirectToRoute('app_applicant_home');
+            }
+
             return $this->redirectToRoute('app_applicant_profile_step2');
         }
 
@@ -95,6 +99,10 @@ final class ApplicantController extends AbstractController
             $profile->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
             $this->addFlash('success', 'Étape 1 mise à jour.');
+
+            if ($request->request->has('_return_to_dashboard')) {
+                return $this->redirectToRoute('app_applicant_home');
+            }
 
             return $this->redirectToRoute('app_applicant_profile_step2');
         }
@@ -141,6 +149,10 @@ final class ApplicantController extends AbstractController
             $entityManager->flush();
             $this->addFlash('success', 'Étape 2 mise à jour.');
 
+            if ($request->request->has('_return_to_dashboard')) {
+                return $this->redirectToRoute('app_applicant_home');
+            }
+
             return $this->redirectToRoute('app_applicant_profile_step3');
         }
 
@@ -172,6 +184,10 @@ final class ApplicantController extends AbstractController
             $profile->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
             $this->addFlash('success', 'Étape 3 mise à jour.');
+
+            if ($request->request->has('_return_to_dashboard')) {
+                return $this->redirectToRoute('app_applicant_home');
+            }
 
             return $this->redirectToRoute('app_applicant_profile_step4');
         }
