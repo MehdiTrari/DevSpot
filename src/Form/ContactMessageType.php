@@ -45,10 +45,16 @@ class ContactMessageType extends AbstractType
                 'label' => 'Message',
                 'constraints' => [
                     new NotBlank(message: 'Le message est obligatoire.'),
-                    new Length(min: 10, max: 5000, minMessage: 'Le message doit contenir au moins {{ limit }} caractères.'),
+                    new Length(
+                        min: 10,
+                        max: 5000,
+                        minMessage: 'Le message doit contenir au moins {{ limit }} caractères.',
+                        maxMessage: 'Le message ne peut pas dépasser {{ limit }} caractères.'
+                    ),
                 ],
                 'attr' => [
                     'rows' => 6,
+                    'maxlength' => 5000,
                 ],
             ])
         ;

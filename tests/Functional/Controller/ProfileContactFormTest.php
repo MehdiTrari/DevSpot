@@ -13,10 +13,28 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class ProfileContactFormTest extends WebTestCase
 {
-    public function testContactFormIsVisibleOnPublicProfile(): void
+    public function testAnonymousUserSeesLoginPromptInsteadOfContactFormOnPublicProfile(): void
     {
         $client = static::createClient();
         $profile = $this->createProfileOwnerWithPortfolio(true)->getDeveloperProfile();
+
+        $client->request('GET', '/profil/'.$profile->getSlug());
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorNotExists('#contact-form');
+        self::assertSelectorTextContains('body', 'Vous devez vous connecter pour entrer en contact avec ce développeur.');
+        self::assertSelectorExists('a[href="/login"]');
+    }
+
+    public function testAuthenticatedUserCanSeeContactFormOnPublicProfile(): void
+    {
+        $client = static::createClient();
+        $profile = $this->createProfileOwnerWithPortfolio(true)->getDeveloperProfile();
+        $email = sprintf('recruiter_visible_%s@example.com', bin2hex(random_bytes(6)));
+        $password = 'password123';
+
+        $this->createRecruiterUser($email, $password);
+        $this->login($client, $email, $password);
 
         $client->request('GET', '/profil/'.$profile->getSlug());
 
@@ -33,6 +51,10 @@ final class ProfileContactFormTest extends WebTestCase
         $client = static::createClient();
         $profile = $this->createProfileOwnerWithPortfolio(true)->getDeveloperProfile();
         $email = sprintf('recruiter_%s@example.com', bin2hex(random_bytes(6)));
+        $password = 'password123';
+
+        $this->createRecruiterUser($email, $password);
+        $this->login($client, $email, $password);
 
         $crawler = $client->request('GET', '/profil/'.$profile->getSlug());
         $client->submit($crawler->selectButton('Envoyer le message')->form([
@@ -63,6 +85,11 @@ final class ProfileContactFormTest extends WebTestCase
     {
         $client = static::createClient();
         $profile = $this->createProfileOwnerWithPortfolio(true)->getDeveloperProfile();
+        $email = sprintf('recruiter_invalid_%s@example.com', bin2hex(random_bytes(6)));
+        $password = 'password123';
+
+        $this->createRecruiterUser($email, $password);
+        $this->login($client, $email, $password);
 
         $crawler = $client->request('GET', '/profil/'.$profile->getSlug());
         $client->submit($crawler->selectButton('Envoyer le message')->form([
@@ -125,6 +152,11 @@ final class ProfileContactFormTest extends WebTestCase
     {
         $client = static::createClient();
         $profile = $this->createProfileOwnerWithPortfolio(true)->getDeveloperProfile();
+        $email = sprintf('recruiter_csrf_%s@example.com', bin2hex(random_bytes(6)));
+        $password = 'password123';
+
+        $this->createRecruiterUser($email, $password);
+        $this->login($client, $email, $password);
 
         $crawler = $client->request('GET', '/profil/'.$profile->getSlug());
         $form = $crawler->selectButton('Envoyer le message')->form([
@@ -146,6 +178,23 @@ final class ProfileContactFormTest extends WebTestCase
         ]);
 
         self::assertCount(0, $savedMessages);
+    }
+
+    public function testAnonymousUserCannotSubmitContactForm(): void
+    {
+        $client = static::createClient();
+        $profile = $this->createProfileOwnerWithPortfolio(true)->getDeveloperProfile();
+
+        $client->request('POST', '/profil/'.$profile->getSlug(), [
+            'contact_message' => [
+                'recruiterName' => 'Recruiter',
+                'recruiterEmail' => 'recruiter@example.com',
+                'subject' => 'Sujet',
+                'message' => 'Bonjour, ceci est un message qui ne doit pas etre accepte.',
+            ],
+        ]);
+
+        self::assertResponseRedirects('/login');
     }
 
     private function login($client, string $email, string $password): void
@@ -189,6 +238,27 @@ final class ProfileContactFormTest extends WebTestCase
 
         $entityManager->persist($user);
         $entityManager->persist($profile);
+        $entityManager->flush();
+
+        return $user;
+    }
+
+    private function createRecruiterUser(string $email, string $password): User
+    {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        /** @var UserPasswordHasherInterface $hasher */
+        $hasher = static::getContainer()->get(UserPasswordHasherInterface::class);
+        $this->ensureSchemaExists($entityManager);
+
+        $user = new User();
+        $user->setEmail($email);
+        $user->setRoles(['ROLE_USER']);
+        $user->setStatus(UserStatus::ACTIVE);
+        $user->setIsVerified(true);
+        $user->setPassword($hasher->hashPassword($user, $password));
+
+        $entityManager->persist($user);
         $entityManager->flush();
 
         return $user;

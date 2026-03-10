@@ -49,6 +49,12 @@ final class ProfileController extends AbstractController
         }
 
         $currentUser = $this->getUser();
+        $contactRequiresLogin = $profile->isPublic() && !$currentUser instanceof User;
+
+        if ($contactRequiresLogin && $request->isMethod('POST')) {
+            throw $this->createAccessDeniedException('Vous devez être connecté pour contacter ce développeur.');
+        }
+
         $alreadyContactedDeveloper = false;
 
         if ($currentUser instanceof User && null !== $currentUser->getEmail()) {
@@ -59,7 +65,7 @@ final class ProfileController extends AbstractController
         }
 
         $contactFormView = null;
-        if ($profile->isPublic() && !$alreadyContactedDeveloper) {
+        if ($profile->isPublic() && !$contactRequiresLogin && !$alreadyContactedDeveloper) {
             $contactMessage = new ContactMessage();
 
             if ($currentUser instanceof User && null !== $currentUser->getEmail()) {
@@ -136,6 +142,7 @@ final class ProfileController extends AbstractController
             'education' => $education,
             'technologyNames' => array_values($technologyNames),
             'isOwner' => $this->isOwner($profile),
+            'contactRequiresLogin' => $contactRequiresLogin,
             'alreadyContactedDeveloper' => $alreadyContactedDeveloper,
             'contactForm' => $contactFormView,
         ]);

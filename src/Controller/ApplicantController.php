@@ -2,12 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\ContactMessage;
 use App\Entity\DeveloperProfile;
 use App\Entity\User;
 use App\Form\DeveloperProfileStep1Type;
 use App\Form\DeveloperProfileStep2Type;
 use App\Form\DeveloperProfileStep3Type;
 use App\Form\DeveloperProfileStep4Type;
+use App\Repository\ContactMessageRepository;
 use App\Repository\DeveloperProfileRepository;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -36,6 +38,53 @@ final class ApplicantController extends AbstractController
             'profile' => $profile,
             'checklist' => $this->buildChecklist($profile),
             'portfolioGenerated' => $profile instanceof DeveloperProfile && null !== $profile->getPortfolioGeneratedAt(),
+        ]);
+    }
+
+    #[Route('/applicant/messages', name: 'app_applicant_messages')]
+    #[IsGranted('ROLE_APPLICANT')]
+    public function messages(ContactMessageRepository $contactMessageRepository): Response
+    {
+        $profile = $this->getApplicantUser()->getDeveloperProfile();
+
+        if (!$profile instanceof DeveloperProfile) {
+            $this->addFlash('info', 'Tu dois d\'abord créer ton profil développeur.');
+
+            return $this->redirectToRoute('app_applicant_profile_create');
+        }
+
+        return $this->render('applicant/messages.html.twig', [
+            'profile' => $profile,
+            'messages' => $contactMessageRepository->findByDeveloperProfileOrdered($profile),
+        ]);
+    }
+
+    #[Route('/applicant/messages/{id}', name: 'app_applicant_message_show', requirements: ['id' => '\\d+'])]
+    #[IsGranted('ROLE_APPLICANT')]
+    public function showMessage(int $id, ContactMessageRepository $contactMessageRepository, EntityManagerInterface $entityManager): Response
+    {
+        $profile = $this->getApplicantUser()->getDeveloperProfile();
+
+        if (!$profile instanceof DeveloperProfile) {
+            $this->addFlash('info', 'Tu dois d\'abord créer ton profil développeur.');
+
+            return $this->redirectToRoute('app_applicant_profile_create');
+        }
+
+        $message = $contactMessageRepository->findOneForDeveloperProfile($id, $profile);
+
+        if (!$message instanceof ContactMessage) {
+            throw $this->createNotFoundException('Ce message est introuvable.');
+        }
+
+        if (!$message->isRead()) {
+            $message->setIsRead(true);
+            $entityManager->flush();
+        }
+
+        return $this->render('applicant/message_show.html.twig', [
+            'profile' => $profile,
+            'message' => $message,
         ]);
     }
 
