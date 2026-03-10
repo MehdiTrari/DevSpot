@@ -38,6 +38,31 @@ class ContactMessageRepository extends ServiceEntityRepository
         return null !== $result;
     }
 
+    /**
+     * @return list<ContactMessage>
+     */
+    public function findByDeveloperProfileOrdered(DeveloperProfile $developerProfile): array
+    {
+        return $this->createQueryBuilder('contact_message')
+            ->andWhere('contact_message.developerProfile = :developerProfile')
+            ->setParameter('developerProfile', $developerProfile)
+            ->orderBy('contact_message.createdAt', 'DESC')
+            ->addOrderBy('contact_message.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findOneForDeveloperProfile(int $messageId, DeveloperProfile $developerProfile): ?ContactMessage
+    {
+        return $this->createQueryBuilder('contact_message')
+            ->andWhere('contact_message.id = :messageId')
+            ->andWhere('contact_message.developerProfile = :developerProfile')
+            ->setParameter('messageId', $messageId)
+            ->setParameter('developerProfile', $developerProfile)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     //    /**
     //     * @return ContactMessage[] Returns an array of ContactMessage objects
     //     */
