@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Http\Authenticator\AbstractLoginFormAuthenticator;
@@ -71,6 +72,11 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
         }
 
         return new RedirectResponse($this->urlGenerator->generate('app_home'));
+    }
+
+    public function start(Request $request, ?AuthenticationException $authException = null): Response
+    {
+        return new RedirectResponse($this->urlGenerator->generate('app_error_403'));
     }
 
     protected function getLoginUrl(Request $request): string

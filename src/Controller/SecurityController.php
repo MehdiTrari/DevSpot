@@ -9,6 +9,11 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
+    #[Route(path: '/403', name: 'app_error_403')]
+    public function forbidden(): Response
+    {
+        return $this->render('bundles/TwigBundle/Exception/error403.html.twig', [], new Response('', Response::HTTP_FORBIDDEN));
+    }
 
     #[Route(path: '/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response

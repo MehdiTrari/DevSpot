@@ -145,7 +145,7 @@ final class ProfileContactFormTest extends WebTestCase
             ],
         ]);
 
-        self::assertResponseStatusCodeSame(403);
+        self::assertResponseRedirects('/403');
     }
 
     public function testContactFormRejectsInvalidCsrfToken(): void
@@ -194,7 +194,7 @@ final class ProfileContactFormTest extends WebTestCase
             ],
         ]);
 
-        self::assertResponseRedirects('/login');
+        self::assertResponseRedirects('/403');
     }
 
     private function login($client, string $email, string $password): void

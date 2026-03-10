@@ -41,7 +41,7 @@ final class ProfileController extends AbstractController
         }
 
         if (!$profile->isPublic() && !$this->isOwner($profile)) {
-            return $this->render('bundles/TwigBundle/Exception/error403.html.twig', [], new Response('', Response::HTTP_FORBIDDEN));
+            throw $this->createAccessDeniedException('Ce profil est privé.');
         }
 
         if (!$profile->isPublic() && $request->isMethod('POST')) {

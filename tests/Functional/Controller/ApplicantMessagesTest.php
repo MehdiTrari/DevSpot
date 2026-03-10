@@ -144,7 +144,7 @@ final class ApplicantMessagesTest extends WebTestCase
 
         $client->request('GET', '/applicant/messages');
 
-        self::assertResponseRedirects('/login');
+        self::assertResponseRedirects('/403');
     }
 
     public function testNonApplicantUserCannotAccessMessagesPage(): void
@@ -157,7 +157,7 @@ final class ApplicantMessagesTest extends WebTestCase
         $this->login($client, $email, $password);
         $client->request('GET', '/applicant/messages');
 
-        self::assertResponseStatusCodeSame(403);
+        self::assertResponseRedirects('/403');
     }
 
     public function testApplicantWithoutProfileIsRedirectedToProfileCreationWhenAccessingMessages(): void
