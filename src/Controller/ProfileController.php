@@ -30,7 +30,7 @@ final class ProfileController extends AbstractController
         EntityManagerInterface $entityManager,
     ): Response
     {
-        $profile = $developerProfileRepository->findOneBy(['slug' => $slug]);
+        $profile = $developerProfileRepository->findPublicPortfolioBySlugWithDetails($slug);
 
         if (!$profile instanceof DeveloperProfile) {
             throw $this->createNotFoundException('Aucun profil ne correspond à cette URL.');
@@ -49,6 +49,28 @@ final class ProfileController extends AbstractController
         }
 
         $currentUser = $this->getUser();
+        $isAnonymousPublicGet = $profile->isPublic() && !$currentUser instanceof User && $request->isMethod('GET');
+
+        if ($isAnonymousPublicGet) {
+            $lastModified = $profile->getUpdatedAt() ?? $profile->getCreatedAt() ?? new \DateTimeImmutable('@0');
+            $cacheProbeResponse = new Response();
+            $cacheProbeResponse->setPublic();
+            $cacheProbeResponse->setSharedMaxAge(120);
+            $cacheProbeResponse->setMaxAge(120);
+            $cacheProbeResponse->setLastModified($lastModified);
+            $cacheProbeResponse->setEtag(sprintf(
+                'public-profile-%d-%d-%d-%d',
+                (int) ($profile->getId() ?? 0),
+                (int) $profile->isPublic(),
+                $lastModified->getTimestamp(),
+                $profile->getPortfolioGeneratedAt()?->getTimestamp() ?? 0
+            ));
+
+            if ($cacheProbeResponse->isNotModified($request)) {
+                return $cacheProbeResponse;
+            }
+        }
+
         $contactRequiresLogin = $profile->isPublic() && !$currentUser instanceof User;
 
         if ($contactRequiresLogin && $request->isMethod('POST')) {
@@ -136,7 +158,7 @@ final class ProfileController extends AbstractController
         }
         ksort($technologyNames);
 
-        return $this->render('profile/show.html.twig', [
+        $response = $this->render('profile/show.html.twig', [
             'profile' => $profile,
             'experiences' => $experiences,
             'education' => $education,
@@ -146,6 +168,26 @@ final class ProfileController extends AbstractController
             'alreadyContactedDeveloper' => $alreadyContactedDeveloper,
             'contactForm' => $contactFormView,
         ]);
+
+        if ($isAnonymousPublicGet) {
+            $lastModified = $profile->getUpdatedAt() ?? $profile->getCreatedAt() ?? new \DateTimeImmutable('@0');
+            $response->setPublic();
+            $response->setSharedMaxAge(120);
+            $response->setMaxAge(120);
+            $response->setLastModified($lastModified);
+            $response->setEtag(sprintf(
+                'public-profile-%d-%d-%d-%d',
+                (int) ($profile->getId() ?? 0),
+                (int) $profile->isPublic(),
+                $lastModified->getTimestamp(),
+                $profile->getPortfolioGeneratedAt()?->getTimestamp() ?? 0
+            ));
+        } else {
+            $response->setPrivate();
+            $response->headers->addCacheControlDirective('no-store', true);
+        }
+
+        return $response;
     }
 
     private function isOwner(DeveloperProfile $profile): bool

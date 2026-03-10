@@ -24,7 +24,8 @@ class DeveloperProfileRepository extends ServiceEntityRepository
         $safePage = max(1, $page);
         $safeLimit = max(1, $limit);
 
-        return $this->createQueryBuilder('d')
+        $ids = $this->createQueryBuilder('d')
+            ->select('d.id')
             ->andWhere('d.isPublic = :isPublic')
             ->andWhere('d.portfolioGeneratedAt IS NOT NULL')
             ->setParameter('isPublic', true)
@@ -33,7 +34,35 @@ class DeveloperProfileRepository extends ServiceEntityRepository
             ->setFirstResult(($safePage - 1) * $safeLimit)
             ->setMaxResults($safeLimit)
             ->getQuery()
+            ->getScalarResult();
+
+        $orderedIds = array_map(static fn (array $row): int => (int) $row['id'], $ids);
+
+        if ([] === $orderedIds) {
+            return [];
+        }
+
+        $profiles = $this->createQueryBuilder('d')
+            ->leftJoin('d.profileSkills', 'profileSkills')->addSelect('profileSkills')
+            ->leftJoin('profileSkills.skill', 'skill')->addSelect('skill')
+            ->andWhere('d.id IN (:ids)')
+            ->setParameter('ids', $orderedIds)
+            ->getQuery()
             ->getResult();
+
+        $profilesById = [];
+        foreach ($profiles as $profile) {
+            $profilesById[$profile->getId()] = $profile;
+        }
+
+        $orderedProfiles = [];
+        foreach ($orderedIds as $id) {
+            if (isset($profilesById[$id])) {
+                $orderedProfiles[] = $profilesById[$id];
+            }
+        }
+
+        return $orderedProfiles;
     }
 
     public function countPublicGeneratedProfiles(): int
@@ -45,6 +74,36 @@ class DeveloperProfileRepository extends ServiceEntityRepository
             ->setParameter('isPublic', true)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    public function findPublicPortfolioBySlugWithDetails(string $slug): ?DeveloperProfile
+    {
+        return $this->createQueryBuilder('d')
+            ->leftJoin('d.profileSkills', 'profileSkills')->addSelect('profileSkills')
+            ->leftJoin('profileSkills.skill', 'skill')->addSelect('skill')
+            ->leftJoin('d.experiences', 'experiences')->addSelect('experiences')
+            ->leftJoin('experiences.technologies', 'technologies')->addSelect('technologies')
+            ->leftJoin('d.education', 'education')->addSelect('education')
+            ->leftJoin('d.desiredPositions', 'desiredPositions')->addSelect('desiredPositions')
+            ->andWhere('d.slug = :slug')
+            ->setParameter('slug', $slug)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function findLatestPublicGeneratedProfileUpdate(): ?\DateTimeImmutable
+    {
+        $result = $this->createQueryBuilder('d')
+            ->select('d.updatedAt AS updatedAt')
+            ->andWhere('d.isPublic = :isPublic')
+            ->andWhere('d.portfolioGeneratedAt IS NOT NULL')
+            ->setParameter('isPublic', true)
+            ->orderBy('d.updatedAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return $result['updatedAt'] ?? null;
     }
 
     //    /**
