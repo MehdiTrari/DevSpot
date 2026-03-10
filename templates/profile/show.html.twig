@@ -72,6 +72,10 @@
                         <a href="#contact-form" data-contact-scroll="true" class="mt-4 inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 py-3.5 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95 sm:mt-6">
                             Contacter
                         </a>
+                    {% elseif profile.public and contactRequiresLogin|default(false) %}
+                        <a href="{{ path('app_login') }}" class="mt-4 inline-flex items-center justify-center rounded-full border border-yellow-400/20 bg-yellow-400/10 px-6 py-3.5 text-[15px] font-bold text-yellow-300 shadow-lg shadow-yellow-400/10 transition-all duration-300 hover:scale-[1.02] hover:bg-yellow-400/15 active:scale-95 sm:mt-6">
+                            Se connecter pour contacter
+                        </a>
                     {% endif %}
                 </div>
             </div>
@@ -221,6 +225,14 @@
                 <h2 class="font-semibold uppercase tracking-wider text-yellow-300">Contact déjà établi</h2>
                 <p class="mt-2 text-sm text-yellow-300">Vous avez déjà contacté ce développeur.</p>
             </article>
+        {% elseif profile.public and contactRequiresLogin|default(false) %}
+            <article class="rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-5 py-3.5 text-[15px] font-medium text-yellow-300 shadow-xl backdrop-blur-md">
+                <h2 class="font-semibold uppercase tracking-wider text-yellow-300">Connexion requise</h2>
+                <p class="mt-2 text-sm text-yellow-300">Vous devez vous connecter pour entrer en contact avec ce développeur.</p>
+                <a href="{{ path('app_login') }}" class="mt-4 inline-flex items-center justify-center rounded-full border border-yellow-300/20 bg-yellow-300/10 px-4 py-2 text-sm font-semibold text-yellow-200 transition-all duration-300 hover:bg-yellow-300/15 active:scale-95">
+                    Se connecter
+                </a>
+            </article>
         {% elseif profile.public and contactForm is not null %}
             <article id="contact-form" class="scroll-mt-28 rounded-[2rem] border border-white/10 bg-slate-900/60 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-7">
                 <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Contacter ce développeur</h2>
@@ -255,9 +267,11 @@
                         {{ form_row(contactForm.message, {
                             attr: {
                                 class: 'min-h-[160px]',
+                                maxlength: '5000',
                                 placeholder: 'Bonjour, je souhaite vous contacter pour une opportunité...'
                             }
                         }) }}
+                        <p class="mt-2 text-sm text-slate-400">Maximum 5000 caractères pour votre message.</p>
                     </div>
 
                     <div class="sm:col-span-2">
