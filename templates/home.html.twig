@@ -56,7 +56,7 @@
                 </div>
             {% elseif is_granted('ROLE_RECRUITER') %}
                 <div class="mt-8">
-                    <a href="#" class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 py-3.5 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95">
+                    <a href="{{ path('app_recruiter_home') }}" class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 py-3.5 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95">
                         Accéder à mon espace recruteur
                     </a>
                 </div>
