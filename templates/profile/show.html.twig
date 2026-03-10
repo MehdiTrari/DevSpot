@@ -216,7 +216,12 @@
             </aside>
         </div>
 
-        {% if profile.public and contactForm is not null %}
+        {% if profile.public and alreadyContactedDeveloper|default(false) %}
+            <article class="rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-5 py-3.5 text-[15px] font-medium text-yellow-300 shadow-xl backdrop-blur-md">
+                <h2 class="font-semibold uppercase tracking-wider text-yellow-300">Contact déjà établi</h2>
+                <p class="mt-2 text-sm text-yellow-300">Vous avez déjà contacté ce développeur.</p>
+            </article>
+        {% elseif profile.public and contactForm is not null %}
             <article id="contact-form" class="scroll-mt-28 rounded-[2rem] border border-white/10 bg-slate-900/60 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-7">
                 <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Contacter ce développeur</h2>
                 <p class="mt-2 text-sm text-slate-400">Présentez votre opportunité et laissez vos coordonnées.</p>
@@ -250,7 +255,7 @@
                         {{ form_row(contactForm.message, {
                             attr: {
                                 class: 'min-h-[160px]',
-                                placeholder: 'Bonjour, je souhaite vous contacter pour une opportunite...'
+                                placeholder: 'Bonjour, je souhaite vous contacter pour une opportunité...'
                             }
                         }) }}
                     </div>

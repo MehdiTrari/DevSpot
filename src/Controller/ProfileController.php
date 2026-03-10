@@ -6,6 +6,7 @@ use App\Entity\ContactMessage;
 use App\Entity\DeveloperProfile;
 use App\Entity\User;
 use App\Form\ContactMessageType;
+use App\Repository\ContactMessageRepository;
 use App\Repository\DeveloperProfileRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,6 +21,7 @@ final class ProfileController extends AbstractController
         string $slug,
         Request $request,
         DeveloperProfileRepository $developerProfileRepository,
+        ContactMessageRepository $contactMessageRepository,
         EntityManagerInterface $entityManager,
     ): Response
     {
@@ -41,11 +43,20 @@ final class ProfileController extends AbstractController
             throw $this->createAccessDeniedException('Impossible d\'envoyer un message à un profil privé.');
         }
 
+        $currentUser = $this->getUser();
+        $alreadyContactedDeveloper = false;
+
+        if ($currentUser instanceof User && null !== $currentUser->getEmail()) {
+            $alreadyContactedDeveloper = $contactMessageRepository->recruiterHasAlreadyContactedProfile(
+                $profile,
+                $currentUser->getEmail()
+            );
+        }
+
         $contactFormView = null;
-        if ($profile->isPublic()) {
+        if ($profile->isPublic() && !$alreadyContactedDeveloper) {
             $contactMessage = new ContactMessage();
 
-            $currentUser = $this->getUser();
             if ($currentUser instanceof User && null !== $currentUser->getEmail()) {
                 $contactMessage->setRecruiterEmail($currentUser->getEmail());
             }
@@ -102,6 +113,7 @@ final class ProfileController extends AbstractController
             'education' => $education,
             'technologyNames' => array_values($technologyNames),
             'isOwner' => $this->isOwner($profile),
+            'alreadyContactedDeveloper' => $alreadyContactedDeveloper,
             'contactForm' => $contactFormView,
         ]);
     }
