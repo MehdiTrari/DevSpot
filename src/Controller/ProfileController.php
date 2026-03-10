@@ -2,17 +2,33 @@
 
 namespace App\Controller;
 
+use App\Entity\ContactMessage;
 use App\Entity\DeveloperProfile;
 use App\Entity\User;
+use App\Form\ContactMessageType;
+use App\Repository\ContactMessageRepository;
 use App\Repository\DeveloperProfileRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class ProfileController extends AbstractController
 {
-    #[Route('/profil/{slug}', name: 'app_public_profile_show', methods: ['GET'])]
-    public function show(string $slug, DeveloperProfileRepository $developerProfileRepository): Response
+    #[Route('/profil/{slug}', name: 'app_public_profile_show', methods: ['GET', 'POST'])]
+    public function show(
+        string $slug,
+        Request $request,
+        DeveloperProfileRepository $developerProfileRepository,
+        ContactMessageRepository $contactMessageRepository,
+        #[Autowire(service: 'html_sanitizer.sanitizer.contact_message')]
+        HtmlSanitizerInterface $contactMessageSanitizer,
+        EntityManagerInterface $entityManager,
+    ): Response
     {
         $profile = $developerProfileRepository->findOneBy(['slug' => $slug]);
 
@@ -26,6 +42,69 @@ final class ProfileController extends AbstractController
 
         if (!$profile->isPublic() && !$this->isOwner($profile)) {
             return $this->render('bundles/TwigBundle/Exception/error403.html.twig', [], new Response('', Response::HTTP_FORBIDDEN));
+        }
+
+        if (!$profile->isPublic() && $request->isMethod('POST')) {
+            throw $this->createAccessDeniedException('Impossible d\'envoyer un message à un profil privé.');
+        }
+
+        $currentUser = $this->getUser();
+        $alreadyContactedDeveloper = false;
+
+        if ($currentUser instanceof User && null !== $currentUser->getEmail()) {
+            $alreadyContactedDeveloper = $contactMessageRepository->recruiterHasAlreadyContactedProfile(
+                $profile,
+                $currentUser->getEmail()
+            );
+        }
+
+        $contactFormView = null;
+        if ($profile->isPublic() && !$alreadyContactedDeveloper) {
+            $contactMessage = new ContactMessage();
+
+            if ($currentUser instanceof User && null !== $currentUser->getEmail()) {
+                $contactMessage->setRecruiterEmail($currentUser->getEmail());
+            }
+
+            $contactForm = $this->createForm(ContactMessageType::class, $contactMessage);
+            $contactForm->handleRequest($request);
+
+            if ($contactForm->isSubmitted() && $contactForm->isValid()) {
+                $sanitizedRecruiterName = trim($contactMessageSanitizer->sanitize((string) $contactMessage->getRecruiterName()));
+                $sanitizedSubject = trim($contactMessageSanitizer->sanitize((string) ($contactMessage->getSubject() ?? '')));
+                $sanitizedMessage = trim($contactMessageSanitizer->sanitize((string) $contactMessage->getMessage()));
+
+                $contactMessage->setRecruiterName($sanitizedRecruiterName);
+                $contactMessage->setSubject($sanitizedSubject);
+                $contactMessage->setMessage($sanitizedMessage);
+
+                if ('' === $sanitizedRecruiterName) {
+                    $contactForm->get('recruiterName')->addError(new FormError('Le nom contient trop de contenu HTML non autorisé.'));
+                }
+
+                if (mb_strlen($sanitizedMessage) < 10) {
+                    $contactForm->get('message')->addError(new FormError('Le message contient trop de contenu HTML non autorisé.'));
+                }
+
+                if ($contactForm->isValid()) {
+                    $contactMessage->setDeveloperProfile($profile);
+                    $contactMessage->setIsRead(false);
+                    if (null === $contactMessage->getSubject()) {
+                        $contactMessage->setSubject('');
+                    }
+
+                    $entityManager->persist($contactMessage);
+                    $entityManager->flush();
+
+                    $this->addFlash('success', 'Votre message a bien été envoyé au développeur.');
+
+                    return $this->redirectToRoute('app_public_profile_show', [
+                        'slug' => $profile->getSlug(),
+                    ]);
+                }
+            }
+
+            $contactFormView = $contactForm->createView();
         }
 
         $experiences = $profile->getExperiences()->toArray();
@@ -57,6 +136,8 @@ final class ProfileController extends AbstractController
             'education' => $education,
             'technologyNames' => array_values($technologyNames),
             'isOwner' => $this->isOwner($profile),
+            'alreadyContactedDeveloper' => $alreadyContactedDeveloper,
+            'contactForm' => $contactFormView,
         ]);
     }
 
