@@ -163,6 +163,8 @@ final class ProfileEditTest extends WebTestCase
 
         $client->request('GET', '/profil/' . $slug);
         self::assertResponseRedirects('/403');
+        $client->followRedirect();
+        self::assertResponseStatusCodeSame(403);
     }
 
     public function testOwnerCanViewOwnPrivateProfile(): void
