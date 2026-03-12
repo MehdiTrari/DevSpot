@@ -119,6 +119,12 @@ class DeveloperProfile
     #[ORM\OneToMany(targetEntity: ContactMessage::class, mappedBy: 'developerProfile')]
     private Collection $contactMessages;
 
+    /**
+     * @var Collection<int, FavoriteProfile>
+     */
+    #[ORM\OneToMany(targetEntity: FavoriteProfile::class, mappedBy: 'developerProfile', orphanRemoval: true)]
+    private Collection $favoriteProfiles;
+
     public function __construct()
     {
         $this->desiredPositions = new ArrayCollection();
@@ -126,6 +132,7 @@ class DeveloperProfile
         $this->education = new ArrayCollection();
         $this->profileSkills = new ArrayCollection();
         $this->contactMessages = new ArrayCollection();
+        $this->favoriteProfiles = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = $this->createdAt;
     }
@@ -506,6 +513,35 @@ class DeveloperProfile
             // set the owning side to null (unless already changed)
             if ($contactMessage->getDeveloperProfile() === $this) {
                 $contactMessage->setDeveloperProfile(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, FavoriteProfile>
+     */
+    public function getFavoriteProfiles(): Collection
+    {
+        return $this->favoriteProfiles;
+    }
+
+    public function addFavoriteProfile(FavoriteProfile $favoriteProfile): static
+    {
+        if (!$this->favoriteProfiles->contains($favoriteProfile)) {
+            $this->favoriteProfiles->add($favoriteProfile);
+            $favoriteProfile->setDeveloperProfile($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFavoriteProfile(FavoriteProfile $favoriteProfile): static
+    {
+        if ($this->favoriteProfiles->removeElement($favoriteProfile)) {
+            if ($favoriteProfile->getDeveloperProfile() === $this) {
+                $favoriteProfile->setDeveloperProfile(null);
             }
         }
 
