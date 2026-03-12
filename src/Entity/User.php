@@ -58,6 +58,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: ActivityLog::class, mappedBy: 'user')]
     private Collection $activityLogs;
 
+    #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
+    private ?RecruiterProfile $recruiterProfile = null;
+
     public function __construct()
     {
         $this->activityLogs = new ArrayCollection();
@@ -230,6 +233,23 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $activityLog->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getRecruiterProfile(): ?RecruiterProfile
+    {
+        return $this->recruiterProfile;
+    }
+
+    public function setRecruiterProfile(RecruiterProfile $recruiterProfile): static
+    {
+        // set the owning side of the relation if necessary
+        if ($recruiterProfile->getUser() !== $this) {
+            $recruiterProfile->setUser($this);
+        }
+
+        $this->recruiterProfile = $recruiterProfile;
 
         return $this;
     }
