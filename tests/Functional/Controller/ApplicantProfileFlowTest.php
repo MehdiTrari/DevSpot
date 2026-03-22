@@ -2,6 +2,7 @@
 
 namespace App\Tests\Functional\Controller;
 
+use App\Entity\DeveloperProfile;
 use App\Entity\User;
 use App\Enum\UserStatus;
 use App\Repository\DeveloperProfileRepository;
@@ -178,6 +179,51 @@ final class ApplicantProfileFlowTest extends WebTestCase
         }
     }
 
+    public function testApplicantCanContinueProfileCreationWhenProfileAlreadyExists(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('existing_profile_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $this->createUserWithPreCreatedDeveloperProfile($email, $password);
+
+        $crawler = $client->request('GET', '/login');
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            'email' => $email,
+            'password' => $password,
+        ]));
+        self::assertResponseRedirects('/');
+        $client->followRedirect();
+
+        $crawler = $client->request('GET', '/applicant/profile/create');
+        self::assertResponseIsSuccessful();
+        self::assertSame('Alice', $crawler->filter('#developer_profile_firstName')->attr('value'));
+        self::assertSame('Durand', $crawler->filter('#developer_profile_lastName')->attr('value'));
+
+        $client->submit($crawler->selectButton('Enregistrer mon profil')->form([
+            'developer_profile[firstName]' => 'Alice',
+            'developer_profile[lastName]' => 'Durand',
+            'developer_profile[headline]' => 'Développeuse Symfony',
+            'developer_profile[bio]' => 'Profil initialisé depuis l inscription.',
+            'developer_profile[city]' => 'Paris',
+            'developer_profile[country]' => 'France',
+            'developer_profile[locationType]' => 'hybrid',
+            'developer_profile[experienceLevel]' => 'junior',
+            'developer_profile[yearsExperience]' => '3',
+        ]));
+
+        self::assertResponseRedirects('/applicant/profile/step-2');
+
+        /** @var UserRepository $users */
+        $users = static::getContainer()->get(UserRepository::class);
+        /** @var DeveloperProfileRepository $profiles */
+        $profiles = static::getContainer()->get(DeveloperProfileRepository::class);
+        $profile = $profiles->findOneBy(['user' => $users->findOneBy(['email' => $email])]);
+
+        self::assertNotNull($profile);
+        self::assertSame('Développeuse Symfony', $profile->getHeadline());
+        self::assertSame('Paris', $profile->getCity());
+    }
+
     public function testApplicantStepRoutesRedirectToCreateWhenProfileDoesNotExist(): void
     {
         $client = static::createClient();
@@ -227,6 +273,32 @@ final class ApplicantProfileFlowTest extends WebTestCase
         self::assertSelectorNotExists('a[href="/applicant/profile/step-4"]');
     }
 
+    public function testApplicantDashboardTreatsPreCreatedProfileAsToCreate(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('dashboard_precreated_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $this->createUserWithPreCreatedDeveloperProfile($email, $password);
+
+        $crawler = $client->request('GET', '/login');
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            'email' => $email,
+            'password' => $password,
+        ]));
+        self::assertResponseRedirects('/');
+        $crawler = $client->followRedirect();
+
+        self::assertSelectorExists('a[href="/applicant"]');
+        $crawler = $client->click($crawler->filter('a[href="/applicant"]')->link());
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('body', 'À créer');
+        self::assertSelectorTextContains('body', 'Créer mon profil');
+        self::assertSelectorExists('a[href="/applicant/profile/create"]');
+        self::assertSelectorNotExists('a[href="/applicant/profile/step-2"]');
+        self::assertSelectorNotExists('a[href="/applicant/profile/step-3"]');
+        self::assertSelectorNotExists('a[href="/applicant/profile/step-4"]');
+    }
+
     private function createUserWithStatus(string $email, string $plainPassword, UserStatus $status, array $roles = ['ROLE_USER']): User
     {
         /** @var EntityManagerInterface $entityManager */
@@ -243,6 +315,37 @@ final class ApplicantProfileFlowTest extends WebTestCase
         $user->setPassword($hasher->hashPassword($user, $plainPassword));
 
         $entityManager->persist($user);
+        $entityManager->flush();
+
+        return $user;
+    }
+
+    private function createUserWithPreCreatedDeveloperProfile(string $email, string $plainPassword): User
+    {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        /** @var UserPasswordHasherInterface $hasher */
+        $hasher = static::getContainer()->get(UserPasswordHasherInterface::class);
+        $this->ensureSchemaExists($entityManager);
+
+        $user = new User();
+        $user->setEmail($email);
+        $user->setRoles(['ROLE_APPLICANT']);
+        $user->setStatus(UserStatus::ACTIVE);
+        $user->setIsVerified(true);
+        $user->setPassword($hasher->hashPassword($user, $plainPassword));
+
+        $profile = new DeveloperProfile();
+        $profile->setFirstName('Alice');
+        $profile->setLastName('Durand');
+        $profile->setHeadline('');
+        $profile->setIsPublic(false);
+        $profile->setSlug('alice-durand-'.bin2hex(random_bytes(4)));
+        $profile->setUser($user);
+        $user->setDeveloperProfile($profile);
+
+        $entityManager->persist($user);
+        $entityManager->persist($profile);
         $entityManager->flush();
 
         return $user;
