@@ -1,0 +1,255 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord Admin | DevSpot{% endblock %}
+
+{% block body %}
+<section class="w-full space-y-8 font-sans">
+    
+    {# HEADER #}
+    <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-10">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-300">
+                    <span class="h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse"></span>
+                    Admin Panel
+                </p>
+                <h1 class="text-4xl font-semibold tracking-tight text-white">Tableau de bord administrateur</h1>
+                <p class="mt-2 text-[15px] text-slate-400">Bienvenue sur votre espace d'administration</p>
+            </div>
+            <div class="hidden text-right lg:block">
+                <p class="text-sm text-slate-400">Connecté en tant que</p>
+                <p class="text-lg font-semibold text-white">{{ app.user.email }}</p>
+            </div>
+        </div>
+    </div>
+
+    {# STATISTIQUES GLOBALES #}
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {# Total Utilisateurs #}
+        <div class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-blue-500/30 hover:bg-slate-900/60 hover:shadow-blue-500/10">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-400">Utilisateurs totaux</p>
+                    <p class="mt-2 text-3xl font-bold text-white">{{ stats.totalUsers }}</p>
+                </div>
+                <div class="flex h-14 w-14 items-center justify-center rounded-full bg-blue-500/20">
+                    <svg class="h-5 w-5 shrink-0 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 8v6"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M23 11h-6"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="mt-4 text-xs text-slate-500">Tous les comptes</p>
+        </div>
+
+        {# Candidats #}
+        <div class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/30 hover:bg-slate-900/60 hover:shadow-emerald-500/10">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-400">Candidats</p>
+                    <p class="mt-2 text-3xl font-bold text-white">{{ stats.totalApplicants }}</p>
+                </div>
+                <div class="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/20">
+                    <svg class="h-5 w-5 shrink-0 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m13 2-8 12h6l-1 8 9-13h-6z"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="mt-4 text-xs text-slate-500">Développeurs actifs</p>
+        </div>
+
+        {# Recruteurs #}
+        <div class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-purple-500/30 hover:bg-slate-900/60 hover:shadow-purple-500/10">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-400">Recruteurs</p>
+                    <p class="mt-2 text-3xl font-bold text-white">{{ stats.totalRecruiters }}</p>
+                </div>
+                <div class="flex h-14 w-14 items-center justify-center rounded-full bg-purple-500/20">
+                    <svg class="h-5 w-5 shrink-0 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V5a4 4 0 1 1 8 0v2"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16l-1 12H5z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 11v4"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="mt-4 text-xs text-slate-500">Entreprises et RH</p>
+        </div>
+
+        {# Messages non lus #}
+        <div class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-yellow-500/30 hover:bg-slate-900/60 hover:shadow-yellow-500/10">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-slate-400">Messages</p>
+                    <p class="mt-2 text-3xl font-bold text-white">{{ stats.unreadMessages }}</p>
+                </div>
+                <div class="flex h-14 w-14 items-center justify-center rounded-full bg-yellow-500/20">
+                    <svg class="h-5 w-5 shrink-0 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 6h18v12H3z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m3 7 9 6 9-6"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="mt-4 text-xs text-slate-500">À traiter</p>
+        </div>
+    </div>
+
+    {# GRILLE PRINCIPALE #}
+    <div class="grid gap-6 lg:grid-cols-3">
+        
+        {# GESTION PRINCIPALE #}
+        <div class="lg:col-span-2 space-y-6">
+            {# Sections de gestion #}
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {# Gérer les utilisateurs #}
+                <a href="{{ path('app_admin_users') }}" class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-blue-500/30 hover:bg-slate-900/60 hover:scale-105">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-500/20">
+                        <svg class="h-5 w-5 shrink-0 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <h3 class="mt-4 font-semibold text-white group-hover:text-blue-400 transition-colors">Gérer les utilisateurs</h3>
+                    <p class="mt-2 text-sm text-slate-400">{{ stats.totalUsers }} utilisateurs</p>
+                </a>
+
+                {# Gérer les profils #}
+                <a href="{{ path('app_admin_profiles') }}" class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/30 hover:bg-slate-900/60 hover:scale-105">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-500/20">
+                        <svg class="h-5 w-5 shrink-0 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 5h18v14H3z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 9h8"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 13h5"></path>
+                        </svg>
+                    </div>
+                    <h3 class="mt-4 font-semibold text-white group-hover:text-emerald-400 transition-colors">Profils développeur</h3>
+                    <p class="mt-2 text-sm text-slate-400">{{ stats.totalProfiles }} profils</p>
+                </a>
+
+                {# Gérer les entreprises #}
+                <a href="{{ path('app_admin_companies') }}" class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-purple-500/30 hover:bg-slate-900/60 hover:scale-105">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-purple-500/20">
+                        <svg class="h-5 w-5 shrink-0 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 21h18"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 21V7l7-4 7 4v14"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 10h6"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 14h6"></path>
+                        </svg>
+                    </div>
+                    <h3 class="mt-4 font-semibold text-white group-hover:text-purple-400 transition-colors">Gérer les entreprises</h3>
+                    <p class="mt-2 text-sm text-slate-400">{{ stats.totalCompanies }} entreprises</p>
+                </a>
+
+                {# Gérer les messages #}
+                <a href="{{ path('app_admin_messages') }}" class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-yellow-500/30 hover:bg-slate-900/60 hover:scale-105">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-yellow-500/20">
+                        <svg class="h-5 w-5 shrink-0 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="mt-4 font-semibold text-white group-hover:text-yellow-400 transition-colors">Messages de contact</h3>
+                    <p class="mt-2 text-sm text-slate-400">{{ stats.totalMessages }} messages</p>
+                </a>
+            </div>
+
+            {# Derniers utilisateurs enregistrés #}
+            <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl">
+                <div class="mb-6 flex items-center justify-between">
+                    <h2 class="text-xl font-semibold text-white">Derniers utilisateurs</h2>
+                    <a href="{{ path('app_admin_users') }}" class="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">Voir tous →</a>
+                </div>
+                <div class="space-y-3">
+                    {% for user in recentUsers %}
+                        <div class="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 p-3 transition-all hover:bg-white/10">
+                            <div class="flex-1">
+                                <p class="font-medium text-white">{{ user.email }}</p>
+                                <p class="text-xs text-slate-400">
+                                    {% if 'ROLE_APPLICANT' in user.roles %}
+                                        <span class="text-emerald-400">Candidat</span>
+                                    {% elseif 'ROLE_RECRUITER' in user.roles %}
+                                        <span class="text-purple-400">Recruteur</span>
+                                    {% else %}
+                                        <span class="text-blue-400">Admin</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <p class="text-xs text-slate-500">{{ user.createdAt|date('d/m/Y') }}</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {# BARRE LATÉRALE #}
+        <div class="space-y-6">
+            {# Statistiques clés #}
+            <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl">
+                <h3 class="text-lg font-semibold text-white mb-4">Statistiques clés</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center py-2 border-b border-white/10">
+                        <span class="text-slate-400 text-sm">Profils complets</span>
+                        <span class="font-semibold text-white">{{ stats.totalProfiles }}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2 border-b border-white/10">
+                        <span class="text-slate-400 text-sm">Entreprises</span>
+                        <span class="font-semibold text-white">{{ stats.totalCompanies }}</span>
+                    </div>
+                    <div class="flex justify-between items-center py-2">
+                        <span class="text-slate-400 text-sm">Taux activation</span>
+                        <span class="font-semibold text-emerald-400">
+                            {% if stats.totalUsers > 0 %}
+                                {{ ((stats.totalApplicants + stats.totalRecruiters) / stats.totalUsers * 100)|round }}%
+                            {% else %}
+                                0%
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {# Derniers messages de contact #}
+            <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl">
+                <div class="mb-4 flex items-center justify-between">
+                    <h3 class="text-lg font-semibold text-white">Messages</h3>
+                    {% if stats.unreadMessages > 0 %}
+                        <span class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-full font-semibold">{{ stats.unreadMessages }}</span>
+                    {% endif %}
+                </div>
+                <div class="space-y-2">
+                    {% if recentMessages %}
+                        {% for message in recentMessages[:3] %}
+                            <div class="rounded-lg bg-white/5 p-3 text-sm {% if not message.isRead %}border-l-2 border-red-400{% endif %}">
+                                <p class="font-medium text-white truncate">{{ message.subject }}</p>
+                                <p class="text-xs text-slate-500">{{ message.recruiterEmail }}</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-slate-400 text-sm">Aucun message</p>
+                    {% endif %}
+                </div>
+                <a href="{{ path('app_admin_messages') }}" class="mt-4 inline-block text-sm text-emerald-400 hover:text-emerald-300 transition-colors">Voir tous les messages →</a>
+            </div>
+
+            {# Zone d'actions rapides #}
+            <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl">
+                <h3 class="text-lg font-semibold text-white mb-4">Actions rapides</h3>
+                <div class="space-y-2">
+                    <button onclick="alert('Fonctionnalité à implémenter')" class="w-full py-2 px-4 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors text-sm font-medium">
+                        Générer rapport
+                    </button>
+                    <button onclick="alert('Fonctionnalité à implémenter')" class="w-full py-2 px-4 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors text-sm font-medium">
+                        Exporter données
+                    </button>
+                    <button onclick="alert('Fonctionnalité à implémenter')" class="w-full py-2 px-4 rounded-lg bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-colors text-sm font-medium">
+                        Paramètres
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

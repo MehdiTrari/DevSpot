@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gérer les utilisateurs | DevSpot Admin{% endblock %}
+
+{% block body %}
+<section class="w-full space-y-8 font-sans">
+    
+    {# HEADER #}
+    <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-10">
+        <div class="flex items-center justify-between">
+            <div>
+                <a href="{{ path('app_admin_dashboard') }}" class="text-emerald-400 hover:text-emerald-300 text-sm mb-2 inline-block">← Retour au tableau de bord</a>
+                <h1 class="text-4xl font-semibold tracking-tight text-white">Gérer les utilisateurs</h1>
+                <p class="mt-2 text-[15px] text-slate-400">{{ users|length }} utilisateurs au total</p>
+            </div>
+        </div>
+    </div>
+
+    {# TABLEAU DES UTILISATEURS #}
+    <div class="rounded-2xl border border-white/10 bg-slate-900/50 overflow-hidden shadow-2xl shadow-black/40 backdrop-blur-xl">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-white/10 bg-slate-950/50">
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300">Email</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300">Rôle</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300">Inscrit le</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300">Statut</th>
+                        <th class="px-6 py-4 text-center text-sm font-semibold text-slate-300">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/10">
+                    {% for user in users %}
+                        <tr class="hover:bg-white/5 transition-colors">
+                            <td class="px-6 py-4 text-white">{{ user.email }}</td>
+                            <td class="px-6 py-4">
+                                {% if 'ROLE_ADMIN' in user.roles %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-400">Admin</span>
+                                {% elseif 'ROLE_RECRUITER' in user.roles %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-400">Recruteur</span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400">Candidat</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-slate-400 text-sm">{{ user.createdAt|date('d/m/Y') }}</td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400">Actif</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <button class="text-slate-400 hover:text-white transition-colors" onclick="alert('Détails à implémenter')">Vue</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}
