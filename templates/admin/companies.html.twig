@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gérer les entreprises | DevSpot Admin{% endblock %}
+
+{% block body %}
+<section class="w-full space-y-8 font-sans">
+    
+    {# HEADER #}
+    <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-10">
+        <div class="flex items-center justify-between">
+            <div>
+                <a href="{{ path('app_admin_dashboard') }}" class="text-emerald-400 hover:text-emerald-300 text-sm mb-2 inline-block">← Retour au tableau de bord</a>
+                <h1 class="text-4xl font-semibold tracking-tight text-white">Gérer les entreprises</h1>
+                <p class="mt-2 text-[15px] text-slate-400">{{ companies|length }} entreprises au total</p>
+            </div>
+        </div>
+    </div>
+
+    {# GRILLE DES ENTREPRISES #}
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {% for company in companies %}
+            <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl hover:border-purple-500/30 hover:bg-slate-900/60 transition-all">
+                <div class="mb-4">
+                    {% if company.logoPath %}
+                        <img src="{{ asset(company.logoPath) }}" alt="{{ company.name }}" class="h-12 w-12 rounded-lg mb-3 object-cover">
+                    {% else %}
+                        <div class="h-12 w-12 rounded-lg bg-purple-500/20 flex items-center justify-center mb-3">
+                            <svg class="h-6 w-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.217m0 0a5.98 5.98 0 00-.978-1.024 6.002 6.002 0 10-6.804 0m15.802 0A5.98 5.98 0 0019 21"></path>
+                            </svg>
+                        </div>
+                    {% endif %}
+                    <h3 class="text-lg font-semibold text-white">{{ company.name }}</h3>
+                    <p class="text-sm text-slate-400 mt-1">{{ company.industry ?: 'Secteur non renseigne' }}</p>
+                </div>
+                
+                <div class="space-y-2 text-sm">
+                    {% set mainRecruiter = company.recruiterProfiles|first %}
+                    <p class="text-slate-500">Responsable: <span class="text-white">{{ mainRecruiter and mainRecruiter.user ? mainRecruiter.user.email : 'Non assigne' }}</span></p>
+                    <p class="text-slate-500">Localisation: <span class="text-white">{{ company.location ?: 'Non renseignee' }}</span></p>
+                </div>
+
+                <button class="mt-4 w-full py-2 px-4 rounded-lg bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-colors text-sm font-medium" onclick="alert('Détails à implémenter')">
+                    Voir les détails
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if companies|length == 0 %}
+        <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-12 text-center shadow-xl shadow-black/40 backdrop-blur-xl">
+            <p class="text-slate-400">Aucune entreprise trouvée</p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}
