@@ -69,7 +69,6 @@ final class SecurityPagesTest extends WebTestCase
         self::assertSelectorExists('a[href="/applicant"]');
     }
 
-
     public function testLoginFormShowsErrorWithWrongPassword(): void
     {
         $client = static::createClient();
@@ -88,6 +87,7 @@ final class SecurityPagesTest extends WebTestCase
         self::assertSame($email, $crawler->filter('#inputEmail')->attr('value'));
         self::assertSelectorTextContains('body', 'Invalid credentials.');
     }
+
     public function testLogoutDisconnectsAuthenticatedUser(): void
     {
         $client = static::createClient();
@@ -156,6 +156,9 @@ final class SecurityPagesTest extends WebTestCase
             'registration_form[email]' => $email,
             'registration_form[plainPassword]' => 'Password123!',
             'registration_form[agreeTerms]' => 1,
+            'registration_form[accountType]' => 'applicant',
+            'registration_form[firstName]' => 'John',
+            'registration_form[lastName]' => 'Doe',
         ]));
 
         self::assertResponseRedirects('/login');
@@ -181,6 +184,9 @@ final class SecurityPagesTest extends WebTestCase
             'registration_form[email]' => $email,
             'registration_form[plainPassword]' => 'Password123!',
             'registration_form[agreeTerms]' => 1,
+            'registration_form[accountType]' => 'applicant',
+            'registration_form[firstName]' => 'John',
+            'registration_form[lastName]' => 'Doe',
         ]));
         self::assertResponseRedirects('/login');
 
@@ -189,6 +195,9 @@ final class SecurityPagesTest extends WebTestCase
             'registration_form[email]' => $email,
             'registration_form[plainPassword]' => 'Password123!',
             'registration_form[agreeTerms]' => 1,
+            'registration_form[accountType]' => 'applicant',
+            'registration_form[firstName]' => 'John',
+            'registration_form[lastName]' => 'Doe',
         ]));
 
         self::assertResponseStatusCodeSame(422);
@@ -204,6 +213,9 @@ final class SecurityPagesTest extends WebTestCase
             'registration_form[email]' => sprintf('short_%s@example.com', bin2hex(random_bytes(8))),
             'registration_form[plainPassword]' => '123',
             'registration_form[agreeTerms]' => 1,
+            'registration_form[accountType]' => 'applicant',
+            'registration_form[firstName]' => 'John',
+            'registration_form[lastName]' => 'Doe',
         ]));
 
         self::assertResponseStatusCodeSame(422);
@@ -219,11 +231,15 @@ final class SecurityPagesTest extends WebTestCase
             'registration_form[email]' => sprintf('weak_%s@example.com', bin2hex(random_bytes(8))),
             'registration_form[plainPassword]' => 'password123',
             'registration_form[agreeTerms]' => 1,
+            'registration_form[accountType]' => 'applicant',
+            'registration_form[firstName]' => 'John',
+            'registration_form[lastName]' => 'Doe',
         ]));
 
         self::assertResponseStatusCodeSame(422);
         self::assertSelectorTextContains('body', 'Le mot de passe doit contenir au moins 8');
     }
+
     private function createActiveUser(string $email, string $plainPassword): User
     {
         return $this->createUserWithStatus($email, $plainPassword, UserStatus::ACTIVE);
@@ -286,9 +302,3 @@ final class SecurityPagesTest extends WebTestCase
         $schemaTool->createSchema($metadata);
     }
 }
-
-
-
-
-
-

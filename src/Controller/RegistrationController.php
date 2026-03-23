@@ -2,6 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Company;
+use App\Entity\DeveloperProfile;
+use App\Entity\RecruiterProfile;
 use App\Entity\User;
 use App\Enum\UserStatus;
 use App\Form\RegistrationFormType;
@@ -15,6 +18,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 use SymfonyCasts\Bundle\VerifyEmail\Exception\VerifyEmailExceptionInterface;
 
@@ -25,22 +29,75 @@ class RegistrationController extends AbstractController
     }
 
     #[Route('/register', name: 'app_register')]
-    public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, EntityManagerInterface $entityManager): Response
-    {
+    public function register(
+        Request $request,
+        UserPasswordHasherInterface $userPasswordHasher,
+        EntityManagerInterface $entityManager,
+        SluggerInterface $slugger,
+    ): Response {
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $accountType = $form->get('accountType')->getData();
+            $firstName = trim((string) $form->get('firstName')->getData());
+            $lastName = trim((string) $form->get('lastName')->getData());
+            $companyName = trim((string) $form->get('companyName')->getData());
+            $workEmail = trim((string) $form->get('workEmail')->getData());
+
+            // Server-side validation of recruiter-specific required fields
+            if ($accountType === 'recruiter') {
+                $hasError = false;
+                if ($companyName === '') {
+                    $this->addFlash('error', 'Le nom de l\'entreprise est requis pour un compte recruteur.');
+                    $hasError = true;
+                }
+                if ($workEmail === '') {
+                    $this->addFlash('error', 'L\'email professionnel est requis pour un compte recruteur.');
+                    $hasError = true;
+                }
+                if ($hasError) {
+                    return $this->render('registration/register.html.twig', [
+                        'registrationForm' => $form,
+                    ]);
+                }
+            }
+
             /** @var string $plainPassword */
             $plainPassword = $form->get('plainPassword')->getData();
-
-            // encode the plain password
             $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
-
-            // Set default role for new users
-            $user->setRoles(['ROLE_APPLICANT']);
             $user->setStatus(UserStatus::PENDING);
+
+            if ($accountType === 'recruiter') {
+                $user->setRoles(['ROLE_RECRUITER']);
+
+                $company = new Company();
+                $company->setName($companyName);
+                $entityManager->persist($company);
+
+                $recruiterProfile = new RecruiterProfile();
+                $recruiterProfile->setFirstName($firstName);
+                $recruiterProfile->setLastName($lastName);
+                $recruiterProfile->setJobTitle('');
+                $recruiterProfile->setWorkEmail($workEmail !== '' ? $workEmail : null);
+                $recruiterProfile->setCompany($company);
+                $recruiterProfile->setUser($user);
+                $entityManager->persist($recruiterProfile);
+            } else {
+                $user->setRoles(['ROLE_APPLICANT']);
+
+                $baseSlug = strtolower((string) $slugger->slug($firstName . ' ' . $lastName));
+                $slug = $baseSlug . '-' . bin2hex(random_bytes(4));
+
+                $developerProfile = new DeveloperProfile();
+                $developerProfile->setFirstName($firstName);
+                $developerProfile->setLastName($lastName);
+                $developerProfile->setHeadline('');
+                $developerProfile->setSlug($slug);
+                $developerProfile->setUser($user);
+                $entityManager->persist($developerProfile);
+            }
 
             $entityManager->persist($user);
             $entityManager->flush();

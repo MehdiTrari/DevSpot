@@ -97,27 +97,25 @@ final class ApplicantController extends AbstractController
     ): Response {
         $user = $this->getApplicantUser();
 
-        if (null !== $user->getDeveloperProfile()) {
-            $this->addFlash('info', 'Ton profil développeur existe déjà.');
-
-            return $this->redirectToRoute('app_applicant_profile_step1');
-        }
-
-        $profile = new DeveloperProfile();
+        $profile = $user->getDeveloperProfile() ?? new DeveloperProfile();
+        $isNewProfile = null === $profile->getId();
         $form = $this->createForm(DeveloperProfileStep1Type::class, $profile);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $profile->setUser($user);
-            $user->setDeveloperProfile($profile);
-            $profile->setIsPublic(false);
-            $profile->setSlug($this->generateProfileSlug($profile, $developerProfileRepository));
-            $this->handleAvatarUpload($form, $profile);
+            if ($isNewProfile) {
+                $profile->setUser($user);
+                $user->setDeveloperProfile($profile);
+                $profile->setIsPublic(false);
+                $profile->setSlug($this->generateProfileSlug($profile, $developerProfileRepository));
+                $entityManager->persist($profile);
+            }
 
-            $entityManager->persist($profile);
+            $this->handleAvatarUpload($form, $profile);
+            $profile->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
 
-            $this->addFlash('success', 'Profil développeur créé. Étape 1 terminée.');
+            $this->addFlash('success', $isNewProfile ? 'Profil développeur créé. Étape 1 terminée.' : 'Étape 1 mise à jour.');
 
             return $this->redirectToRoute('app_applicant_profile_step2');
         }
@@ -500,7 +498,7 @@ final class ApplicantController extends AbstractController
         return [
             'step1' => [
                 'done' => $step1Done,
-                'route' => null === $profile ? 'app_applicant_profile_create' : 'app_applicant_profile_step1',
+                'route' => 'app_applicant_profile_step1',
                 'label' => 'Étape 1 - Infos générales',
             ],
             'step2' => [
