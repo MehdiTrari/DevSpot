@@ -61,11 +61,25 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToOne(mappedBy: 'user', cascade: ['persist', 'remove'])]
     private ?RecruiterProfile $recruiterProfile = null;
 
+    /**
+     * @var Collection<int, AdminActionLog>
+     */
+    #[ORM\OneToMany(targetEntity: AdminActionLog::class, mappedBy: 'adminUser')]
+    private Collection $adminActionLogs;
+
+    /**
+     * @var Collection<int, AdminActionLog>
+     */
+    #[ORM\OneToMany(targetEntity: AdminActionLog::class, mappedBy: 'targetUser')]
+    private Collection $targetedAdminActionLogs;
+
     public function __construct()
     {
         $this->activityLogs = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = $this->createdAt;
+        $this->adminActionLogs = new ArrayCollection();
+        $this->targetedAdminActionLogs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -250,6 +264,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         $this->recruiterProfile = $recruiterProfile;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AdminActionLog>
+     */
+    public function getAdminActionLogs(): Collection
+    {
+        return $this->adminActionLogs;
+    }
+
+    public function addAdminActionLog(AdminActionLog $adminActionLog): static
+    {
+        if (!$this->adminActionLogs->contains($adminActionLog)) {
+            $this->adminActionLogs->add($adminActionLog);
+            $adminActionLog->setAdminUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAdminActionLog(AdminActionLog $adminActionLog): static
+    {
+        if ($this->adminActionLogs->removeElement($adminActionLog)) {
+            // set the owning side to null (unless already changed)
+            if ($adminActionLog->getAdminUser() === $this) {
+                $adminActionLog->setAdminUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AdminActionLog>
+     */
+    public function getTargetedAdminActionLogs(): Collection
+    {
+        return $this->targetedAdminActionLogs;
+    }
+
+    public function addTargetedAdminActionLog(AdminActionLog $adminActionLog): static
+    {
+        if (!$this->targetedAdminActionLogs->contains($adminActionLog)) {
+            $this->targetedAdminActionLogs->add($adminActionLog);
+            $adminActionLog->setTargetUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTargetedAdminActionLog(AdminActionLog $adminActionLog): static
+    {
+        if ($this->targetedAdminActionLogs->removeElement($adminActionLog)) {
+            // set the owning side to null (unless already changed)
+            if ($adminActionLog->getTargetUser() === $this) {
+                $adminActionLog->setTargetUser(null);
+            }
+        }
 
         return $this;
     }
