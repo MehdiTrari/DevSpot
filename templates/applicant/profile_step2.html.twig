@@ -7,8 +7,7 @@
 {% block body %}
     <section class="w-full max-w-4xl rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:bg-slate-900/60 hover:shadow-emerald-500/10 sm:p-10">
         
-        {# EN-TÊTE #}
-        <div class="mb-10">
+        <div class="mb-8">
             <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-300">
                 <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] animate-pulse"></span>
                 Profil développeur
@@ -17,13 +16,20 @@
             <p class="mt-2 text-[15px] text-slate-400">Ajoute au moins une formation et une compétence.</p>
         </div>
 
+        {% include 'applicant/_step_indicator.html.twig' with { current_step: 2, total_steps: 4 } only %}
+
+        <div class="mb-8 flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
+            <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+            <p class="text-sm leading-relaxed text-slate-400">Les années d'expérience ne peuvent pas être négatives. Les champs sont regroupés par logique métier.</p>
+        </div>
+
         {% if profileForm.vars.errors|length > 0 %}
             <div class="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3.5 text-[15px] font-medium text-red-400 animate-fade-in-down">
                 {{ form_errors(profileForm) }}
             </div>
         {% endif %}
 
-        {{ form_start(profileForm, {attr: {class: 'space-y-8', novalidate: 'novalidate'}}) }}
+        {{ form_start(profileForm, {attr: {class: 'space-y-8', novalidate: 'novalidate', id: 'profile-step2-form'}}) }}
             
             <div class="space-y-8">
                 
@@ -113,18 +119,11 @@
             {% do profileForm.experiences.setRendered() %}
             {% do profileForm.education.setRendered() %}
 
-            {# ZONE D'ACTIONS #}
-            <div class="mt-10 flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-3">
-                <a href="{{ path('app_applicant_home') }}" 
-                   class="inline-flex w-full sm:w-auto items-center justify-center rounded-full border border-white/10 bg-white/5 px-6 py-4 text-[15px] font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 active:scale-95">
-                    Retour dashboard
-                </a>
-                
-                <button type="submit" 
-                        class="flex w-full flex-1 items-center justify-center rounded-full bg-emerald-500 px-6 py-4 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95 focus:outline-none focus:ring-4 focus:ring-emerald-500/30">
-                    Enregistrer l'étape 2
-                </button>
-            </div>
+            {% include 'applicant/_profile_form_actions.html.twig' with {
+                form_id: 'profile-step2-form',
+                dialog_id: 'profile-step2-dialog',
+                next_label: 'Étape suivante'
+            } only %}
         {{ form_end(profileForm) }}
     </section>
 

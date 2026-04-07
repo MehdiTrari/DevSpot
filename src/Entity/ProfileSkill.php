@@ -36,6 +36,7 @@ class ProfileSkill
     private ?SkillLevel $level = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\PositiveOrZero(message: 'Le nombre d\'années doit être positif ou nul.')]
     private ?int $years = null;
 
     #[ORM\Column]

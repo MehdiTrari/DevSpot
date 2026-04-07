@@ -1,0 +1,132 @@
+<div class="mt-10 rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-xl shadow-black/20">
+    <input type="hidden" name="form_action" value="continue">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <p class="max-w-2xl text-sm leading-relaxed text-slate-400">
+            Choisis l'action à effectuer. Si tu retournes au dashboard, tu peux quitter immédiatement ou enregistrer cette étape avant de partir.
+        </p>
+        <div class="flex flex-col-reverse gap-3 sm:flex-row">
+            <a
+                href="{{ path('app_applicant_home') }}"
+                data-dashboard-exit-trigger="{{ dialog_id }}"
+                class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-3 text-[15px] font-semibold text-white transition hover:bg-white/10"
+            >
+                Retour dashboard
+            </a>
+            <button
+                type="submit"
+                class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 py-3 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400"
+            >
+                {{ next_label }}
+            </button>
+        </div>
+    </div>
+</div>
+
+<dialog id="{{ dialog_id }}"
+    class="fixed inset-0 m-auto w-full max-w-md rounded-[2rem] border border-white/10 p-0 text-white shadow-2xl shadow-black/50"
+    style="background: rgb(2 6 23 / 0.97); color: white;"
+>
+    <div class="space-y-6 p-7">
+        <div>
+            <h2 class="text-xl font-semibold tracking-tight text-white">Voulez-vous enregistrer ?</h2>
+            <p class="mt-2 text-sm leading-relaxed text-slate-400">
+                Tu peux enregistrer cette étape avant de revenir au dashboard, ou quitter sans sauvegarder.
+            </p>
+        </div>
+
+        <div class="flex flex-col gap-3">
+            <button
+                type="button"
+                data-dashboard-save-exit="{{ form_id }}"
+                class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 py-3 text-[15px] font-bold text-slate-950 transition hover:bg-emerald-400"
+            >
+                Enregistrer et quitter
+            </button>
+            <a
+                href="{{ path('app_applicant_home') }}"
+                class="inline-flex items-center justify-center rounded-full border border-white/10 px-5 py-3 text-[15px] font-semibold text-white transition hover:bg-white/10"
+                style="background: rgb(255 255 255 / 0.05);"
+            >
+                Quitter sans enregistrer
+            </a>
+            <button
+                type="button"
+                data-dashboard-exit-close="{{ dialog_id }}"
+                class="inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-medium text-slate-400 transition hover:text-white"
+            >
+                Continuer l'édition
+            </button>
+        </div>
+    </div>
+</dialog>
+
+<style>
+    #{{ dialog_id }} {
+        inset: 0;
+        margin: auto;
+    }
+
+    #{{ dialog_id }}::backdrop {
+        background: rgb(2 6 23 / 0.75);
+        backdrop-filter: blur(4px);
+    }
+</style>
+
+<script>
+    (() => {
+        const dialogId = {{ dialog_id|json_encode|raw }};
+        const formId = {{ form_id|json_encode|raw }};
+        const dialog = document.getElementById(dialogId);
+        const form = document.getElementById(formId);
+
+        if (!(dialog instanceof HTMLDialogElement) || !(form instanceof HTMLFormElement)) {
+            return;
+        }
+
+        document.querySelectorAll(`[data-dashboard-exit-trigger="${dialogId}"]`).forEach((trigger) => {
+            if (trigger.dataset.dashboardExitBound === 'true') {
+                return;
+            }
+
+            trigger.dataset.dashboardExitBound = 'true';
+            trigger.addEventListener('click', (event) => {
+                if (typeof dialog.showModal !== 'function') {
+                    return;
+                }
+
+                event.preventDefault();
+                dialog.showModal();
+            });
+        });
+
+        dialog.querySelectorAll(`[data-dashboard-exit-close="${dialogId}"]`).forEach((button) => {
+            if (button.dataset.dashboardExitCloseBound === 'true') {
+                return;
+            }
+
+            button.dataset.dashboardExitCloseBound = 'true';
+            button.addEventListener('click', () => dialog.close());
+        });
+
+        dialog.querySelectorAll(`[data-dashboard-save-exit="${formId}"]`).forEach((button) => {
+            if (button.dataset.dashboardExitSaveBound === 'true') {
+                return;
+            }
+
+            button.dataset.dashboardExitSaveBound = 'true';
+            button.addEventListener('click', () => {
+                let actionInput = form.querySelector('input[name="form_action"]');
+                if (!(actionInput instanceof HTMLInputElement)) {
+                    actionInput = document.createElement('input');
+                    actionInput.type = 'hidden';
+                    actionInput.name = 'form_action';
+                    form.appendChild(actionInput);
+                }
+
+                actionInput.value = 'save_and_exit';
+                dialog.close();
+                form.requestSubmit();
+            });
+        });
+    })();
+</script>

@@ -15,20 +15,37 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Callback;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
+use Symfony\Component\Validator\Constraints\PositiveOrZero;
 
 class DeveloperProfileStep1Type extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('firstName')
-            ->add('lastName')
-            ->add('headline')
-            ->add('city', null, ['required' => false])
-            ->add('country', null, ['required' => false])
+            ->add('firstName', null, [
+                'label' => 'Prénom',
+                'help' => 'Champ obligatoire.',
+            ])
+            ->add('lastName', null, [
+                'label' => 'Nom',
+                'help' => 'Champ obligatoire.',
+            ])
+            ->add('headline', null, [
+                'label' => 'Titre professionnel',
+                'help' => 'Champ obligatoire. Exemple : Développeur Symfony / React.',
+            ])
+            ->add('city', null, [
+                'required' => false,
+                'label' => 'Ville',
+            ])
+            ->add('country', null, [
+                'required' => false,
+                'label' => 'Pays',
+            ])
             ->add('locationType', EnumType::class, [
                 'class' => LocationType::class,
                 'required' => false,
+                'label' => 'Mode de travail',
                 'placeholder' => 'Choisir un mode de travail',
                 'choice_label' => static fn (LocationType $choice) => match ($choice) {
                     LocationType::REMOTE => 'Remote',
@@ -39,6 +56,7 @@ class DeveloperProfileStep1Type extends AbstractType
             ->add('experienceLevel', EnumType::class, [
                 'class' => ExperienceLevel::class,
                 'required' => false,
+                'label' => 'Niveau d\'expérience',
                 'placeholder' => "Choisir un niveau d'expérience",
                 'choice_label' => static fn (ExperienceLevel $choice) => match ($choice) {
                     ExperienceLevel::INTERN => 'Stagiaire',
@@ -48,8 +66,23 @@ class DeveloperProfileStep1Type extends AbstractType
                     ExperienceLevel::LEAD => 'Lead',
                 },
             ])
-            ->add('yearsExperience', IntegerType::class, ['required' => false])
-            ->add('bio', TextareaType::class, ['required' => false])
+            ->add('yearsExperience', IntegerType::class, [
+                'required' => false,
+                'label' => 'Années d\'expérience',
+                'help' => 'Indique un nombre positif ou nul.',
+                'constraints' => [
+                    new PositiveOrZero(message: 'Le nombre d\'années d\'expérience doit être positif ou nul.'),
+                ],
+                'attr' => [
+                    'min' => 0,
+                    'inputmode' => 'numeric',
+                ],
+            ])
+            ->add('bio', TextareaType::class, [
+                'required' => false,
+                'label' => 'Présentation',
+                'help' => 'Présente ton parcours, tes forces et ce que tu recherches.',
+            ])
             ->add('avatarFile', FileType::class, [
                 'mapped' => false,
                 'required' => false,

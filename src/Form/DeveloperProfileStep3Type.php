@@ -18,6 +18,7 @@ class DeveloperProfileStep3Type extends AbstractType
             ->add('githubUrl', UrlType::class, [
                 'required' => false,
                 'label' => 'GitHub',
+                'help' => 'Lien public vers ton profil GitHub.',
                 'constraints' => [
                     new Url(
                         protocols: ['https'],
@@ -32,6 +33,7 @@ class DeveloperProfileStep3Type extends AbstractType
             ->add('linkedinUrl', UrlType::class, [
                 'required' => false,
                 'label' => 'LinkedIn',
+                'help' => 'Lien public vers ton profil LinkedIn.',
                 'constraints' => [
                     new Url(
                         protocols: ['https'],
@@ -45,7 +47,8 @@ class DeveloperProfileStep3Type extends AbstractType
             ])
             ->add('portfolioUrl', UrlType::class, [
                 'required' => false,
-                'label' => 'Portfolio',
+                'label' => 'Portfolio externe',
+                'help' => 'Optionnel si ton portfolio principal est déjà généré sur DevSpot.',
                 'constraints' => [
                     new Url(
                         protocols: ['https'],
@@ -68,4 +71,3 @@ class DeveloperProfileStep3Type extends AbstractType
         return 'developer_profile';
     }
 }
-

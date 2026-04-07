@@ -21,10 +21,12 @@ class DeveloperProfileStep4Type extends AbstractType
         $builder
             ->add('desiredPositions', EntityType::class, [
                 'class' => Position::class,
+                'label' => 'Postes recherchés',
                 'choice_label' => fn (Position $position) => $this->translateEntityName('position', $position->getName()),
                 'required' => false,
                 'multiple' => true,
                 'expanded' => false,
+                'help' => 'Sélection multiple possible.',
             ])
         ;
     }

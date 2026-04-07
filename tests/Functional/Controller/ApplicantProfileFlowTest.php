@@ -35,7 +35,7 @@ final class ApplicantProfileFlowTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('h1');
 
-        $client->submit($crawler->selectButton('Enregistrer mon profil')->form([
+        $client->submit($crawler->selectButton('Étape suivante')->form([
             'developer_profile[firstName]' => 'Mylene',
             'developer_profile[lastName]' => 'Martin',
             'developer_profile[headline]' => 'Developpeuse Symfony',
@@ -88,7 +88,7 @@ final class ApplicantProfileFlowTest extends WebTestCase
         $storedAvatarPath = null;
 
         try {
-            $form = $crawler->selectButton('Enregistrer mon profil')->form([
+            $form = $crawler->selectButton('Étape suivante')->form([
                 'developer_profile[firstName]' => 'Mylene',
                 'developer_profile[lastName]' => 'Martin',
                 'developer_profile[headline]' => 'Developpeuse Symfony',
@@ -150,7 +150,7 @@ final class ApplicantProfileFlowTest extends WebTestCase
         $invalidFilePath = $this->createTemporaryTextFile();
 
         try {
-            $form = $crawler->selectButton('Enregistrer mon profil')->form([
+            $form = $crawler->selectButton('Étape suivante')->form([
                 'developer_profile[firstName]' => 'Mylene',
                 'developer_profile[lastName]' => 'Martin',
                 'developer_profile[headline]' => 'Developpeuse Symfony',
@@ -199,7 +199,7 @@ final class ApplicantProfileFlowTest extends WebTestCase
         self::assertSame('Alice', $crawler->filter('#developer_profile_firstName')->attr('value'));
         self::assertSame('Durand', $crawler->filter('#developer_profile_lastName')->attr('value'));
 
-        $client->submit($crawler->selectButton('Enregistrer mon profil')->form([
+        $client->submit($crawler->selectButton('Étape suivante')->form([
             'developer_profile[firstName]' => 'Alice',
             'developer_profile[lastName]' => 'Durand',
             'developer_profile[headline]' => 'Développeuse Symfony',

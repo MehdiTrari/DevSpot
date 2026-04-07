@@ -50,6 +50,7 @@ class DeveloperProfile
     private ?ExperienceLevel $experienceLevel = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\PositiveOrZero(message: 'Le nombre d\'années d\'expérience doit être positif ou nul.')]
     private ?int $yearsExperience = null;
 
     #[ORM\Column]
