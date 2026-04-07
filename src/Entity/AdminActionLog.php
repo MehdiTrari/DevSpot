@@ -27,10 +27,11 @@ class AdminActionLog
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'adminActionLogs')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $adminUser = null;
 
     #[ORM\ManyToOne(inversedBy: 'targetedAdminActionLogs')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $targetUser = null;
 
     public function getId(): ?int

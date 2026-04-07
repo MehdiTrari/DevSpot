@@ -13,6 +13,10 @@ class HomeController extends AbstractController
     #[Route(path: '/', name: 'app_home')]
     public function home(Request $request, DeveloperProfileRepository $developerProfileRepository): Response
     {
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return $this->redirectToRoute('app_admin_dashboard');
+        }
+
         $isAnonymous = null === $this->getUser();
         $lastModified = null;
 

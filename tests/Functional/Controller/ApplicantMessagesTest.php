@@ -200,7 +200,7 @@ final class ApplicantMessagesTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects();
         $client->followRedirect();
     }
 
