@@ -2,11 +2,16 @@
 
 namespace App\Controller;
 
+use App\Entity\AdminActionLog;
+use App\Entity\User;
+use App\Enum\UserStatus;
 use App\Repository\UserRepository;
 use App\Repository\DeveloperProfileRepository;
 use App\Repository\CompanyRepository;
 use App\Repository\ContactMessageRepository;
 use App\Repository\AdminActionLogRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -16,6 +21,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_ADMIN')]
 final class AdminController extends AbstractController
 {
+    /** @var string[] */
+    private const ALLOWED_ROLES = ['ROLE_APPLICANT', 'ROLE_RECRUITER', 'ROLE_ADMIN'];
+
     #[Route('', name: 'app_admin_dashboard')]
     public function dashboard(
         UserRepository $userRepository,
@@ -64,14 +72,334 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    #[Route('/users', name: 'app_admin_users')]
-    public function users(UserRepository $userRepository): Response
+    #[Route('/users', name: 'app_admin_users', methods: ['GET'])]
+    public function users(UserRepository $userRepository, Request $request): Response
     {
-        $users = $userRepository->findAll();
+        $requestedRole = (string) $request->query->get('role', '');
+        $requestedStatus = (string) $request->query->get('status', '');
+        $search = trim((string) $request->query->get('q', ''));
+        $page = max(1, $request->query->getInt('page', 1));
+        $perPage = 12;
+
+        $allowedStatuses = array_map(static fn (UserStatus $status): string => $status->value, UserStatus::cases());
+        $role = in_array($requestedRole, self::ALLOWED_ROLES, true) ? $requestedRole : null;
+        $status = in_array($requestedStatus, $allowedStatuses, true) ? $requestedStatus : null;
+
+        $result = $userRepository->findAdminUsersPaginated($role, $status, '' !== $search ? $search : null, $page, $perPage);
+        $total = $result['total'];
+        $totalPages = max(1, (int) ceil($total / $perPage));
+        $currentPage = min($page, $totalPages);
+
+        if ($currentPage !== $page) {
+            $result = $userRepository->findAdminUsersPaginated($role, $status, '' !== $search ? $search : null, $currentPage, $perPage);
+        }
 
         return $this->render('admin/users.html.twig', [
-            'users' => $users,
+            'users' => $result['users'],
+            'totalUsersFiltered' => $total,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+            'pendingUsersCount' => $userRepository->count(['status' => UserStatus::PENDING]),
+            'filters' => [
+                'role' => $role,
+                'status' => $status,
+                'q' => $search,
+            ],
         ]);
+    }
+
+    #[Route('/users/{id}/role', name: 'app_admin_users_update_role', methods: ['POST'])]
+    public function updateUserRole(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('admin_user_role_' . $user->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        $requestedRole = (string) $request->request->get('role');
+        if (!in_array($requestedRole, self::ALLOWED_ROLES, true)) {
+            $this->addFlash('error', 'Role invalide.');
+
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        $currentUser = $this->getUser();
+        if ($currentUser instanceof User && $currentUser->getId() === $user->getId() && 'ROLE_ADMIN' !== $requestedRole) {
+            $this->addFlash('error', 'Impossible de retirer votre propre rôle administrateur.');
+
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        $currentRole = $this->extractPrimaryRole($user);
+        $user->setRoles([$requestedRole]);
+        $user->setUpdatedAt(new \DateTimeImmutable());
+
+        $this->logAdminAction($entityManager, 'user.role_changed', $user, [
+            'previousRole' => $currentRole,
+            'newRole' => $requestedRole,
+        ]);
+
+        $entityManager->flush();
+        $this->addFlash('success', 'Le rôle de l\'utilisateur a été mis à jour.');
+
+        return $this->redirectToRoute('app_admin_users');
+    }
+
+    #[Route('/users/{id}/status', name: 'app_admin_users_update_status', methods: ['POST'])]
+    public function updateUserStatus(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('admin_user_status_' . $user->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        $status = UserStatus::tryFrom((string) $request->request->get('status'));
+        if (!$status instanceof UserStatus) {
+            $this->addFlash('error', 'Statut invalide.');
+
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        $currentUser = $this->getUser();
+        if ($currentUser instanceof User && $currentUser->getId() === $user->getId() && in_array($status, [UserStatus::BANNED, UserStatus::DELETED], true)) {
+            $this->addFlash('error', 'Impossible de bannir ou supprimer votre propre compte.');
+
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        $previousStatus = $user->getStatus()?->value;
+        $user->setStatus($status);
+        $user->setUpdatedAt(new \DateTimeImmutable());
+        if (UserStatus::ACTIVE === $status) {
+            $user->setIsVerified(true);
+        }
+
+        $this->logAdminAction($entityManager, 'user.status_changed', $user, [
+            'previousStatus' => $previousStatus,
+            'newStatus' => $status->value,
+        ]);
+
+        $entityManager->flush();
+        $this->addFlash('success', 'Le statut de l\'utilisateur a été mis à jour.');
+
+        return $this->redirectToRoute('app_admin_users');
+    }
+
+    #[Route('/users/{id}/suspend', name: 'app_admin_users_suspend', methods: ['POST'])]
+    public function suspendUser(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        return $this->applyStatusAction($user, $request, $entityManager, UserStatus::SUSPENDED, 'admin_user_suspend_', 'user.suspended', 'Compte suspendu.');
+    }
+
+    #[Route('/users/{id}/ban', name: 'app_admin_users_ban', methods: ['POST'])]
+    public function banUser(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        return $this->applyStatusAction($user, $request, $entityManager, UserStatus::BANNED, 'admin_user_ban_', 'user.banned', 'Compte banni.');
+    }
+
+    #[Route('/users/{id}/validate', name: 'app_admin_users_validate', methods: ['POST'])]
+    public function validateUser(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        return $this->applyStatusAction($user, $request, $entityManager, UserStatus::ACTIVE, 'admin_user_validate_', 'user.validated', 'Compte valide.');
+    }
+
+    #[Route('/users/{id}/reject', name: 'app_admin_users_reject', methods: ['POST'])]
+    public function rejectPendingUser(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('admin_user_reject_' . $user->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        $previousStatus = $user->getStatus()?->value;
+        $userId = $user->getId();
+        $userEmail = $user->getEmail();
+        $conn = $entityManager->getConnection();
+
+        // Supprimer les données liées dans le bon ordre pour éviter les FK violations
+        try {
+            // 1. Supprimer les ContactMessages liés au DeveloperProfile
+            $devProfileId = $user->getDeveloperProfile()?->getId();
+            if ($devProfileId) {
+                $conn->executeStatement(
+                    'DELETE FROM contact_message WHERE developer_profile_id = ?',
+                    [$devProfileId]
+                );
+                
+                // 2. Supprimer les Education du DeveloperProfile
+                $conn->executeStatement(
+                    'DELETE FROM education WHERE developer_profile_id = ?',
+                    [$devProfileId]
+                );
+                
+                // 3. Supprimer les Experience du DeveloperProfile
+                $conn->executeStatement(
+                    'DELETE FROM experience WHERE developer_profile_id = ?',
+                    [$devProfileId]
+                );
+                
+                // 4. Supprimer les ProfileSkill du DeveloperProfile
+                $conn->executeStatement(
+                    'DELETE FROM profile_skill WHERE developer_profile_id = ?',
+                    [$devProfileId]
+                );
+                
+                // 5. Supprimer les FavoriteProfile qui pointent au DeveloperProfile
+                $conn->executeStatement(
+                    'DELETE FROM favorite_profile WHERE developer_profile_id = ?',
+                    [$devProfileId]
+                );
+            }
+
+            // 6. Supprimer les FavoriteProfile liés au RecruiterProfile
+            $recruiterProfileId = $user->getRecruiterProfile()?->getId();
+            if ($recruiterProfileId) {
+                $conn->executeStatement(
+                    'DELETE FROM favorite_profile WHERE recruiter_profile_id = ?',
+                    [$recruiterProfileId]
+                );
+                
+                // 7. Supprimer les JobOffer du RecruiterProfile
+                $conn->executeStatement(
+                    'DELETE FROM job_offer WHERE recruiter_profile_id = ?',
+                    [$recruiterProfileId]
+                );
+            }
+
+            // 8. Supprimer les profils
+            if ($user->getDeveloperProfile()) {
+                $entityManager->remove($user->getDeveloperProfile());
+            }
+            if ($user->getRecruiterProfile()) {
+                $entityManager->remove($user->getRecruiterProfile());
+            }
+
+            // 9. Supprimer l'utilisateur
+            $entityManager->remove($user);
+
+            // Log l'action AVANT de flush
+            $this->logAdminAction($entityManager, 'user.rejected', null, [
+                'targetUserId' => $userId,
+                'targetUserEmail' => $userEmail,
+                'previousStatus' => $previousStatus,
+                'newStatus' => 'deleted',
+            ]);
+
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Compte supprimé définitivement.');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de la suppression du compte: ' . $e->getMessage());
+            
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        return $this->redirectToRoute('app_admin_users');
+    }
+
+    #[Route('/users/{id}/delete', name: 'app_admin_users_delete', methods: ['POST'])]
+    public function deleteUser(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('admin_user_delete_' . $user->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        $currentUser = $this->getUser();
+        if ($currentUser instanceof User && $currentUser->getId() === $user->getId()) {
+            $this->addFlash('error', 'Impossible de supprimer votre propre compte.');
+
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        $previousStatus = $user->getStatus()?->value;
+        $userId = $user->getId();
+        $userEmail = $user->getEmail();
+        $conn = $entityManager->getConnection();
+
+        // Supprimer les données liées dans le bon ordre pour éviter les FK violations
+        try {
+            // 1. Supprimer les ContactMessages liés au DeveloperProfile
+            $devProfileId = $user->getDeveloperProfile()?->getId();
+            if ($devProfileId) {
+                $conn->executeStatement(
+                    'DELETE FROM contact_message WHERE developer_profile_id = ?',
+                    [$devProfileId]
+                );
+                
+                // 2. Supprimer les Education du DeveloperProfile
+                $conn->executeStatement(
+                    'DELETE FROM education WHERE developer_profile_id = ?',
+                    [$devProfileId]
+                );
+                
+                // 3. Supprimer les Experience du DeveloperProfile
+                $conn->executeStatement(
+                    'DELETE FROM experience WHERE developer_profile_id = ?',
+                    [$devProfileId]
+                );
+                
+                // 4. Supprimer les ProfileSkill du DeveloperProfile
+                $conn->executeStatement(
+                    'DELETE FROM profile_skill WHERE developer_profile_id = ?',
+                    [$devProfileId]
+                );
+                
+                // 5. Supprimer les FavoriteProfile qui pointent au DeveloperProfile
+                $conn->executeStatement(
+                    'DELETE FROM favorite_profile WHERE developer_profile_id = ?',
+                    [$devProfileId]
+                );
+            }
+
+            // 6. Supprimer les FavoriteProfile liés au RecruiterProfile
+            $recruiterProfileId = $user->getRecruiterProfile()?->getId();
+            if ($recruiterProfileId) {
+                $conn->executeStatement(
+                    'DELETE FROM favorite_profile WHERE recruiter_profile_id = ?',
+                    [$recruiterProfileId]
+                );
+                
+                // 7. Supprimer les JobOffer du RecruiterProfile
+                $conn->executeStatement(
+                    'DELETE FROM job_offer WHERE recruiter_profile_id = ?',
+                    [$recruiterProfileId]
+                );
+            }
+
+            // 8. Supprimer les profils
+            if ($user->getDeveloperProfile()) {
+                $entityManager->remove($user->getDeveloperProfile());
+            }
+            if ($user->getRecruiterProfile()) {
+                $entityManager->remove($user->getRecruiterProfile());
+            }
+
+            // 9. Supprimer l'utilisateur
+            $entityManager->remove($user);
+
+            // Log l'action AVANT de flush (car après l'utilisateur n'existe plus)
+            $this->logAdminAction($entityManager, 'user.deleted', null, [
+                'targetUserId' => $userId,
+                'targetUserEmail' => $userEmail,
+                'previousStatus' => $previousStatus,
+                'newStatus' => 'deleted',
+            ]);
+
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Compte utilisateur supprime definitiement avec toutes ses donnees.');
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Erreur lors de la suppression du compte: ' . $e->getMessage());
+            
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        return $this->redirectToRoute('app_admin_users');
     }
 
     #[Route('/profiles', name: 'app_admin_profiles')]
@@ -117,5 +445,80 @@ final class AdminController extends AbstractController
         $result = $conn->executeQuery($sql, ['%' . $role . '%']);
         
         return (int) $result->fetchOne();
+    }
+
+    private function applyStatusAction(
+        User $user,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        UserStatus $newStatus,
+        string $csrfPrefix,
+        string $logAction,
+        string $successMessage
+    ): Response {
+        if (!$this->isCsrfTokenValid($csrfPrefix . $user->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        $currentUser = $this->getUser();
+        if ($currentUser instanceof User && $currentUser->getId() === $user->getId() && in_array($newStatus, [UserStatus::BANNED, UserStatus::DELETED], true)) {
+            $this->addFlash('error', 'Action interdite sur votre propre compte.');
+
+            return $this->redirectToRoute('app_admin_users');
+        }
+
+        $previousStatus = $user->getStatus()?->value;
+        $user->setStatus($newStatus);
+        $user->setUpdatedAt(new \DateTimeImmutable());
+        if (UserStatus::ACTIVE === $newStatus) {
+            $user->setIsVerified(true);
+        }
+
+        $this->logAdminAction($entityManager, $logAction, $user, [
+            'previousStatus' => $previousStatus,
+            'newStatus' => $newStatus->value,
+        ]);
+
+        $entityManager->flush();
+        $this->addFlash('success', $successMessage);
+
+        return $this->redirectToRoute('app_admin_users');
+    }
+
+    private function extractPrimaryRole(User $user): string
+    {
+        $roles = $user->getRoles();
+        foreach (self::ALLOWED_ROLES as $role) {
+            if (in_array($role, $roles, true)) {
+                return $role;
+            }
+        }
+
+        return 'ROLE_USER';
+    }
+
+    private function logAdminAction(
+        EntityManagerInterface $entityManager,
+        string $action,
+        ?User $targetUser = null,
+        ?array $metadata = null,
+        ?string $reason = null
+    ): void {
+        $adminUser = $this->getUser();
+        if (!$adminUser instanceof User) {
+            return;
+        }
+
+        $log = new AdminActionLog();
+        $log->setAction($action);
+        $log->setReason($reason);
+        $log->setMetadata($metadata);
+        $log->setCreatedAt(new \DateTimeImmutable());
+        $log->setAdminUser($adminUser);
+        $log->setTargetUser($targetUser);
+
+        $entityManager->persist($log);
     }
 }

@@ -63,9 +63,9 @@ final class SecurityPagesTest extends WebTestCase
             'password' => $password,
         ]));
 
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects('/applicant');
         $crawler = $client->followRedirect();
-        self::assertSelectorTextContains('h1', 'Bienvenue sur DevSpot');
+        self::assertSelectorTextContains('h1', 'Bienvenue sur ton espace.');
         self::assertSelectorExists('a[href="/applicant"]');
     }
 

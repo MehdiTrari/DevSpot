@@ -257,7 +257,7 @@ final class ProfileEditTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects('/applicant');
         $client->followRedirect();
     }
 
