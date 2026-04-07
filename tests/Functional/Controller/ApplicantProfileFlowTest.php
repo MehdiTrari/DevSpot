@@ -26,7 +26,7 @@ final class ApplicantProfileFlowTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects('/applicant');
         $crawler = $client->followRedirect();
 
         $crawler = $client->click($crawler->filter('a[href="/applicant"]')->link());
@@ -76,7 +76,7 @@ final class ApplicantProfileFlowTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects('/applicant');
         $crawler = $client->followRedirect();
 
         $crawler = $client->click($crawler->filter('a[href="/applicant"]')->link());
@@ -139,7 +139,7 @@ final class ApplicantProfileFlowTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects('/applicant');
         $crawler = $client->followRedirect();
 
         $crawler = $client->click($crawler->filter('a[href="/applicant"]')->link());
@@ -191,7 +191,7 @@ final class ApplicantProfileFlowTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects('/applicant');
         $client->followRedirect();
 
         $crawler = $client->request('GET', '/applicant/profile/create');
@@ -236,7 +236,7 @@ final class ApplicantProfileFlowTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects('/applicant');
         $client->followRedirect();
 
         $client->request('GET', '/applicant/profile/step-2');
@@ -261,7 +261,7 @@ final class ApplicantProfileFlowTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects('/applicant');
         $crawler = $client->followRedirect();
 
         self::assertSelectorExists('a[href="/applicant"]');
@@ -285,7 +285,7 @@ final class ApplicantProfileFlowTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects('/applicant');
         $crawler = $client->followRedirect();
 
         self::assertSelectorExists('a[href="/applicant"]');
