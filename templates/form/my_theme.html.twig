@@ -16,6 +16,9 @@
         {% set label_attr = label_attr|merge({'class': (label_attr.class|default('') ~ ' block pl-1 text-[15px] font-medium text-slate-200')|trim}) %}
         <label {% with { attr: label_attr } %}{{ block('attributes') }}{% endwith %}>
             {{- label|trans -}}
+            {%- if required -%}
+                <span class="ml-1 text-rose-300" aria-hidden="true">*</span>
+            {%- endif -%}
         </label>
     {% endif %}
 {% endblock %}
@@ -109,5 +112,7 @@
 {% block form_help %}
     {% if help is not empty %}
         <p class="pl-1 mt-1.5 text-[13px] text-slate-400">{{ help }}</p>
+    {% elseif form.vars.disabled %}
+        <p class="pl-1 mt-1.5 text-[13px] text-amber-300">Ce champ n'est pas modifiable.</p>
     {% endif %}
 {% endblock %}

@@ -1,51 +1,44 @@
 {% extends 'base.html.twig' %}
 
-{# On fait bien appel à notre thème magique en Dark Mode ! #}
 {% form_theme profileForm 'form/my_theme.html.twig' %}
 
 {% block title %}Étape 4 | DevSpot{% endblock %}
 
 {% block body %}
-    {# Carte en verre fumé #}
-    <section class="w-full max-w-2xl rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:bg-slate-900/60 hover:shadow-emerald-500/10 sm:p-10">
-        
-        {# EN-TÊTE #}
+    <section class="w-full max-w-3xl rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:bg-slate-900/60 hover:shadow-emerald-500/10 sm:p-10">
         <div class="mb-8">
             <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-300">
                 <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] animate-pulse"></span>
                 Profil développeur
             </p>
             <h1 class="text-3xl font-semibold tracking-tight text-white">Étape 4 - Postes recherchés</h1>
-            <p class="mt-2 text-[15px] text-slate-400">Sélectionne les postes que tu recherches.</p>
+            <p class="mt-2 text-[15px] text-slate-400">Finalise le profil avec les types de postes visés.</p>
         </div>
 
-        {# FORMULAIRE #}
-        {{ form_start(profileForm, {attr: {class: 'space-y-6'}}) }}
-            
-            {# 
-               Grâce à ton form_theme, le select multiple est déjà en Dark Mode !
-               On ajoute juste une hauteur minimale pour qu'il soit confortable à utiliser.
-            #}
-            {{ form_row(profileForm.desiredPositions, {
-                label: 'Postes recherchés',
-                attr: { class: 'min-h-[120px]' }
-            }) }}
+        {% include 'applicant/_step_indicator.html.twig' with { current_step: 4, total_steps: 4 } only %}
 
-            {# ZONE D'ACTIONS #}
-            <div class="mt-10 flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-3">
-                {# Bouton Secondaire #}
-                <a href="{{ path('app_applicant_home') }}" 
-                   class="inline-flex w-full sm:w-auto items-center justify-center rounded-full border border-white/10 bg-white/5 px-6 py-4 text-[15px] font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 active:scale-95">
-                    Retour dashboard
-                </a>
-                
-                {# Bouton Principal Émeraude #}
-                <button type="submit" 
-                        class="flex w-full flex-1 items-center justify-center rounded-full bg-emerald-500 px-6 py-4 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95 focus:outline-none focus:ring-4 focus:ring-emerald-500/30">
-                    Enregistrer l'étape 4
-                </button>
+        <div class="mb-8 flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
+            <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+            <p class="text-sm leading-relaxed text-slate-400">Dernière étape ! Sélectionne un ou plusieurs postes pour orienter la lecture du portfolio.</p>
+        </div>
+
+        {{ form_start(profileForm, {attr: {class: 'space-y-8', id: 'profile-step4-form'}}) }}
+            <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 sm:p-8">
+                <div class="mb-6">
+                    <h2 class="text-xl font-semibold tracking-tight text-white">Cibles professionnelles</h2>
+                    <p class="mt-2 text-sm text-slate-400">Sélection multiple possible.</p>
+                </div>
+
+                {{ form_row(profileForm.desiredPositions, {
+                    attr: { class: 'min-h-[120px]' }
+                }) }}
             </div>
-            
+
+            {% include 'applicant/_profile_form_actions.html.twig' with {
+                form_id: 'profile-step4-form',
+                dialog_id: 'profile-step4-dialog',
+                next_label: 'Terminer'
+            } only %}
         {{ form_end(profileForm) }}
     </section>
 {% endblock %}

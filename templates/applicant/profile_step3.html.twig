@@ -5,47 +5,42 @@
 {% block title %}Étape 3 | DevSpot{% endblock %}
 
 {% block body %}
-    {# Carte en verre fumé #}
-    <section class="w-full max-w-2xl rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:bg-slate-900/60 hover:shadow-emerald-500/10 sm:p-10">
-        
-        {# EN-TÊTE #}
+    <section class="w-full max-w-3xl rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:bg-slate-900/60 hover:shadow-emerald-500/10 sm:p-10">
         <div class="mb-8">
             <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-300">
                 <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)] animate-pulse"></span>
                 Profil développeur
             </p>
             <h1 class="text-3xl font-semibold tracking-tight text-white">Étape 3 - Liens externes</h1>
-            <p class="mt-2 text-[15px] text-slate-400">Ajoute ton GitHub, LinkedIn ou portfolio.</p>
+            <p class="mt-2 text-[15px] text-slate-400">Rassemble les liens utiles pour compléter la lecture de ton parcours.</p>
         </div>
 
-        {# FORMULAIRE #}
-        {{ form_start(profileForm, {attr: {class: 'space-y-6'}}) }}
-            
-            {# 
-               Les champs sont automatiquement stylisés en Dark Mode par my_theme.html.twig
-               On les regroupe simplement dans un div pour s'assurer que l'espacement est régulier.
-            #}
-            <div class="space-y-5">
-                {{ form_row(profileForm.githubUrl) }}
-                {{ form_row(profileForm.linkedinUrl) }}
-                {{ form_row(profileForm.portfolioUrl) }}
+        {% include 'applicant/_step_indicator.html.twig' with { current_step: 3, total_steps: 4 } only %}
+
+        <div class="mb-8 flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
+            <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+            <p class="text-sm leading-relaxed text-slate-400">Au moins un lien suffit. Les erreurs de format indiquent précisément l'URL attendue.</p>
+        </div>
+
+        {{ form_start(profileForm, {attr: {class: 'space-y-8', id: 'profile-step3-form'}}) }}
+            <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 sm:p-8">
+                <div class="mb-6">
+                    <h2 class="text-xl font-semibold tracking-tight text-white">Liens professionnels</h2>
+                    <p class="mt-2 text-sm text-slate-400">GitHub, LinkedIn et portfolio externe.</p>
+                </div>
+
+                <div class="space-y-5">
+                    {{ form_row(profileForm.githubUrl) }}
+                    {{ form_row(profileForm.linkedinUrl) }}
+                    {{ form_row(profileForm.portfolioUrl) }}
+                </div>
             </div>
 
-            {# ZONE D'ACTIONS #}
-            <div class="mt-10 flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-3">
-                {# Bouton Secondaire #}
-                <a href="{{ path('app_applicant_home') }}" 
-                   class="inline-flex w-full sm:w-auto items-center justify-center rounded-full border border-white/10 bg-white/5 px-6 py-4 text-[15px] font-semibold text-white transition-all duration-300 hover:scale-[1.02] hover:bg-white/10 active:scale-95">
-                    Retour dashboard
-                </a>
-                
-                {# Bouton Principal Émeraude #}
-                <button type="submit" 
-                        class="flex w-full flex-1 items-center justify-center rounded-full bg-emerald-500 px-6 py-4 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95 focus:outline-none focus:ring-4 focus:ring-emerald-500/30">
-                    Enregistrer l'étape 3
-                </button>
-            </div>
-            
+            {% include 'applicant/_profile_form_actions.html.twig' with {
+                form_id: 'profile-step3-form',
+                dialog_id: 'profile-step3-dialog',
+                next_label: 'Étape suivante'
+            } only %}
         {{ form_end(profileForm) }}
     </section>
 {% endblock %}

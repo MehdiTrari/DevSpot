@@ -6,7 +6,7 @@
         <meta name="turbo-cache-control" content="no-preview">
         <title>{% block title %}DevSpot{% endblock %}</title>
         
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><circle cx=%2264%22 cy=%2264%22 r=%2260%22 fill=%22%2310b981%22/><circle cx=%2296%22 cy=%2232%22 r=%2216%22 fill=%22%23facc15%22/></svg>">
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><rect width=%22128%22 height=%22128%22 rx=%2228%22 fill=%22%230f172a%22/><path d=%22M48 36L22 64l26 28%22 stroke=%22%2310b981%22 stroke-width=%229%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 fill=%22none%22/><path d=%22M80 36l26 28-26 28%22 stroke=%22%2310b981%22 stroke-width=%229%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 fill=%22none%22/><line x1=%2270%22 y1=%2228%22 x2=%2258%22 y2=%22100%22 stroke=%22%2334d399%22 stroke-width=%227%22 stroke-linecap=%22round%22 opacity=%22.6%22/></svg>">
         
         {% block stylesheets %}
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -248,11 +248,13 @@
             <header class="relative z-10 mx-auto w-full max-w-6xl px-4 pt-6 sm:px-6 lg:px-8">
                 <nav class="flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3">
-                        {# Style "Glassmorphism Dark" pour le bouton DevSpot #}
                         <a href="{{ path('app_home') }}" class="group inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[15px] font-semibold tracking-tight text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95">
-                            <span class="relative flex h-2.5 w-2.5 items-center justify-center">
-                                <span class="absolute inline-flex h-full w-full rounded-full bg-yellow-400/40"></span>
-                                <span class="relative inline-flex h-2 w-2 rounded-full bg-yellow-400 transition-transform duration-300 group-hover:scale-110"></span>
+                            <span class="flex h-5 w-5 items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                                <svg class="h-5 w-5" viewBox="0 0 128 128" fill="none">
+                                    <path d="M48 36L22 64l26 28" stroke="#10b981" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M80 36l26 28-26 28" stroke="#10b981" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <line x1="70" y1="28" x2="58" y2="100" stroke="#34d399" stroke-width="9" stroke-linecap="round" opacity=".6"/>
+                                </svg>
                             </span>
                             DevSpot
                         </a>

@@ -115,9 +115,12 @@ final class ApplicantController extends AbstractController
             $profile->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
 
-            $this->addFlash('success', $isNewProfile ? 'Profil développeur créé. Étape 1 terminée.' : 'Étape 1 mise à jour.');
-
-            return $this->redirectToRoute('app_applicant_profile_step2');
+            return $this->redirectAfterProfileStep(
+                $request,
+                'app_applicant_profile_step2',
+                $isNewProfile ? 'Profil développeur créé. Étape 1 terminée.' : 'Étape 1 mise à jour.',
+                'Ton profil a été enregistré et tu es revenu au dashboard.'
+            );
         }
 
         return $this->render('applicant/create_profile.html.twig', [
@@ -141,9 +144,13 @@ final class ApplicantController extends AbstractController
             $this->handleAvatarUpload($form, $profile);
             $profile->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
-            $this->addFlash('success', 'Étape 1 mise à jour.');
 
-            return $this->redirectToRoute('app_applicant_profile_step2');
+            return $this->redirectAfterProfileStep(
+                $request,
+                'app_applicant_profile_step2',
+                'Étape 1 mise à jour.',
+                'Tes modifications ont été enregistrées et tu es revenu au dashboard.'
+            );
         }
 
         return $this->render('applicant/profile_step1.html.twig', [
@@ -186,9 +193,13 @@ final class ApplicantController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $profile->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
-            $this->addFlash('success', 'Étape 2 mise à jour.');
 
-            return $this->redirectToRoute('app_applicant_profile_step3');
+            return $this->redirectAfterProfileStep(
+                $request,
+                'app_applicant_profile_step3',
+                'Étape 2 mise à jour.',
+                'Tes modifications ont été enregistrées et tu es revenu au dashboard.'
+            );
         }
 
         return $this->render('applicant/profile_step2.html.twig', [
@@ -218,9 +229,13 @@ final class ApplicantController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $profile->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
-            $this->addFlash('success', 'Étape 3 mise à jour.');
 
-            return $this->redirectToRoute('app_applicant_profile_step4');
+            return $this->redirectAfterProfileStep(
+                $request,
+                'app_applicant_profile_step4',
+                'Étape 3 mise à jour.',
+                'Tes modifications ont été enregistrées et tu es revenu au dashboard.'
+            );
         }
 
         return $this->render('applicant/profile_step3.html.twig', [
@@ -243,9 +258,13 @@ final class ApplicantController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $profile->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
-            $this->addFlash('success', 'Étape 4 mise à jour.');
 
-            return $this->redirectToRoute('app_applicant_home');
+            return $this->redirectAfterProfileStep(
+                $request,
+                'app_applicant_home',
+                'Étape 4 mise à jour.',
+                'Tes modifications ont été enregistrées et tu es revenu au dashboard.'
+            );
         }
 
         return $this->render('applicant/profile_step4.html.twig', [
@@ -459,6 +478,19 @@ final class ApplicantController extends AbstractController
         }
 
         return $user;
+    }
+
+    private function redirectAfterProfileStep(Request $request, string $nextRoute, string $nextMessage, string $exitMessage): Response
+    {
+        if ('save_and_exit' === (string) $request->request->get('form_action')) {
+            $this->addFlash('success', $exitMessage);
+
+            return $this->redirectToRoute('app_applicant_home');
+        }
+
+        $this->addFlash('success', $nextMessage);
+
+        return $this->redirectToRoute($nextRoute);
     }
 
     /**

@@ -11,6 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\PositiveOrZero;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class ProfileSkillType extends AbstractType
@@ -41,8 +42,15 @@ class ProfileSkillType extends AbstractType
                 },
             ])
             ->add('years', IntegerType::class, [
-                'label' => 'Années',
+                'label' => 'Années d\'expérience',
                 'required' => false,
+                'constraints' => [
+                    new PositiveOrZero(message: 'Le nombre d\'années doit être positif ou nul.'),
+                ],
+                'attr' => [
+                    'min' => 0,
+                    'inputmode' => 'numeric',
+                ],
             ])
         ;
     }

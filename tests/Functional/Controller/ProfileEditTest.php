@@ -30,7 +30,7 @@ final class ProfileEditTest extends WebTestCase
         $crawler = $client->request('GET', '/applicant/profile/step-1');
         self::assertResponseIsSuccessful();
 
-        $client->submit($crawler->selectButton('Enregistrer l\'étape 1')->form([
+        $client->submit($crawler->selectButton('Étape suivante')->form([
             'developer_profile[firstName]' => 'Jean',
             'developer_profile[lastName]' => 'Dupont',
             'developer_profile[headline]' => 'Développeur PHP Senior',
@@ -113,7 +113,7 @@ final class ProfileEditTest extends WebTestCase
 
         $tooLong = str_repeat('a', 256);
 
-        $client->submit($crawler->selectButton('Enregistrer l\'étape 1')->form([
+        $client->submit($crawler->selectButton('Étape suivante')->form([
             'developer_profile[firstName]' => $tooLong,
             'developer_profile[lastName]' => 'Dupont',
             'developer_profile[headline]' => 'Dev',
@@ -205,7 +205,7 @@ final class ProfileEditTest extends WebTestCase
         $this->login($client, $email, $password);
 
         $crawler = $client->request('GET', '/applicant/profile/step-1');
-        $client->submit($crawler->selectButton('Enregistrer l\'étape 1')->form([
+        $client->submit($crawler->selectButton('Étape suivante')->form([
             'developer_profile[firstName]' => 'Marc',
             'developer_profile[lastName]' => 'Leblanc',
             'developer_profile[headline]' => 'Lead Architect Cloud',
@@ -233,7 +233,7 @@ final class ProfileEditTest extends WebTestCase
         $this->login($client, $email, $password);
 
         $crawler = $client->request('GET', '/applicant/profile/step-1');
-        $client->submit($crawler->selectButton('Enregistrer l\'étape 1')->form([
+        $client->submit($crawler->selectButton('Étape suivante')->form([
             'developer_profile[firstName]' => 'Test',
             'developer_profile[lastName]' => 'Flash',
             'developer_profile[headline]' => 'Développeur',
@@ -248,6 +248,65 @@ final class ProfileEditTest extends WebTestCase
         self::assertResponseRedirects();
         $client->followRedirect();
         self::assertSelectorTextContains('body', 'mise à jour');
+    }
+
+    public function testStep1RejectsNegativeYearsExperience(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('negative_years_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $this->createUserWithProfile($email, $password);
+
+        $this->login($client, $email, $password);
+
+        $crawler = $client->request('GET', '/applicant/profile/step-1');
+        self::assertResponseIsSuccessful();
+
+        $client->submit($crawler->selectButton('Étape suivante')->form([
+            'developer_profile[firstName]' => 'Jean',
+            'developer_profile[lastName]' => 'Dupont',
+            'developer_profile[headline]' => 'Développeur PHP Senior',
+            'developer_profile[city]' => 'Paris',
+            'developer_profile[country]' => 'France',
+            'developer_profile[locationType]' => 'hybrid',
+            'developer_profile[experienceLevel]' => 'senior',
+            'developer_profile[yearsExperience]' => '-1',
+            'developer_profile[bio]' => 'Passionné de Symfony et PHP.',
+        ]));
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('body', 'positif ou nul');
+    }
+
+    public function testStep1CanSaveAndExitToDashboard(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('save_exit_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $this->createUserWithProfile($email, $password);
+
+        $this->login($client, $email, $password);
+
+        $crawler = $client->request('GET', '/applicant/profile/step-1');
+        self::assertResponseIsSuccessful();
+
+        $form = $crawler->selectButton('Étape suivante')->form([
+            'developer_profile[firstName]' => 'Jean',
+            'developer_profile[lastName]' => 'Dupont',
+            'developer_profile[headline]' => 'Développeur PHP Senior',
+            'developer_profile[city]' => 'Paris',
+            'developer_profile[country]' => 'France',
+            'developer_profile[locationType]' => 'hybrid',
+            'developer_profile[experienceLevel]' => 'senior',
+            'developer_profile[yearsExperience]' => '8',
+            'developer_profile[bio]' => 'Passionné de Symfony et PHP.',
+        ]);
+        $form['form_action'] = 'save_and_exit';
+        $client->submit($form);
+
+        self::assertResponseRedirects('/applicant');
+        $client->followRedirect();
+        self::assertSelectorTextContains('body', 'revenu au dashboard');
     }
 
     private function login($client, string $email, string $password): void
