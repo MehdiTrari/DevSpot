@@ -14,8 +14,8 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Callback;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Constraints\PositiveOrZero;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 class DeveloperProfileStep1Type extends AbstractType
 {
@@ -57,7 +57,7 @@ class DeveloperProfileStep1Type extends AbstractType
                 'class' => ExperienceLevel::class,
                 'required' => false,
                 'label' => 'Niveau d\'expérience',
-                'placeholder' => "Choisir un niveau d'expérience",
+                'placeholder' => 'Choisir un niveau d\'expérience',
                 'choice_label' => static fn (ExperienceLevel $choice) => match ($choice) {
                     ExperienceLevel::INTERN => 'Stagiaire',
                     ExperienceLevel::JUNIOR => 'Junior',
@@ -100,15 +100,17 @@ class DeveloperProfileStep1Type extends AbstractType
                             return;
                         }
 
-                        $extension = strtolower($value->getClientOriginalExtension());
-                        $allowedExtensions = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
-                        if (!in_array($extension, $allowedExtensions, true) || false === @getimagesize($value->getPathname())) {
+                        $imageInfo = @getimagesize($value->getPathname());
+                        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+                        $detectedMimeType = is_array($imageInfo) ? ($imageInfo['mime'] ?? null) : null;
+
+                        if (null === $detectedMimeType || !in_array($detectedMimeType, $allowedMimeTypes, true)) {
                             $context->buildViolation('Merci de téléverser une image valide.')->addViolation();
                         }
                     }),
                 ],
                 'attr' => [
-                    'accept' => 'image/*',
+                    'accept' => '.jpg,.jpeg,.png,.webp,.gif,image/jpeg,image/png,image/webp,image/gif',
                 ],
             ])
         ;
