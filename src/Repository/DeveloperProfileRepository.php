@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\DeveloperProfile;
+use App\Enum\UserStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -26,9 +27,12 @@ class DeveloperProfileRepository extends ServiceEntityRepository
 
         $ids = $this->createQueryBuilder('d')
             ->select('d.id')
+            ->innerJoin('d.user', 'u')
             ->andWhere('d.isPublic = :isPublic')
             ->andWhere('d.portfolioGeneratedAt IS NOT NULL')
+            ->andWhere('u.status = :activeStatus')
             ->setParameter('isPublic', true)
+            ->setParameter('activeStatus', UserStatus::ACTIVE)
             ->orderBy('d.portfolioGeneratedAt', 'DESC')
             ->addOrderBy('d.updatedAt', 'DESC')
             ->setFirstResult(($safePage - 1) * $safeLimit)
@@ -69,9 +73,12 @@ class DeveloperProfileRepository extends ServiceEntityRepository
     {
         return (int) $this->createQueryBuilder('d')
             ->select('COUNT(d.id)')
+            ->innerJoin('d.user', 'u')
             ->andWhere('d.isPublic = :isPublic')
             ->andWhere('d.portfolioGeneratedAt IS NOT NULL')
+            ->andWhere('u.status = :activeStatus')
             ->setParameter('isPublic', true)
+            ->setParameter('activeStatus', UserStatus::ACTIVE)
             ->getQuery()
             ->getSingleScalarResult();
     }
@@ -95,9 +102,12 @@ class DeveloperProfileRepository extends ServiceEntityRepository
     {
         $result = $this->createQueryBuilder('d')
             ->select('d.updatedAt AS updatedAt')
+            ->innerJoin('d.user', 'u')
             ->andWhere('d.isPublic = :isPublic')
             ->andWhere('d.portfolioGeneratedAt IS NOT NULL')
+            ->andWhere('u.status = :activeStatus')
             ->setParameter('isPublic', true)
+            ->setParameter('activeStatus', UserStatus::ACTIVE)
             ->orderBy('d.updatedAt', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
