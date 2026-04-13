@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\ContactMessage;
 use App\Entity\DeveloperProfile;
 use App\Entity\User;
+use App\Enum\UserStatus;
 use App\Form\ContactMessageType;
 use App\Repository\ContactMessageRepository;
 use App\Repository\DeveloperProfileRepository;
@@ -36,11 +37,18 @@ final class ProfileController extends AbstractController
             throw $this->createNotFoundException('Aucun profil ne correspond à cette URL.');
         }
 
+        $isOwner = $this->isOwner($profile);
+        $profileStatus = $profile->getUser()?->getStatus();
+
+        if (!$isOwner && UserStatus::ACTIVE !== $profileStatus) {
+            throw $this->createNotFoundException('Aucun profil ne correspond à cette URL.');
+        }
+
         if (null === $profile->getPortfolioGeneratedAt()) {
             throw $this->createAccessDeniedException('Ce portfolio n\'a pas encore été généré.');
         }
 
-        if (!$profile->isPublic() && !$this->isOwner($profile)) {
+        if (!$profile->isPublic() && !$isOwner) {
             throw $this->createAccessDeniedException('Ce profil est privé.');
         }
 
@@ -49,6 +57,7 @@ final class ProfileController extends AbstractController
         }
 
         $currentUser = $this->getUser();
+        $isRecruiter = $this->isGranted('ROLE_RECRUITER');
         $isAnonymousPublicGet = $profile->isPublic() && !$currentUser instanceof User && $request->isMethod('GET');
 
         if ($isAnonymousPublicGet) {
@@ -72,9 +81,10 @@ final class ProfileController extends AbstractController
         }
 
         $contactRequiresLogin = $profile->isPublic() && !$currentUser instanceof User;
+        $contactRequiresRecruiterRole = $profile->isPublic() && $currentUser instanceof User && !$isRecruiter;
 
-        if ($contactRequiresLogin && $request->isMethod('POST')) {
-            throw $this->createAccessDeniedException('Vous devez être connecté pour contacter ce développeur.');
+        if (($contactRequiresLogin || $contactRequiresRecruiterRole) && $request->isMethod('POST')) {
+            throw $this->createAccessDeniedException('Seuls les recruteurs peuvent contacter ce développeur.');
         }
 
         $alreadyContactedDeveloper = false;
@@ -87,7 +97,7 @@ final class ProfileController extends AbstractController
         }
 
         $contactFormView = null;
-        if ($profile->isPublic() && !$contactRequiresLogin && !$alreadyContactedDeveloper) {
+        if ($profile->isPublic() && !$contactRequiresLogin && !$contactRequiresRecruiterRole && !$alreadyContactedDeveloper) {
             $contactMessage = new ContactMessage();
 
             if ($currentUser instanceof User && null !== $currentUser->getEmail()) {
@@ -163,8 +173,9 @@ final class ProfileController extends AbstractController
             'experiences' => $experiences,
             'education' => $education,
             'technologyNames' => array_values($technologyNames),
-            'isOwner' => $this->isOwner($profile),
+            'isOwner' => $isOwner,
             'contactRequiresLogin' => $contactRequiresLogin,
+            'contactRequiresRecruiterRole' => $contactRequiresRecruiterRole,
             'alreadyContactedDeveloper' => $alreadyContactedDeveloper,
             'contactForm' => $contactFormView,
         ]);

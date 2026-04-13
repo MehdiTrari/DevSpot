@@ -253,7 +253,7 @@ final class ProfileContactFormTest extends WebTestCase
 
         $user = new User();
         $user->setEmail($email);
-        $user->setRoles(['ROLE_USER']);
+        $user->setRoles(['ROLE_RECRUITER']);
         $user->setStatus(UserStatus::ACTIVE);
         $user->setIsVerified(true);
         $user->setPassword($hasher->hashPassword($user, $password));
