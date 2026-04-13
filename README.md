@@ -46,6 +46,29 @@ php bin/console doctrine:migrations:migrate
 php bin/console tailwind:build --watch
 ```
 
+## Tests E2E
+
+Le mode recommandé par Symfony pour les tests end-to-end est Panther.
+
+### Installation locale du driver navigateur
+```bash
+vendor/bin/bdi detect drivers
+```
+
+### Lancer les tests E2E
+```bash
+php bin/console tailwind:build
+php bin/console asset-map:compile
+composer test:e2e
+```
+
+### Debug visuel
+```bash
+composer test:e2e:debug
+```
+
+En mode debug, Panther ouvre un vrai navigateur au lieu du mode headless.
+
 ## Accès locaux
 - Application : http://127.0.0.1:8000
 - Adminer : http://127.0.0.1:8081

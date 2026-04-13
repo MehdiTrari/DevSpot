@@ -83,9 +83,11 @@
             "assets:install %PUBLIC_DIR%": "symfony-cmd",
             "importmap:install": "symfony-cmd"
         },
-        "test": "php bin/phpunit",
-        "test:coverage": "php -d xdebug.mode=coverage bin/phpunit --coverage-clover=var/coverage/clover.xml --coverage-html=var/coverage/html",
-        "test:parallel": "paratest --processes=4",
+        "test": "php bin/phpunit --testsuite=app",
+        "test:coverage": "php -d xdebug.mode=coverage bin/phpunit --testsuite=app --coverage-clover=var/coverage/clover.xml --coverage-html=var/coverage/html",
+        "test:parallel": "paratest --testsuite=app --processes=4",
+        "test:e2e": "php bin/phpunit --testsuite=e2e",
+        "test:e2e:debug": "PANTHER_NO_HEADLESS=1 php bin/phpunit --testsuite=e2e --debug",
         "post-install-cmd": [
             "@auto-scripts"
         ],
@@ -104,11 +106,13 @@
     },
     "require-dev": {
         "brianium/paratest": "^7.8",
+        "dbrekelmans/bdi": "^1.4",
         "phpunit/phpunit": "^12.5",
         "symfony/browser-kit": "7.4.*",
         "symfony/css-selector": "7.4.*",
         "symfony/debug-bundle": "7.4.*",
         "symfony/maker-bundle": "^1.0",
+        "symfony/panther": "^2.4",
         "symfony/stopwatch": "7.4.*",
         "symfony/web-profiler-bundle": "7.4.*"
     }
