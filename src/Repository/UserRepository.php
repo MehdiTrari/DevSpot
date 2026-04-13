@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\User;
+use App\Enum\UserStatus;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -106,6 +107,32 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             'users' => $orderedUsers,
             'total' => $total,
         ];
+    }
+
+    /**
+     * @return User[]
+     */
+    public function findAdmins(): array
+    {
+        return array_values(array_filter(
+            $this->findAll(),
+            static fn (User $user): bool => in_array('ROLE_ADMIN', $user->getRoles(), true)
+        ));
+    }
+
+    /**
+     * @return User[]
+     */
+    public function findPendingOlderThan(\DateTimeImmutable $cutoff): array
+    {
+        return $this->createQueryBuilder('u')
+            ->andWhere('u.status = :status')
+            ->andWhere('u.createdAt < :cutoff')
+            ->setParameter('status', UserStatus::PENDING)
+            ->setParameter('cutoff', $cutoff)
+            ->orderBy('u.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 
     //    /**

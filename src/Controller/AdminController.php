@@ -10,6 +10,7 @@ use App\Repository\DeveloperProfileRepository;
 use App\Repository\CompanyRepository;
 use App\Repository\ContactMessageRepository;
 use App\Repository\AdminActionLogRepository;
+use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -30,8 +31,11 @@ final class AdminController extends AbstractController
         DeveloperProfileRepository $profileRepository,
         CompanyRepository $companyRepository,
         ContactMessageRepository $contactMessageRepository,
-        AdminActionLogRepository $adminActionLogRepository
+        AdminActionLogRepository $adminActionLogRepository,
+        NotificationManager $notificationManager,
     ): Response {
+        $notificationManager->notifyAdminsOldPendingAccounts();
+
         // Statistiques globales avec requêtes DQL pour les rôles JSON
         $stats = [
             'totalUsers' => $userRepository->count([]),
@@ -73,8 +77,10 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/users', name: 'app_admin_users', methods: ['GET'])]
-    public function users(UserRepository $userRepository, Request $request): Response
+    public function users(UserRepository $userRepository, Request $request, NotificationManager $notificationManager): Response
     {
+        $notificationManager->notifyAdminsOldPendingAccounts();
+
         $requestedRole = (string) $request->query->get('role', '');
         $requestedStatus = (string) $request->query->get('status', '');
         $search = trim((string) $request->query->get('q', ''));
@@ -109,7 +115,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/users/{id}/role', name: 'app_admin_users_update_role', methods: ['POST'])]
-    public function updateUserRole(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    public function updateUserRole(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
         if (!$this->isCsrfTokenValid('admin_user_role_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
@@ -135,6 +141,11 @@ final class AdminController extends AbstractController
         $user->setRoles([$requestedRole]);
         $user->setUpdatedAt(new \DateTimeImmutable());
 
+        $notificationManager->notifyUserRoleChanged($user, $currentRole, $requestedRole);
+        if ($currentUser instanceof User) {
+            $notificationManager->notifyAdminRoleAction($currentUser, $user, $currentRole, $requestedRole);
+        }
+
         $this->logAdminAction($entityManager, 'user.role_changed', $user, [
             'previousRole' => $currentRole,
             'newRole' => $requestedRole,
@@ -147,7 +158,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/users/{id}/status', name: 'app_admin_users_update_status', methods: ['POST'])]
-    public function updateUserStatus(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    public function updateUserStatus(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
         if (!$this->isCsrfTokenValid('admin_user_status_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
@@ -176,6 +187,11 @@ final class AdminController extends AbstractController
             $user->setIsVerified(true);
         }
 
+        $notificationManager->notifyUserStatusChanged($user, $previousStatus, $status);
+        if ($currentUser instanceof User) {
+            $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $status);
+        }
+
         $this->logAdminAction($entityManager, 'user.status_changed', $user, [
             'previousStatus' => $previousStatus,
             'newStatus' => $status->value,
@@ -188,21 +204,21 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/users/{id}/suspend', name: 'app_admin_users_suspend', methods: ['POST'])]
-    public function suspendUser(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    public function suspendUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
-        return $this->applyStatusAction($user, $request, $entityManager, UserStatus::SUSPENDED, 'admin_user_suspend_', 'user.suspended', 'Compte suspendu.');
+        return $this->applyStatusAction($user, $request, $entityManager, $notificationManager, UserStatus::SUSPENDED, 'admin_user_suspend_', 'user.suspended', 'Compte suspendu.');
     }
 
     #[Route('/users/{id}/ban', name: 'app_admin_users_ban', methods: ['POST'])]
-    public function banUser(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    public function banUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
-        return $this->applyStatusAction($user, $request, $entityManager, UserStatus::BANNED, 'admin_user_ban_', 'user.banned', 'Compte banni.');
+        return $this->applyStatusAction($user, $request, $entityManager, $notificationManager, UserStatus::BANNED, 'admin_user_ban_', 'user.banned', 'Compte banni.');
     }
 
     #[Route('/users/{id}/validate', name: 'app_admin_users_validate', methods: ['POST'])]
-    public function validateUser(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    public function validateUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
-        return $this->applyStatusAction($user, $request, $entityManager, UserStatus::ACTIVE, 'admin_user_validate_', 'user.validated', 'Compte valide.');
+        return $this->applyStatusAction($user, $request, $entityManager, $notificationManager, UserStatus::ACTIVE, 'admin_user_validate_', 'user.validated', 'Compte valide.');
     }
 
     #[Route('/users/{id}/reject', name: 'app_admin_users_reject', methods: ['POST'])]
@@ -451,6 +467,7 @@ final class AdminController extends AbstractController
         User $user,
         Request $request,
         EntityManagerInterface $entityManager,
+        NotificationManager $notificationManager,
         UserStatus $newStatus,
         string $csrfPrefix,
         string $logAction,
@@ -474,6 +491,11 @@ final class AdminController extends AbstractController
         $user->setUpdatedAt(new \DateTimeImmutable());
         if (UserStatus::ACTIVE === $newStatus) {
             $user->setIsVerified(true);
+        }
+
+        $notificationManager->notifyUserStatusChanged($user, $previousStatus, $newStatus);
+        if ($currentUser instanceof User) {
+            $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $newStatus);
         }
 
         $this->logAdminAction($entityManager, $logAction, $user, [

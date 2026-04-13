@@ -112,9 +112,9 @@ class Notification
         return $this->createdAt;
     }
 
-    public function getUserTarget(): ?User
+    public function getUser(): ?User
     {
-        return $this->userTarget;
+        return $this->user;
     }
 
     public function setUser(?User $user): static
@@ -122,6 +122,16 @@ class Notification
         $this->user = $user;
 
         return $this;
+    }
+
+    public function getUserTarget(): ?User
+    {
+        return $this->getUser();
+    }
+
+    public function setUserTarget(?User $user): static
+    {
+        return $this->setUser($user);
     }
 
     public function markAsRead(): static

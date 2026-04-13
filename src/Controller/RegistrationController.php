@@ -9,6 +9,7 @@ use App\Entity\User;
 use App\Enum\UserStatus;
 use App\Form\RegistrationFormType;
 use App\Repository\UserRepository;
+use App\Service\NotificationManager;
 use App\Security\EmailVerifier;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
@@ -34,6 +35,7 @@ class RegistrationController extends AbstractController
         UserPasswordHasherInterface $userPasswordHasher,
         EntityManagerInterface $entityManager,
         SluggerInterface $slugger,
+        NotificationManager $notificationManager,
     ): Response {
         $user = new User();
         $form = $this->createForm(RegistrationFormType::class, $user);
@@ -101,6 +103,8 @@ class RegistrationController extends AbstractController
 
             $entityManager->persist($user);
             $entityManager->flush();
+
+            $notificationManager->notifyAdminsNewPendingAccount($user);
 
             // generate a signed url and email it to the user
             $this->emailVerifier->sendEmailConfirmation('app_verify_email', $user,
