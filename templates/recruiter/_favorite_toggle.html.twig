@@ -1,0 +1,27 @@
+{% set redirectPath = redirectPath|default(app.request.requestUri) %}
+{% set isFavorite = isFavorite|default(false) %}
+{% set formClass = formClass|default('') %}
+{% set addButtonClass = addButtonClass|default('inline-flex items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-300 transition-all duration-300 hover:bg-emerald-500/15 active:scale-95') %}
+{% set removeButtonClass = removeButtonClass|default('inline-flex items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-semibold text-red-300 transition-all duration-300 hover:bg-red-500/15 active:scale-95') %}
+{% set addLabel = addLabel|default('Ajouter aux favoris') %}
+{% set removeLabel = removeLabel|default('Retirer des favoris') %}
+
+{% if profile is defined and profile.id is not null %}
+    {% if isFavorite %}
+        <form method="post" action="{{ path('app_recruiter_favorite_remove', {id: profile.id}) }}" class="{{ formClass }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('favorite_remove_' ~ profile.id) }}">
+            <input type="hidden" name="_redirect" value="{{ redirectPath }}">
+            <button type="submit" data-favorite-action="remove" class="{{ removeButtonClass }}">
+                {{ removeLabel }}
+            </button>
+        </form>
+    {% else %}
+        <form method="post" action="{{ path('app_recruiter_favorite_add', {id: profile.id}) }}" class="{{ formClass }}">
+            <input type="hidden" name="_token" value="{{ csrf_token('favorite_add_' ~ profile.id) }}">
+            <input type="hidden" name="_redirect" value="{{ redirectPath }}">
+            <button type="submit" data-favorite-action="add" class="{{ addButtonClass }}">
+                {{ addLabel }}
+            </button>
+        </form>
+    {% endif %}
+{% endif %}

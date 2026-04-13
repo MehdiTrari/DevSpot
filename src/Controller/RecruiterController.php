@@ -5,9 +5,13 @@ namespace App\Controller;
 use App\Entity\DeveloperProfile;
 use App\Entity\Conversation;
 use App\Entity\Message;
+use App\Entity\FavoriteProfile;
+use App\Entity\RecruiterProfile;
 use App\Entity\User;
+use App\Enum\UserStatus;
 use App\Form\ChatReplyType;
 use App\Repository\ConversationRepository;
+use App\Repository\FavoriteProfileRepository;
 use App\Repository\MessageRepository;
 use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,9 +29,108 @@ final class RecruiterController extends AbstractController
 {
     #[Route('/recruiter', name: 'app_recruiter_home')]
     #[IsGranted('ROLE_RECRUITER')]
-    public function home(): Response
+    public function home(FavoriteProfileRepository $favoriteProfileRepository): Response
     {
-        return $this->render('recruiter/dashboard.html.twig');
+        $favorites = [];
+        $recruiterProfile = $this->getRecruiterProfile();
+
+        if ($recruiterProfile instanceof RecruiterProfile) {
+            $favorites = $favoriteProfileRepository->findForRecruiterProfile($recruiterProfile);
+        }
+
+        return $this->render('recruiter/dashboard.html.twig', [
+            'favoriteProfiles' => $favorites,
+            'favoriteProfilesCount' => count($favorites),
+        ]);
+    }
+
+    #[Route('/recruiter/favorites/{id}/add', name: 'app_recruiter_favorite_add', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_RECRUITER')]
+    public function addFavorite(
+        DeveloperProfile $profile,
+        Request $request,
+        FavoriteProfileRepository $favoriteProfileRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $redirectPath = $this->resolveFavoriteRedirectPath(
+            $request,
+            $this->generateUrl('app_public_profile_show', ['slug' => (string) $profile->getSlug()])
+        );
+
+        if (!$this->isCsrfTokenValid('favorite_add_' . $profile->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action refusée, merci de réessayer.');
+
+            return $this->redirect($redirectPath);
+        }
+
+        $recruiterProfile = $this->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile) {
+            $this->addFlash('error', 'Votre profil recruteur est introuvable.');
+
+            return $this->redirect($redirectPath);
+        }
+
+        if (!$this->isFavoritableProfile($profile)) {
+            $this->addFlash('error', 'Ce profil ne peut pas être ajouté aux favoris.');
+
+            return $this->redirect($this->generateUrl('app_home'));
+        }
+
+        $existingFavorite = $favoriteProfileRepository->findOneForRecruiterAndDeveloperProfile($recruiterProfile, $profile);
+        if ($existingFavorite instanceof FavoriteProfile) {
+            $this->addFlash('info', 'Ce profil est déjà dans vos favoris.');
+
+            return $this->redirect($redirectPath);
+        }
+
+        $favoriteProfile = new FavoriteProfile();
+        $favoriteProfile->setRecruiterProfile($recruiterProfile);
+        $favoriteProfile->setDeveloperProfile($profile);
+
+        $entityManager->persist($favoriteProfile);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Profil ajouté aux favoris.');
+
+        return $this->redirect($redirectPath);
+    }
+
+    #[Route('/recruiter/favorites/{id}/remove', name: 'app_recruiter_favorite_remove', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_RECRUITER')]
+    public function removeFavorite(
+        DeveloperProfile $profile,
+        Request $request,
+        FavoriteProfileRepository $favoriteProfileRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $redirectPath = $this->resolveFavoriteRedirectPath($request, $this->generateUrl('app_recruiter_home'));
+
+        if (!$this->isCsrfTokenValid('favorite_remove_' . $profile->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Action refusée, merci de réessayer.');
+
+            return $this->redirect($redirectPath);
+        }
+
+        $recruiterProfile = $this->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile) {
+            $this->addFlash('error', 'Votre profil recruteur est introuvable.');
+
+            return $this->redirect($redirectPath);
+        }
+
+        $favoriteProfile = $favoriteProfileRepository->findOneForRecruiterAndDeveloperProfile($recruiterProfile, $profile);
+        if (!$favoriteProfile instanceof FavoriteProfile) {
+            $this->addFlash('info', 'Ce profil n\'est pas dans vos favoris.');
+
+            return $this->redirect($redirectPath);
+        }
+
+        $entityManager->remove($favoriteProfile);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Profil retiré des favoris.');
+
+        return $this->redirect($redirectPath);
     }
 
     #[Route('/recruiter/messages', name: 'app_recruiter_messages')]
@@ -176,6 +279,11 @@ final class RecruiterController extends AbstractController
         return $user;
     }
 
+    private function getRecruiterProfile(): ?RecruiterProfile
+    {
+        return $this->getRecruiterUser()->getRecruiterProfile();
+    }
+
     private function resolveRecruiterDisplayName(User $recruiterUser): string
     {
         $recruiterProfile = $recruiterUser->getRecruiterProfile();
@@ -216,5 +324,23 @@ final class RecruiterController extends AbstractController
         }
 
         return $conversationRows;
+    }
+
+    private function isFavoritableProfile(DeveloperProfile $profile): bool
+    {
+        return $profile->isPublic()
+            && null !== $profile->getPortfolioGeneratedAt()
+            && UserStatus::ACTIVE === $profile->getUser()?->getStatus();
+    }
+
+    private function resolveFavoriteRedirectPath(Request $request, string $fallbackPath): string
+    {
+        $redirectPath = trim((string) $request->request->get('_redirect', ''));
+
+        if (str_starts_with($redirectPath, '/')) {
+            return $redirectPath;
+        }
+
+        return $fallbackPath;
     }
 }

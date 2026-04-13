@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Repository\DeveloperProfileRepository;
+use App\Repository\FavoriteProfileRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,8 +13,11 @@ use Symfony\Component\Routing\Attribute\Route;
 class HomeController extends AbstractController
 {
     #[Route(path: '/', name: 'app_home')]
-    public function home(Request $request, DeveloperProfileRepository $developerProfileRepository): Response
-    {
+    public function home(
+        Request $request,
+        DeveloperProfileRepository $developerProfileRepository,
+        FavoriteProfileRepository $favoriteProfileRepository,
+    ): Response {
         if ($this->isGranted('ROLE_ADMIN')) {
             return $this->redirectToRoute('app_admin_dashboard');
         }
@@ -39,12 +44,19 @@ class HomeController extends AbstractController
         $totalProfiles = $developerProfileRepository->countPublicGeneratedProfiles();
         $totalPages = max(1, (int) ceil($totalProfiles / $perPage));
         $currentPage = min($requestedPage, $totalPages);
+        $favoriteProfileIds = [];
+
+        $currentUser = $this->getUser();
+        if ($currentUser instanceof User && $this->isGranted('ROLE_RECRUITER') && null !== $currentUser->getRecruiterProfile()) {
+            $favoriteProfileIds = $favoriteProfileRepository->findFavoriteDeveloperProfileIdsForRecruiterProfile($currentUser->getRecruiterProfile());
+        }
 
         $response = $this->render('home.html.twig', [
             'publicPortfolios' => $developerProfileRepository->findPublicGeneratedProfilesPaginated($currentPage, $perPage),
             'currentPage' => $currentPage,
             'totalPages' => $totalPages,
             'totalPublicPortfolios' => $totalProfiles,
+            'favoriteProfileIds' => $favoriteProfileIds,
         ]);
 
         if ($isAnonymous) {
