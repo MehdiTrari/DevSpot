@@ -52,6 +52,214 @@ class ContactMessageRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @return list<array{recruiterEmail: string, recruiterName: string, lastMessage: ContactMessage, unreadCount: int}>
+     */
+    public function findActiveConversationsForApplicant(DeveloperProfile $developerProfile): array
+    {
+        $messages = $this->createQueryBuilder('contact_message')
+            ->andWhere('contact_message.developerProfile = :developerProfile')
+            ->setParameter('developerProfile', $developerProfile)
+            ->orderBy('contact_message.createdAt', 'DESC')
+            ->addOrderBy('contact_message.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        $conversations = [];
+        foreach ($messages as $message) {
+            if (!$message instanceof ContactMessage) {
+                continue;
+            }
+
+            $email = trim((string) $message->getRecruiterEmail());
+            if ('' === $email) {
+                continue;
+            }
+
+            $key = mb_strtolower($email);
+            if (!isset($conversations[$key])) {
+                $conversations[$key] = [
+                    'recruiterEmail' => $email,
+                    'recruiterName' => (string) ($message->getRecruiterName() ?? ''),
+                    'lastMessage' => $message,
+                    'unreadCount' => 0,
+                ];
+            }
+
+            if (!$message->isRead()) {
+                $conversations[$key]['unreadCount']++;
+            }
+        }
+
+        return array_values($conversations);
+    }
+
+    /**
+     * @return list<array{developerProfile: DeveloperProfile, lastMessage: ContactMessage, unreadCount: int}>
+     */
+    public function findActiveConversationsForRecruiter(string $recruiterEmail): array
+    {
+        $normalizedEmail = mb_strtolower(trim($recruiterEmail));
+        if ('' === $normalizedEmail) {
+            return [];
+        }
+
+        $messages = $this->createQueryBuilder('contact_message')
+            ->andWhere('LOWER(contact_message.recruiterEmail) = :recruiterEmail')
+            ->setParameter('recruiterEmail', $normalizedEmail)
+            ->orderBy('contact_message.createdAt', 'DESC')
+            ->addOrderBy('contact_message.id', 'DESC')
+            ->getQuery()
+            ->getResult();
+
+        $conversations = [];
+        foreach ($messages as $message) {
+            if (!$message instanceof ContactMessage) {
+                continue;
+            }
+
+            $profile = $message->getDeveloperProfile();
+            if (!$profile instanceof DeveloperProfile || null === $profile->getId()) {
+                continue;
+            }
+
+            $key = (string) $profile->getId();
+            if (!isset($conversations[$key])) {
+                $conversations[$key] = [
+                    'developerProfile' => $profile,
+                    'lastMessage' => $message,
+                    'unreadCount' => 0,
+                ];
+            }
+
+            if (!$message->isRead()) {
+                $conversations[$key]['unreadCount']++;
+            }
+        }
+
+        return array_values($conversations);
+    }
+
+    /**
+     * @return list<ContactMessage>
+     */
+    public function findConversationForApplicant(DeveloperProfile $developerProfile, string $recruiterEmail): array
+    {
+        $normalizedEmail = mb_strtolower(trim($recruiterEmail));
+        if ('' === $normalizedEmail) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('contact_message')
+            ->andWhere('contact_message.developerProfile = :developerProfile')
+            ->andWhere('LOWER(contact_message.recruiterEmail) = :recruiterEmail')
+            ->setParameter('developerProfile', $developerProfile)
+            ->setParameter('recruiterEmail', $normalizedEmail)
+            ->orderBy('contact_message.createdAt', 'ASC')
+            ->addOrderBy('contact_message.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return list<ContactMessage>
+     */
+    public function findConversationForRecruiter(DeveloperProfile $developerProfile, string $recruiterEmail): array
+    {
+        return $this->findConversationForApplicant($developerProfile, $recruiterEmail);
+    }
+
+    public function hasRecruiterInitiatedConversation(DeveloperProfile $developerProfile, string $recruiterEmail): bool
+    {
+        $normalizedEmail = mb_strtolower(trim($recruiterEmail));
+        if ('' === $normalizedEmail) {
+            return false;
+        }
+
+        $result = $this->createQueryBuilder('contact_message')
+            ->select('1')
+            ->andWhere('contact_message.developerProfile = :developerProfile')
+            ->andWhere('LOWER(contact_message.recruiterEmail) = :recruiterEmail')
+            ->setParameter('developerProfile', $developerProfile)
+            ->setParameter('recruiterEmail', $normalizedEmail)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        return null !== $result;
+    }
+
+    public function markConversationAsReadByApplicant(DeveloperProfile $developerProfile, string $recruiterEmail): void
+    {
+        $normalizedEmail = mb_strtolower(trim($recruiterEmail));
+        if ('' === $normalizedEmail) {
+            return;
+        }
+
+        $this->createQueryBuilder('contact_message')
+            ->update()
+            ->set('contact_message.isRead', ':isRead')
+            ->andWhere('contact_message.developerProfile = :developerProfile')
+            ->andWhere('LOWER(contact_message.recruiterEmail) = :recruiterEmail')
+            ->andWhere('contact_message.isRead = :unread')
+            ->setParameter('isRead', true)
+            ->setParameter('unread', false)
+            ->setParameter('developerProfile', $developerProfile)
+            ->setParameter('recruiterEmail', $normalizedEmail)
+            ->getQuery()
+            ->execute();
+    }
+
+    public function markConversationAsReadByRecruiter(DeveloperProfile $developerProfile, string $recruiterEmail): void
+    {
+        $normalizedEmail = mb_strtolower(trim($recruiterEmail));
+        if ('' === $normalizedEmail) {
+            return;
+        }
+
+        $this->createQueryBuilder('contact_message')
+            ->update()
+            ->set('contact_message.isRead', ':isRead')
+            ->andWhere('contact_message.developerProfile = :developerProfile')
+            ->andWhere('LOWER(contact_message.recruiterEmail) = :recruiterEmail')
+            ->andWhere('contact_message.isRead = :unread')
+            ->setParameter('isRead', true)
+            ->setParameter('unread', false)
+            ->setParameter('developerProfile', $developerProfile)
+            ->setParameter('recruiterEmail', $normalizedEmail)
+            ->getQuery()
+            ->execute();
+    }
+
+    public function countUnreadForApplicant(DeveloperProfile $developerProfile): int
+    {
+        return (int) $this->createQueryBuilder('contact_message')
+            ->select('COUNT(contact_message.id)')
+            ->andWhere('contact_message.developerProfile = :developerProfile')
+            ->andWhere('contact_message.isRead = :isRead')
+            ->setParameter('developerProfile', $developerProfile)
+            ->setParameter('isRead', false)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countUnreadForRecruiterEmail(string $recruiterEmail): int
+    {
+        $normalizedEmail = mb_strtolower(trim($recruiterEmail));
+        if ('' === $normalizedEmail) {
+            return 0;
+        }
+
+        return (int) $this->createQueryBuilder('contact_message')
+            ->select('COUNT(contact_message.id)')
+            ->andWhere('LOWER(contact_message.recruiterEmail) = :recruiterEmail')
+            ->andWhere('contact_message.isRead = :isRead')
+            ->setParameter('recruiterEmail', $normalizedEmail)
+            ->setParameter('isRead', false)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function findOneForDeveloperProfile(int $messageId, DeveloperProfile $developerProfile): ?ContactMessage
     {
         return $this->createQueryBuilder('contact_message')

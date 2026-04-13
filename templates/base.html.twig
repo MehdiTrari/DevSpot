@@ -245,7 +245,7 @@
             <div class="apple-fade pointer-events-none absolute bottom-0 left-1/4 h-[600px] w-[600px] rounded-full bg-emerald-600/40 blur-[120px]" style="animation-delay: 0.4s;"></div>
 
             {# HEADER stable (sans animation) #}
-            <header class="relative z-10 mx-auto w-full max-w-6xl px-4 pt-6 sm:px-6 lg:px-8">
+            <header class="relative z-10 mx-auto w-full max-w-7xl px-3 pt-6 sm:px-4 lg:px-5">
                 <nav class="flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3">
                         <a href="{{ path('app_home') }}" class="group inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[15px] font-semibold tracking-tight text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95">
@@ -274,7 +274,7 @@
 
                     <div class="flex items-center gap-3">
                         {% if app.user %}
-                            {% set unreadNotificationsCount = app.user.notifications|filter(notification => not notification.isRead)|length %}
+                            {% set unreadNotificationsCount = unread_notifications_count(app.user) %}
 
                             <a href="{{ path('app_notifications_index') }}" class="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95" aria-label="Accéder aux notifications">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
@@ -291,16 +291,20 @@
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" />
                                         </svg>
-                                        {% set unreadMessagesCount = app.user.developerProfile.contactMessages|filter(message => not message.isRead)|length %}
+                                        {% set unreadMessagesCount = chat_unread_count(app.user) %}
                                         {% if unreadMessagesCount > 0 %}
                                             <span class="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border border-emerald-300/20 bg-emerald-500 px-1.5 text-[11px] font-bold leading-none text-slate-950 shadow-lg shadow-emerald-500/30">{{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}</span>
                                         {% endif %}
                                     </a>
                                 {% elseif is_granted('ROLE_RECRUITER') %}
-                                    <a href="{{ path('app_recruiter_home') }}" class="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95" aria-label="Accéder à la messagerie recruteur" title="Messagerie recruteur bientôt disponible">
+                                    <a href="{{ path('app_recruiter_messages') }}" class="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95" aria-label="Accéder à la messagerie recruteur">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" />
                                         </svg>
+                                        {% set unreadMessagesCount = chat_unread_count(app.user) %}
+                                        {% if unreadMessagesCount > 0 %}
+                                            <span class="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border border-emerald-300/20 bg-emerald-500 px-1.5 text-[11px] font-bold leading-none text-slate-950 shadow-lg shadow-emerald-500/30">{{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}</span>
+                                        {% endif %}
                                     </a>
                                 {% endif %}
                             {% endif %}
@@ -318,7 +322,7 @@
             </header>
 
             <div class="pointer-events-none fixed inset-x-0 top-6 z-50">
-                <div class="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+                <div class="mx-auto w-full max-w-7xl px-3 sm:px-4 lg:px-5">
                     <div data-notification-stack="true" class="ml-auto flex w-full max-w-sm flex-col gap-3">
                         {% for message in app.flashes('success') %}
                             <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-3.5 text-[15px] font-medium text-emerald-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
@@ -360,7 +364,7 @@
             </div>
 
             {# MAIN avec apple-slide-up-delay-1 #}
-            <main class="apple-slide-up-delay-1 relative z-10 mx-auto flex min-h-[calc(100vh-84px)] w-full max-w-6xl items-center justify-center px-4 pb-12 pt-8 sm:px-6 lg:px-8">
+            <main class="apple-slide-up-delay-1 relative z-10 mx-auto flex min-h-[calc(100vh-84px)] w-full max-w-7xl items-center justify-center px-3 pb-12 pt-8 sm:px-4 lg:px-5">
                 {% block body %}{% endblock %}
             </main>
             

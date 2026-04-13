@@ -25,7 +25,9 @@ class NotificationRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('n')
             ->andWhere('n.user = :user')
+            ->andWhere('n.type != :excludedType')
             ->setParameter('user', $user)
+            ->setParameter('excludedType', NotificationType::NEW_MESSAGE)
             ->orderBy('n.createdAt', 'DESC');
 
         if (null !== $isRead) {
@@ -47,7 +49,9 @@ class NotificationRepository extends ServiceEntityRepository
 
         $qb = $this->createQueryBuilder('n')
             ->andWhere('n.user = :user')
+            ->andWhere('n.type != :excludedType')
             ->setParameter('user', $user)
+            ->setParameter('excludedType', NotificationType::NEW_MESSAGE)
             ->orderBy('n.createdAt', 'DESC')
             ->setFirstResult(($safePage - 1) * $safePerPage)
             ->setMaxResults($safePerPage);
@@ -66,7 +70,9 @@ class NotificationRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('n')
             ->select('COUNT(n.id)')
             ->andWhere('n.user = :user')
-            ->setParameter('user', $user);
+            ->andWhere('n.type != :excludedType')
+            ->setParameter('user', $user)
+            ->setParameter('excludedType', NotificationType::NEW_MESSAGE);
 
         if (null !== $isRead) {
             $qb
@@ -82,8 +88,10 @@ class NotificationRepository extends ServiceEntityRepository
         return (int) $this->createQueryBuilder('n')
             ->select('COUNT(n.id)')
             ->andWhere('n.user = :user')
+            ->andWhere('n.type != :excludedType')
             ->andWhere('n.isRead = :isRead')
             ->setParameter('user', $user)
+            ->setParameter('excludedType', NotificationType::NEW_MESSAGE)
             ->setParameter('isRead', false)
             ->getQuery()
             ->getSingleScalarResult();
@@ -95,9 +103,11 @@ class NotificationRepository extends ServiceEntityRepository
             ->update()
             ->set('n.isRead', ':isRead')
             ->andWhere('n.user = :user')
+            ->andWhere('n.type != :excludedType')
             ->andWhere('n.isRead = :currentReadState')
             ->setParameter('isRead', true)
             ->setParameter('user', $user)
+            ->setParameter('excludedType', NotificationType::NEW_MESSAGE)
             ->setParameter('currentReadState', false)
             ->getQuery()
             ->execute();

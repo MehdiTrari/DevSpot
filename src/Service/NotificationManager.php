@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\ContactMessage;
 use App\Entity\DeveloperProfile;
+use App\Entity\Message;
 use App\Entity\Notification;
 use App\Entity\User;
 use App\Enum\NotificationType;
@@ -175,26 +176,12 @@ final class NotificationManager
 
     public function notifyApplicantNewMessage(ContactMessage $contactMessage): void
     {
-        $targetUser = $contactMessage->getDeveloperProfile()?->getUser();
+        // Message notifications are intentionally disabled.
+    }
 
-        if (!$targetUser instanceof User) {
-            return;
-        }
-
-        $senderName = trim((string) $contactMessage->getRecruiterName());
-        $senderLabel = '' !== $senderName ? $senderName : 'Un recruteur';
-        $subject = trim((string) $contactMessage->getSubject());
-        $content = '' !== $subject
-            ? sprintf('%s vous a envoyé un nouveau message : %s', $senderLabel, $subject)
-            : sprintf('%s vous a envoyé un nouveau message.', $senderLabel);
-
-        $this->createNotification(
-            $targetUser,
-            NotificationType::NEW_MESSAGE,
-            'Nouveau message reçu',
-            $content,
-            $this->urlGenerator->generate('app_applicant_messages')
-        );
+    public function notifyConversationNewMessage(Message $message): void
+    {
+        // Message notifications are intentionally disabled.
     }
 
     public function notifyRecruitersFollowingProfileUpdated(DeveloperProfile $profile): void

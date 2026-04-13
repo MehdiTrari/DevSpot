@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Conversations | DevSpot{% endblock %}
+{% block title %}Conversations recruteur | DevSpot{% endblock %}
 
 {% block body %}
     <section class="w-full max-w-7xl font-sans">
@@ -8,24 +8,22 @@
             <aside class="flex min-h-[68vh] flex-col rounded-2xl border border-white/10 bg-[#0f1218] p-3">
                 <div class="mb-3 flex items-center justify-between gap-3 border-b border-white/10 px-2 pb-3">
                     <h1 class="text-base font-semibold text-white">Messages privés</h1>
-                    <a href="{{ path('app_applicant_home') }}" class="text-xs text-emerald-300 hover:text-emerald-200">Dashboard</a>
+                    <a href="{{ path('app_recruiter_home') }}" class="text-xs text-emerald-300 hover:text-emerald-200">Dashboard</a>
                 </div>
+
                 <div class="flex-1 space-y-2 overflow-y-auto pr-1">
                     {% if conversations is empty %}
                         <p class="rounded-xl border border-yellow-400/20 bg-yellow-400/10 px-3 py-2 text-sm text-yellow-300">Aucune conversation active.</p>
                     {% else %}
                         {% for row in conversations %}
                             {% set conversation = row.conversation %}
-                            {% set recruiterUser = row.recruiterUser %}
-                            {% set recruiterName = recruiterUser and recruiterUser.recruiterProfile ? (recruiterUser.recruiterProfile.firstName ~ ' ' ~ recruiterUser.recruiterProfile.lastName) : '' %}
-                            {% if recruiterName|trim == '' %}
-                                {% set recruiterName = recruiterUser ? recruiterUser.email : 'Recruteur' %}
-                            {% endif %}
+                            {% set profile = row.developerProfile %}
+                            {% set applicantName = (profile and profile.public) ? (profile.firstName ~ ' ' ~ profile.lastName) : 'Postulant anonyme' %}
                             {% set active = selectedConversation and selectedConversation.id == conversation.id %}
 
-                            <a href="{{ path('app_applicant_message_show', {conversationId: conversation.id}) }}" class="block rounded-xl border px-3 py-2.5 transition {{ active ? 'border-emerald-400/40 bg-emerald-500/15' : 'border-transparent bg-white/[0.03] hover:border-white/10 hover:bg-white/[0.06]' }}">
+                            <a href="{{ path('app_recruiter_message_show', {conversationId: conversation.id}) }}" class="block rounded-xl border px-3 py-2.5 transition {{ active ? 'border-emerald-400/40 bg-emerald-500/15' : 'border-transparent bg-white/[0.03] hover:border-white/10 hover:bg-white/[0.06]' }}">
                                 <div class="flex items-start justify-between gap-2">
-                                    <p class="truncate text-sm font-semibold text-white">{{ recruiterName }}</p>
+                                    <p class="truncate text-sm font-semibold text-white">{{ applicantName }}</p>
                                     {% if row.unreadCount > 0 %}
                                         <span class="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1.5 text-[11px] font-bold text-slate-950">{{ row.unreadCount }}</span>
                                     {% endif %}
@@ -41,10 +39,11 @@
             </aside>
 
             <div class="flex min-h-[68vh] flex-col rounded-2xl border border-white/10 bg-[#0b0e14]">
-                {% if selectedConversation %}
+                {% if selectedConversation and selectedProfile %}
+                    {% set applicantName = selectedProfile.public ? (selectedProfile.firstName ~ ' ' ~ selectedProfile.lastName) : 'Postulant anonyme' %}
                     <header class="flex items-center justify-between border-b border-white/10 px-5 py-3">
                         <div>
-                            <h2 class="text-base font-semibold text-white">{{ selectedRecruiterName }}</h2>
+                            <h2 class="text-base font-semibold text-white">{{ applicantName }}</h2>
                         </div>
                     </header>
 
@@ -52,12 +51,12 @@
                     <div
                         id="chat-messages"
                         data-chat-scroll="true"
-                        data-poll-url="{{ path('app_applicant_message_poll', {conversationId: selectedConversation.id}) }}"
+                        data-poll-url="{{ path('app_recruiter_message_poll', {conversationId: selectedConversation.id}) }}"
                         data-last-message-id="{{ lastMessageId }}"
                         class="flex-1 space-y-3 overflow-y-auto px-5 py-4"
                     >
                         {% for message in selectedMessages %}
-                            {% include 'applicant/_chat_message.html.twig' with {
+                            {% include 'recruiter/_chat_message.html.twig' with {
                                 message: message,
                                 mine: message.senderUser and app.user and message.senderUser.id == app.user.id
                             } only %}
@@ -87,33 +86,37 @@
             </div>
 
             <aside class="hidden min-h-[68vh] flex-col rounded-2xl border border-white/10 bg-[#12161f] xl:flex">
-                {% if selectedConversation and selectedRecruiterUser %}
-                    {% set recruiterProfile = selectedRecruiterUser.recruiterProfile %}
+                {% if selectedConversation and selectedProfile %}
+                    {% set applicantName = selectedProfile.public ? (selectedProfile.firstName ~ ' ' ~ selectedProfile.lastName) : 'Postulant anonyme' %}
                     <div class="border-b border-white/10 p-5">
                         <div class="mx-auto mb-4 h-20 w-20 overflow-hidden rounded-full border border-white/10 bg-white/10">
-                            <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Avatar par défaut" class="h-full w-full object-cover">
+                            {% if selectedProfile.avatarPath %}
+                                <img src="{{ asset(selectedProfile.avatarPath) }}" alt="Avatar" class="h-full w-full object-cover">
+                            {% else %}
+                                <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Avatar par défaut" class="h-full w-full object-cover">
+                            {% endif %}
                         </div>
-                        <h3 class="text-center text-2xl font-semibold text-white">{{ selectedRecruiterName }}</h3>
-                        <p class="mt-1 text-center text-sm text-slate-400">{{ selectedRecruiterEmail }}</p>
+                        <h3 class="text-center text-2xl font-semibold text-white">{{ applicantName }}</h3>
+                        <p class="mt-1 text-center text-sm text-slate-400">{{ selectedProfile.user ? selectedProfile.user.email : 'Email non renseigné' }}</p>
                     </div>
 
                     <div class="space-y-3 p-4 text-sm">
                         <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                            <p class="text-xs uppercase tracking-wide text-slate-400">Poste</p>
-                            <p class="mt-1 text-slate-200">{{ recruiterProfile and recruiterProfile.jobTitle ? recruiterProfile.jobTitle : 'Non renseigné' }}</p>
+                            <p class="text-xs uppercase tracking-wide text-slate-400">Localisation</p>
+                            <p class="mt-1 text-slate-200">{{ selectedProfile.city ?: 'Ville' }}{{ selectedProfile.country ? ', ' ~ selectedProfile.country : '' }}</p>
                         </div>
                         <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                            <p class="text-xs uppercase tracking-wide text-slate-400">Entreprise</p>
-                            <p class="mt-1 text-slate-200">{{ recruiterProfile and recruiterProfile.company ? recruiterProfile.company.name : 'Non renseignée' }}</p>
+                            <p class="text-xs uppercase tracking-wide text-slate-400">Expérience</p>
+                            <p class="mt-1 text-slate-200">{{ selectedProfile.yearsExperience is not null ? selectedProfile.yearsExperience ~ ' ans' : 'Non renseignée' }}</p>
                         </div>
                         <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                            <p class="text-xs uppercase tracking-wide text-slate-400">Email pro</p>
-                            <p class="mt-1 text-slate-200">{{ recruiterProfile and recruiterProfile.workEmail ? recruiterProfile.workEmail : selectedRecruiterEmail }}</p>
+                            <p class="text-xs uppercase tracking-wide text-slate-400">Bio</p>
+                            <p class="mt-1 line-clamp-4 whitespace-pre-line text-slate-200">{{ selectedProfile.bio ?: 'Aucune bio.' }}</p>
                         </div>
                     </div>
                 {% else %}
                     <div class="flex h-full items-center justify-center p-6 text-center text-sm text-slate-400">
-                        Le profil du contact apparaîtra ici.
+                        Le profil candidat apparaîtra ici.
                     </div>
                 {% endif %}
             </aside>

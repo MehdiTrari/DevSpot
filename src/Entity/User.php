@@ -79,6 +79,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $notifications;
 
+    /**
+     * @var Collection<int, Conversation>
+     */
+    #[ORM\OneToMany(targetEntity: Conversation::class, mappedBy: 'applicantUser')]
+    private Collection $conversations;
+
+    /**
+     * @var Collection<int, Conversation>
+     */
+    #[ORM\OneToMany(targetEntity: Conversation::class, mappedBy: 'recruiterUser')]
+    private Collection $conversationsRecruiter;
+
+    /**
+     * @var Collection<int, Message>
+     */
+    #[ORM\OneToMany(targetEntity: Message::class, mappedBy: 'senderUser')]
+    private Collection $messages;
+
     public function __construct()
     {
         $this->activityLogs = new ArrayCollection();
@@ -87,6 +105,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->adminActionLogs = new ArrayCollection();
         $this->targetedAdminActionLogs = new ArrayCollection();
         $this->notifications = new ArrayCollection();
+        $this->conversations = new ArrayCollection();
+        $this->conversationsRecruiter = new ArrayCollection();
+        $this->messages = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -359,6 +380,96 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($notification->getUserTarget() === $this) {
                 $notification->setUserTarget(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Conversation>
+     */
+    public function getConversations(): Collection
+    {
+        return $this->conversations;
+    }
+
+    public function addConversation(Conversation $conversation): static
+    {
+        if (!$this->conversations->contains($conversation)) {
+            $this->conversations->add($conversation);
+            $conversation->setApplicantUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeConversation(Conversation $conversation): static
+    {
+        if ($this->conversations->removeElement($conversation)) {
+            // set the owning side to null (unless already changed)
+            if ($conversation->getApplicantUser() === $this) {
+                $conversation->setApplicantUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Conversation>
+     */
+    public function getConversationsRecruiter(): Collection
+    {
+        return $this->conversationsRecruiter;
+    }
+
+    public function addConversationsRecruiter(Conversation $conversationsRecruiter): static
+    {
+        if (!$this->conversationsRecruiter->contains($conversationsRecruiter)) {
+            $this->conversationsRecruiter->add($conversationsRecruiter);
+            $conversationsRecruiter->setRecruiterUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeConversationsRecruiter(Conversation $conversationsRecruiter): static
+    {
+        if ($this->conversationsRecruiter->removeElement($conversationsRecruiter)) {
+            // set the owning side to null (unless already changed)
+            if ($conversationsRecruiter->getRecruiterUser() === $this) {
+                $conversationsRecruiter->setRecruiterUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Message>
+     */
+    public function getMessages(): Collection
+    {
+        return $this->messages;
+    }
+
+    public function addMessage(Message $message): static
+    {
+        if (!$this->messages->contains($message)) {
+            $this->messages->add($message);
+            $message->setSenderUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMessage(Message $message): static
+    {
+        if ($this->messages->removeElement($message)) {
+            // set the owning side to null (unless already changed)
+            if ($message->getSenderUser() === $this) {
+                $message->setSenderUser(null);
             }
         }
 

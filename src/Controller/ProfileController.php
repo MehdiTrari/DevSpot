@@ -4,35 +4,42 @@ namespace App\Controller;
 
 use App\Entity\ContactMessage;
 use App\Entity\DeveloperProfile;
+use App\Entity\Conversation;
+use App\Entity\Message;
 use App\Entity\User;
 use App\Enum\UserStatus;
+use App\Enum\ConversationStatus;
 use App\Form\ContactMessageType;
-use App\Repository\ContactMessageRepository;
+use App\Repository\ConversationRepository;
 use App\Repository\DeveloperProfileRepository;
 use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class ProfileController extends AbstractController
 {
-    private const CONTACT_COOLDOWN_DAYS = 3;
-    private const DAILY_DISTINCT_CONTACT_LIMIT = 20;
-
     #[Route('/profil/{slug}', name: 'app_public_profile_show', methods: ['GET', 'POST'])]
     public function show(
         string $slug,
         Request $request,
         DeveloperProfileRepository $developerProfileRepository,
-        ContactMessageRepository $contactMessageRepository,
+        ConversationRepository $conversationRepository,
         #[Autowire(service: 'html_sanitizer.sanitizer.contact_message')]
         HtmlSanitizerInterface $contactMessageSanitizer,
         NotificationManager $notificationManager,
+        MailerInterface $mailer,
+        LoggerInterface $logger,
         EntityManagerInterface $entityManager,
     ): Response
     {
@@ -87,6 +94,13 @@ final class ProfileController extends AbstractController
 
         $contactRequiresLogin = $profile->isPublic() && !$currentUser instanceof User;
         $contactRequiresRecruiterRole = $profile->isPublic() && $currentUser instanceof User && !$isRecruiter;
+        $alreadyContactedDeveloper = false;
+        $existingConversation = null;
+
+        if ($profile->isPublic() && $currentUser instanceof User && $isRecruiter && $profile->getUser() instanceof User) {
+            $existingConversation = $conversationRepository->findOneBetweenUsers($profile->getUser(), $currentUser);
+            $alreadyContactedDeveloper = $existingConversation instanceof Conversation;
+        }
 
         if (($contactRequiresLogin || $contactRequiresRecruiterRole) && $request->isMethod('POST')) {
             throw $this->createAccessDeniedException('Seuls les recruteurs peuvent contacter ce développeur.');
@@ -121,49 +135,71 @@ final class ProfileController extends AbstractController
                 }
 
                 if ($contactForm->isValid()) {
-                    $recruiterEmail = mb_strtolower(trim((string) ($currentUser instanceof User ? $currentUser->getEmail() : '')));
-
-                    if ('' === $recruiterEmail) {
-                        $contactForm->addError(new FormError('Impossible d\'envoyer le message sans email recruteur valide.'));
+                    if ($alreadyContactedDeveloper) {
+                        $contactForm->addError(new FormError('Vous avez déjà initié une conversation avec ce postulant. Utilisez la messagerie pour continuer cet échange.'));
                     }
 
-                    $latestContact = $contactMessageRepository->findLatestForRecruiterAndProfile($profile, $recruiterEmail);
-                    if ($latestContact instanceof ContactMessage) {
-                        $nextAllowedAt = $latestContact->getCreatedAt()?->modify(sprintf('+%d days', self::CONTACT_COOLDOWN_DAYS));
-                        if ($nextAllowedAt instanceof \DateTimeImmutable && $nextAllowedAt > new \DateTimeImmutable()) {
-                            $contactForm->addError(new FormError(sprintf(
-                                'Vous avez déjà contacté ce candidat récemment. Merci d\'attendre %d jour(s) entre deux prises de contact.',
-                                self::CONTACT_COOLDOWN_DAYS
-                            )));
+                    if (!$currentUser instanceof User || !$profile->getUser() instanceof User) {
+                        $contactForm->addError(new FormError('Conversation impossible à initialiser.'));
+                    }
+
+                    if ($contactForm->isValid()) {
+                        $formattedFirstMessage = sprintf(
+                            "Nom du recruteur: %s\nEmail du recruteur: %s\n\n%s",
+                            '' !== $sanitizedRecruiterName ? $sanitizedRecruiterName : (string) ($currentUser->getEmail() ?? 'Recruteur'),
+                            (string) ($currentUser->getEmail() ?? ''),
+                            $sanitizedMessage
+                        );
+
+                        $conversation = new Conversation();
+                        $conversation
+                            ->setApplicantUser($profile->getUser())
+                            ->setRecruiterUser($currentUser)
+                            ->setSubject('' !== $sanitizedSubject ? $sanitizedSubject : 'Nouvelle opportunité')
+                            ->setStatus(ConversationStatus::OPEN)
+                            ->setUpdatedAt(new \DateTimeImmutable());
+
+                        $message = new Message();
+                        $message
+                            ->setConversation($conversation)
+                            ->setSenderUser($currentUser)
+                            ->setContent($formattedFirstMessage)
+                            ->setIsRead(false);
+
+                        $entityManager->persist($conversation);
+                        $entityManager->persist($message);
+                        $notificationManager->notifyConversationNewMessage($message);
+                        $entityManager->flush();
+
+                        try {
+                            $mailer->send(
+                                (new TemplatedEmail())
+                                    ->from(new Address('mailer@devspot.com', 'DevSpot Mail Bot'))
+                                    ->to((string) $profile->getUser()->getEmail())
+                                    ->subject(sprintf('Nouveau message recruteur: %s', (string) $conversation->getSubject()))
+                                    ->htmlTemplate('emails/new_conversation_applicant.html.twig')
+                                    ->context([
+                                        'applicantName' => trim(sprintf('%s %s', (string) $profile->getFirstName(), (string) $profile->getLastName())),
+                                        'recruiterName' => '' !== $sanitizedRecruiterName ? $sanitizedRecruiterName : ($currentUser->getEmail() ?? 'Un recruteur'),
+                                        'recruiterEmail' => (string) ($currentUser->getEmail() ?? ''),
+                                        'conversationSubject' => (string) $conversation->getSubject(),
+                                        'messagePreview' => $sanitizedMessage,
+                                        'messagesUrl' => $this->generateUrl('app_applicant_message_show', ['conversationId' => $conversation->getId()], UrlGeneratorInterface::ABSOLUTE_URL),
+                                    ])
+                            );
+                        } catch (\Throwable $exception) {
+                            $logger->warning('Envoi email de contact recruteur échoué.', [
+                                'conversationId' => $conversation->getId(),
+                                'error' => $exception->getMessage(),
+                            ]);
                         }
+
+                        $this->addFlash('success', 'Votre message a bien été envoyé au développeur.');
+
+                        return $this->redirectToRoute('app_public_profile_show', [
+                            'slug' => $profile->getSlug(),
+                        ]);
                     }
-
-                    $dayStart = new \DateTimeImmutable('today');
-                    $dayEnd = $dayStart->modify('+1 day');
-                    $dailyDistinctCount = $contactMessageRepository->countDistinctProfilesContactedByRecruiterBetween($recruiterEmail, $dayStart, $dayEnd);
-
-                    if ($dailyDistinctCount >= self::DAILY_DISTINCT_CONTACT_LIMIT) {
-                        $contactForm->addError(new FormError(sprintf(
-                            'Limite atteinte: vous ne pouvez pas contacter plus de %d candidats différents sur une même journée.',
-                            self::DAILY_DISTINCT_CONTACT_LIMIT
-                        )));
-                    }
-
-                    $contactMessage->setDeveloperProfile($profile);
-                    $contactMessage->setIsRead(false);
-                    if (null === $contactMessage->getSubject()) {
-                        $contactMessage->setSubject('');
-                    }
-
-                    $entityManager->persist($contactMessage);
-                    $notificationManager->notifyApplicantNewMessage($contactMessage);
-                    $entityManager->flush();
-
-                    $this->addFlash('success', 'Votre message a bien été envoyé au développeur.');
-
-                    return $this->redirectToRoute('app_public_profile_show', [
-                        'slug' => $profile->getSlug(),
-                    ]);
                 }
             }
 
@@ -201,6 +237,7 @@ final class ProfileController extends AbstractController
             'isOwner' => $isOwner,
             'contactRequiresLogin' => $contactRequiresLogin,
             'contactRequiresRecruiterRole' => $contactRequiresRecruiterRole,
+            'alreadyContactedDeveloper' => $alreadyContactedDeveloper,
             'contactForm' => $contactFormView,
         ]);
 

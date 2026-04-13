@@ -2,20 +2,25 @@
 
 namespace App\Controller;
 
-use App\Entity\ContactMessage;
+use App\Entity\Conversation;
 use App\Entity\DeveloperProfile;
+use App\Entity\Message;
 use App\Entity\User;
+use App\Form\ChatReplyType;
 use App\Form\DeveloperProfileStep1Type;
 use App\Form\DeveloperProfileStep2Type;
 use App\Form\DeveloperProfileStep3Type;
 use App\Form\DeveloperProfileStep4Type;
-use App\Repository\ContactMessageRepository;
+use App\Repository\ConversationRepository;
 use App\Repository\DeveloperProfileRepository;
+use App\Repository\MessageRepository;
 use App\Service\NotificationManager;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,6 +30,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 
 final class ApplicantController extends AbstractController
 {
@@ -44,27 +50,46 @@ final class ApplicantController extends AbstractController
 
     #[Route('/applicant/messages', name: 'app_applicant_messages')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function messages(ContactMessageRepository $contactMessageRepository): Response
+    public function messages(ConversationRepository $conversationRepository, MessageRepository $messageRepository): Response
     {
-        $profile = $this->getApplicantUser()->getDeveloperProfile();
+        $user = $this->getApplicantUser();
+        $profile = $user->getDeveloperProfile();
 
         if (!$profile instanceof DeveloperProfile) {
             $this->addFlash('info', 'Tu dois d\'abord créer ton profil développeur.');
 
             return $this->redirectToRoute('app_applicant_profile_create');
         }
+
+        $conversationRows = $this->buildApplicantConversationRows($conversationRepository, $messageRepository, $user);
 
         return $this->render('applicant/messages.html.twig', [
             'profile' => $profile,
-            'messages' => $contactMessageRepository->findByDeveloperProfileOrdered($profile),
+            'conversations' => $conversationRows,
+            'selectedConversation' => null,
+            'selectedMessages' => [],
+            'selectedRecruiterName' => null,
+            'selectedRecruiterEmail' => null,
+            'selectedRecruiterUser' => null,
+            'replyForm' => null,
         ]);
     }
 
-    #[Route('/applicant/messages/{id}', name: 'app_applicant_message_show', requirements: ['id' => '\\d+'])]
+    #[Route('/applicant/messages/{conversationId}', name: 'app_applicant_message_show', requirements: ['conversationId' => '\\d+'], methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_APPLICANT')]
-    public function showMessage(int $id, ContactMessageRepository $contactMessageRepository, EntityManagerInterface $entityManager): Response
+    public function showMessage(
+        int $conversationId,
+        Request $request,
+        ConversationRepository $conversationRepository,
+        MessageRepository $messageRepository,
+        EntityManagerInterface $entityManager,
+        #[Autowire(service: 'html_sanitizer.sanitizer.contact_message')]
+        HtmlSanitizerInterface $contactMessageSanitizer,
+        NotificationManager $notificationManager,
+    ): Response
     {
-        $profile = $this->getApplicantUser()->getDeveloperProfile();
+        $applicantUser = $this->getApplicantUser();
+        $profile = $applicantUser->getDeveloperProfile();
 
         if (!$profile instanceof DeveloperProfile) {
             $this->addFlash('info', 'Tu dois d\'abord créer ton profil développeur.');
@@ -72,20 +97,112 @@ final class ApplicantController extends AbstractController
             return $this->redirectToRoute('app_applicant_profile_create');
         }
 
-        $message = $contactMessageRepository->findOneForDeveloperProfile($id, $profile);
-
-        if (!$message instanceof ContactMessage) {
-            throw $this->createNotFoundException('Ce message est introuvable.');
+        $conversation = $conversationRepository->find($conversationId);
+        if (!$conversation instanceof Conversation || $conversation->getApplicantUser()?->getId() !== $applicantUser->getId()) {
+            throw $this->createNotFoundException('Conversation introuvable.');
         }
 
-        if (!$message->isRead()) {
-            $message->setIsRead(true);
-            $entityManager->flush();
+        $messageRepository->markConversationAsReadForUser($conversation, $applicantUser);
+
+        $replyMessage = new Message();
+        $replyMessage->setContent('');
+        $replyForm = $this->createForm(ChatReplyType::class, $replyMessage);
+        $replyForm->handleRequest($request);
+
+        if ($replyForm->isSubmitted() && $replyForm->isValid()) {
+            $sanitizedMessage = trim($contactMessageSanitizer->sanitize((string) $replyMessage->getContent()));
+            $replyMessage->setContent($sanitizedMessage);
+
+            if ('' === $sanitizedMessage) {
+                $replyForm->get('content')->addError(new FormError('Le message contient trop de contenu HTML non autorisé.'));
+            }
+
+            if ($replyForm->isValid()) {
+                $replyMessage
+                    ->setConversation($conversation)
+                    ->setSenderUser($applicantUser)
+                    ->setIsRead(false)
+                    ->setCreatedAt(new \DateTimeImmutable());
+
+                $conversation->setUpdatedAt(new \DateTimeImmutable());
+
+                $entityManager->persist($replyMessage);
+                $notificationManager->notifyConversationNewMessage($replyMessage);
+                $entityManager->flush();
+
+                if ($request->isXmlHttpRequest()) {
+                    $html = $this->renderView('applicant/_chat_message.html.twig', [
+                        'message' => $replyMessage,
+                        'mine' => true,
+                    ]);
+
+                    return new JsonResponse([
+                        'ok' => true,
+                        'html' => $html,
+                        'messageId' => $replyMessage->getId(),
+                    ]);
+                }
+
+                $this->addFlash('success', 'Message envoyé.');
+
+                return $this->redirectToRoute('app_applicant_message_show', [
+                    'conversationId' => $conversationId,
+                ]);
+            }
         }
 
-        return $this->render('applicant/message_show.html.twig', [
+        $conversationRows = $this->buildApplicantConversationRows($conversationRepository, $messageRepository, $applicantUser);
+        $conversationMessages = $messageRepository->findByConversationOrdered($conversation);
+        $recruiterUser = $conversation->getRecruiterUser();
+        $recruiterName = $this->resolveRecruiterDisplayName($recruiterUser);
+
+        return $this->render('applicant/messages.html.twig', [
             'profile' => $profile,
-            'message' => $message,
+            'conversations' => $conversationRows,
+            'selectedConversation' => $conversation,
+            'selectedMessages' => $conversationMessages,
+            'selectedRecruiterEmail' => (string) ($recruiterUser?->getEmail() ?? ''),
+            'selectedRecruiterName' => $recruiterName,
+            'selectedRecruiterUser' => $recruiterUser,
+            'replyForm' => $replyForm,
+        ]);
+    }
+
+    #[Route('/applicant/messages/{conversationId}/poll', name: 'app_applicant_message_poll', requirements: ['conversationId' => '\\d+'], methods: ['GET'])]
+    #[IsGranted('ROLE_APPLICANT')]
+    public function pollConversation(
+        int $conversationId,
+        Request $request,
+        ConversationRepository $conversationRepository,
+        MessageRepository $messageRepository,
+    ): JsonResponse {
+        $applicantUser = $this->getApplicantUser();
+
+        $conversation = $conversationRepository->find($conversationId);
+        if (!$conversation instanceof Conversation || $conversation->getApplicantUser()?->getId() !== $applicantUser->getId()) {
+            return new JsonResponse(['ok' => false], Response::HTTP_NOT_FOUND);
+        }
+
+        $sinceId = max(0, (int) $request->query->get('sinceId', 0));
+        $newMessages = $messageRepository->findByConversationAfterIdOrdered($conversation, $sinceId);
+
+        $messageRepository->markConversationAsReadForUser($conversation, $applicantUser);
+
+        $html = '';
+        $lastId = $sinceId;
+        foreach ($newMessages as $message) {
+            $mine = $message->getSenderUser()?->getId() === $applicantUser->getId();
+            $html .= $this->renderView('applicant/_chat_message.html.twig', [
+                'message' => $message,
+                'mine' => $mine,
+            ]);
+            $lastId = max($lastId, (int) ($message->getId() ?? 0));
+        }
+
+        return new JsonResponse([
+            'ok' => true,
+            'html' => $html,
+            'lastId' => $lastId,
         ]);
     }
 
@@ -492,6 +609,51 @@ final class ApplicantController extends AbstractController
         }
 
         return $user;
+    }
+
+    /**
+     * @return list<array{conversation: Conversation, recruiterUser: ?User, lastMessage: Message, unreadCount: int}>
+     */
+    private function buildApplicantConversationRows(ConversationRepository $conversationRepository, MessageRepository $messageRepository, User $user): array
+    {
+        $conversations = $conversationRepository->findActiveForApplicant($user);
+        $conversationRows = [];
+        foreach ($conversations as $conversation) {
+            if (!$conversation instanceof Conversation) {
+                continue;
+            }
+
+            $lastMessage = $messageRepository->findLastInConversation($conversation);
+            if (!$lastMessage instanceof Message) {
+                continue;
+            }
+
+            $conversationRows[] = [
+                'conversation' => $conversation,
+                'recruiterUser' => $conversation->getRecruiterUser(),
+                'lastMessage' => $lastMessage,
+                'unreadCount' => $messageRepository->countUnreadInConversationForUser($conversation, $user),
+            ];
+        }
+
+        return $conversationRows;
+    }
+
+    private function resolveRecruiterDisplayName(?User $recruiterUser): string
+    {
+        if (!$recruiterUser instanceof User) {
+            return 'Recruteur';
+        }
+
+        $recruiterProfile = $recruiterUser->getRecruiterProfile();
+        if (null !== $recruiterProfile) {
+            $fullName = trim(sprintf('%s %s', (string) $recruiterProfile->getFirstName(), (string) $recruiterProfile->getLastName()));
+            if ('' !== $fullName) {
+                return $fullName;
+            }
+        }
+
+        return (string) ($recruiterUser->getEmail() ?? 'Recruteur');
     }
 
     private function redirectAfterProfileStep(Request $request, string $nextRoute, string $nextMessage, string $exitMessage, ?DeveloperProfile $profile = null, ?NotificationManager $notificationManager = null): Response
