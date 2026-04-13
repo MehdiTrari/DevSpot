@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\ContactMessage;
 use App\Entity\DeveloperProfile;
 use App\Entity\User;
+use App\Enum\UserStatus;
 use App\Form\ContactMessageType;
 use App\Repository\ContactMessageRepository;
 use App\Repository\DeveloperProfileRepository;
@@ -41,11 +42,18 @@ final class ProfileController extends AbstractController
             throw $this->createNotFoundException('Aucun profil ne correspond à cette URL.');
         }
 
+        $isOwner = $this->isOwner($profile);
+        $profileStatus = $profile->getUser()?->getStatus();
+
+        if (!$isOwner && UserStatus::ACTIVE !== $profileStatus) {
+            throw $this->createNotFoundException('Aucun profil ne correspond à cette URL.');
+        }
+
         if (null === $profile->getPortfolioGeneratedAt()) {
             throw $this->createAccessDeniedException('Ce portfolio n\'a pas encore été généré.');
         }
 
-        if (!$profile->isPublic() && !$this->isOwner($profile)) {
+        if (!$profile->isPublic() && !$isOwner) {
             throw $this->createAccessDeniedException('Ce profil est privé.');
         }
 
@@ -190,7 +198,7 @@ final class ProfileController extends AbstractController
             'experiences' => $experiences,
             'education' => $education,
             'technologyNames' => array_values($technologyNames),
-            'isOwner' => $this->isOwner($profile),
+            'isOwner' => $isOwner,
             'contactRequiresLogin' => $contactRequiresLogin,
             'contactRequiresRecruiterRole' => $contactRequiresRecruiterRole,
             'contactForm' => $contactFormView,
