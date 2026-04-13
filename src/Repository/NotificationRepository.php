@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Notification;
+use App\Entity\User;
+use App\Enum\NotificationType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -14,6 +16,66 @@ class NotificationRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Notification::class);
+    }
+
+    /**
+     * @return Notification[]
+     */
+    public function findForUserOrdered(User $user, ?bool $isRead = null): array
+    {
+        $qb = $this->createQueryBuilder('n')
+            ->andWhere('n.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('n.createdAt', 'DESC');
+
+        if (null !== $isRead) {
+            $qb
+                ->andWhere('n.isRead = :isRead')
+                ->setParameter('isRead', $isRead);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function countUnreadForUser(User $user): int
+    {
+        return (int) $this->createQueryBuilder('n')
+            ->select('COUNT(n.id)')
+            ->andWhere('n.user = :user')
+            ->andWhere('n.isRead = :isRead')
+            ->setParameter('user', $user)
+            ->setParameter('isRead', false)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function markAllReadForUser(User $user): int
+    {
+        return $this->createQueryBuilder('n')
+            ->update()
+            ->set('n.isRead', ':isRead')
+            ->andWhere('n.user = :user')
+            ->andWhere('n.isRead = :currentReadState')
+            ->setParameter('isRead', true)
+            ->setParameter('user', $user)
+            ->setParameter('currentReadState', false)
+            ->getQuery()
+            ->execute();
+    }
+
+    public function existsForUserTypeAndLink(User $user, NotificationType $type, ?string $link): bool
+    {
+        return null !== $this->createQueryBuilder('n')
+            ->select('n.id')
+            ->andWhere('n.user = :user')
+            ->andWhere('n.type = :type')
+            ->andWhere('n.link = :link')
+            ->setParameter('user', $user)
+            ->setParameter('type', $type)
+            ->setParameter('link', $link)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     //    /**
