@@ -24,6 +24,7 @@ class RegistrationFormType extends AbstractType
         $builder
             ->add('accountType', ChoiceType::class, [
                 'mapped' => false,
+                'required' => true,
                 'label' => 'Type de compte',
                 'choices' => [
                     'Postulant' => 'applicant',
@@ -37,6 +38,7 @@ class RegistrationFormType extends AbstractType
             ])
             ->add('firstName', TextType::class, [
                 'mapped' => false,
+                'required' => true,
                 'label' => 'Prénom',
                 'attr' => ['autocomplete' => 'given-name'],
                 'constraints' => [
@@ -46,6 +48,7 @@ class RegistrationFormType extends AbstractType
             ])
             ->add('lastName', TextType::class, [
                 'mapped' => false,
+                'required' => true,
                 'label' => 'Nom',
                 'attr' => ['autocomplete' => 'family-name'],
                 'constraints' => [
@@ -73,8 +76,12 @@ class RegistrationFormType extends AbstractType
                 ],
             ])
             ->add('email', null, [
+                'required' => true,
                 'label' => 'Email de connexion',
                 'constraints' => [
+                    new NotBlank(
+                        message: 'Veuillez renseigner un email.',
+                    ),
                     new Email(
                         message: 'Please enter a valid email address.',
                     ),
@@ -82,14 +89,17 @@ class RegistrationFormType extends AbstractType
             ])
             ->add('agreeTerms', CheckboxType::class, [
                 'mapped' => false,
+                'required' => true,
+                'label' => "J'accepte les conditions d'utilisation",
                 'constraints' => [
                     new IsTrue(
-                        message: 'You should agree to our terms.',
+                        message: 'Veuillez accepter les conditions d\'utilisation.',
                     ),
                 ],
             ])
             ->add('plainPassword', PasswordType::class, [
                 'mapped' => false,
+                'required' => true,
                 'attr' => ['autocomplete' => 'new-password'],
                 'constraints' => [
                     new NotBlank(

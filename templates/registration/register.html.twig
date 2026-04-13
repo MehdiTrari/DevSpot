@@ -122,15 +122,12 @@
 
             {# ── CGU ── #}
             <div class="pt-2">
-                <label class="group inline-flex cursor-pointer items-center gap-3">
-                    <div class="relative flex items-center">
-                        {{ form_widget(registrationForm.agreeTerms, {attr: {class: 'peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-white/10 bg-white/5 shadow-inner transition-all checked:border-emerald-500 checked:bg-emerald-500 focus:outline-none focus:ring-4 focus:ring-emerald-500/20'}}) }}
-                        <svg class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white opacity-0 transition-opacity peer-checked:opacity-100" width="12" height="10" viewBox="0 0 12 10" fill="none">
-                            <path d="M1 5L4.5 8.5L11 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
+                <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-inner transition-all duration-300 hover:border-emerald-500/40 hover:bg-white/10">
+                    <div class="inline-flex items-start gap-3">
+                        {{ form_widget(registrationForm.agreeTerms, {attr: {class: 'mt-0.5 h-5 w-5 cursor-pointer rounded-md border-white/20 bg-white/5 text-emerald-500 accent-emerald-500 transition-all focus:ring-4 focus:ring-emerald-500/20'}}) }}
+                        <label for="{{ registrationForm.agreeTerms.vars.id }}" class="cursor-pointer text-[15px] font-medium text-slate-300 transition-colors hover:text-white">J'accepte les conditions d'utilisation</label>
                     </div>
-                    <span class="text-[15px] font-medium text-slate-400 transition-colors group-hover:text-white">J'accepte les conditions d'utilisation</span>
-                </label>
+                </div>
                 {% if registrationForm.agreeTerms.vars.errors|length > 0 %}
                     <div class="pl-1 mt-1.5 text-sm font-medium text-red-400">{{ form_errors(registrationForm.agreeTerms) }}</div>
                 {% endif %}
