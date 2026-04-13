@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\FavoriteProfile;
+use App\Entity\DeveloperProfile;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -14,6 +15,23 @@ class FavoriteProfileRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, FavoriteProfile::class);
+    }
+
+    /**
+     * @return list<FavoriteProfile>
+     */
+    public function findByDeveloperProfile(DeveloperProfile $developerProfile): array
+    {
+        $developerProfileId = $developerProfile->getId();
+        if (null === $developerProfileId) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('favorite_profile')
+            ->andWhere('IDENTITY(favorite_profile.developerProfile) = :developerProfileId')
+            ->setParameter('developerProfileId', $developerProfileId)
+            ->getQuery()
+            ->getResult();
     }
 
     //    /**
