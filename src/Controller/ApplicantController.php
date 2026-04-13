@@ -11,6 +11,7 @@ use App\Form\DeveloperProfileStep3Type;
 use App\Form\DeveloperProfileStep4Type;
 use App\Repository\ContactMessageRepository;
 use App\Repository\DeveloperProfileRepository;
+use App\Service\NotificationManager;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Doctrine\ORM\EntityManagerInterface;
@@ -94,6 +95,7 @@ final class ApplicantController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         DeveloperProfileRepository $developerProfileRepository,
+        NotificationManager $notificationManager,
     ): Response {
         $user = $this->getApplicantUser();
 
@@ -119,7 +121,9 @@ final class ApplicantController extends AbstractController
                 $request,
                 'app_applicant_profile_step2',
                 $isNewProfile ? 'Profil développeur créé. Étape 1 terminée.' : 'Étape 1 mise à jour.',
-                'Ton profil a été enregistré et tu es revenu au dashboard.'
+                'Ton profil a été enregistré et tu es revenu au dashboard.',
+                $profile,
+                $notificationManager
             );
         }
 
@@ -130,7 +134,7 @@ final class ApplicantController extends AbstractController
 
     #[Route('/applicant/profile/step-1', name: 'app_applicant_profile_step1')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function editProfileStep1(Request $request, EntityManagerInterface $entityManager): Response
+    public function editProfileStep1(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
         $profile = $this->getApplicantUser()->getDeveloperProfile();
         if (!$profile instanceof DeveloperProfile) {
@@ -149,7 +153,9 @@ final class ApplicantController extends AbstractController
                 $request,
                 'app_applicant_profile_step2',
                 'Étape 1 mise à jour.',
-                'Tes modifications ont été enregistrées et tu es revenu au dashboard.'
+                'Tes modifications ont été enregistrées et tu es revenu au dashboard.',
+                $profile,
+                $notificationManager
             );
         }
 
@@ -180,7 +186,7 @@ final class ApplicantController extends AbstractController
 
     #[Route('/applicant/profile/step-2', name: 'app_applicant_profile_step2')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function editProfileStep2(Request $request, EntityManagerInterface $entityManager): Response
+    public function editProfileStep2(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
         $profile = $this->getApplicantUser()->getDeveloperProfile();
         if (!$profile instanceof DeveloperProfile) {
@@ -198,7 +204,9 @@ final class ApplicantController extends AbstractController
                 $request,
                 'app_applicant_profile_step3',
                 'Étape 2 mise à jour.',
-                'Tes modifications ont été enregistrées et tu es revenu au dashboard.'
+                'Tes modifications ont été enregistrées et tu es revenu au dashboard.',
+                $profile,
+                $notificationManager
             );
         }
 
@@ -209,7 +217,7 @@ final class ApplicantController extends AbstractController
 
     #[Route('/applicant/profile/step-3', name: 'app_applicant_profile_step3')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function editProfileStep3(Request $request, EntityManagerInterface $entityManager): Response
+    public function editProfileStep3(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
         $profile = $this->getApplicantUser()->getDeveloperProfile();
         if (!$profile instanceof DeveloperProfile) {
@@ -234,7 +242,9 @@ final class ApplicantController extends AbstractController
                 $request,
                 'app_applicant_profile_step4',
                 'Étape 3 mise à jour.',
-                'Tes modifications ont été enregistrées et tu es revenu au dashboard.'
+                'Tes modifications ont été enregistrées et tu es revenu au dashboard.',
+                $profile,
+                $notificationManager
             );
         }
 
@@ -245,7 +255,7 @@ final class ApplicantController extends AbstractController
 
     #[Route('/applicant/profile/step-4', name: 'app_applicant_profile_step4')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function editProfileStep4(Request $request, EntityManagerInterface $entityManager): Response
+    public function editProfileStep4(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
         $profile = $this->getApplicantUser()->getDeveloperProfile();
         if (!$profile instanceof DeveloperProfile) {
@@ -263,7 +273,9 @@ final class ApplicantController extends AbstractController
                 $request,
                 'app_applicant_home',
                 'Étape 4 mise à jour.',
-                'Tes modifications ont été enregistrées et tu es revenu au dashboard.'
+                'Tes modifications ont été enregistrées et tu es revenu au dashboard.',
+                $profile,
+                $notificationManager
             );
         }
 
@@ -402,7 +414,7 @@ final class ApplicantController extends AbstractController
 
     #[Route('/applicant/profile/visibility', name: 'app_applicant_profile_visibility', methods: ['POST'])]
     #[IsGranted('ROLE_APPLICANT')]
-    public function toggleProfileVisibility(Request $request, EntityManagerInterface $entityManager): Response
+    public function toggleProfileVisibility(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
         $isAsync = $request->isXmlHttpRequest() || str_contains((string) $request->headers->get('Accept'), 'application/json');
         $profile = $this->getApplicantUser()->getDeveloperProfile();
@@ -454,6 +466,8 @@ final class ApplicantController extends AbstractController
         $profile->setIsPublic($makePublic);
         $entityManager->flush();
 
+        $notificationManager->notifyRecruitersFollowingProfileVisibilityChanged($profile, $makePublic);
+
         $message = $makePublic ? 'Ton portfolio est maintenant public.' : 'Ton portfolio est maintenant privé.';
 
         if ($isAsync) {
@@ -480,8 +494,12 @@ final class ApplicantController extends AbstractController
         return $user;
     }
 
-    private function redirectAfterProfileStep(Request $request, string $nextRoute, string $nextMessage, string $exitMessage): Response
+    private function redirectAfterProfileStep(Request $request, string $nextRoute, string $nextMessage, string $exitMessage, ?DeveloperProfile $profile = null, ?NotificationManager $notificationManager = null): Response
     {
+        if ($profile instanceof DeveloperProfile && $notificationManager instanceof NotificationManager) {
+            $notificationManager->notifyRecruitersFollowingProfileUpdated($profile);
+        }
+
         if ('save_and_exit' === (string) $request->request->get('form_action')) {
             $this->addFlash('success', $exitMessage);
 

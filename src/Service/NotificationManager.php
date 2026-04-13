@@ -3,10 +3,12 @@
 namespace App\Service;
 
 use App\Entity\ContactMessage;
+use App\Entity\DeveloperProfile;
 use App\Entity\Notification;
 use App\Entity\User;
 use App\Enum\NotificationType;
 use App\Enum\UserStatus;
+use App\Repository\FavoriteProfileRepository;
 use App\Repository\NotificationRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,6 +19,7 @@ final class NotificationManager
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly NotificationRepository $notificationRepository,
+        private readonly FavoriteProfileRepository $favoriteProfileRepository,
         private readonly UserRepository $userRepository,
         private readonly UrlGeneratorInterface $urlGenerator,
     ) {
@@ -194,6 +197,34 @@ final class NotificationManager
         );
     }
 
+    public function notifyRecruitersFollowingProfileUpdated(DeveloperProfile $profile): void
+    {
+        $this->notifyRecruitersFollowingProfileEvent(
+            $profile,
+            NotificationType::PROFILE_UPDATED,
+            'Profil favori mis à jour',
+            sprintf('Le profil %s a été mis à jour.', $this->resolveDeveloperProfileLabel($profile)),
+            $this->urlGenerator->generate('app_public_profile_show', ['slug' => (string) $profile->getSlug()])
+        );
+    }
+
+    public function notifyRecruitersFollowingProfileVisibilityChanged(DeveloperProfile $profile, bool $isPublic): void
+    {
+        $type = $isPublic ? NotificationType::PROFILE_PUBLISHED : NotificationType::PROFILE_UNPUBLISHED;
+        $title = $isPublic ? 'Profil rendu public' : 'Profil rendu privé';
+        $content = $isPublic
+            ? sprintf('Le profil %s est désormais public.', $this->resolveDeveloperProfileLabel($profile))
+            : sprintf('Le profil %s est désormais privé.', $this->resolveDeveloperProfileLabel($profile));
+
+        $this->notifyRecruitersFollowingProfileEvent(
+            $profile,
+            $type,
+            $title,
+            $content,
+            $isPublic ? $this->urlGenerator->generate('app_public_profile_show', ['slug' => (string) $profile->getSlug()]) : null
+        );
+    }
+
     public function notifyAdminStatusAction(User $adminUser, User $targetUser, ?string $previousStatus, UserStatus $newStatus): void
     {
         $this->createNotification(
@@ -221,6 +252,40 @@ final class NotificationManager
         $notification->setIsRead(false);
 
         $this->entityManager->persist($notification);
+    }
+
+    private function notifyRecruitersFollowingProfileEvent(DeveloperProfile $profile, NotificationType $type, string $title, string $content, ?string $link): void
+    {
+        $notifiedUsers = [];
+
+        foreach ($this->favoriteProfileRepository->findByDeveloperProfile($profile) as $favoriteProfile) {
+            $targetUser = $favoriteProfile->getRecruiterProfile()?->getUser();
+            if (!$targetUser instanceof User) {
+                continue;
+            }
+
+            $targetUserId = $targetUser->getId();
+            if (null !== $targetUserId && isset($notifiedUsers[$targetUserId])) {
+                continue;
+            }
+
+            if (null !== $targetUserId) {
+                $notifiedUsers[$targetUserId] = true;
+            }
+
+            $this->createNotification($targetUser, $type, $title, $content, $link);
+        }
+
+        if ([] !== $notifiedUsers) {
+            $this->entityManager->flush();
+        }
+    }
+
+    private function resolveDeveloperProfileLabel(DeveloperProfile $profile): string
+    {
+        $fullName = trim(sprintf('%s %s', (string) $profile->getFirstName(), (string) $profile->getLastName()));
+
+        return '' !== $fullName ? $fullName : 'ce profil';
     }
 
     private function resolveProfileLabel(User $user): string
