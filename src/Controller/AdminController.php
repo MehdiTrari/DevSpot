@@ -222,7 +222,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/users/{id}/reject', name: 'app_admin_users_reject', methods: ['POST'])]
-    public function rejectPendingUser(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    public function rejectPendingUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
         if (!$this->isCsrfTokenValid('admin_user_reject_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
@@ -231,61 +231,28 @@ final class AdminController extends AbstractController
         }
 
         $previousStatus = $user->getStatus()?->value;
-        $userId = $user->getId();
-        $userEmail = $user->getEmail();
+        $currentUser = $this->getUser();
         $conn = $entityManager->getConnection();
 
-        // Supprimer les données liées dans le bon ordre pour éviter les FK violations
+        // On refuse le compte sans supprimer l'utilisateur pour conserver la notification de refus.
         try {
-            // 1. Supprimer les ContactMessages liés au DeveloperProfile
+            // 1. Supprimer les données de profil liées pour éviter de laisser des ressources orphelines.
             $devProfileId = $user->getDeveloperProfile()?->getId();
             if ($devProfileId) {
-                $conn->executeStatement(
-                    'DELETE FROM contact_message WHERE developer_profile_id = ?',
-                    [$devProfileId]
-                );
-                
-                // 2. Supprimer les Education du DeveloperProfile
-                $conn->executeStatement(
-                    'DELETE FROM education WHERE developer_profile_id = ?',
-                    [$devProfileId]
-                );
-                
-                // 3. Supprimer les Experience du DeveloperProfile
-                $conn->executeStatement(
-                    'DELETE FROM experience WHERE developer_profile_id = ?',
-                    [$devProfileId]
-                );
-                
-                // 4. Supprimer les ProfileSkill du DeveloperProfile
-                $conn->executeStatement(
-                    'DELETE FROM profile_skill WHERE developer_profile_id = ?',
-                    [$devProfileId]
-                );
-                
-                // 5. Supprimer les FavoriteProfile qui pointent au DeveloperProfile
-                $conn->executeStatement(
-                    'DELETE FROM favorite_profile WHERE developer_profile_id = ?',
-                    [$devProfileId]
-                );
+                $conn->executeStatement('DELETE FROM contact_message WHERE developer_profile_id = ?', [$devProfileId]);
+                $conn->executeStatement('DELETE FROM education WHERE developer_profile_id = ?', [$devProfileId]);
+                $conn->executeStatement('DELETE FROM experience WHERE developer_profile_id = ?', [$devProfileId]);
+                $conn->executeStatement('DELETE FROM profile_skill WHERE developer_profile_id = ?', [$devProfileId]);
+                $conn->executeStatement('DELETE FROM favorite_profile WHERE developer_profile_id = ?', [$devProfileId]);
             }
 
-            // 6. Supprimer les FavoriteProfile liés au RecruiterProfile
             $recruiterProfileId = $user->getRecruiterProfile()?->getId();
             if ($recruiterProfileId) {
-                $conn->executeStatement(
-                    'DELETE FROM favorite_profile WHERE recruiter_profile_id = ?',
-                    [$recruiterProfileId]
-                );
-                
-                // 7. Supprimer les JobOffer du RecruiterProfile
-                $conn->executeStatement(
-                    'DELETE FROM job_offer WHERE recruiter_profile_id = ?',
-                    [$recruiterProfileId]
-                );
+                $conn->executeStatement('DELETE FROM favorite_profile WHERE recruiter_profile_id = ?', [$recruiterProfileId]);
+                $conn->executeStatement('DELETE FROM job_offer WHERE recruiter_profile_id = ?', [$recruiterProfileId]);
             }
 
-            // 8. Supprimer les profils
+            // 2. Supprimer les profils rattachés.
             if ($user->getDeveloperProfile()) {
                 $entityManager->remove($user->getDeveloperProfile());
             }
@@ -293,22 +260,28 @@ final class AdminController extends AbstractController
                 $entityManager->remove($user->getRecruiterProfile());
             }
 
-            // 9. Supprimer l'utilisateur
-            $entityManager->remove($user);
+            // 3. Marquer le compte comme refusé.
+            $user->setStatus(UserStatus::DELETED);
+            $user->setUpdatedAt(new \DateTimeImmutable());
 
-            // Log l'action AVANT de flush
-            $this->logAdminAction($entityManager, 'user.rejected', null, [
-                'targetUserId' => $userId,
-                'targetUserEmail' => $userEmail,
+            $notificationManager->notifyUserStatusChanged($user, $previousStatus, UserStatus::DELETED);
+            if ($currentUser instanceof User) {
+                $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, UserStatus::DELETED);
+            }
+
+            // Log l'action AVANT de flush.
+            $this->logAdminAction($entityManager, 'user.rejected', $user, [
+                'targetUserId' => $user->getId(),
+                'targetUserEmail' => $user->getEmail(),
                 'previousStatus' => $previousStatus,
                 'newStatus' => 'deleted',
             ]);
 
             $entityManager->flush();
 
-            $this->addFlash('success', 'Compte supprimé définitivement.');
+            $this->addFlash('success', 'Compte refusé et marqué comme supprimé.');
         } catch (\Exception $e) {
-            $this->addFlash('error', 'Erreur lors de la suppression du compte: ' . $e->getMessage());
+            $this->addFlash('error', 'Erreur lors du refus du compte: ' . $e->getMessage());
             
             return $this->redirectToRoute('app_admin_users');
         }

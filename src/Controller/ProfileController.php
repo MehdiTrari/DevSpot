@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Form\ContactMessageType;
 use App\Repository\ContactMessageRepository;
 use App\Repository\DeveloperProfileRepository;
+use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,6 +20,9 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class ProfileController extends AbstractController
 {
+    private const CONTACT_COOLDOWN_DAYS = 3;
+    private const DAILY_DISTINCT_CONTACT_LIMIT = 20;
+
     #[Route('/profil/{slug}', name: 'app_public_profile_show', methods: ['GET', 'POST'])]
     public function show(
         string $slug,
@@ -27,6 +31,7 @@ final class ProfileController extends AbstractController
         ContactMessageRepository $contactMessageRepository,
         #[Autowire(service: 'html_sanitizer.sanitizer.contact_message')]
         HtmlSanitizerInterface $contactMessageSanitizer,
+        NotificationManager $notificationManager,
         EntityManagerInterface $entityManager,
     ): Response
     {
@@ -49,6 +54,7 @@ final class ProfileController extends AbstractController
         }
 
         $currentUser = $this->getUser();
+        $isRecruiter = $this->isGranted('ROLE_RECRUITER');
         $isAnonymousPublicGet = $profile->isPublic() && !$currentUser instanceof User && $request->isMethod('GET');
 
         if ($isAnonymousPublicGet) {
@@ -72,22 +78,14 @@ final class ProfileController extends AbstractController
         }
 
         $contactRequiresLogin = $profile->isPublic() && !$currentUser instanceof User;
+        $contactRequiresRecruiterRole = $profile->isPublic() && $currentUser instanceof User && !$isRecruiter;
 
-        if ($contactRequiresLogin && $request->isMethod('POST')) {
-            throw $this->createAccessDeniedException('Vous devez être connecté pour contacter ce développeur.');
-        }
-
-        $alreadyContactedDeveloper = false;
-
-        if ($currentUser instanceof User && null !== $currentUser->getEmail()) {
-            $alreadyContactedDeveloper = $contactMessageRepository->recruiterHasAlreadyContactedProfile(
-                $profile,
-                $currentUser->getEmail()
-            );
+        if (($contactRequiresLogin || $contactRequiresRecruiterRole) && $request->isMethod('POST')) {
+            throw $this->createAccessDeniedException('Seuls les recruteurs peuvent contacter ce développeur.');
         }
 
         $contactFormView = null;
-        if ($profile->isPublic() && !$contactRequiresLogin && !$alreadyContactedDeveloper) {
+        if ($profile->isPublic() && !$contactRequiresLogin && !$contactRequiresRecruiterRole) {
             $contactMessage = new ContactMessage();
 
             if ($currentUser instanceof User && null !== $currentUser->getEmail()) {
@@ -115,6 +113,34 @@ final class ProfileController extends AbstractController
                 }
 
                 if ($contactForm->isValid()) {
+                    $recruiterEmail = mb_strtolower(trim((string) ($currentUser instanceof User ? $currentUser->getEmail() : '')));
+
+                    if ('' === $recruiterEmail) {
+                        $contactForm->addError(new FormError('Impossible d\'envoyer le message sans email recruteur valide.'));
+                    }
+
+                    $latestContact = $contactMessageRepository->findLatestForRecruiterAndProfile($profile, $recruiterEmail);
+                    if ($latestContact instanceof ContactMessage) {
+                        $nextAllowedAt = $latestContact->getCreatedAt()?->modify(sprintf('+%d days', self::CONTACT_COOLDOWN_DAYS));
+                        if ($nextAllowedAt instanceof \DateTimeImmutable && $nextAllowedAt > new \DateTimeImmutable()) {
+                            $contactForm->addError(new FormError(sprintf(
+                                'Vous avez déjà contacté ce candidat récemment. Merci d\'attendre %d jour(s) entre deux prises de contact.',
+                                self::CONTACT_COOLDOWN_DAYS
+                            )));
+                        }
+                    }
+
+                    $dayStart = new \DateTimeImmutable('today');
+                    $dayEnd = $dayStart->modify('+1 day');
+                    $dailyDistinctCount = $contactMessageRepository->countDistinctProfilesContactedByRecruiterBetween($recruiterEmail, $dayStart, $dayEnd);
+
+                    if ($dailyDistinctCount >= self::DAILY_DISTINCT_CONTACT_LIMIT) {
+                        $contactForm->addError(new FormError(sprintf(
+                            'Limite atteinte: vous ne pouvez pas contacter plus de %d candidats différents sur une même journée.',
+                            self::DAILY_DISTINCT_CONTACT_LIMIT
+                        )));
+                    }
+
                     $contactMessage->setDeveloperProfile($profile);
                     $contactMessage->setIsRead(false);
                     if (null === $contactMessage->getSubject()) {
@@ -122,6 +148,7 @@ final class ProfileController extends AbstractController
                     }
 
                     $entityManager->persist($contactMessage);
+                    $notificationManager->notifyApplicantNewMessage($contactMessage);
                     $entityManager->flush();
 
                     $this->addFlash('success', 'Votre message a bien été envoyé au développeur.');
@@ -165,7 +192,7 @@ final class ProfileController extends AbstractController
             'technologyNames' => array_values($technologyNames),
             'isOwner' => $this->isOwner($profile),
             'contactRequiresLogin' => $contactRequiresLogin,
-            'alreadyContactedDeveloper' => $alreadyContactedDeveloper,
+            'contactRequiresRecruiterRole' => $contactRequiresRecruiterRole,
             'contactForm' => $contactFormView,
         ]);
 
