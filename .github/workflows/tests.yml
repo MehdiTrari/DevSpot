@@ -16,6 +16,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
+          extensions: pdo_sqlite, sqlite3
           tools: composer:v2
           coverage: none
 
@@ -25,9 +26,53 @@ jobs:
       - name: Run tests
         run: composer test:parallel
 
-  coverage:
+  e2e:
     runs-on: ubuntu-latest
     needs: phpunit
+    env:
+      PANTHER_NO_SANDBOX: 1
+      PANTHER_CHROME_ARGUMENTS: '--disable-dev-shm-usage --window-size=1400,2000'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite, sqlite3
+          tools: composer:v2
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Install browser drivers
+        run: vendor/bin/bdi detect drivers
+
+      - name: Build frontend assets
+        run: |
+          php bin/console tailwind:build
+          php bin/console asset-map:compile
+
+      - name: Ensure screenshot directory exists
+        run: mkdir -p var/error-screenshots
+
+      - name: Run E2E tests
+        run: composer test:e2e
+
+      - name: Upload Panther screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: panther-error-screenshots
+          path: var/error-screenshots
+          if-no-files-found: ignore
+
+  coverage:
+    runs-on: ubuntu-latest
+    needs: [phpunit, e2e]
 
     steps:
       - name: Checkout
@@ -37,6 +82,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
+          extensions: pdo_sqlite, sqlite3
           tools: composer:v2
           coverage: xdebug
           cache: composer
