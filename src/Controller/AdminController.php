@@ -138,10 +138,13 @@ final class AdminController extends AbstractController
         }
 
         $currentRole = $this->extractPrimaryRole($user);
+        $shouldNotifyTargetUser = !$this->isApplicantUser($user);
         $user->setRoles([$requestedRole]);
         $user->setUpdatedAt(new \DateTimeImmutable());
 
-        $notificationManager->notifyUserRoleChanged($user, $currentRole, $requestedRole);
+        if ($shouldNotifyTargetUser) {
+            $notificationManager->notifyUserRoleChanged($user, $currentRole, $requestedRole);
+        }
         if ($currentUser instanceof User) {
             $notificationManager->notifyAdminRoleAction($currentUser, $user, $currentRole, $requestedRole);
         }
@@ -181,13 +184,16 @@ final class AdminController extends AbstractController
         }
 
         $previousStatus = $user->getStatus()?->value;
+        $shouldNotifyTargetUser = !$this->isApplicantUser($user);
         $user->setStatus($status);
         $user->setUpdatedAt(new \DateTimeImmutable());
         if (UserStatus::ACTIVE === $status) {
             $user->setIsVerified(true);
         }
 
-        $notificationManager->notifyUserStatusChanged($user, $previousStatus, $status);
+        if ($shouldNotifyTargetUser) {
+            $notificationManager->notifyUserStatusChanged($user, $previousStatus, $status);
+        }
         if ($currentUser instanceof User) {
             $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $status);
         }
@@ -261,10 +267,13 @@ final class AdminController extends AbstractController
             }
 
             // 3. Marquer le compte comme refusé.
+            $shouldNotifyTargetUser = !$this->isApplicantUser($user);
             $user->setStatus(UserStatus::DELETED);
             $user->setUpdatedAt(new \DateTimeImmutable());
 
-            $notificationManager->notifyUserStatusChanged($user, $previousStatus, UserStatus::DELETED);
+            if ($shouldNotifyTargetUser) {
+                $notificationManager->notifyUserStatusChanged($user, $previousStatus, UserStatus::DELETED);
+            }
             if ($currentUser instanceof User) {
                 $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, UserStatus::DELETED);
             }
@@ -460,13 +469,16 @@ final class AdminController extends AbstractController
         }
 
         $previousStatus = $user->getStatus()?->value;
+        $shouldNotifyTargetUser = !$this->isApplicantUser($user);
         $user->setStatus($newStatus);
         $user->setUpdatedAt(new \DateTimeImmutable());
         if (UserStatus::ACTIVE === $newStatus) {
             $user->setIsVerified(true);
         }
 
-        $notificationManager->notifyUserStatusChanged($user, $previousStatus, $newStatus);
+        if ($shouldNotifyTargetUser) {
+            $notificationManager->notifyUserStatusChanged($user, $previousStatus, $newStatus);
+        }
         if ($currentUser instanceof User) {
             $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $newStatus);
         }
@@ -492,6 +504,11 @@ final class AdminController extends AbstractController
         }
 
         return 'ROLE_USER';
+    }
+
+    private function isApplicantUser(User $user): bool
+    {
+        return in_array('ROLE_APPLICANT', $user->getRoles(), true);
     }
 
     private function logAdminAction(

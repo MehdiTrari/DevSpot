@@ -16,11 +16,14 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[IsGranted('ROLE_USER')]
 final class NotificationController extends AbstractController
 {
+    private const PER_PAGE = 10;
+
     #[Route('', name: 'app_notifications_index', methods: ['GET'])]
     public function index(Request $request, NotificationRepository $notificationRepository): Response
     {
         $user = $this->getAuthenticatedUser();
         $filter = $request->query->get('filter');
+        $requestedPage = max(1, $request->query->getInt('page', 1));
 
         $isRead = null;
         if ('read' === $filter) {
@@ -30,7 +33,10 @@ final class NotificationController extends AbstractController
             $isRead = false;
         }
 
-        $notifications = $notificationRepository->findForUserOrdered($user, $isRead);
+        $total = $notificationRepository->countForUser($user, $isRead);
+        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
+        $currentPage = min($requestedPage, $totalPages);
+        $notifications = $notificationRepository->findForUserOrderedPaginated($user, $isRead, $currentPage, self::PER_PAGE);
         $unreadCount = $notificationRepository->countUnreadForUser($user);
 
         if ($request->isXmlHttpRequest()) {
@@ -38,6 +44,8 @@ final class NotificationController extends AbstractController
                 'notifications' => $notifications,
                 'currentFilter' => $filter,
                 'unreadCount' => $unreadCount,
+                'currentPage' => $currentPage,
+                'totalPages' => $totalPages,
             ]);
         }
 
@@ -45,6 +53,8 @@ final class NotificationController extends AbstractController
             'notifications' => $notifications,
             'currentFilter' => $filter,
             'unreadCount' => $unreadCount,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
         ]);
     }
 
@@ -53,6 +63,7 @@ final class NotificationController extends AbstractController
     {
         $user = $this->getAuthenticatedUser();
         $filter = $request->query->get('filter');
+        $page = max(1, $request->query->getInt('page', 1));
 
         if ($notification->getUser()?->getId() !== $user->getId()) {
             throw $this->createAccessDeniedException('Accès interdit à cette notification.');
@@ -79,6 +90,43 @@ final class NotificationController extends AbstractController
 
         return $this->redirectToRoute('app_notifications_index', [
             'filter' => $filter,
+            'page' => $page,
+        ]);
+    }
+
+    #[Route('/{id}/delete', name: 'app_notifications_delete', methods: ['POST'])]
+    public function delete(Notification $notification, Request $request, EntityManagerInterface $entityManager, NotificationRepository $notificationRepository): Response
+    {
+        $user = $this->getAuthenticatedUser();
+        $filter = $request->query->get('filter');
+        $page = max(1, $request->query->getInt('page', 1));
+
+        if ($notification->getUser()?->getId() !== $user->getId()) {
+            throw $this->createAccessDeniedException('Accès interdit à cette notification.');
+        }
+
+        if (!$this->isCsrfTokenValid('notification_delete_' . $notification->getId(), (string) $request->request->get('_token'))) {
+            if ($request->isXmlHttpRequest()) {
+                return new Response('CSRF invalid', Response::HTTP_FORBIDDEN);
+            }
+
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_notifications_index');
+        }
+
+        $entityManager->remove($notification);
+        $entityManager->flush();
+
+        if ($request->isXmlHttpRequest()) {
+            return $this->renderNotificationsPartial($filter, $user, $request, $notificationRepository);
+        }
+
+        $this->addFlash('success', 'Notification supprimée.');
+
+        return $this->redirectToRoute('app_notifications_index', [
+            'filter' => $filter,
+            'page' => $page,
         ]);
     }
 
@@ -87,6 +135,7 @@ final class NotificationController extends AbstractController
     {
         $user = $this->getAuthenticatedUser();
         $filter = $request->query->get('filter');
+        $page = max(1, $request->query->getInt('page', 1));
 
         if (!$this->isCsrfTokenValid('notification_read_all', (string) $request->request->get('_token'))) {
             if ($request->isXmlHttpRequest()) {
@@ -97,6 +146,7 @@ final class NotificationController extends AbstractController
 
             return $this->redirectToRoute('app_notifications_index', [
                 'filter' => $filter,
+                'page' => $page,
             ]);
         }
 
@@ -114,11 +164,13 @@ final class NotificationController extends AbstractController
 
         return $this->redirectToRoute('app_notifications_index', [
             'filter' => $filter,
+            'page' => $page,
         ]);
     }
 
     private function renderNotificationsPartial(?string $filter, User $user, Request $request, NotificationRepository $notificationRepository): Response
     {
+        $requestedPage = max(1, $request->query->getInt('page', 1));
         $isRead = null;
         if ('read' === $filter) {
             $isRead = true;
@@ -127,7 +179,10 @@ final class NotificationController extends AbstractController
             $isRead = false;
         }
 
-        $notifications = $notificationRepository->findForUserOrdered($user, $isRead);
+        $total = $notificationRepository->countForUser($user, $isRead);
+        $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
+        $currentPage = min($requestedPage, $totalPages);
+        $notifications = $notificationRepository->findForUserOrderedPaginated($user, $isRead, $currentPage, self::PER_PAGE);
         $unreadCount = $notificationRepository->countUnreadForUser($user);
 
         if ($request->isXmlHttpRequest()) {
@@ -135,6 +190,8 @@ final class NotificationController extends AbstractController
                 'notifications' => $notifications,
                 'currentFilter' => $filter,
                 'unreadCount' => $unreadCount,
+                'currentPage' => $currentPage,
+                'totalPages' => $totalPages,
             ]);
         }
 
@@ -142,6 +199,8 @@ final class NotificationController extends AbstractController
             'notifications' => $notifications,
             'currentFilter' => $filter,
             'unreadCount' => $unreadCount,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
         ]);
     }
 
