@@ -139,8 +139,8 @@
                         <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Actions rapides</h2>
                         
                         {% set canStep2 = checklist.step1.done %}
-                        {% set canStep3 = checklist.step2.done %}
-                        {% set canStep4 = checklist.step3.done %}
+                        {% set canStep3 = checklist.step2.done or checklist.step3.done or checklist.step4.done %}
+                        {% set canStep4 = checklist.step3.done or checklist.step4.done %}
                         
                         <div class="mt-5 space-y-3">
                             {% if doneCount == 4 %}

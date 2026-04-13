@@ -37,6 +37,46 @@ class NotificationRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    /**
+     * @return Notification[]
+     */
+    public function findForUserOrderedPaginated(User $user, ?bool $isRead, int $page, int $perPage): array
+    {
+        $safePage = max(1, $page);
+        $safePerPage = max(1, $perPage);
+
+        $qb = $this->createQueryBuilder('n')
+            ->andWhere('n.user = :user')
+            ->setParameter('user', $user)
+            ->orderBy('n.createdAt', 'DESC')
+            ->setFirstResult(($safePage - 1) * $safePerPage)
+            ->setMaxResults($safePerPage);
+
+        if (null !== $isRead) {
+            $qb
+                ->andWhere('n.isRead = :isRead')
+                ->setParameter('isRead', $isRead);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    public function countForUser(User $user, ?bool $isRead = null): int
+    {
+        $qb = $this->createQueryBuilder('n')
+            ->select('COUNT(n.id)')
+            ->andWhere('n.user = :user')
+            ->setParameter('user', $user);
+
+        if (null !== $isRead) {
+            $qb
+                ->andWhere('n.isRead = :isRead')
+                ->setParameter('isRead', $isRead);
+        }
+
+        return (int) $qb->getQuery()->getSingleScalarResult();
+    }
+
     public function countUnreadForUser(User $user): int
     {
         return (int) $this->createQueryBuilder('n')

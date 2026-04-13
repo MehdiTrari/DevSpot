@@ -63,6 +63,45 @@ class ContactMessageRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findLatestForRecruiterAndProfile(DeveloperProfile $developerProfile, string $recruiterEmail): ?ContactMessage
+    {
+        $normalizedEmail = mb_strtolower(trim($recruiterEmail));
+
+        if ('' === $normalizedEmail) {
+            return null;
+        }
+
+        return $this->createQueryBuilder('contact_message')
+            ->andWhere('contact_message.developerProfile = :developerProfile')
+            ->andWhere('LOWER(contact_message.recruiterEmail) = :recruiterEmail')
+            ->setParameter('developerProfile', $developerProfile)
+            ->setParameter('recruiterEmail', $normalizedEmail)
+            ->orderBy('contact_message.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function countDistinctProfilesContactedByRecruiterBetween(string $recruiterEmail, \DateTimeImmutable $from, \DateTimeImmutable $to): int
+    {
+        $normalizedEmail = mb_strtolower(trim($recruiterEmail));
+
+        if ('' === $normalizedEmail) {
+            return 0;
+        }
+
+        return (int) $this->createQueryBuilder('contact_message')
+            ->select('COUNT(DISTINCT IDENTITY(contact_message.developerProfile))')
+            ->andWhere('LOWER(contact_message.recruiterEmail) = :recruiterEmail')
+            ->andWhere('contact_message.createdAt >= :from')
+            ->andWhere('contact_message.createdAt < :to')
+            ->setParameter('recruiterEmail', $normalizedEmail)
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     //    /**
     //     * @return ContactMessage[] Returns an array of ContactMessage objects
     //     */

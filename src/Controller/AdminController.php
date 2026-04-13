@@ -138,10 +138,13 @@ final class AdminController extends AbstractController
         }
 
         $currentRole = $this->extractPrimaryRole($user);
+        $shouldNotifyTargetUser = !$this->isApplicantUser($user);
         $user->setRoles([$requestedRole]);
         $user->setUpdatedAt(new \DateTimeImmutable());
 
-        $notificationManager->notifyUserRoleChanged($user, $currentRole, $requestedRole);
+        if ($shouldNotifyTargetUser) {
+            $notificationManager->notifyUserRoleChanged($user, $currentRole, $requestedRole);
+        }
         if ($currentUser instanceof User) {
             $notificationManager->notifyAdminRoleAction($currentUser, $user, $currentRole, $requestedRole);
         }
@@ -181,13 +184,16 @@ final class AdminController extends AbstractController
         }
 
         $previousStatus = $user->getStatus()?->value;
+        $shouldNotifyTargetUser = !$this->isApplicantUser($user);
         $user->setStatus($status);
         $user->setUpdatedAt(new \DateTimeImmutable());
         if (UserStatus::ACTIVE === $status) {
             $user->setIsVerified(true);
         }
 
-        $notificationManager->notifyUserStatusChanged($user, $previousStatus, $status);
+        if ($shouldNotifyTargetUser) {
+            $notificationManager->notifyUserStatusChanged($user, $previousStatus, $status);
+        }
         if ($currentUser instanceof User) {
             $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $status);
         }
@@ -230,12 +236,19 @@ final class AdminController extends AbstractController
             return $this->redirectToRoute('app_admin_users');
         }
 
+        $currentUser = $this->getUser();
+        if ($currentUser instanceof User && $currentUser->getId() === $user->getId()) {
+            $this->addFlash('error', 'Impossible de supprimer votre propre compte.');
+
+            return $this->redirectToRoute('app_admin_users');
+        }
+
         $previousStatus = $user->getStatus()?->value;
         $userId = $user->getId();
         $userEmail = $user->getEmail();
         $conn = $entityManager->getConnection();
 
-        // Supprimer les données liées dans le bon ordre pour éviter les FK violations
+        // Refus = suppression physique du compte et de ses donnees associees.
         try {
             // 1. Supprimer les ContactMessages liés au DeveloperProfile
             $devProfileId = $user->getDeveloperProfile()?->getId();
@@ -244,25 +257,25 @@ final class AdminController extends AbstractController
                     'DELETE FROM contact_message WHERE developer_profile_id = ?',
                     [$devProfileId]
                 );
-                
+
                 // 2. Supprimer les Education du DeveloperProfile
                 $conn->executeStatement(
                     'DELETE FROM education WHERE developer_profile_id = ?',
                     [$devProfileId]
                 );
-                
+
                 // 3. Supprimer les Experience du DeveloperProfile
                 $conn->executeStatement(
                     'DELETE FROM experience WHERE developer_profile_id = ?',
                     [$devProfileId]
                 );
-                
+
                 // 4. Supprimer les ProfileSkill du DeveloperProfile
                 $conn->executeStatement(
                     'DELETE FROM profile_skill WHERE developer_profile_id = ?',
                     [$devProfileId]
                 );
-                
+
                 // 5. Supprimer les FavoriteProfile qui pointent au DeveloperProfile
                 $conn->executeStatement(
                     'DELETE FROM favorite_profile WHERE developer_profile_id = ?',
@@ -277,7 +290,7 @@ final class AdminController extends AbstractController
                     'DELETE FROM favorite_profile WHERE recruiter_profile_id = ?',
                     [$recruiterProfileId]
                 );
-                
+
                 // 7. Supprimer les JobOffer du RecruiterProfile
                 $conn->executeStatement(
                     'DELETE FROM job_offer WHERE recruiter_profile_id = ?',
@@ -296,7 +309,7 @@ final class AdminController extends AbstractController
             // 9. Supprimer l'utilisateur
             $entityManager->remove($user);
 
-            // Log l'action AVANT de flush
+            // Log l'action AVANT de flush (car après l'utilisateur n'existe plus)
             $this->logAdminAction($entityManager, 'user.rejected', null, [
                 'targetUserId' => $userId,
                 'targetUserEmail' => $userEmail,
@@ -306,9 +319,9 @@ final class AdminController extends AbstractController
 
             $entityManager->flush();
 
-            $this->addFlash('success', 'Compte supprimé définitivement.');
+            $this->addFlash('success', 'Compte refuse et supprime definitiement avec toutes ses donnees.');
         } catch (\Exception $e) {
-            $this->addFlash('error', 'Erreur lors de la suppression du compte: ' . $e->getMessage());
+            $this->addFlash('error', 'Erreur lors du refus du compte: ' . $e->getMessage());
             
             return $this->redirectToRoute('app_admin_users');
         }
@@ -487,13 +500,16 @@ final class AdminController extends AbstractController
         }
 
         $previousStatus = $user->getStatus()?->value;
+        $shouldNotifyTargetUser = !$this->isApplicantUser($user);
         $user->setStatus($newStatus);
         $user->setUpdatedAt(new \DateTimeImmutable());
         if (UserStatus::ACTIVE === $newStatus) {
             $user->setIsVerified(true);
         }
 
-        $notificationManager->notifyUserStatusChanged($user, $previousStatus, $newStatus);
+        if ($shouldNotifyTargetUser) {
+            $notificationManager->notifyUserStatusChanged($user, $previousStatus, $newStatus);
+        }
         if ($currentUser instanceof User) {
             $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $newStatus);
         }
@@ -519,6 +535,11 @@ final class AdminController extends AbstractController
         }
 
         return 'ROLE_USER';
+    }
+
+    private function isApplicantUser(User $user): bool
+    {
+        return in_array('ROLE_APPLICANT', $user->getRoles(), true);
     }
 
     private function logAdminAction(

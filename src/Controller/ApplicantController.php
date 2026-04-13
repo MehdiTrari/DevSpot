@@ -217,7 +217,7 @@ final class ApplicantController extends AbstractController
         }
 
         $checklist = $this->buildChecklist($profile);
-        if (!$checklist['step2']['done']) {
+        if (!$checklist['step2']['done'] && !$checklist['step3']['done'] && !$checklist['step4']['done']) {
             $this->addFlash('info', 'Impossible de passer à l\'étape 3 : il faut au moins une compétence et une formation.');
 
             return $this->redirectToRoute('app_applicant_profile_step2');

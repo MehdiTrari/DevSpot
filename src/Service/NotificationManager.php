@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\ContactMessage;
 use App\Entity\Notification;
 use App\Entity\User;
 use App\Enum\NotificationType;
@@ -132,16 +133,64 @@ final class NotificationManager
             UserStatus::DELETED => NotificationType::ACCOUNT_REJECTED,
         };
 
+        $title = match ($newStatus) {
+            UserStatus::ACTIVE => 'Votre compte a été accepté',
+            UserStatus::DELETED => 'Votre compte a été refusé',
+            UserStatus::SUSPENDED => 'Votre compte a été suspendu',
+            UserStatus::BANNED => 'Votre compte a été banni',
+            UserStatus::PENDING => 'Votre compte est en attente de validation',
+        };
+
+        $content = match ($newStatus) {
+            UserStatus::ACTIVE => sprintf(
+                'Votre compte a été accepté par un administrateur. Statut précédent : %s.',
+                null !== $previousStatus ? strtoupper($previousStatus) : 'INCONNU'
+            ),
+            UserStatus::DELETED => sprintf(
+                'Votre compte a été refusé par un administrateur. Statut précédent : %s.',
+                null !== $previousStatus ? strtoupper($previousStatus) : 'INCONNU'
+            ),
+            UserStatus::SUSPENDED => sprintf(
+                'Votre compte a été suspendu. Statut précédent : %s.',
+                null !== $previousStatus ? strtoupper($previousStatus) : 'INCONNU'
+            ),
+            UserStatus::BANNED => sprintf(
+                'Votre compte a été banni. Statut précédent : %s.',
+                null !== $previousStatus ? strtoupper($previousStatus) : 'INCONNU'
+            ),
+            UserStatus::PENDING => 'Votre compte est toujours en attente de validation.',
+        };
+
         $this->createNotification(
             $targetUser,
             $type,
-            'Statut du compte mis à jour',
-            sprintf(
-                'Votre statut de compte a changé: %s -> %s.',
-                null !== $previousStatus ? strtoupper($previousStatus) : 'INCONNU',
-                strtoupper($newStatus->value)
-            ),
+            $title,
+            $content,
             $this->urlGenerator->generate('app_home')
+        );
+    }
+
+    public function notifyApplicantNewMessage(ContactMessage $contactMessage): void
+    {
+        $targetUser = $contactMessage->getDeveloperProfile()?->getUser();
+
+        if (!$targetUser instanceof User) {
+            return;
+        }
+
+        $senderName = trim((string) $contactMessage->getRecruiterName());
+        $senderLabel = '' !== $senderName ? $senderName : 'Un recruteur';
+        $subject = trim((string) $contactMessage->getSubject());
+        $content = '' !== $subject
+            ? sprintf('%s vous a envoyé un nouveau message : %s', $senderLabel, $subject)
+            : sprintf('%s vous a envoyé un nouveau message.', $senderLabel);
+
+        $this->createNotification(
+            $targetUser,
+            NotificationType::NEW_MESSAGE,
+            'Nouveau message reçu',
+            $content,
+            $this->urlGenerator->generate('app_applicant_messages')
         );
     }
 
