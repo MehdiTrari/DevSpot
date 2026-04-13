@@ -171,7 +171,7 @@ abstract class PantherWebTestCase extends PantherTestCase
         $this->type($client, '#inputEmail', $email);
         $this->type($client, '#inputPassword', $password);
         $this->click($client, 'button[type="submit"]');
-        $client->waitFor('body');
+        $client->waitFor('a[href="/logout"]');
     }
 
     protected function click(Client $client, string $cssSelector): void
@@ -212,6 +212,35 @@ abstract class PantherWebTestCase extends PantherTestCase
             element.dispatchEvent(new Event('input', { bubbles: true }));
             element.dispatchEvent(new Event('change', { bubbles: true }));
         JS, [$cssSelector, $value]);
+    }
+
+    protected function getTextContent(Client $client, string $cssSelector): string
+    {
+        $result = $client->executeScript(<<<'JS'
+            const element = document.querySelector(arguments[0]);
+
+            return element ? (element.textContent || '').trim() : null;
+        JS, [$cssSelector]);
+
+        return is_string($result) ? trim($result) : '';
+    }
+
+    protected function waitForTextContent(Client $client, string $cssSelector, string $expected, int $timeoutMs = 5000): string
+    {
+        $deadline = microtime(true) + ($timeoutMs / 1000);
+        $lastText = '';
+
+        while (microtime(true) < $deadline) {
+            $lastText = $this->getTextContent($client, $cssSelector);
+
+            if (str_contains($lastText, $expected)) {
+                return $lastText;
+            }
+
+            usleep(100000);
+        }
+
+        return $lastText;
     }
 
     protected function selectOptionByText(Client $client, string $cssSelector, string $visibleText): void
@@ -327,5 +356,27 @@ abstract class PantherWebTestCase extends PantherTestCase
         $this->type($client, '#developer_profile_education_0_description', 'Formation en développement web avancé.');
 
         $this->click($client, '#profile-step2-form button[type="submit"]');
+    }
+
+    protected function completeStep3(Client $client, array $overrides = []): void
+    {
+        $values = array_merge([
+            'developer_profile[githubUrl]' => 'https://github.com/mylene-martin',
+            'developer_profile[linkedinUrl]' => 'https://www.linkedin.com/in/mylene-martin',
+            'developer_profile[portfolioUrl]' => 'https://mylene.dev',
+        ], $overrides);
+
+        $client->waitFor('#profile-step3-form');
+        $this->setValue($client, '#developer_profile_githubUrl', (string) $values['developer_profile[githubUrl]']);
+        $this->setValue($client, '#developer_profile_linkedinUrl', (string) $values['developer_profile[linkedinUrl]']);
+        $this->setValue($client, '#developer_profile_portfolioUrl', (string) $values['developer_profile[portfolioUrl]']);
+        $this->click($client, '#profile-step3-form button[type="submit"]');
+    }
+
+    protected function completeStep4(Client $client, array $catalog): void
+    {
+        $client->waitFor('#profile-step4-form');
+        $this->selectMultipleOptionsByValue($client, '#developer_profile_desiredPositions', [(string) $catalog['position']->getId()]);
+        $this->click($client, '#profile-step4-form button[type="submit"]');
     }
 }
