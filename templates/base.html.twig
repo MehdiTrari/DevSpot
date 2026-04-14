@@ -345,11 +345,11 @@
 
                                 const isPublic = payload.isPublic === true;
                                 badge.textContent = isPublic ? 'Public' : 'Privé';
-                                badge.classList.remove('border-emerald-500/30', 'bg-emerald-500/10', 'text-emerald-400', 'border-white/10', 'bg-white/5', 'text-slate-400');
+                                badge.classList.remove('border-emerald-200', 'bg-emerald-100', 'text-emerald-800', 'border-rose-200', 'bg-rose-100', 'text-rose-800');
                                 if (isPublic) {
-                                    badge.classList.add('border-emerald-500/30', 'bg-emerald-500/10', 'text-emerald-400');
+                                    badge.classList.add('border-emerald-200', 'bg-emerald-100', 'text-emerald-800');
                                 } else {
-                                    badge.classList.add('border-white/10', 'bg-white/5', 'text-slate-400');
+                                    badge.classList.add('border-rose-200', 'bg-rose-100', 'text-rose-800');
                                 }
 
                                 hiddenVisibilityInput.value = isPublic ? '0' : '1';
