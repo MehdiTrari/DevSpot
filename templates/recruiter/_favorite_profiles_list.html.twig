@@ -9,46 +9,48 @@
         <p class="mt-2 text-sm text-slate-400">{{ emptyDescription }}</p>
     </div>
 
-    {% for favorite in favoriteProfiles %}
-        {% set profile = favorite.developerProfile %}
-        {% set canOpenProfile = profile and profile.public and profile.portfolioGeneratedAt and profile.user and profile.user.status.value == 'active' %}
+    <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        {% for favorite in favoriteProfiles %}
+            {% set profile = favorite.developerProfile %}
+            {% set canOpenProfile = profile and profile.public and profile.portfolioGeneratedAt and profile.user and profile.user.status.value == 'active' %}
 
-        <div data-favorite-entry="true" class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4">
-            <div class="flex flex-col gap-4">
-                <div class="flex items-start justify-between gap-4">
-                    <div class="min-w-0 flex-1">
-                        <p class="text-sm font-semibold text-white">{{ profile ? profile.firstName ~ ' ' ~ profile.lastName : 'Profil indisponible' }}</p>
-                        <p class="mt-1 text-sm text-slate-300">{{ profile and profile.headline ? profile.headline : 'Titre non renseigne' }}</p>
+            <div
+                data-favorite-entry="true"
+                {% if canOpenProfile %}data-card-href="{{ path('app_public_profile_show', {slug: profile.slug}) }}" data-card-clickable="true" tabindex="0" role="link"{% endif %}
+                class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 {{ canOpenProfile ? 'cursor-pointer transition-all duration-300 hover:border-blue-300/40 hover:bg-white/10' : '' }}"
+            >
+                <div class="flex h-full flex-col gap-4">
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-semibold text-white">{{ profile ? profile.firstName ~ ' ' ~ profile.lastName : 'Profil indisponible' }}</p>
+                            <p class="mt-1 text-sm text-slate-300">{{ profile and profile.headline ? profile.headline : 'Titre non renseigne' }}</p>
+                        </div>
+                        <div class="flex shrink-0 items-center gap-2">
+                            {% if not canOpenProfile %}
+                                <span class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-400">
+                                    Profil non consultable
+                                </span>
+                            {% endif %}
+
+                            {% if profile %}
+                                {% include 'recruiter/_favorite_toggle.html.twig' with {
+                                    profile: profile,
+                                    isFavorite: true,
+                                    redirectPath: redirectPath,
+                                    iconOnly: true,
+                                    removeCardOnRemove: true
+                                } only %}
+                            {% endif %}
+                        </div>
                     </div>
-                    <div class="flex shrink-0 items-center gap-2">
-                        {% if canOpenProfile %}
-                            <a href="{{ path('app_public_profile_show', {slug: profile.slug}) }}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:bg-white/10 active:scale-95">
-                                Voir le profil
-                            </a>
-                        {% else %}
-                            <span class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-400">
-                                Profil non consultable
-                            </span>
-                        {% endif %}
 
-                        {% if profile %}
-                            {% include 'recruiter/_favorite_toggle.html.twig' with {
-                                profile: profile,
-                                isFavorite: true,
-                                redirectPath: redirectPath,
-                                iconOnly: true,
-                                removeCardOnRemove: true
-                            } only %}
-                        {% endif %}
+                    <div class="mt-auto flex flex-wrap gap-2 text-xs text-slate-400">
+                        <span>{{ profile and (profile.city or profile.country) ? [profile.city, profile.country]|filter(v => v)|join(', ') : 'Localisation non renseignee' }}</span>
+                        <span>&bull;</span>
+                        <span>Ajouté le {{ favorite.createdAt ? favorite.createdAt|date('d/m/Y') : 'N/A' }}</span>
                     </div>
-                </div>
-
-                <div class="flex flex-wrap gap-2 text-xs text-slate-400">
-                    <span>{{ profile and (profile.city or profile.country) ? [profile.city, profile.country]|filter(v => v)|join(', ') : 'Localisation non renseignee' }}</span>
-                    <span>&bull;</span>
-                    <span>Ajouté le {{ favorite.createdAt ? favorite.createdAt|date('d/m/Y') : 'N/A' }}</span>
                 </div>
             </div>
-        </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
 </div>

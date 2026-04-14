@@ -10,134 +10,7 @@
         
         {% block stylesheets %}
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-            <style>
-                @import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&display=swap');
-
-                :root {
-                    --indeed-bg: #f4f8ff;
-                    --indeed-surface: #ffffff;
-                    --indeed-surface-alt: #eef4ff;
-                    --indeed-border: #d6e4ff;
-                    --indeed-ink: #16325c;
-                    --indeed-muted: #4f6b99;
-                    --indeed-primary: #2557d6;
-                    --indeed-primary-soft: #dbe7ff;
-                }
-
-                /* Refonte globale blanc/bleu appliquee sur les utilitaires existants. */
-                .indeed-theme {
-                    font-family: 'Nunito Sans', 'Segoe UI', sans-serif;
-                    background: linear-gradient(180deg, #f7faff 0%, #eef4ff 100%);
-                }
-                .indeed-theme [class*="bg-slate-"] {
-                    background-color: var(--indeed-surface) !important;
-                }
-                .indeed-theme [class*="bg-white/"] {
-                    background-color: var(--indeed-surface-alt) !important;
-                }
-                .indeed-theme [class*="border-white/"] {
-                    border-color: var(--indeed-border) !important;
-                }
-                .indeed-theme [class*="text-white"] {
-                    color: var(--indeed-ink) !important;
-                }
-                .indeed-theme [class*="text-slate-"] {
-                    color: var(--indeed-muted) !important;
-                }
-                .indeed-theme [class*="border-emerald-"],
-                .indeed-theme [class*="text-emerald-"],
-                .indeed-theme [class*="bg-emerald-"] {
-                    border-color: #b9d0ff !important;
-                    color: var(--indeed-primary) !important;
-                    background-color: var(--indeed-primary-soft) !important;
-                }
-                .indeed-theme [class*="shadow-black"],
-                .indeed-theme [class*="shadow-emerald-"] {
-                    --tw-shadow-color: rgba(37, 87, 214, 0.16) !important;
-                    box-shadow: 0 14px 38px rgba(37, 87, 214, 0.12) !important;
-                }
-                .indeed-theme [class*="hover:bg-white/10"]:hover {
-                    background-color: #e8f0ff !important;
-                }
-                .indeed-theme [class*="bg-red-"] {
-                    background-color: #ffe7ec !important;
-                }
-
-                /* Style du calendrier Flatpickr - adapte au theme blanc/bleu */
-                .flatpickr-calendar {
-                    border-radius: 1.5rem !important;
-                    border: 1px solid var(--indeed-border) !important;
-                    box-shadow: 0 20px 40px rgba(37, 87, 214, 0.14) !important;
-                    padding: 8px !important;
-                    font-family: inherit !important;
-                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
-                }
-                .flatpickr-day.selected {
-                    background: #2557d6 !important;
-                    border-color: #2557d6 !important;
-                }
-
-                /* ANIMATIONS */
-                @keyframes appleSlideUp {
-                    0% { opacity: 0; transform: translateY(24px); }
-                    100% { opacity: 1; transform: translateY(0); }
-                }
-                @keyframes appleFadeIn {
-                    0% { opacity: 0; }
-                    100% { opacity: 1; }
-                }
-
-                .apple-fade {
-                    animation: appleFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) both;
-                }
-                .apple-slide-up {
-                    animation: appleSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-                }
-                .apple-slide-up-delay-1 {
-                    animation: appleSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
-                }
-                .apple-slide-up-delay-2 {
-                    animation: appleSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
-                }
-
-                .account-menu-panel {
-                    background: #ffffff;
-                    border: 1px solid #c9d8f5;
-                    box-shadow: 0 24px 55px rgba(27, 63, 140, 0.22);
-                }
-                .account-menu-item {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                    border-radius: 0.9rem;
-                    padding: 0.7rem 0.85rem;
-                    font-size: 1.07rem;
-                    font-weight: 700;
-                    color: #2c4f8a;
-                    transition: background-color 0.2s ease, color 0.2s ease;
-                }
-                .account-menu-item-hover:hover {
-                    background: #edf3ff;
-                    color: #17396f;
-                }
-                .account-menu-icon {
-                    display: inline-flex;
-                    height: 1.55rem;
-                    width: 1.55rem;
-                    align-items: center;
-                    justify-content: center;
-                    border-radius: 9999px;
-                    background: #e7efff;
-                    color: #3c63a9;
-                }
-                .account-menu-logout {
-                    color: #dc6f7d;
-                }
-                .account-menu-logout.account-menu-item-hover:hover {
-                    background: #fff1f4;
-                    color: #c14f5f;
-                }
-            </style>
+            <link rel="stylesheet" href="{{ asset('styles/base-theme.css') }}">
         {% endblock %}
 
         {% block javascripts %}
@@ -335,14 +208,6 @@
                         document.querySelectorAll('[data-favorite-count-value="true"]').forEach((element) => {
                             element.textContent = String(favoriteCount);
                         });
-
-                        const countLabel = favoriteCount === 1
-                            ? 'profil développeur enregistré.'
-                            : 'profils développeurs enregistrés.';
-
-                        document.querySelectorAll('[data-favorite-count-label="true"]').forEach((element) => {
-                            element.textContent = countLabel;
-                        });
                     };
 
                     const refreshFavoriteListState = () => {
@@ -505,6 +370,39 @@
                             }
                         });
                     });
+
+                    const cardLinks = document.querySelectorAll('[data-card-clickable="true"][data-card-href]');
+
+                    cardLinks.forEach((cardElement) => {
+                        if (cardElement.dataset.cardLinkInitialized === 'true') {
+                            return;
+                        }
+                        cardElement.dataset.cardLinkInitialized = 'true';
+
+                        const goToCardHref = () => {
+                            const targetHref = cardElement.dataset.cardHref;
+                            if (!targetHref) {
+                                return;
+                            }
+                            window.location.href = targetHref;
+                        };
+
+                        cardElement.addEventListener('click', (event) => {
+                            const eventTarget = event.target;
+                            if (eventTarget instanceof Element && eventTarget.closest('a, button, input, textarea, select, label, form, [data-card-ignore="true"]')) {
+                                return;
+                            }
+                            goToCardHref();
+                        });
+
+                        cardElement.addEventListener('keydown', (event) => {
+                            if (event.key !== 'Enter' && event.key !== ' ') {
+                                return;
+                            }
+                            event.preventDefault();
+                            goToCardHref();
+                        });
+                    });
                 };
 
                 document.addEventListener('DOMContentLoaded', initUiBehaviors);
@@ -567,7 +465,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M14.86 17.082a2 2 0 1 1-3.72 0M4.5 17.25h15a1.5 1.5 0 0 0 1.177-2.427l-1.53-1.92A5.98 5.98 0 0 1 18 9.166V8a6 6 0 1 0-12 0v1.166c0 1.352-.455 2.665-1.292 3.737l-1.53 1.92A1.5 1.5 0 0 0 4.5 17.25Z" />
                                 </svg>
                                 {% if unreadNotificationsCount > 0 %}
-                                    <span class="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border border-emerald-300/20 bg-emerald-500 px-1.5 text-[11px] font-bold leading-none text-slate-950 shadow-lg shadow-emerald-500/30">{{ unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount }}</span>
+                                    <span class="header-count-badge header-count-badge-notification absolute -right-1.5 -top-1.5">{{ unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount }}</span>
                                 {% endif %}
                             </a>
 
@@ -587,7 +485,7 @@
                                         </svg>
                                         {% set unreadMessagesCount = chat_unread_count(app.user) %}
                                         {% if unreadMessagesCount > 0 %}
-                                            <span class="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border border-emerald-300/20 bg-emerald-500 px-1.5 text-[11px] font-bold leading-none text-slate-950 shadow-lg shadow-emerald-500/30">{{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}</span>
+                                            <span class="header-count-badge header-count-badge-message absolute -right-1.5 -top-1.5">{{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}</span>
                                         {% endif %}
                                     </a>
                                 {% elseif is_granted('ROLE_RECRUITER') %}
@@ -597,7 +495,7 @@
                                         </svg>
                                         {% set unreadMessagesCount = chat_unread_count(app.user) %}
                                         {% if unreadMessagesCount > 0 %}
-                                            <span class="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border border-emerald-300/20 bg-emerald-500 px-1.5 text-[11px] font-bold leading-none text-slate-950 shadow-lg shadow-emerald-500/30">{{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}</span>
+                                            <span class="header-count-badge header-count-badge-message absolute -right-1.5 -top-1.5">{{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}</span>
                                         {% endif %}
                                     </a>
                                 {% endif %}

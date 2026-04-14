@@ -3,14 +3,13 @@
 {% block title %}Conversations | DevSpot{% endblock %}
 
 {% block body %}
-    <section class="w-full max-w-6xl font-sans">
-        <div class="grid min-h-[78vh] grid-cols-1 gap-4 rounded-[2rem] border border-white/10 bg-slate-900/60 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl xl:grid-cols-[380px_minmax(0,1fr)_320px]">
-            <aside class="flex min-h-[68vh] flex-col rounded-2xl border border-white/10 bg-white p-3">
+    <section class="w-[min(92rem,calc(100vw-1.5rem))] self-start font-sans h-[calc(100vh-10rem)]">
+        <div class="grid h-full grid-cols-1 gap-4 overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/60 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl xl:grid-cols-3">
+            <aside class="flex h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-white p-3">
                 <div class="mb-3 flex items-center justify-between gap-3 border-b border-white/10 px-2 pb-3">
                     <h1 class="text-base font-semibold text-white">Messages privés</h1>
-                    <a href="{{ path('app_applicant_home') }}" class="text-xs text-blue-600 hover:text-blue-500">Dashboard</a>
                 </div>
-                <div class="flex-1 space-y-2 overflow-y-auto pr-1">
+                <div class="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
                     {% if conversations is empty %}
                         <p class="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700">Aucune conversation active.</p>
                     {% else %}
@@ -23,16 +22,16 @@
                             {% endif %}
                             {% set active = selectedConversation and selectedConversation.id == conversation.id %}
 
-                            <a href="{{ path('app_applicant_message_show', {conversationId: conversation.id}) }}" class="block rounded-xl border px-3 py-2.5 transition {{ active ? 'border-blue-300 bg-blue-50' : 'border-transparent bg-white hover:border-blue-100 hover:bg-blue-50/50' }}">
+                            <a href="{{ path('app_applicant_message_show', {conversationId: conversation.id}) }}" class="block rounded-xl border px-3 py-2.5 transition {{ active ? 'border-blue-300 bg-blue-100/70 shadow-sm' : 'border-blue-200 bg-white hover:border-blue-300 hover:bg-blue-50' }}">
                                 <div class="flex items-start justify-between gap-2">
-                                    <p class="truncate text-sm font-semibold text-white">{{ recruiterName }}</p>
+                                    <p class="truncate text-sm font-semibold text-slate-800">{{ recruiterName }}</p>
                                     {% if row.unreadCount > 0 %}
                                         <span class="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-[11px] font-bold text-white">{{ row.unreadCount }}</span>
                                     {% endif %}
                                 </div>
                                 <div class="mt-1 flex items-end justify-between gap-2">
-                                    <p class="min-w-0 truncate text-xs text-slate-300">{{ row.lastMessage.content|replace({'\n': ' '}) }}</p>
-                                    <span class="shrink-0 text-[11px] text-slate-400">{{ row.lastMessage.createdAt|date('H:i') }}</span>
+                                    <p class="min-w-0 truncate text-xs text-slate-600">{{ row.lastMessage.content|replace({'\n': ' '}) }}</p>
+                                    <span class="shrink-0 text-[11px] text-slate-500">{{ row.lastMessage.createdAt|date('H:i') }}</span>
                                 </div>
                             </a>
                         {% endfor %}
@@ -40,11 +39,16 @@
                 </div>
             </aside>
 
-            <div class="flex min-h-[68vh] flex-col rounded-2xl border border-white/10 bg-white">
+            <div class="flex h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-white xl:col-span-2">
                 {% if selectedConversation %}
                     <header class="flex items-center justify-between border-b border-white/10 px-5 py-3">
-                        <div>
-                            <h2 class="text-base font-semibold text-white">{{ selectedRecruiterName }}</h2>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-3">
+                                <div class="h-10 w-10 overflow-hidden rounded-full border border-blue-200 bg-blue-50">
+                                    <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Avatar du recruteur" class="h-full w-full object-cover">
+                                </div>
+                                <h2 class="truncate text-base font-semibold text-slate-800">{{ selectedRecruiterName }}</h2>
+                            </div>
                         </div>
                     </header>
 
@@ -54,7 +58,7 @@
                         data-chat-scroll="true"
                         data-poll-url="{{ path('app_applicant_message_poll', {conversationId: selectedConversation.id}) }}"
                         data-last-message-id="{{ lastMessageId }}"
-                        class="flex-1 space-y-3 overflow-y-auto px-5 py-4"
+                        class="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4"
                     >
                         {% for message in selectedMessages %}
                             {% include 'applicant/_chat_message.html.twig' with {
@@ -69,7 +73,7 @@
                             {{ form_start(replyForm, {attr: {class: 'space-y-2', id: 'chat-form'}}) }}
                                 <div class="relative">
                                     {{ form_widget(replyForm.content, {attr: {class: 'h-11 w-full rounded-full border border-blue-200 bg-white py-2 pl-4 pr-14 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-0', placeholder: 'Envoyer un message...'}}) }}
-                                    <button type="submit" class="absolute right-1.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-blue-600 text-white transition hover:bg-blue-500" aria-label="Envoyer le message">
+                                    <button type="submit" class="absolute right-1.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-blue-200 bg-blue-100 text-blue-800 transition hover:bg-blue-200" aria-label="Envoyer le message">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 14-7-4 7 4 7-14-7Z" />
                                         </svg>
@@ -86,37 +90,6 @@
                 {% endif %}
             </div>
 
-            <aside class="hidden min-h-[68vh] flex-col rounded-2xl border border-white/10 bg-white xl:flex">
-                {% if selectedConversation and selectedRecruiterUser %}
-                    {% set recruiterProfile = selectedRecruiterUser.recruiterProfile %}
-                    <div class="border-b border-white/10 p-5">
-                        <div class="mx-auto mb-4 h-20 w-20 overflow-hidden rounded-full border border-white/10 bg-white/10">
-                            <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Avatar par défaut" class="h-full w-full object-cover">
-                        </div>
-                        <h3 class="text-center text-2xl font-semibold text-white">{{ selectedRecruiterName }}</h3>
-                        <p class="mt-1 text-center text-sm text-slate-400">{{ selectedRecruiterEmail }}</p>
-                    </div>
-
-                    <div class="space-y-3 p-4 text-sm">
-                        <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                            <p class="text-xs uppercase tracking-wide text-slate-400">Poste</p>
-                            <p class="mt-1 text-slate-200">{{ recruiterProfile and recruiterProfile.jobTitle ? recruiterProfile.jobTitle : 'Non renseigné' }}</p>
-                        </div>
-                        <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                            <p class="text-xs uppercase tracking-wide text-slate-400">Entreprise</p>
-                            <p class="mt-1 text-slate-200">{{ recruiterProfile and recruiterProfile.company ? recruiterProfile.company.name : 'Non renseignée' }}</p>
-                        </div>
-                        <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                            <p class="text-xs uppercase tracking-wide text-slate-400">Email pro</p>
-                            <p class="mt-1 text-slate-200">{{ recruiterProfile and recruiterProfile.workEmail ? recruiterProfile.workEmail : selectedRecruiterEmail }}</p>
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="flex h-full items-center justify-center p-6 text-center text-sm text-slate-400">
-                        Le profil du contact apparaîtra ici.
-                    </div>
-                {% endif %}
-            </aside>
         </div>
 
         <script>
