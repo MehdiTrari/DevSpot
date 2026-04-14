@@ -14,6 +14,28 @@ if ($_SERVER['APP_DEBUG']) {
 }
 
 if ('test' === ($_SERVER['APP_ENV'] ?? $_ENV['APP_ENV'] ?? null)) {
+    if (!isset($_SERVER['PANTHER_WEB_SERVER_PORT']) && !isset($_ENV['PANTHER_WEB_SERVER_PORT'])) {
+        $socket = @stream_socket_server('tcp://127.0.0.1:0', $errno, $errstr);
+
+        if (false !== $socket) {
+            $address = stream_socket_get_name($socket, false);
+            fclose($socket);
+
+            if (is_string($address) && str_contains($address, ':')) {
+                $port = substr($address, strrpos($address, ':') + 1);
+                $_SERVER['PANTHER_WEB_SERVER_PORT'] = $port;
+                $_ENV['PANTHER_WEB_SERVER_PORT'] = $port;
+            }
+        }
+    }
+
+    $testToken = $_SERVER['TEST_TOKEN'] ?? $_ENV['TEST_TOKEN'] ?? '';
+    $sqliteTestDatabase = dirname(__DIR__).'/var/data_test'.$testToken.'.db';
+
+    if (is_file($sqliteTestDatabase)) {
+        @unlink($sqliteTestDatabase);
+    }
+
     $kernelClass = $_SERVER['KERNEL_CLASS'] ?? $_ENV['KERNEL_CLASS'] ?? null;
 
     if (\is_string($kernelClass) && class_exists($kernelClass)) {

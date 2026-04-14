@@ -114,9 +114,20 @@
                                     {% endfor %}
                                 </div>
 
-                                <a href="{{ path('app_public_profile_show', { slug: portfolio.slug }) }}" class="mt-4 inline-flex items-center text-xs font-semibold text-emerald-400 transition-colors duration-300 group-hover:text-emerald-300">
-                                    Voir profil →
-                                </a>
+                                <div class="mt-4 flex flex-wrap items-center gap-3">
+                                    <a href="{{ path('app_public_profile_show', { slug: portfolio.slug }) }}" class="inline-flex items-center text-xs font-semibold text-emerald-400 transition-colors duration-300 group-hover:text-emerald-300">
+                                        Voir profil →
+                                    </a>
+
+                                    {% if is_granted('ROLE_RECRUITER') %}
+                                        {% include 'recruiter/_favorite_toggle.html.twig' with {
+                                            profile: portfolio,
+                                            isFavorite: portfolio.id in favoriteProfileIds|default([]),
+                                            iconOnly: true,
+                                            formClass: 'ml-auto'
+                                        } only %}
+                                    {% endif %}
+                                </div>
                             </article>
                         {% endfor %}
                     </div>
@@ -184,9 +195,20 @@
                                 <span class="text-lg font-semibold text-emerald-300">{{ topMatchScore }}%</span>
                             </div>
 
-                            <a href="{{ path('app_public_profile_show', { slug: portfolio.slug }) }}" class="mt-4 inline-flex items-center text-xs font-semibold text-emerald-400 transition-colors duration-300 group-hover:text-emerald-300">
-                                Voir profil →
-                            </a>
+                            <div class="mt-4 flex flex-wrap items-center gap-3">
+                                <a href="{{ path('app_public_profile_show', { slug: portfolio.slug }) }}" class="inline-flex items-center text-xs font-semibold text-emerald-400 transition-colors duration-300 group-hover:text-emerald-300">
+                                    Voir profil →
+                                </a>
+
+                                {% if is_granted('ROLE_RECRUITER') %}
+                                    {% include 'recruiter/_favorite_toggle.html.twig' with {
+                                        profile: portfolio,
+                                        isFavorite: portfolio.id in favoriteProfileIds|default([]),
+                                        iconOnly: true,
+                                        formClass: 'ml-auto'
+                                    } only %}
+                                {% endif %}
+                            </div>
                         </article>
                     {% endfor %}
                 </div>

@@ -12,6 +12,7 @@ use App\Enum\ConversationStatus;
 use App\Form\ContactMessageType;
 use App\Repository\ConversationRepository;
 use App\Repository\DeveloperProfileRepository;
+use App\Repository\FavoriteProfileRepository;
 use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -35,6 +36,7 @@ final class ProfileController extends AbstractController
         Request $request,
         DeveloperProfileRepository $developerProfileRepository,
         ConversationRepository $conversationRepository,
+        FavoriteProfileRepository $favoriteProfileRepository,
         #[Autowire(service: 'html_sanitizer.sanitizer.contact_message')]
         HtmlSanitizerInterface $contactMessageSanitizer,
         NotificationManager $notificationManager,
@@ -96,10 +98,16 @@ final class ProfileController extends AbstractController
         $contactRequiresRecruiterRole = $profile->isPublic() && $currentUser instanceof User && !$isRecruiter;
         $alreadyContactedDeveloper = false;
         $existingConversation = null;
+        $isFavorite = false;
 
         if ($profile->isPublic() && $currentUser instanceof User && $isRecruiter && $profile->getUser() instanceof User) {
             $existingConversation = $conversationRepository->findOneBetweenUsers($profile->getUser(), $currentUser);
             $alreadyContactedDeveloper = $existingConversation instanceof Conversation;
+
+            $recruiterProfile = $currentUser->getRecruiterProfile();
+            if (null !== $recruiterProfile) {
+                $isFavorite = null !== $favoriteProfileRepository->findOneForRecruiterAndDeveloperProfile($recruiterProfile, $profile);
+            }
         }
 
         if (($contactRequiresLogin || $contactRequiresRecruiterRole) && $request->isMethod('POST')) {
@@ -238,6 +246,7 @@ final class ProfileController extends AbstractController
             'contactRequiresLogin' => $contactRequiresLogin,
             'contactRequiresRecruiterRole' => $contactRequiresRecruiterRole,
             'alreadyContactedDeveloper' => $alreadyContactedDeveloper,
+            'isFavorite' => $isFavorite,
             'contactForm' => $contactFormView,
         ]);
 

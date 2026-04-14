@@ -16,6 +16,8 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class ApplicantMessagesTest extends WebTestCase
 {
+    private static bool $schemaInitialized = false;
+
     public function testApplicantCanSeeReceivedMessagesOrderedFromNewestToOldest(): void
     {
         $client = static::createClient();
@@ -23,21 +25,20 @@ final class ApplicantMessagesTest extends WebTestCase
         $password = 'password123';
         $user = $this->createApplicantWithProfile($email, $password);
 
-        $olderConversation = $this->createConversationFromRecruiter(
+        $olderRecruiter = $this->createRecruiterWithProfile('alice_' . bin2hex(random_bytes(4)) . '@example.com', 'Alice', 'Recruiter');
+        $newerRecruiter = $this->createRecruiterWithProfile('bob_' . bin2hex(random_bytes(4)) . '@example.com', 'Bob', 'Recruiter');
+
+        $olderConversation = $this->createConversation(
             $user,
-            'alice-list@example.com',
-            'Alice',
-            'Recruiter',
+            $olderRecruiter,
             'Premier message de test pour la liste.',
             false,
             new \DateTimeImmutable('-2 days')
         );
-        $newerConversation = $this->createConversationFromRecruiter(
+        $newerConversation = $this->createConversation(
             $user,
-            'bob-list@example.com',
-            'Bob',
-            'Recruiter',
-            'Second message plus recent pour la liste.',
+            $newerRecruiter,
+            'Second message de test plus recent.',
             false,
             new \DateTimeImmutable('-1 day')
         );
@@ -50,15 +51,17 @@ final class ApplicantMessagesTest extends WebTestCase
         self::assertSelectorTextContains('body', 'Alice Recruiter');
         self::assertSelectorTextContains('body', 'Bob Recruiter');
         self::assertSelectorTextContains('body', 'Premier message de test pour la liste.');
-        self::assertSelectorTextContains('body', 'Second message plus recent pour la liste.');
+        self::assertSelectorTextContains('body', 'Second message de test plus recent.');
 
         $links = $crawler->filter('a[href^="/applicant/messages/"]');
         self::assertGreaterThanOrEqual(2, $links->count());
-        self::assertStringContainsString((string) $newerConversation->getRecruiterUser()?->getRecruiterProfile()?->getFirstName(), $links->eq(0)->text());
-        self::assertStringContainsString((string) $olderConversation->getRecruiterUser()?->getRecruiterProfile()?->getFirstName(), $links->eq(1)->text());
+        self::assertStringContainsString((string) $newerConversation->getId(), (string) $links->eq(0)->attr('href'));
+        self::assertStringContainsString('Bob Recruiter', $links->eq(0)->text());
+        self::assertStringContainsString((string) $olderConversation->getId(), (string) $links->eq(1)->attr('href'));
+        self::assertStringContainsString('Alice Recruiter', $links->eq(1)->text());
     }
 
-    public function testMessagesPageShowsEmptyStateWhenNoMessageExists(): void
+    public function testMessagesPageShowsEmptyStateWhenNoConversationExists(): void
     {
         $client = static::createClient();
         $email = sprintf('empty_messages_%s@example.com', bin2hex(random_bytes(6)));
@@ -70,57 +73,64 @@ final class ApplicantMessagesTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'Aucune conversation active.');
+        self::assertSelectorTextContains('body', 'Sélectionnez une conversation à gauche.');
     }
 
-    public function testMessagesPageShowsConversationWithoutUnreadBadgeWhenEverythingIsAlreadyRead(): void
+    public function testMessagesPageShowsConversationWithoutUnreadBadgeWhenAllMessagesAreAlreadyOpened(): void
     {
         $client = static::createClient();
         $email = sprintf('read_messages_%s@example.com', bin2hex(random_bytes(6)));
         $password = 'password123';
         $user = $this->createApplicantWithProfile($email, $password);
+        $recruiter = $this->createRecruiterWithProfile('carla_' . bin2hex(random_bytes(4)) . '@example.com', 'Carla', 'Recruiter');
 
-        $conversation = $this->createConversationFromRecruiter(
+        $conversation = $this->createConversation(
             $user,
-            'carla-read@example.com',
-            'Carla',
-            'Recruiter',
+            $recruiter,
             'Message deja consulte par le candidat.',
             true,
             new \DateTimeImmutable('-3 hours')
         );
 
         $this->login($client, $email, $password);
-        $client->request('GET', '/applicant/messages');
+        $crawler = $client->request('GET', '/applicant/messages');
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'Carla Recruiter');
         self::assertSelectorTextContains('body', 'Message deja consulte par le candidat.');
-        self::assertSelectorNotExists(sprintf('a[href="/applicant/messages/%d"] span[class*="bg-emerald-500"]', $conversation->getId()));
+        self::assertCount(
+            0,
+            $crawler->filter(sprintf('a[href="/applicant/messages/%d"] span.inline-flex.min-h-5.min-w-5', $conversation->getId()))
+        );
     }
 
-    public function testOpeningMessageShowsFullContentAndMarksItAsRead(): void
+    public function testOpeningConversationShowsFullContentAndMarksMessageAsRead(): void
     {
         $client = static::createClient();
         $email = sprintf('show_message_%s@example.com', bin2hex(random_bytes(6)));
         $password = 'password123';
         $user = $this->createApplicantWithProfile($email, $password);
+        $recruiter = $this->createRecruiterWithProfile('diane_' . bin2hex(random_bytes(4)) . '@example.com', 'Diane', 'Recruiter');
 
-        [$conversation, $message] = $this->createConversationWithMessageFromRecruiter(
+        $conversation = $this->createConversation(
             $user,
-            'diane-show@example.com',
-            'Diane',
-            'Recruiter',
+            $recruiter,
             "Bonjour,\nNous souhaitons vous proposer une mission freelance.",
             false,
             new \DateTimeImmutable('-2 hours')
         );
 
+        $messages = $conversation->getMessages()->toArray();
+        self::assertCount(1, $messages);
+        $message = $messages[0];
+        self::assertInstanceOf(Message::class, $message);
+
         $this->login($client, $email, $password);
-        $client->request('GET', '/applicant/messages/'.$conversation->getId());
+        $client->request('GET', '/applicant/messages/' . $conversation->getId());
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'Diane Recruiter');
-        self::assertSelectorTextContains('body', 'diane-show@example.com');
+        self::assertSelectorTextContains('body', (string) $recruiter->getEmail());
         self::assertSelectorTextContains('body', 'Nous souhaitons vous proposer une mission freelance.');
 
         /** @var EntityManagerInterface $entityManager */
@@ -132,7 +142,7 @@ final class ApplicantMessagesTest extends WebTestCase
         self::assertTrue((bool) $reloadedMessage->isRead());
     }
 
-    public function testOnlyOwnerCanAccessMessageDetail(): void
+    public function testOnlyOwnerCanAccessConversationDetail(): void
     {
         $client = static::createClient();
         $ownerEmail = sprintf('owner_messages_%s@example.com', bin2hex(random_bytes(6)));
@@ -140,20 +150,22 @@ final class ApplicantMessagesTest extends WebTestCase
         $password = 'password123';
 
         $owner = $this->createApplicantWithProfile($ownerEmail, $password);
-        $this->createApplicantWithProfile($otherEmail, $password);
+        $otherUser = $this->createApplicantWithProfile($otherEmail, $password);
+        $recruiter = $this->createRecruiterWithProfile('eva_' . bin2hex(random_bytes(4)) . '@example.com', 'Eva', 'Recruiter');
 
-        [$conversation] = $this->createConversationWithMessageFromRecruiter(
+        self::assertInstanceOf(DeveloperProfile::class, $owner->getDeveloperProfile());
+        self::assertInstanceOf(DeveloperProfile::class, $otherUser->getDeveloperProfile());
+
+        $conversation = $this->createConversation(
             $owner,
-            'eva-private@example.com',
-            'Eva',
-            'Recruiter',
+            $recruiter,
             'Message reserve au proprietaire du profil.',
             false,
             new \DateTimeImmutable('-1 hour')
         );
 
         $this->login($client, $otherEmail, $password);
-        $client->request('GET', '/applicant/messages/'.$conversation->getId());
+        $client->request('GET', '/applicant/messages/' . $conversation->getId());
 
         self::assertResponseStatusCodeSame(404);
     }
@@ -199,12 +211,11 @@ final class ApplicantMessagesTest extends WebTestCase
         $email = sprintf('header_messages_%s@example.com', bin2hex(random_bytes(6)));
         $password = 'password123';
         $user = $this->createApplicantWithProfile($email, $password);
+        $recruiter = $this->createRecruiterWithProfile('franck_' . bin2hex(random_bytes(4)) . '@example.com', 'Franck', 'Recruiter');
 
-        $this->createConversationFromRecruiter(
+        $this->createConversation(
             $user,
-            'franck-header@example.com',
-            'Franck',
-            'Recruiter',
+            $recruiter,
             'Message pour verifier le badge non lu.',
             false,
             new \DateTimeImmutable('-30 minutes')
@@ -215,7 +226,7 @@ final class ApplicantMessagesTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('a[href="/applicant/messages"]');
-        self::assertStringContainsString('1', $crawler->filter('a[href="/applicant/messages"]')->text());
+        self::assertSame('1', trim($crawler->filter('a[href="/applicant/messages"] span')->last()->text()));
     }
 
     private function login(object $client, string $email, string $password): void
@@ -239,13 +250,33 @@ final class ApplicantMessagesTest extends WebTestCase
         $profile->setFirstName('Test');
         $profile->setLastName('Applicant');
         $profile->setHeadline('Developpeur Symfony');
-        $profile->setSlug('messages-'.bin2hex(random_bytes(5)));
+        $profile->setSlug('messages-' . bin2hex(random_bytes(5)));
         $profile->setIsPublic(true);
         $profile->setPortfolioGeneratedAt(new \DateTimeImmutable());
         $profile->setUser($user);
         $user->setDeveloperProfile($profile);
 
         $entityManager->persist($profile);
+        $entityManager->flush();
+
+        return $user;
+    }
+
+    private function createRecruiterWithProfile(string $email, string $firstName, string $lastName): User
+    {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $user = $this->createUser($email, 'password123', ['ROLE_RECRUITER']);
+
+        $recruiterProfile = new RecruiterProfile();
+        $recruiterProfile->setFirstName($firstName);
+        $recruiterProfile->setLastName($lastName);
+        $recruiterProfile->setJobTitle('');
+        $recruiterProfile->setWorkEmail($email);
+        $recruiterProfile->setUser($user);
+        $user->setRecruiterProfile($recruiterProfile);
+
+        $entityManager->persist($recruiterProfile);
         $entityManager->flush();
 
         return $user;
@@ -272,75 +303,27 @@ final class ApplicantMessagesTest extends WebTestCase
         return $user;
     }
 
-    private function createRecruiterWithProfile(string $email, string $firstName, string $lastName): User
-    {
-        /** @var EntityManagerInterface $entityManager */
-        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $user = $this->createUser($email, 'password123', ['ROLE_RECRUITER']);
-
-        $profile = new RecruiterProfile();
-        $profile->setFirstName($firstName);
-        $profile->setLastName($lastName);
-        $profile->setJobTitle('Talent Acquisition');
-        $profile->setWorkEmail($email);
-        $profile->setUser($user);
-        $user->setRecruiterProfile($profile);
-
-        $entityManager->persist($profile);
-        $entityManager->flush();
-
-        return $user;
-    }
-
-    private function createConversationFromRecruiter(
-        User $applicantUser,
-        string $recruiterEmail,
-        string $recruiterFirstName,
-        string $recruiterLastName,
+    private function createConversation(
+        User $applicant,
+        User $recruiter,
         string $messageContent,
         bool $isRead,
         \DateTimeImmutable $createdAt,
     ): Conversation {
-        [$conversation] = $this->createConversationWithMessageFromRecruiter(
-            $applicantUser,
-            $recruiterEmail,
-            $recruiterFirstName,
-            $recruiterLastName,
-            $messageContent,
-            $isRead,
-            $createdAt
-        );
-
-        return $conversation;
-    }
-
-    /**
-     * @return array{0: Conversation, 1: Message}
-     */
-    private function createConversationWithMessageFromRecruiter(
-        User $applicantUser,
-        string $recruiterEmail,
-        string $recruiterFirstName,
-        string $recruiterLastName,
-        string $messageContent,
-        bool $isRead,
-        \DateTimeImmutable $createdAt,
-    ): array {
         /** @var EntityManagerInterface $entityManager */
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $recruiterUser = $this->createRecruiterWithProfile($recruiterEmail, $recruiterFirstName, $recruiterLastName);
 
         $conversation = new Conversation();
-        $conversation->setApplicantUser($applicantUser);
-        $conversation->setRecruiterUser($recruiterUser);
-        $conversation->setSubject('Sujet de test');
+        $conversation->setApplicantUser($applicant);
+        $conversation->setRecruiterUser($recruiter);
+        $conversation->setSubject('Conversation de test');
         $conversation->setStatus(ConversationStatus::OPEN);
         $conversation->setCreatedAt($createdAt);
         $conversation->setUpdatedAt($createdAt);
 
         $message = new Message();
-        $message->setConversation($conversation);
-        $message->setSenderUser($recruiterUser);
+        $conversation->addMessage($message);
+        $message->setSenderUser($recruiter);
         $message->setContent($messageContent);
         $message->setIsRead($isRead);
         $message->setCreatedAt($createdAt);
@@ -349,13 +332,12 @@ final class ApplicantMessagesTest extends WebTestCase
         $entityManager->persist($message);
         $entityManager->flush();
 
-        return [$conversation, $message];
+        return $conversation;
     }
 
     private function ensureSchemaExists(EntityManagerInterface $entityManager): void
     {
-        $schemaManager = $entityManager->getConnection()->createSchemaManager();
-        if ($schemaManager->tablesExist(['user'])) {
+        if (self::$schemaInitialized) {
             return;
         }
 
@@ -365,6 +347,8 @@ final class ApplicantMessagesTest extends WebTestCase
         }
 
         $schemaTool = new SchemaTool($entityManager);
+        $schemaTool->dropSchema($metadata);
         $schemaTool->createSchema($metadata);
+        self::$schemaInitialized = true;
     }
 }
