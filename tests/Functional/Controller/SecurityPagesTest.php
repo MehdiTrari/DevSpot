@@ -11,6 +11,8 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class SecurityPagesTest extends WebTestCase
 {
+    private static bool $schemaInitialized = false;
+
     public function testLoginPageIsSuccessful(): void
     {
         $client = static::createClient();
@@ -288,8 +290,7 @@ final class SecurityPagesTest extends WebTestCase
 
     private function ensureSchemaExists(EntityManagerInterface $entityManager): void
     {
-        $schemaManager = $entityManager->getConnection()->createSchemaManager();
-        if ($schemaManager->tablesExist(['user'])) {
+        if (self::$schemaInitialized) {
             return;
         }
 
@@ -299,6 +300,8 @@ final class SecurityPagesTest extends WebTestCase
         }
 
         $schemaTool = new SchemaTool($entityManager);
+        $schemaTool->dropSchema($metadata);
         $schemaTool->createSchema($metadata);
+        self::$schemaInitialized = true;
     }
 }

@@ -2,17 +2,21 @@
 
 namespace App\Controller;
 
-use App\Entity\DeveloperProfile;
 use App\Entity\Conversation;
+use App\Entity\DeveloperProfile;
+use App\Entity\FavoriteProfile;
 use App\Entity\Message;
+use App\Entity\RecruiterProfile;
 use App\Entity\User;
+use App\Enum\UserStatus;
 use App\Form\ChatReplyType;
 use App\Repository\ConversationRepository;
+use App\Repository\FavoriteProfileRepository;
 use App\Repository\MessageRepository;
 use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -25,9 +29,97 @@ final class RecruiterController extends AbstractController
 {
     #[Route('/recruiter', name: 'app_recruiter_home')]
     #[IsGranted('ROLE_RECRUITER')]
-    public function home(): Response
+    public function home(FavoriteProfileRepository $favoriteProfileRepository): Response
     {
-        return $this->render('recruiter/dashboard.html.twig');
+        $favorites = $this->findCurrentRecruiterFavorites($favoriteProfileRepository);
+
+        return $this->render('recruiter/dashboard.html.twig', [
+            'favoriteProfiles' => $favorites,
+            'favoriteProfilesCount' => count($favorites),
+        ]);
+    }
+
+    #[Route('/recruiter/favorites', name: 'app_recruiter_favorites', methods: ['GET'])]
+    #[IsGranted('ROLE_RECRUITER')]
+    public function favorites(FavoriteProfileRepository $favoriteProfileRepository): Response
+    {
+        $favorites = $this->findCurrentRecruiterFavorites($favoriteProfileRepository);
+
+        return $this->render('recruiter/favorites.html.twig', [
+            'favoriteProfiles' => $favorites,
+            'favoriteProfilesCount' => count($favorites),
+        ]);
+    }
+
+    #[Route('/recruiter/favorites/{id}/add', name: 'app_recruiter_favorite_add', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_RECRUITER')]
+    public function addFavorite(
+        DeveloperProfile $profile,
+        Request $request,
+        FavoriteProfileRepository $favoriteProfileRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $redirectPath = $this->resolveFavoriteRedirectPath(
+            $request,
+            $this->generateUrl('app_public_profile_show', ['slug' => (string) $profile->getSlug()])
+        );
+
+        if (!$this->isCsrfTokenValid('favorite_add_' . $profile->getId(), (string) $request->request->get('_token'))) {
+            return $this->favoriteFailureResponse($request, $redirectPath, 'Action refusée, merci de réessayer.', 'error', Response::HTTP_FORBIDDEN);
+        }
+
+        $recruiterProfile = $this->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile) {
+            return $this->favoriteFailureResponse($request, $redirectPath, 'Votre profil recruteur est introuvable.', 'error', Response::HTTP_NOT_FOUND);
+        }
+
+        if (!$this->isFavoritableProfile($profile)) {
+            return $this->favoriteFailureResponse($request, $this->generateUrl('app_home'), 'Ce profil ne peut pas être ajouté aux favoris.', 'error', Response::HTTP_BAD_REQUEST);
+        }
+
+        $existingFavorite = $favoriteProfileRepository->findOneForRecruiterAndDeveloperProfile($recruiterProfile, $profile);
+        if ($existingFavorite instanceof FavoriteProfile) {
+            return $this->favoriteSuccessResponse($request, $redirectPath, $favoriteProfileRepository, $recruiterProfile, $profile, true, 'Ce profil est déjà dans vos favoris.', 'info');
+        }
+
+        $favoriteProfile = new FavoriteProfile();
+        $favoriteProfile->setRecruiterProfile($recruiterProfile);
+        $favoriteProfile->setDeveloperProfile($profile);
+
+        $entityManager->persist($favoriteProfile);
+        $entityManager->flush();
+
+        return $this->favoriteSuccessResponse($request, $redirectPath, $favoriteProfileRepository, $recruiterProfile, $profile, true, 'Profil ajouté aux favoris.');
+    }
+
+    #[Route('/recruiter/favorites/{id}/remove', name: 'app_recruiter_favorite_remove', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_RECRUITER')]
+    public function removeFavorite(
+        DeveloperProfile $profile,
+        Request $request,
+        FavoriteProfileRepository $favoriteProfileRepository,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $redirectPath = $this->resolveFavoriteRedirectPath($request, $this->generateUrl('app_recruiter_home'));
+
+        if (!$this->isCsrfTokenValid('favorite_remove_' . $profile->getId(), (string) $request->request->get('_token'))) {
+            return $this->favoriteFailureResponse($request, $redirectPath, 'Action refusée, merci de réessayer.', 'error', Response::HTTP_FORBIDDEN);
+        }
+
+        $recruiterProfile = $this->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile) {
+            return $this->favoriteFailureResponse($request, $redirectPath, 'Votre profil recruteur est introuvable.', 'error', Response::HTTP_NOT_FOUND);
+        }
+
+        $favoriteProfile = $favoriteProfileRepository->findOneForRecruiterAndDeveloperProfile($recruiterProfile, $profile);
+        if (!$favoriteProfile instanceof FavoriteProfile) {
+            return $this->favoriteSuccessResponse($request, $redirectPath, $favoriteProfileRepository, $recruiterProfile, $profile, false, 'Ce profil n\'est pas dans vos favoris.', 'info');
+        }
+
+        $entityManager->remove($favoriteProfile);
+        $entityManager->flush();
+
+        return $this->favoriteSuccessResponse($request, $redirectPath, $favoriteProfileRepository, $recruiterProfile, $profile, false, 'Profil retiré des favoris.');
     }
 
     #[Route('/recruiter/messages', name: 'app_recruiter_messages')]
@@ -46,7 +138,7 @@ final class RecruiterController extends AbstractController
         ]);
     }
 
-    #[Route('/recruiter/messages/{conversationId}', name: 'app_recruiter_message_show', requirements: ['conversationId' => '\\d+'], methods: ['GET', 'POST'])]
+    #[Route('/recruiter/messages/{conversationId}', name: 'app_recruiter_message_show', requirements: ['conversationId' => '\d+'], methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_RECRUITER')]
     public function showMessage(
         int $conversationId,
@@ -128,7 +220,7 @@ final class RecruiterController extends AbstractController
         ]);
     }
 
-    #[Route('/recruiter/messages/{conversationId}/poll', name: 'app_recruiter_message_poll', requirements: ['conversationId' => '\\d+'], methods: ['GET'])]
+    #[Route('/recruiter/messages/{conversationId}/poll', name: 'app_recruiter_message_poll', requirements: ['conversationId' => '\d+'], methods: ['GET'])]
     #[IsGranted('ROLE_RECRUITER')]
     public function pollConversation(
         int $conversationId,
@@ -176,6 +268,11 @@ final class RecruiterController extends AbstractController
         return $user;
     }
 
+    private function getRecruiterProfile(): ?RecruiterProfile
+    {
+        return $this->getRecruiterUser()->getRecruiterProfile();
+    }
+
     private function resolveRecruiterDisplayName(User $recruiterUser): string
     {
         $recruiterProfile = $recruiterUser->getRecruiterProfile();
@@ -216,5 +313,77 @@ final class RecruiterController extends AbstractController
         }
 
         return $conversationRows;
+    }
+
+    private function isFavoritableProfile(DeveloperProfile $profile): bool
+    {
+        return $profile->isPublic()
+            && null !== $profile->getPortfolioGeneratedAt()
+            && UserStatus::ACTIVE === $profile->getUser()?->getStatus();
+    }
+
+    private function resolveFavoriteRedirectPath(Request $request, string $fallbackPath): string
+    {
+        $redirectPath = trim((string) $request->request->get('_redirect', ''));
+
+        if (str_starts_with($redirectPath, '/')) {
+            return $redirectPath;
+        }
+
+        return $fallbackPath;
+    }
+
+    private function favoriteFailureResponse(Request $request, string $redirectPath, string $message, string $type = 'error', int $statusCode = Response::HTTP_BAD_REQUEST): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            return new JsonResponse([
+                'success' => false,
+                'message' => $message,
+                'type' => $type,
+            ], $statusCode);
+        }
+
+        $this->addFlash($type, $message);
+
+        return $this->redirect($redirectPath);
+    }
+
+    private function favoriteSuccessResponse(
+        Request $request,
+        string $redirectPath,
+        FavoriteProfileRepository $favoriteProfileRepository,
+        RecruiterProfile $recruiterProfile,
+        DeveloperProfile $profile,
+        bool $isFavorite,
+        string $message,
+        string $type = 'success',
+    ): Response {
+        if ($request->isXmlHttpRequest()) {
+            return new JsonResponse([
+                'success' => true,
+                'message' => $message,
+                'type' => $type,
+                'isFavorite' => $isFavorite,
+                'profileId' => $profile->getId(),
+                'favoriteCount' => count($favoriteProfileRepository->findForRecruiterProfile($recruiterProfile)),
+            ]);
+        }
+
+        $this->addFlash($type, $message);
+
+        return $this->redirect($redirectPath);
+    }
+
+    /**
+     * @return list<FavoriteProfile>
+     */
+    private function findCurrentRecruiterFavorites(FavoriteProfileRepository $favoriteProfileRepository): array
+    {
+        $recruiterProfile = $this->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile) {
+            return [];
+        }
+
+        return $favoriteProfileRepository->findForRecruiterProfile($recruiterProfile);
     }
 }

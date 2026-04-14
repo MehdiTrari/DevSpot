@@ -77,6 +77,17 @@
                     </div>
 
                     <div class="shrink-0 pt-1">
+                        {% if profile.public and is_granted('ROLE_RECRUITER') %}
+                            <div class="mb-3 flex justify-end">
+                                {% include 'recruiter/_favorite_toggle.html.twig' with {
+                                    profile: profile,
+                                    isFavorite: isFavorite|default(false),
+                                    redirectPath: app.request.requestUri,
+                                    iconOnly: true,
+                                    iconButtonClass: 'inline-flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95'
+                                } only %}
+                            </div>
+                        {% endif %}
                         {% if profile.public and is_granted('ROLE_RECRUITER') and contactForm is not null %}
                             <a href="#contact-form" data-contact-scroll="true" class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 py-3 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95">
                                 Contacter

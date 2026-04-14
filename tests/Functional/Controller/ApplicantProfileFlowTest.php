@@ -14,6 +14,8 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class ApplicantProfileFlowTest extends WebTestCase
 {
+    private static bool $schemaInitialized = false;
+
     public function testApplicantCanCreateDeveloperProfile(): void
     {
         $client = static::createClient();
@@ -381,8 +383,7 @@ final class ApplicantProfileFlowTest extends WebTestCase
 
     private function ensureSchemaExists(EntityManagerInterface $entityManager): void
     {
-        $schemaManager = $entityManager->getConnection()->createSchemaManager();
-        if ($schemaManager->tablesExist(['user'])) {
+        if (self::$schemaInitialized) {
             return;
         }
 
@@ -392,6 +393,8 @@ final class ApplicantProfileFlowTest extends WebTestCase
         }
 
         $schemaTool = new SchemaTool($entityManager);
+        $schemaTool->dropSchema($metadata);
         $schemaTool->createSchema($metadata);
+        self::$schemaInitialized = true;
     }
 }
