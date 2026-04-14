@@ -14,6 +14,8 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class RecruiterFavoritesTest extends WebTestCase
 {
+    private static bool $schemaInitialized = false;
+
     public function testRecruiterCanAddFavoriteFromHomeDirectory(): void
     {
         $client = static::createClient();
@@ -112,6 +114,24 @@ final class RecruiterFavoritesTest extends WebTestCase
         self::assertSelectorTextContains('body', 'Profil retiré des favoris.');
         self::assertSelectorTextNotContains('body', 'Unique Favorite');
         self::assertCount(0, $this->findFavoritesForRecruiter($recruiterA));
+    }
+
+    public function testRecruiterCanAccessDedicatedFavoritesPage(): void
+    {
+        $client = static::createClient();
+        $profile = $this->createProfileOwnerWithPortfolio(true, 'Laura', 'Favre');
+        $recruiter = $this->createRecruiterUser(sprintf('recruiter_page_%s@example.com', bin2hex(random_bytes(6))), 'password123');
+        $this->createFavorite($recruiter, $profile);
+
+        $client->loginUser($recruiter);
+
+        $crawler = $client->request('GET', '/recruiter');
+        self::assertGreaterThan(0, $crawler->filter('a[href="/recruiter/favorites"]')->count());
+
+        $client->request('GET', '/recruiter/favorites');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('body', 'Tes profils favoris.');
+        self::assertSelectorTextContains('body', 'Laura Favre');
     }
 
     private function createProfileOwnerWithPortfolio(bool $isPublic, string $firstName, string $lastName): DeveloperProfile
@@ -217,8 +237,7 @@ final class RecruiterFavoritesTest extends WebTestCase
 
     private function ensureSchemaExists(EntityManagerInterface $entityManager): void
     {
-        $schemaManager = $entityManager->getConnection()->createSchemaManager();
-        if ($schemaManager->tablesExist(['user'])) {
+        if (self::$schemaInitialized) {
             return;
         }
 
@@ -228,6 +247,8 @@ final class RecruiterFavoritesTest extends WebTestCase
         }
 
         $schemaTool = new SchemaTool($entityManager);
+        $schemaTool->dropSchema($metadata);
         $schemaTool->createSchema($metadata);
+        self::$schemaInitialized = true;
     }
 }

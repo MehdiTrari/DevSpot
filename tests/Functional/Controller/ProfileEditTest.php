@@ -16,6 +16,8 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class ProfileEditTest extends WebTestCase
 {
+    private static bool $schemaInitialized = false;
+
     public function testEditStep1UpdatesProfileAndUpdatedAt(): void
     {
         $client = static::createClient();
@@ -358,8 +360,7 @@ final class ProfileEditTest extends WebTestCase
 
     private function ensureSchemaExists(EntityManagerInterface $entityManager): void
     {
-        $schemaManager = $entityManager->getConnection()->createSchemaManager();
-        if ($schemaManager->tablesExist(['user'])) {
+        if (self::$schemaInitialized) {
             return;
         }
 
@@ -369,6 +370,8 @@ final class ProfileEditTest extends WebTestCase
         }
 
         $schemaTool = new SchemaTool($entityManager);
+        $schemaTool->dropSchema($metadata);
         $schemaTool->createSchema($metadata);
+        self::$schemaInitialized = true;
     }
 }

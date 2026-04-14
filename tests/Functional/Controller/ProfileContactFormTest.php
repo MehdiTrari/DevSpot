@@ -2,8 +2,9 @@
 
 namespace App\Tests\Functional\Controller;
 
-use App\Entity\ContactMessage;
+use App\Entity\Conversation;
 use App\Entity\DeveloperProfile;
+use App\Entity\Message;
 use App\Entity\User;
 use App\Enum\UserStatus;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,6 +14,8 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class ProfileContactFormTest extends WebTestCase
 {
+    private static bool $schemaInitialized = false;
+
     public function testAnonymousUserSeesLoginPromptInsteadOfContactFormOnPublicProfile(): void
     {
         $client = static::createClient();
@@ -46,14 +49,15 @@ final class ProfileContactFormTest extends WebTestCase
         self::assertSelectorExists('textarea[name="contact_message[message]"]');
     }
 
-    public function testContactFormSubmissionPersistsMessageAndShowsConfirmation(): void
+    public function testContactFormSubmissionCreatesConversationAndShowsConfirmation(): void
     {
         $client = static::createClient();
-        $profile = $this->createProfileOwnerWithPortfolio(true)->getDeveloperProfile();
+        $profileOwner = $this->createProfileOwnerWithPortfolio(true);
+        $profile = $profileOwner->getDeveloperProfile();
         $email = sprintf('recruiter_%s@example.com', bin2hex(random_bytes(6)));
         $password = 'password123';
 
-        $this->createRecruiterUser($email, $password);
+        $recruiter = $this->createRecruiterUser($email, $password);
         $this->login($client, $email, $password);
 
         $crawler = $client->request('GET', '/profil/'.$profile->getSlug());
@@ -70,14 +74,22 @@ final class ProfileContactFormTest extends WebTestCase
 
         /** @var EntityManagerInterface $entityManager */
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $savedMessage = $entityManager->getRepository(ContactMessage::class)->findOneBy([
-            'recruiterEmail' => $email,
+        $conversation = $entityManager->getRepository(Conversation::class)->findOneBy([
+            'applicantUser' => $profileOwner,
+            'recruiterUser' => $recruiter,
+        ]);
+        self::assertNotNull($conversation);
+        self::assertSame('Opportunite PHP', $conversation->getSubject());
+
+        $savedMessage = $entityManager->getRepository(Message::class)->findOneBy([
+            'conversation' => $conversation,
+            'senderUser' => $recruiter,
         ]);
 
         self::assertNotNull($savedMessage);
-        self::assertSame('Mylene Recruiter', $savedMessage->getRecruiterName());
-        self::assertSame('Opportunite PHP', $savedMessage->getSubject());
-        self::assertSame($profile->getId(), $savedMessage->getDeveloperProfile()?->getId());
+        self::assertStringContainsString('Nom du recruteur: Mylene Recruiter', (string) $savedMessage->getContent());
+        self::assertStringContainsString('Email du recruteur: '.$email, (string) $savedMessage->getContent());
+        self::assertStringContainsString('Bonjour, nous avons une opportunite CDI Symfony pour vous.', (string) $savedMessage->getContent());
         self::assertFalse((bool) $savedMessage->isRead());
     }
 
@@ -104,11 +116,11 @@ final class ProfileContactFormTest extends WebTestCase
 
         /** @var EntityManagerInterface $entityManager */
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $savedMessages = $entityManager->getRepository(ContactMessage::class)->findBy([
-            'developerProfile' => $profile,
+        $savedConversations = $entityManager->getRepository(Conversation::class)->findBy([
+            'applicantUser' => $profile->getUser(),
         ]);
 
-        self::assertCount(0, $savedMessages);
+        self::assertCount(0, $savedConversations);
     }
 
     public function testPrivateProfileDoesNotDisplayContactFormForOwner(): void
@@ -173,11 +185,11 @@ final class ProfileContactFormTest extends WebTestCase
 
         /** @var EntityManagerInterface $entityManager */
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
-        $savedMessages = $entityManager->getRepository(ContactMessage::class)->findBy([
-            'developerProfile' => $profile,
+        $savedConversations = $entityManager->getRepository(Conversation::class)->findBy([
+            'applicantUser' => $profile->getUser(),
         ]);
 
-        self::assertCount(0, $savedMessages);
+        self::assertCount(0, $savedConversations);
     }
 
     public function testAnonymousUserCannotSubmitContactForm(): void
@@ -266,8 +278,7 @@ final class ProfileContactFormTest extends WebTestCase
 
     private function ensureSchemaExists(EntityManagerInterface $entityManager): void
     {
-        $schemaManager = $entityManager->getConnection()->createSchemaManager();
-        if ($schemaManager->tablesExist(['user'])) {
+        if (self::$schemaInitialized) {
             return;
         }
 
@@ -277,6 +288,8 @@ final class ProfileContactFormTest extends WebTestCase
         }
 
         $schemaTool = new SchemaTool($entityManager);
+        $schemaTool->dropSchema($metadata);
         $schemaTool->createSchema($metadata);
+        self::$schemaInitialized = true;
     }
 }

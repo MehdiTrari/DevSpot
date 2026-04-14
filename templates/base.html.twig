@@ -89,6 +89,15 @@
                         return element;
                     };
 
+                    const pushNotification = (message, type = 'info') => {
+                        if (!notificationStack) {
+                            return;
+                        }
+
+                        notificationStack.prepend(buildNotificationElement(message, type));
+                        initUiBehaviors();
+                    };
+
                     flatpickr(".js-datepicker", {
                         locale: "fr",
                         dateFormat: "Y-m-d",
@@ -153,6 +162,185 @@
                         }
 
                         window.setTimeout(dismiss, Number.isNaN(duration) ? 4000 : duration);
+                    });
+
+                    const outlinedHeartIcon = `
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-.32-.17C9.24 18.8 3 15.37 3 9.75A4.5 4.5 0 0 1 7.5 5.25c1.74 0 3.16.81 4.5 2.09 1.34-1.28 2.76-2.09 4.5-2.09A4.5 4.5 0 0 1 21 9.75c0 5.62-6.24 9.05-8.68 10.33L12 20.25Z" />
+                        </svg>
+                    `.trim();
+
+                    const filledHeartIcon = `
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+                            <path d="M11.645 20.91a.75.75 0 0 0 .71 0c1.055-.518 9.145-4.707 9.145-11.41A5.25 5.25 0 0 0 12 6.084 5.25 5.25 0 0 0 2.5 9.5c0 6.703 8.09 10.892 9.145 11.41Z" />
+                        </svg>
+                    `.trim();
+
+                    const selectorEscape = (value) => {
+                        if (window.CSS && typeof window.CSS.escape === 'function') {
+                            return window.CSS.escape(String(value));
+                        }
+
+                        return String(value);
+                    };
+
+                    const getFavoriteForms = (profileId) => document.querySelectorAll(
+                        `[data-favorite-toggle="true"][data-favorite-profile-id="${selectorEscape(profileId)}"]`
+                    );
+
+                    const setFavoriteFormLoading = (formElement, isLoading) => {
+                        const button = formElement.querySelector('[data-favorite-button="true"]');
+                        if (!button) {
+                            return;
+                        }
+
+                        if (isLoading) {
+                            button.setAttribute('disabled', 'disabled');
+                            button.classList.add('opacity-70', 'cursor-not-allowed');
+                            return;
+                        }
+
+                        button.removeAttribute('disabled');
+                        button.classList.remove('opacity-70', 'cursor-not-allowed');
+                    };
+
+                    const updateFavoriteButtonState = (formElement, isFavorite) => {
+                        const button = formElement.querySelector('[data-favorite-button="true"]');
+                        const tokenInput = formElement.querySelector('[data-favorite-token="true"]');
+                        const content = formElement.querySelector('[data-favorite-content="true"]');
+
+                        if (!button || !tokenInput || !content) {
+                            return;
+                        }
+
+                        const label = isFavorite
+                            ? (formElement.dataset.favoriteRemoveLabel ?? 'Retirer des favoris')
+                            : (formElement.dataset.favoriteAddLabel ?? 'Ajouter aux favoris');
+
+                        formElement.action = isFavorite
+                            ? (formElement.dataset.favoriteRemoveUrl ?? formElement.action)
+                            : (formElement.dataset.favoriteAddUrl ?? formElement.action);
+                        tokenInput.value = isFavorite
+                            ? (formElement.dataset.favoriteRemoveToken ?? tokenInput.value)
+                            : (formElement.dataset.favoriteAddToken ?? tokenInput.value);
+                        button.dataset.favoriteAction = isFavorite ? 'remove' : 'add';
+                        button.className = isFavorite
+                            ? (formElement.dataset.favoriteRemoveButtonClass ?? button.className)
+                            : (formElement.dataset.favoriteAddButtonClass ?? button.className);
+                        button.setAttribute('aria-label', label);
+                        button.setAttribute('title', label);
+
+                        if (formElement.dataset.favoriteIconOnly === '1') {
+                            content.innerHTML = isFavorite ? filledHeartIcon : outlinedHeartIcon;
+                        } else {
+                            content.textContent = label;
+                        }
+                    };
+
+                    const updateFavoriteCount = (favoriteCount) => {
+                        if (!Number.isFinite(favoriteCount)) {
+                            return;
+                        }
+
+                        document.querySelectorAll('[data-favorite-count-value="true"]').forEach((element) => {
+                            element.textContent = String(favoriteCount);
+                        });
+
+                        const countLabel = favoriteCount === 1
+                            ? 'profil développeur enregistré.'
+                            : 'profils développeurs enregistrés.';
+
+                        document.querySelectorAll('[data-favorite-count-label="true"]').forEach((element) => {
+                            element.textContent = countLabel;
+                        });
+                    };
+
+                    const refreshFavoriteListState = () => {
+                        const list = document.querySelector('[data-favorite-list="true"]');
+                        if (!list) {
+                            return;
+                        }
+
+                        const emptyState = list.querySelector('[data-favorite-empty-state="true"]');
+                        if (!emptyState) {
+                            return;
+                        }
+
+                        const hasEntries = list.querySelectorAll('[data-favorite-entry="true"]').length > 0;
+                        emptyState.classList.toggle('hidden', hasEntries);
+                    };
+
+                    const syncFavoriteForms = (profileId, isFavorite) => {
+                        getFavoriteForms(profileId).forEach((formElement) => {
+                            if (!isFavorite && formElement.dataset.favoriteRemoveCardOnRemove === '1') {
+                                const entry = formElement.closest('[data-favorite-entry="true"]');
+                                if (entry) {
+                                    entry.remove();
+                                    return;
+                                }
+                            }
+
+                            updateFavoriteButtonState(formElement, isFavorite);
+                        });
+
+                        refreshFavoriteListState();
+                    };
+
+                    const favoriteForms = document.querySelectorAll('[data-favorite-toggle="true"]');
+
+                    favoriteForms.forEach((formElement) => {
+                        if (formElement.dataset.favoriteInitialized === 'true') {
+                            return;
+                        }
+                        formElement.dataset.favoriteInitialized = 'true';
+
+                        const initialIsFavorite = formElement.querySelector('[data-favorite-button="true"]')?.dataset.favoriteAction === 'remove';
+                        updateFavoriteButtonState(formElement, initialIsFavorite);
+
+                        formElement.addEventListener('submit', async (event) => {
+                            event.preventDefault();
+
+                            const profileId = formElement.dataset.favoriteProfileId;
+                            if (!profileId) {
+                                formElement.submit();
+                                return;
+                            }
+
+                            const relatedForms = Array.from(getFavoriteForms(profileId));
+                            relatedForms.forEach((relatedForm) => setFavoriteFormLoading(relatedForm, true));
+
+                            try {
+                                const response = await fetch(formElement.action, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json',
+                                    },
+                                    body: new FormData(formElement),
+                                    credentials: 'same-origin',
+                                });
+
+                                const payload = await response.json().catch(() => ({}));
+
+                                if (!response.ok || !payload.success) {
+                                    pushNotification(payload?.message ?? 'Action impossible, merci de reessayer.', payload?.type ?? 'error');
+                                    return;
+                                }
+
+                                syncFavoriteForms(profileId, payload.isFavorite === true);
+
+                                const favoriteCount = Number.parseInt(String(payload.favoriteCount ?? ''), 10);
+                                if (!Number.isNaN(favoriteCount)) {
+                                    updateFavoriteCount(favoriteCount);
+                                }
+
+                                pushNotification(payload.message ?? 'Favoris mis a jour.', payload.type ?? 'success');
+                            } catch (_error) {
+                                pushNotification('Erreur reseau, merci de reessayer.', 'error');
+                            } finally {
+                                relatedForms.forEach((relatedForm) => setFavoriteFormLoading(relatedForm, false));
+                            }
+                        });
                     });
 
                     const visibilityForms = document.querySelectorAll('[data-visibility-toggle="true"]');
@@ -286,6 +474,14 @@
                             </a>
 
                             {% if not is_granted('ROLE_ADMIN') %}
+                                {% if is_granted('ROLE_RECRUITER') %}
+                                    <a href="{{ path('app_recruiter_favorites') }}" class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95" aria-label="Acceder aux favoris">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-.32-.17C9.24 18.8 3 15.37 3 9.75A4.5 4.5 0 0 1 7.5 5.25c1.74 0 3.16.81 4.5 2.09 1.34-1.28 2.76-2.09 4.5-2.09A4.5 4.5 0 0 1 21 9.75c0 5.62-6.24 9.05-8.68 10.33L12 20.25Z" />
+                                        </svg>
+                                    </a>
+                                {% endif %}
+
                                 {% if is_granted('ROLE_APPLICANT') and app.user.developerProfile is not null and app.user.developerProfile.portfolioGeneratedAt is not null %}
                                     <a href="{{ path('app_applicant_messages') }}" class="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95" aria-label="Accéder à la messagerie">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
