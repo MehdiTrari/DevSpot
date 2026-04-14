@@ -775,15 +775,16 @@ final class ApplicantController extends AbstractController
 
         $this->removePreviousAvatar($profile, $uploadDirectory);
 
-        $extension = strtolower($avatarFile->getClientOriginalExtension());
-        if ('' === $extension) {
-            $extension = strtolower(pathinfo($avatarFile->getClientOriginalName(), PATHINFO_EXTENSION));
-        }
-        if ('' === $extension) {
-            $extension = 'bin';
-        }
+        $imageInfo = @getimagesize($avatarFile->getPathname());
+        $mimeType = is_array($imageInfo) ? ($imageInfo['mime'] ?? null) : null;
+        $extension = match ($mimeType) {
+            'image/png' => 'png',
+            'image/gif' => 'gif',
+            'image/webp' => 'webp',
+            default => 'jpg',
+        };
         $slug = $profile->getSlug() ?: 'profil';
-        $fileName = sprintf('%s-%s.%s', $slug, substr(bin2hex(random_bytes(4)), 0, 8), strtolower($extension));
+        $fileName = sprintf('%s-%s.%s', $slug, substr(bin2hex(random_bytes(4)), 0, 8), $extension);
 
         try {
             $avatarFile->move($uploadDirectory, $fileName);

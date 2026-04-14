@@ -5,15 +5,16 @@ namespace App\Controller;
 use App\Entity\AdminActionLog;
 use App\Entity\User;
 use App\Enum\UserStatus;
-use App\Repository\UserRepository;
-use App\Repository\DeveloperProfileRepository;
+use App\Repository\AdminActionLogRepository;
 use App\Repository\CompanyRepository;
 use App\Repository\ContactMessageRepository;
-use App\Repository\AdminActionLogRepository;
+use App\Repository\DeveloperProfileRepository;
+use App\Repository\UserRepository;
 use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\HttpFoundation\Request;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -24,6 +25,10 @@ final class AdminController extends AbstractController
 {
     /** @var string[] */
     private const ALLOWED_ROLES = ['ROLE_APPLICANT', 'ROLE_RECRUITER', 'ROLE_ADMIN'];
+
+    public function __construct(private readonly LoggerInterface $logger)
+    {
+    }
 
     #[Route('', name: 'app_admin_dashboard')]
     public function dashboard(
@@ -36,7 +41,6 @@ final class AdminController extends AbstractController
     ): Response {
         $notificationManager->notifyAdminsOldPendingAccounts();
 
-        // Statistiques globales avec requêtes DQL pour les rôles JSON
         $stats = [
             'totalUsers' => $userRepository->count([]),
             'totalApplicants' => $this->countUsersByRole($userRepository, 'ROLE_APPLICANT'),
@@ -47,26 +51,9 @@ final class AdminController extends AbstractController
             'unreadMessages' => $contactMessageRepository->count(['isRead' => false]),
         ];
 
-        // Dernières actions administrateur
-        $recentActions = $adminActionLogRepository->findBy(
-            [],
-            ['createdAt' => 'DESC'],
-            5
-        );
-
-        // Derniers utilisateurs enregistrés
-        $recentUsers = $userRepository->findBy(
-            [],
-            ['createdAt' => 'DESC'],
-            5
-        );
-
-        // Derniers messages de contact
-        $recentMessages = $contactMessageRepository->findBy(
-            [],
-            ['createdAt' => 'DESC'],
-            5
-        );
+        $recentActions = $adminActionLogRepository->findBy([], ['createdAt' => 'DESC'], 5);
+        $recentUsers = $userRepository->findBy([], ['createdAt' => 'DESC'], 5);
+        $recentMessages = $contactMessageRepository->findBy([], ['createdAt' => 'DESC'], 5);
 
         return $this->render('admin/dashboard.html.twig', [
             'stats' => $stats,
@@ -246,70 +233,9 @@ final class AdminController extends AbstractController
         $previousStatus = $user->getStatus()?->value;
         $userId = $user->getId();
         $userEmail = $user->getEmail();
-        $conn = $entityManager->getConnection();
 
-        // Refus = suppression physique du compte et de ses donnees associees.
         try {
-            // 1. Supprimer les ContactMessages liés au DeveloperProfile
-            $devProfileId = $user->getDeveloperProfile()?->getId();
-            if ($devProfileId) {
-                $conn->executeStatement(
-                    'DELETE FROM contact_message WHERE developer_profile_id = ?',
-                    [$devProfileId]
-                );
-
-                // 2. Supprimer les Education du DeveloperProfile
-                $conn->executeStatement(
-                    'DELETE FROM education WHERE developer_profile_id = ?',
-                    [$devProfileId]
-                );
-
-                // 3. Supprimer les Experience du DeveloperProfile
-                $conn->executeStatement(
-                    'DELETE FROM experience WHERE developer_profile_id = ?',
-                    [$devProfileId]
-                );
-
-                // 4. Supprimer les ProfileSkill du DeveloperProfile
-                $conn->executeStatement(
-                    'DELETE FROM profile_skill WHERE developer_profile_id = ?',
-                    [$devProfileId]
-                );
-
-                // 5. Supprimer les FavoriteProfile qui pointent au DeveloperProfile
-                $conn->executeStatement(
-                    'DELETE FROM favorite_profile WHERE developer_profile_id = ?',
-                    [$devProfileId]
-                );
-            }
-
-            // 6. Supprimer les FavoriteProfile liés au RecruiterProfile
-            $recruiterProfileId = $user->getRecruiterProfile()?->getId();
-            if ($recruiterProfileId) {
-                $conn->executeStatement(
-                    'DELETE FROM favorite_profile WHERE recruiter_profile_id = ?',
-                    [$recruiterProfileId]
-                );
-
-                // 7. Supprimer les JobOffer du RecruiterProfile
-                $conn->executeStatement(
-                    'DELETE FROM job_offer WHERE recruiter_profile_id = ?',
-                    [$recruiterProfileId]
-                );
-            }
-
-            // 8. Supprimer les profils
-            if ($user->getDeveloperProfile()) {
-                $entityManager->remove($user->getDeveloperProfile());
-            }
-            if ($user->getRecruiterProfile()) {
-                $entityManager->remove($user->getRecruiterProfile());
-            }
-
-            // 9. Supprimer l'utilisateur
-            $entityManager->remove($user);
-
-            // Log l'action AVANT de flush (car après l'utilisateur n'existe plus)
+            $this->removeUserDataGraph($user, $entityManager);
             $this->logAdminAction($entityManager, 'user.rejected', null, [
                 'targetUserId' => $userId,
                 'targetUserEmail' => $userEmail,
@@ -320,9 +246,13 @@ final class AdminController extends AbstractController
             $entityManager->flush();
 
             $this->addFlash('success', 'Compte refuse et supprime definitiement avec toutes ses donnees.');
-        } catch (\Exception $e) {
-            $this->addFlash('error', 'Erreur lors du refus du compte: ' . $e->getMessage());
-            
+        } catch (\Throwable $exception) {
+            $this->logger->error('Le refus d\'un compte utilisateur a echoue.', [
+                'userId' => $userId,
+                'error' => $exception->getMessage(),
+            ]);
+            $this->addFlash('error', 'Erreur lors du refus du compte. Merci de reessayer.');
+
             return $this->redirectToRoute('app_admin_users');
         }
 
@@ -348,70 +278,9 @@ final class AdminController extends AbstractController
         $previousStatus = $user->getStatus()?->value;
         $userId = $user->getId();
         $userEmail = $user->getEmail();
-        $conn = $entityManager->getConnection();
 
-        // Supprimer les données liées dans le bon ordre pour éviter les FK violations
         try {
-            // 1. Supprimer les ContactMessages liés au DeveloperProfile
-            $devProfileId = $user->getDeveloperProfile()?->getId();
-            if ($devProfileId) {
-                $conn->executeStatement(
-                    'DELETE FROM contact_message WHERE developer_profile_id = ?',
-                    [$devProfileId]
-                );
-                
-                // 2. Supprimer les Education du DeveloperProfile
-                $conn->executeStatement(
-                    'DELETE FROM education WHERE developer_profile_id = ?',
-                    [$devProfileId]
-                );
-                
-                // 3. Supprimer les Experience du DeveloperProfile
-                $conn->executeStatement(
-                    'DELETE FROM experience WHERE developer_profile_id = ?',
-                    [$devProfileId]
-                );
-                
-                // 4. Supprimer les ProfileSkill du DeveloperProfile
-                $conn->executeStatement(
-                    'DELETE FROM profile_skill WHERE developer_profile_id = ?',
-                    [$devProfileId]
-                );
-                
-                // 5. Supprimer les FavoriteProfile qui pointent au DeveloperProfile
-                $conn->executeStatement(
-                    'DELETE FROM favorite_profile WHERE developer_profile_id = ?',
-                    [$devProfileId]
-                );
-            }
-
-            // 6. Supprimer les FavoriteProfile liés au RecruiterProfile
-            $recruiterProfileId = $user->getRecruiterProfile()?->getId();
-            if ($recruiterProfileId) {
-                $conn->executeStatement(
-                    'DELETE FROM favorite_profile WHERE recruiter_profile_id = ?',
-                    [$recruiterProfileId]
-                );
-                
-                // 7. Supprimer les JobOffer du RecruiterProfile
-                $conn->executeStatement(
-                    'DELETE FROM job_offer WHERE recruiter_profile_id = ?',
-                    [$recruiterProfileId]
-                );
-            }
-
-            // 8. Supprimer les profils
-            if ($user->getDeveloperProfile()) {
-                $entityManager->remove($user->getDeveloperProfile());
-            }
-            if ($user->getRecruiterProfile()) {
-                $entityManager->remove($user->getRecruiterProfile());
-            }
-
-            // 9. Supprimer l'utilisateur
-            $entityManager->remove($user);
-
-            // Log l'action AVANT de flush (car après l'utilisateur n'existe plus)
+            $this->removeUserDataGraph($user, $entityManager);
             $this->logAdminAction($entityManager, 'user.deleted', null, [
                 'targetUserId' => $userId,
                 'targetUserEmail' => $userEmail,
@@ -422,9 +291,13 @@ final class AdminController extends AbstractController
             $entityManager->flush();
 
             $this->addFlash('success', 'Compte utilisateur supprime definitiement avec toutes ses donnees.');
-        } catch (\Exception $e) {
-            $this->addFlash('error', 'Erreur lors de la suppression du compte: ' . $e->getMessage());
-            
+        } catch (\Throwable $exception) {
+            $this->logger->error('La suppression d\'un compte utilisateur a echoue.', [
+                'userId' => $userId,
+                'error' => $exception->getMessage(),
+            ]);
+            $this->addFlash('error', 'Erreur lors de la suppression du compte. Merci de reessayer.');
+
             return $this->redirectToRoute('app_admin_users');
         }
 
@@ -434,46 +307,30 @@ final class AdminController extends AbstractController
     #[Route('/profiles', name: 'app_admin_profiles')]
     public function profiles(DeveloperProfileRepository $profileRepository): Response
     {
-        $profiles = $profileRepository->findAll();
-
         return $this->render('admin/profiles.html.twig', [
-            'profiles' => $profiles,
+            'profiles' => $profileRepository->findAll(),
         ]);
     }
 
     #[Route('/companies', name: 'app_admin_companies')]
     public function companies(CompanyRepository $companyRepository): Response
     {
-        $companies = $companyRepository->findAll();
-
         return $this->render('admin/companies.html.twig', [
-            'companies' => $companies,
+            'companies' => $companyRepository->findAll(),
         ]);
     }
 
     #[Route('/messages', name: 'app_admin_messages')]
     public function messages(ContactMessageRepository $contactMessageRepository): Response
     {
-        $messages = $contactMessageRepository->findBy([], ['createdAt' => 'DESC']);
-
         return $this->render('admin/messages.html.twig', [
-            'messages' => $messages,
+            'messages' => $contactMessageRepository->findBy([], ['createdAt' => 'DESC']),
         ]);
     }
 
-    /**
-     * Compte les utilisateurs ayant un rôle spécifique
-     * Utilise une requête SQL native car les rôles sont stockés en JSON
-     */
     private function countUsersByRole(UserRepository $userRepository, string $role): int
     {
-        $em = $userRepository->getEntityManager();
-        $conn = $em->getConnection();
-        
-        $sql = 'SELECT COUNT(*) as count FROM "user" WHERE roles::text LIKE ?';
-        $result = $conn->executeQuery($sql, ['%' . $role . '%']);
-        
-        return (int) $result->fetchOne();
+        return $userRepository->countByRole($role);
     }
 
     private function applyStatusAction(
@@ -484,7 +341,7 @@ final class AdminController extends AbstractController
         UserStatus $newStatus,
         string $csrfPrefix,
         string $logAction,
-        string $successMessage
+        string $successMessage,
     ): Response {
         if (!$this->isCsrfTokenValid($csrfPrefix . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
@@ -547,7 +404,7 @@ final class AdminController extends AbstractController
         string $action,
         ?User $targetUser = null,
         ?array $metadata = null,
-        ?string $reason = null
+        ?string $reason = null,
     ): void {
         $adminUser = $this->getUser();
         if (!$adminUser instanceof User) {
@@ -563,5 +420,81 @@ final class AdminController extends AbstractController
         $log->setTargetUser($targetUser);
 
         $entityManager->persist($log);
+    }
+
+    private function removeUserDataGraph(User $user, EntityManagerInterface $entityManager): void
+    {
+        $developerProfile = $user->getDeveloperProfile();
+        if (null !== $developerProfile) {
+            foreach ($developerProfile->getContactMessages()->toArray() as $contactMessage) {
+                $entityManager->remove($contactMessage);
+            }
+
+            foreach ($developerProfile->getEducation()->toArray() as $education) {
+                $entityManager->remove($education);
+            }
+
+            foreach ($developerProfile->getExperiences()->toArray() as $experience) {
+                $entityManager->remove($experience);
+            }
+
+            foreach ($developerProfile->getProfileSkills()->toArray() as $profileSkill) {
+                $entityManager->remove($profileSkill);
+            }
+
+            foreach ($developerProfile->getFavoriteProfiles()->toArray() as $favoriteProfile) {
+                $entityManager->remove($favoriteProfile);
+            }
+
+            $developerProfile->getDesiredPositions()->clear();
+            $entityManager->remove($developerProfile);
+        }
+
+        $recruiterProfile = $user->getRecruiterProfile();
+        if (null !== $recruiterProfile) {
+            foreach ($recruiterProfile->getFavoriteProfiles()->toArray() as $favoriteProfile) {
+                $entityManager->remove($favoriteProfile);
+            }
+
+            foreach ($recruiterProfile->getJobOffers()->toArray() as $jobOffer) {
+                $entityManager->remove($jobOffer);
+            }
+
+            $entityManager->remove($recruiterProfile);
+        }
+
+        foreach ($user->getNotifications()->toArray() as $notification) {
+            $entityManager->remove($notification);
+        }
+
+        $conversations = [];
+        foreach ($user->getConversations()->toArray() as $conversation) {
+            $conversations[spl_object_hash($conversation)] = $conversation;
+        }
+        foreach ($user->getConversationsRecruiter()->toArray() as $conversation) {
+            $conversations[spl_object_hash($conversation)] = $conversation;
+        }
+
+        foreach ($conversations as $conversation) {
+            foreach ($conversation->getMessages()->toArray() as $message) {
+                $entityManager->remove($message);
+            }
+
+            $entityManager->remove($conversation);
+        }
+
+        foreach ($user->getActivityLogs()->toArray() as $activityLog) {
+            $activityLog->setUser(null);
+        }
+
+        foreach ($user->getAdminActionLogs()->toArray() as $adminActionLog) {
+            $adminActionLog->setAdminUser(null);
+        }
+
+        foreach ($user->getTargetedAdminActionLogs()->toArray() as $adminActionLog) {
+            $adminActionLog->setTargetUser(null);
+        }
+
+        $entityManager->remove($user);
     }
 }

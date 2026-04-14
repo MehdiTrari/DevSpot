@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\User;
 use App\Enum\UserStatus;
-use Doctrine\DBAL\ParameterType;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
@@ -40,68 +39,37 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
      */
     public function findAdminUsersPaginated(?string $role, ?string $status, ?string $search, int $page, int $perPage): array
     {
-        $conn = $this->getEntityManager()->getConnection();
-
-        $conditions = ['1=1'];
-        $params = [];
-        $types = [];
-
-        if (null !== $role && '' !== $role) {
-            $conditions[] = 'u.roles::text LIKE :role';
-            $params['role'] = '%' . $role . '%';
-        }
+        $queryBuilder = $this->createQueryBuilder('u')
+            ->addSelect('CASE WHEN u.status = :pendingStatus THEN 0 ELSE 1 END AS HIDDEN pendingSort')
+            ->setParameter('pendingStatus', UserStatus::PENDING)
+            ->orderBy('pendingSort', 'ASC')
+            ->addOrderBy('u.createdAt', 'DESC');
 
         if (null !== $status && '' !== $status) {
-            $conditions[] = 'u.status = :status';
-            $params['status'] = $status;
+            $queryBuilder
+                ->andWhere('u.status = :status')
+                ->setParameter('status', UserStatus::from($status));
         }
 
         if (null !== $search && '' !== $search) {
-            $conditions[] = 'LOWER(u.email) LIKE :search';
-            $params['search'] = '%' . mb_strtolower($search) . '%';
+            $queryBuilder
+                ->andWhere('LOWER(u.email) LIKE :search')
+                ->setParameter('search', '%' . mb_strtolower($search) . '%');
         }
 
-        $whereClause = implode(' AND ', $conditions);
+        /** @var User[] $users */
+        $users = $queryBuilder->getQuery()->getResult();
 
-        $total = (int) $conn->fetchOne(
-            sprintf('SELECT COUNT(*) FROM "user" u WHERE %s', $whereClause),
-            $params,
-            $types
-        );
+        if (null !== $role && '' !== $role) {
+            $users = array_values(array_filter(
+                $users,
+                static fn (User $user): bool => in_array($role, $user->getRoles(), true)
+            ));
+        }
 
+        $total = count($users);
         $offset = max(0, ($page - 1) * $perPage);
-        $params['limit'] = $perPage;
-        $params['offset'] = $offset;
-        $types['limit'] = ParameterType::INTEGER;
-        $types['offset'] = ParameterType::INTEGER;
-
-        $ids = $conn->fetchFirstColumn(
-            sprintf("SELECT u.id FROM \"user\" u WHERE %s ORDER BY CASE WHEN u.status = 'pending' THEN 0 ELSE 1 END, u.created_at DESC LIMIT :limit OFFSET :offset", $whereClause),
-            $params,
-            $types
-        );
-
-        if ([] === $ids) {
-            return [
-                'users' => [],
-                'total' => $total,
-            ];
-        }
-
-        $intIds = array_map(static fn ($id): int => (int) $id, $ids);
-        $users = $this->findBy(['id' => $intIds]);
-
-        $usersById = [];
-        foreach ($users as $user) {
-            $usersById[$user->getId()] = $user;
-        }
-
-        $orderedUsers = [];
-        foreach ($intIds as $id) {
-            if (isset($usersById[$id])) {
-                $orderedUsers[] = $usersById[$id];
-            }
-        }
+        $orderedUsers = array_slice($users, $offset, $perPage);
 
         return [
             'users' => $orderedUsers,
@@ -117,6 +85,14 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
         return array_values(array_filter(
             $this->findAll(),
             static fn (User $user): bool => in_array('ROLE_ADMIN', $user->getRoles(), true)
+        ));
+    }
+
+    public function countByRole(string $role): int
+    {
+        return count(array_filter(
+            $this->findAll(),
+            static fn (User $user): bool => in_array($role, $user->getRoles(), true)
         ));
     }
 
