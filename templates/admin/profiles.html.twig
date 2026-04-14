@@ -19,7 +19,7 @@
     {# GRILLE DES PROFILS #}
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {% for profile in profiles %}
-            <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl hover:border-emerald-500/30 hover:bg-slate-900/60 transition-all">
+            <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl hover:border-emerald-500/30 transition-all">
                 <div class="flex items-start justify-between mb-4">
                     <div class="flex-1">
                         <h3 class="text-lg font-semibold text-white">{{ profile.user.email }}</h3>

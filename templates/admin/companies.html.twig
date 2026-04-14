@@ -19,7 +19,7 @@
     {# GRILLE DES ENTREPRISES #}
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {% for company in companies %}
-            <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl hover:border-purple-500/30 hover:bg-slate-900/60 transition-all">
+            <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl hover:border-purple-500/30 transition-all">
                 <div class="mb-4">
                     {% if company.logoPath %}
                         <img src="{{ asset(company.logoPath) }}" alt="{{ company.name }}" class="h-12 w-12 rounded-lg mb-3 object-cover">
