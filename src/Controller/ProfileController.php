@@ -13,6 +13,7 @@ use App\Form\ContactMessageType;
 use App\Repository\ConversationRepository;
 use App\Repository\DeveloperProfileRepository;
 use App\Repository\FavoriteProfileRepository;
+use App\Service\ChatMercure;
 use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -40,6 +41,7 @@ final class ProfileController extends AbstractController
         #[Autowire(service: 'html_sanitizer.sanitizer.contact_message')]
         HtmlSanitizerInterface $contactMessageSanitizer,
         NotificationManager $notificationManager,
+        ChatMercure $chatMercure,
         MailerInterface $mailer,
         LoggerInterface $logger,
         EntityManagerInterface $entityManager,
@@ -178,6 +180,7 @@ final class ProfileController extends AbstractController
                         $entityManager->persist($message);
                         $notificationManager->notifyConversationNewMessage($message);
                         $entityManager->flush();
+                        $chatMercure->publishMessage($message);
 
                         try {
                             $mailer->send(
