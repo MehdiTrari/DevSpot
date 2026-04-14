@@ -1,0 +1,25 @@
+{% set conversation = row.conversation %}
+{% set profile = row.developerProfile %}
+{% set applicantName = (profile and profile.public) ? (profile.firstName ~ ' ' ~ profile.lastName) : 'Postulant anonyme' %}
+{% set active = selectedConversationId is defined and selectedConversationId == conversation.id %}
+
+<div id="conversation-row-{{ conversation.id }}" data-conversation-id="{{ conversation.id }}">
+    <a
+        href="{{ path('app_recruiter_message_show', {conversationId: conversation.id}) }}"
+        data-chat-conversation-link="true"
+        data-chat-active-class="border-emerald-400/40 bg-emerald-500/15"
+        data-chat-inactive-class="border-transparent bg-white/[0.03] hover:border-white/10 hover:bg-white/[0.06]"
+        class="block rounded-xl border px-3 py-2.5 transition {{ active ? 'border-emerald-400/40 bg-emerald-500/15' : 'border-transparent bg-white/[0.03] hover:border-white/10 hover:bg-white/[0.06]' }}"
+    >
+        <div class="flex items-start justify-between gap-2">
+            <p class="truncate text-sm font-semibold text-white">{{ applicantName }}</p>
+            {% if row.unreadCount > 0 %}
+                <span class="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1.5 text-[11px] font-bold text-slate-950">{{ row.unreadCount }}</span>
+            {% endif %}
+        </div>
+        <div class="mt-1 flex items-end justify-between gap-2">
+            <p class="min-w-0 truncate text-xs text-slate-300">{{ row.lastMessage.content|replace({'\n': ' '}) }}</p>
+            <span class="shrink-0 text-[11px] text-slate-400">{{ row.lastMessage.createdAt|date('H:i') }}</span>
+        </div>
+    </a>
+</div>
