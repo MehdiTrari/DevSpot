@@ -1,3 +1,5 @@
+{% set isAdmin = is_granted('ROLE_ADMIN') %}
+
 <div class="space-y-6">
     <div class="rounded-3xl border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-8">
         <div class="flex flex-wrap items-center justify-between gap-3">
@@ -25,10 +27,12 @@
                 <div class="flex items-start gap-4">
                     <div class="min-w-0 flex-1 space-y-1">
                         <h2 class="text-sm font-semibold text-white">{{ notification.title }}</h2>
-                        <p class="text-sm text-slate-300">{{ notification.content }}</p>
-                        <p class="text-xs text-slate-500">{{ notification.createdAt ? notification.createdAt|date('d/m/Y H:i') : '' }}</p>
-                        {% if notification.link %}
-                            <a href="{{ notification.link }}" class="inline-flex items-center text-xs font-semibold text-emerald-300 hover:text-emerald-200">Voir le détail</a>
+                        {% if isAdmin %}
+                            <p class="text-sm text-slate-300">{{ notification.content }}</p>
+                            <p class="text-xs text-slate-500">{{ notification.createdAt ? notification.createdAt|date('d/m/Y H:i') : '' }}</p>
+                            {% if notification.link %}
+                                <a href="{{ notification.link }}" class="inline-flex items-center text-xs font-semibold text-emerald-300 hover:text-emerald-200">Voir le détail</a>
+                            {% endif %}
                         {% endif %}
                     </div>
 

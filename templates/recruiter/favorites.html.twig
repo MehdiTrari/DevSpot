@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes favoris | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-6xl space-y-8 font-sans">
+        <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:bg-slate-900/60 hover:shadow-emerald-500/10 sm:p-10">
+            <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+                <div class="flex-1">
+                    <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-300">
+                        <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse"></span>
+                        Favoris recruteur
+                    </p>
+                    <h1 class="text-4xl font-semibold tracking-tight text-white">Tes profils favoris.</h1>
+                    <p class="mt-2 text-[15px] text-slate-400">Retrouve rapidement les développeurs que tu suis déjà et ouvre leur profil en un clic.</p>
+                </div>
+
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300 shadow-inner sm:min-w-72">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Profils enregistrés</p>
+                    <p data-favorite-count-value="true" class="mt-1 text-2xl font-semibold text-white">{{ favoriteProfilesCount|default(0) }}</p>
+                    <p data-favorite-count-label="true" class="mt-2 text-xs text-slate-400">profil{{ favoriteProfilesCount|default(0) > 1 ? 's' : '' }} développeur{{ favoriteProfilesCount|default(0) > 1 ? 's' : '' }} enregistré{{ favoriteProfilesCount|default(0) > 1 ? 's' : '' }}.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
+            {% include 'recruiter/_favorite_profiles_list.html.twig' with {
+                favoriteProfiles: favoriteProfiles|default([]),
+                redirectPath: path('app_recruiter_favorites')
+            } only %}
+        </div>
+    </section>
+{% endblock %}

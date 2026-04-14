@@ -6,7 +6,7 @@
     {% set doneCount = [checklist.step1.done, checklist.step2.done, checklist.step3.done, checklist.step4.done]|filter(v => v)|length %}
     {% set progressPercent = doneCount * 25 %}
     
-    <section class="w-full max-w-5xl space-y-8 font-sans">
+    <section class="w-full max-w-6xl space-y-8 font-sans">
         
         {# HEADER - Style "Dark Glassmorphism" #}
         <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:bg-slate-900/60 hover:shadow-emerald-500/10 sm:p-10">
