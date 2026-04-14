@@ -40,10 +40,10 @@
                         {% if not notification.isRead %}
                             <form method="post" data-notification-async="true" data-turbo="false" action="{{ path('app_notifications_mark_read', {id: notification.id, filter: currentFilter, page: currentPage}) }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token('notification_read_' ~ notification.id) }}">
-                                <button type="submit" class="notification-mark-read-btn cursor-pointer rounded-lg border border-emerald-300/25 bg-emerald-500/20 px-3 py-1.5 text-xs font-semibold text-emerald-200">Marquer comme lue</button>
+                                <button type="submit" class="inline-flex cursor-pointer items-center rounded-full border border-amber-200/70 bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-900 transition-colors hover:bg-amber-200">Marquer comme lue</button>
                             </form>
                         {% else %}
-                            <span class="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300">Déjà lue</span>
+                            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300">Déjà lue</span>
                         {% endif %}
 
                         <form method="post" data-notification-async="true" data-turbo="false" action="{{ path('app_notifications_delete', {id: notification.id, filter: currentFilter, page: currentPage}) }}">
