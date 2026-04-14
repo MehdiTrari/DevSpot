@@ -18,7 +18,33 @@ composer install
 
 #### 2. Démarrer les services Docker
 ```bash
-docker compose up -d database adminer mailer
+docker compose up -d database adminer mailer mercure
+```
+
+### Mercure (temps réel)
+
+Si tu veux démarrer uniquement Mercure :
+
+```bash
+docker compose up -d mercure
+```
+
+Vérifier que Mercure tourne :
+
+```bash
+docker compose ps mercure
+```
+
+Suivre les logs Mercure :
+
+```bash
+docker compose logs -f mercure
+```
+
+Arrêter Mercure :
+
+```bash
+docker compose stop mercure
 ```
 
 #### 3. Lancer le serveur Symfony

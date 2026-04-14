@@ -13,6 +13,7 @@ use App\Form\ChatReplyType;
 use App\Repository\ConversationRepository;
 use App\Repository\FavoriteProfileRepository;
 use App\Repository\MessageRepository;
+use App\Service\ChatMercure;
 use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -124,13 +125,19 @@ final class RecruiterController extends AbstractController
 
     #[Route('/recruiter/messages', name: 'app_recruiter_messages')]
     #[IsGranted('ROLE_RECRUITER')]
-    public function messages(ConversationRepository $conversationRepository, MessageRepository $messageRepository): Response
+    public function messages(
+        ConversationRepository $conversationRepository,
+        MessageRepository $messageRepository,
+        ChatMercure $chatMercure,
+    ): Response
     {
         $recruiterUser = $this->getRecruiterUser();
         $conversationRows = $this->buildRecruiterConversationRows($conversationRepository, $messageRepository, $recruiterUser);
 
         return $this->render('recruiter/messages.html.twig', [
             'conversations' => $conversationRows,
+            'mercureTopics' => $chatMercure->getTopicsForUser($recruiterUser),
+            'mercureNeedsCredentials' => $chatMercure->requiresCredentials(),
             'selectedConversation' => null,
             'selectedMessages' => [],
             'selectedProfile' => null,
@@ -149,6 +156,7 @@ final class RecruiterController extends AbstractController
         #[Autowire(service: 'html_sanitizer.sanitizer.contact_message')]
         HtmlSanitizerInterface $contactMessageSanitizer,
         NotificationManager $notificationManager,
+        ChatMercure $chatMercure,
     ): Response {
         $recruiterUser = $this->getRecruiterUser();
 
@@ -184,6 +192,7 @@ final class RecruiterController extends AbstractController
                 $entityManager->persist($replyMessage);
                 $notificationManager->notifyConversationNewMessage($replyMessage);
                 $entityManager->flush();
+                $chatMercure->publishMessage($replyMessage);
 
                 if ($request->isXmlHttpRequest()) {
                     $html = $this->renderView('recruiter/_chat_message.html.twig', [
@@ -213,6 +222,8 @@ final class RecruiterController extends AbstractController
 
         return $this->render('recruiter/messages.html.twig', [
             'conversations' => $conversationRows,
+            'mercureTopics' => $chatMercure->getTopicsForUser($recruiterUser, $conversation),
+            'mercureNeedsCredentials' => $chatMercure->requiresCredentials(),
             'selectedConversation' => $conversation,
             'selectedMessages' => $conversationMessages,
             'selectedProfile' => $profile,
@@ -256,6 +267,34 @@ final class RecruiterController extends AbstractController
             'html' => $html,
             'lastId' => $lastId,
         ]);
+    }
+
+    #[Route('/recruiter/messages/{conversationId}/read', name: 'app_recruiter_message_mark_read', requirements: ['conversationId' => '\\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_RECRUITER')]
+    public function markConversationRead(
+        int $conversationId,
+        Request $request,
+        ConversationRepository $conversationRepository,
+        MessageRepository $messageRepository,
+        ChatMercure $chatMercure,
+    ): JsonResponse {
+        $recruiterUser = $this->getRecruiterUser();
+
+        $conversation = $conversationRepository->find($conversationId);
+        if (!$conversation instanceof Conversation || $conversation->getRecruiterUser()?->getId() !== $recruiterUser->getId()) {
+            return new JsonResponse(['ok' => false], Response::HTTP_NOT_FOUND);
+        }
+
+        if (!$this->isCsrfTokenValid('chat_read_' . $conversationId, (string) $request->request->get('_token'))) {
+            return new JsonResponse(['ok' => false], Response::HTTP_FORBIDDEN);
+        }
+
+        $updatedCount = $messageRepository->markConversationAsReadForUser($conversation, $recruiterUser);
+        if ($updatedCount > 0) {
+            $chatMercure->publishConversationReadState($recruiterUser, $conversation);
+        }
+
+        return new JsonResponse(['ok' => true, 'updated' => $updatedCount]);
     }
 
     private function getRecruiterUser(): User

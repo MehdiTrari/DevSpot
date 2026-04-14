@@ -141,6 +141,29 @@ final class ApplicantMessagesTest extends WebTestCase
         self::assertTrue((bool) $reloadedMessage->isRead());
     }
 
+    public function testConversationDetailRegistersMercureSubscription(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('mercure_messages_%s@example.com', bin2hex(random_bytes(6)));
+        $password = 'password123';
+        $user = $this->createApplicantWithProfile($email, $password);
+        $recruiter = $this->createRecruiterWithProfile('mercure_recruiter_' . bin2hex(random_bytes(4)) . '@example.com', 'Mona', 'Recruiter');
+
+        $conversation = $this->createConversation(
+            $user,
+            $recruiter,
+            'Message test pour la souscription Mercure.',
+            false,
+            new \DateTimeImmutable('-45 minutes')
+        );
+
+        $this->login($client, $email, $password);
+        $client->request('GET', '/applicant/messages/' . $conversation->getId());
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorExists('[data-chat-mercure-url]');
+    }
+
     public function testOnlyOwnerCanAccessConversationDetail(): void
     {
         $client = static::createClient();
