@@ -15,6 +15,7 @@ use App\Repository\ConversationRepository;
 use App\Repository\DeveloperProfileRepository;
 use App\Repository\MessageRepository;
 use App\Service\ChatMercure;
+use App\Service\LoggerService;
 use App\Service\NotificationManager;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -35,6 +36,10 @@ use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 
 final class ApplicantController extends AbstractController
 {
+    public function __construct(private readonly LoggerService $loggerService)
+    {
+    }
+
     #[Route('/applicant', name: 'app_applicant_home')]
     #[IsGranted('ROLE_APPLICANT')]
     public function home(): Response
@@ -279,7 +284,11 @@ final class ApplicantController extends AbstractController
                 $isNewProfile ? 'Profil développeur créé. Étape 1 terminée.' : 'Étape 1 mise à jour.',
                 'Ton profil a été enregistré et tu es revenu au dashboard.',
                 $profile,
-                $notificationManager
+                $notificationManager,
+                [
+                    'context' => 'profile_step_1',
+                    'is_new_profile' => $isNewProfile,
+                ]
             );
         }
 
@@ -311,7 +320,8 @@ final class ApplicantController extends AbstractController
                 'Étape 1 mise à jour.',
                 'Tes modifications ont été enregistrées et tu es revenu au dashboard.',
                 $profile,
-                $notificationManager
+                $notificationManager,
+                ['context' => 'profile_step_1']
             );
         }
 
@@ -333,9 +343,15 @@ final class ApplicantController extends AbstractController
             return new JsonResponse(['success' => false], Response::HTTP_FORBIDDEN);
         }
 
+        $previousAvatarPath = $profile->getAvatarPath();
         $this->removePreviousAvatar($profile, $this->getParameter('kernel.project_dir') . '/public/uploads/avatars');
         $profile->setAvatarPath(null);
         $entityManager->flush();
+        $this->logProfileUpdate($profile, [
+            'context' => 'avatar_deleted',
+            'old_avatar_path' => $previousAvatarPath,
+            'new_avatar_path' => null,
+        ]);
 
         return new JsonResponse(['success' => true]);
     }
@@ -362,7 +378,8 @@ final class ApplicantController extends AbstractController
                 'Étape 2 mise à jour.',
                 'Tes modifications ont été enregistrées et tu es revenu au dashboard.',
                 $profile,
-                $notificationManager
+                $notificationManager,
+                ['context' => 'profile_step_2']
             );
         }
 
@@ -400,7 +417,8 @@ final class ApplicantController extends AbstractController
                 'Étape 3 mise à jour.',
                 'Tes modifications ont été enregistrées et tu es revenu au dashboard.',
                 $profile,
-                $notificationManager
+                $notificationManager,
+                ['context' => 'profile_step_3']
             );
         }
 
@@ -431,7 +449,8 @@ final class ApplicantController extends AbstractController
                 'Étape 4 mise à jour.',
                 'Tes modifications ont été enregistrées et tu es revenu au dashboard.',
                 $profile,
-                $notificationManager
+                $notificationManager,
+                ['context' => 'profile_step_4']
             );
         }
 
@@ -464,6 +483,10 @@ final class ApplicantController extends AbstractController
         if (null === $profile->getPortfolioGeneratedAt()) {
             $profile->setPortfolioGeneratedAt(new \DateTimeImmutable());
             $entityManager->flush();
+            $this->logProfileUpdate($profile, [
+                'context' => 'portfolio_generated',
+                'generated_at' => $profile->getPortfolioGeneratedAt()?->format(DATE_ATOM),
+            ]);
         }
 
         return $this->render('applicant/portfolio_generating.html.twig', [
@@ -604,6 +627,7 @@ final class ApplicantController extends AbstractController
         }
 
         $makePublic = '1' === (string) $request->request->get('is_public');
+        $previousVisibility = (bool) $profile->isPublic();
 
         if ($makePublic && null === $profile->getPortfolioGeneratedAt()) {
             if ($isAsync) {
@@ -621,6 +645,11 @@ final class ApplicantController extends AbstractController
 
         $profile->setIsPublic($makePublic);
         $entityManager->flush();
+        $this->logProfileUpdate($profile, [
+            'context' => 'visibility_toggle',
+            'old_is_public' => $previousVisibility,
+            'new_is_public' => $makePublic,
+        ]);
 
         $notificationManager->notifyRecruitersFollowingProfileVisibilityChanged($profile, $makePublic);
 
@@ -695,10 +724,24 @@ final class ApplicantController extends AbstractController
         return (string) ($recruiterUser->getEmail() ?? 'Recruteur');
     }
 
-    private function redirectAfterProfileStep(Request $request, string $nextRoute, string $nextMessage, string $exitMessage, ?DeveloperProfile $profile = null, ?NotificationManager $notificationManager = null): Response
+    private function redirectAfterProfileStep(
+        Request $request,
+        string $nextRoute,
+        string $nextMessage,
+        string $exitMessage,
+        ?DeveloperProfile $profile = null,
+        ?NotificationManager $notificationManager = null,
+        array $logMetadata = [],
+    ): Response
     {
         if ($profile instanceof DeveloperProfile && $notificationManager instanceof NotificationManager) {
             $notificationManager->notifyRecruitersFollowingProfileUpdated($profile);
+        }
+
+        if ($profile instanceof DeveloperProfile) {
+            $this->logProfileUpdate($profile, array_merge($logMetadata, [
+                'form_action' => (string) $request->request->get('form_action', 'next'),
+            ]));
         }
 
         if ('save_and_exit' === (string) $request->request->get('form_action')) {
@@ -798,6 +841,16 @@ final class ApplicantController extends AbstractController
         $ascii = strtolower(trim($ascii));
 
         return preg_replace('/[^a-z0-9]+/', '', $ascii) ?? '';
+    }
+
+    private function logProfileUpdate(DeveloperProfile $profile, array $metadata = []): void
+    {
+        $user = $profile->getUser();
+        if (!$user instanceof User) {
+            return;
+        }
+
+        $this->loggerService->logProfileUpdate($user, $profile, $metadata);
     }
 
     private function handleAvatarUpload(FormInterface $form, DeveloperProfile $profile): void

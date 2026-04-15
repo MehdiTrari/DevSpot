@@ -7,6 +7,7 @@ use App\Entity\User;
 use App\Enum\ExperienceLevel;
 use App\Enum\LocationType;
 use App\Enum\UserStatus;
+use App\Repository\ActivityLogRepository;
 use App\Repository\DeveloperProfileRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -65,6 +66,47 @@ final class ProfileEditTest extends WebTestCase
         // La DB peut tronquer les microsecondes, on vérifie que updatedAt est récent (< 30s)
         $diffSeconds = abs($profile->getUpdatedAt()->getTimestamp() - $before->getTimestamp());
         self::assertLessThan(30, $diffSeconds, 'updatedAt devrait être récent après mise à jour');
+    }
+
+    public function testEditStep1CreatesProfileUpdateActivityLogWithEntityId(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('profile_log_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $user = $this->createUserWithProfile($email, $password);
+
+        $this->login($client, $email, $password);
+
+        $crawler = $client->request('GET', '/applicant/profile/step-1');
+        self::assertResponseIsSuccessful();
+
+        $client->submit($crawler->filter('#profile-step1-form button[type="submit"]')->form([
+            'developer_profile[firstName]' => 'Claire',
+            'developer_profile[lastName]' => 'Martin',
+            'developer_profile[headline]' => 'Developpeuse Symfony',
+            'developer_profile[city]' => 'Paris',
+            'developer_profile[country]' => 'France',
+            'developer_profile[locationType]' => 'hybrid',
+            'developer_profile[experienceLevel]' => 'mid',
+            'developer_profile[yearsExperience]' => '5',
+            'developer_profile[bio]' => 'Profil mis a jour pour test de journalisation.',
+        ]));
+
+        self::assertResponseRedirects();
+
+        /** @var ActivityLogRepository $activityLogRepository */
+        $activityLogRepository = static::getContainer()->get(ActivityLogRepository::class);
+        $log = $activityLogRepository->findOneBy([
+            'user' => $user,
+            'action' => 'PROFILE_UPDATE',
+        ], [
+            'id' => 'DESC',
+        ]);
+
+        self::assertNotNull($log);
+        self::assertSame(DeveloperProfile::class, $log->getEntityType());
+        self::assertSame($user->getDeveloperProfile()?->getId(), $log->getEntityId());
+        self::assertSame('profile_step_1', $log->getMetadata()['context'] ?? null);
     }
 
     public function testStep1FormIsPrefilledWithExistingData(): void

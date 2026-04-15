@@ -1,6 +1,7 @@
 <?php
 namespace App\Tests\Functional\Controller;
 
+use App\Repository\ActivityLogRepository;
 use App\Entity\User;
 use App\Enum\UserStatus;
 use App\Repository\UserRepository;
@@ -69,6 +70,37 @@ final class SecurityPagesTest extends WebTestCase
         $crawler = $client->followRedirect();
         self::assertSelectorTextContains('h1', 'Bienvenue sur ton espace.');
         self::assertSelectorExists('a[href="/applicant"]');
+    }
+
+    public function testSuccessfulLoginCreatesActivityLog(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('login_log_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $user = $this->createUserWithStatus($email, $password, UserStatus::ACTIVE, ['ROLE_APPLICANT']);
+
+        $crawler = $client->request('GET', '/login');
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            'email' => $email,
+            'password' => $password,
+        ]));
+
+        self::assertResponseRedirects('/applicant');
+
+        /** @var ActivityLogRepository $activityLogRepository */
+        $activityLogRepository = static::getContainer()->get(ActivityLogRepository::class);
+        $log = $activityLogRepository->findOneBy([
+            'user' => $user,
+            'action' => 'USER_LOGIN',
+        ], [
+            'id' => 'DESC',
+        ]);
+
+        self::assertNotNull($log);
+        self::assertSame('USER_LOGIN', $log->getAction());
+        self::assertSame($user->getId(), $log->getUser()?->getId());
+        self::assertNotNull($log->getCreatedAt());
+        self::assertNotNull($log->getIpAddress());
     }
 
     public function testLoginFormShowsErrorWithWrongPassword(): void
