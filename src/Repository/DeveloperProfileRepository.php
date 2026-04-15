@@ -116,6 +116,21 @@ class DeveloperProfileRepository extends ServiceEntityRepository
         return $result['updatedAt'] ?? null;
     }
 
+    /**
+     * @return DeveloperProfile[]
+     */
+    public function findAllForMatching(): array
+    {
+        return $this->createQueryBuilder('d')
+            ->leftJoin('d.profileSkills', 'profileSkills')->addSelect('profileSkills')
+            ->leftJoin('profileSkills.skill', 'skill')->addSelect('skill')
+            ->leftJoin('d.experiences', 'experiences')->addSelect('experiences')
+            ->leftJoin('experiences.technologies', 'technologies')->addSelect('technologies')
+            ->leftJoin('d.desiredPositions', 'desiredPositions')->addSelect('desiredPositions')
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return DeveloperProfile[] Returns an array of DeveloperProfile objects
     //     */

@@ -1,0 +1,442 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ offer.title }} | DevSpot{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        (() => {
+            const ENDPOINT = {{ matchingEndpoint|json_encode|raw }};
+            const PER_PAGE = 10;
+            const CACHED_DATA = {{ cachedMatching|default('null')|raw }};
+            const nextFrame = () => new Promise(resolve => requestAnimationFrame(() => resolve()));
+
+            let allData = null;
+            let currentPage = 1;
+            let totalPages = 1;
+            let loading = false;
+
+            const $ = (sel, ctx) => (ctx || document).querySelector(sel);
+            const escapeHtml = (v) => String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+            const pct = (v) => typeof v === 'number' ? `${v.toFixed(1)}%` : '-';
+            const num = (v) => typeof v === 'number' ? v.toFixed(2) : '-';
+
+            const renderTags = (values, cls) => values.map(v => `<span class="rounded-full border px-3 py-1 text-xs font-semibold ${cls}">${escapeHtml(v)}</span>`).join('');
+            const renderTechTags = (values) => values.map(i => `<span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-200">${escapeHtml(i.skill||'')} · ${escapeHtml(i.level||'')}</span>`).join('');
+
+            /* ---------- Progress bar ---------- */
+            let timer = null, prog = 0;
+            const setProgress = (value, label) => {
+                prog = value;
+                const bar = $('#matching-progress-bar');
+                const lbl = $('#matching-progress-label');
+                const wrap = $('#matching-progress');
+                if (!bar || !lbl || !wrap) return;
+                const safeValue = Math.max(0, Math.min(100, Number(value) || 0));
+                wrap.classList.remove('hidden', 'opacity-0');
+                bar.style.display = 'block';
+                bar.style.opacity = '1';
+                bar.style.minWidth = safeValue > 0 ? '0.75rem' : '0';
+                bar.style.width = safeValue > 0 ? `max(${safeValue}%, 0.75rem)` : '0%';
+                bar.style.background = 'linear-gradient(90deg, rgb(5 150 105) 0%, rgb(52 211 153) 55%, rgb(110 231 183) 100%)';
+                bar.style.boxShadow = safeValue >= 100 ? '0 0 24px rgba(16,185,129,.55)' : 'none';
+                lbl.textContent = `${label} ${safeValue}%`;
+            };
+            const resetProgress = async () => {
+                const bar = $('#matching-progress-bar');
+                const lbl = $('#matching-progress-label');
+                const wrap = $('#matching-progress');
+                if (!bar || !lbl || !wrap) return;
+                wrap.classList.remove('hidden', 'opacity-0', 'transition-opacity', 'duration-700');
+                bar.style.display = 'block';
+                bar.style.opacity = '1';
+                bar.style.minWidth = '0';
+                bar.style.width = '0%';
+                bar.style.boxShadow = 'none';
+                lbl.textContent = 'Préparation du matching… 0%';
+                await nextFrame();
+                await nextFrame();
+            };
+            const startTimer = () => { timer = setInterval(() => { const nv = Math.min(prog + (prog < 50 ? 7 : 3), 88); setProgress(nv, nv < 40 ? 'Analyse des profils publics…' : 'Calcul des scores sémantiques…'); }, 320); };
+            const stopTimer = () => { if (timer !== null) { clearInterval(timer); timer = null; } };
+
+            /* ---------- Render one match card ---------- */
+            const matchCard = (m, rank) => {
+                const hardSkills = Array.isArray(m.matchedHardSkills) ? m.matchedHardSkills : [];
+                const softSkills = Array.isArray(m.matchedSoftSkills) ? m.matchedSoftSkills : [];
+                const inferredTech = Array.isArray(m.inferredTechnicalSkills) ? m.inferredTechnicalSkills : [];
+                const inferredSoft = Array.isArray(m.inferredSoftSkills) ? m.inferredSoftSkills : [];
+                const inferredTransf = Array.isArray(m.inferredTransferableSkills) ? m.inferredTransferableSkills : [];
+                const link = m.profileUrl ? `<a href="${escapeHtml(m.profileUrl)}" class="hover:text-emerald-300 underline underline-offset-2">${escapeHtml(m.fullName||'Profil')}</a>` : escapeHtml(m.fullName||'Profil');
+
+                return `
+                <article class="rounded-[1.5rem] border border-white/10 bg-slate-950/40 p-5 transition hover:border-emerald-400/20 hover:bg-slate-900/50">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-300">#${rank}</p>
+                            <h3 class="mt-2 text-lg font-semibold text-white">${link}</h3>
+                            <p class="mt-1 text-sm text-slate-300">${escapeHtml(m.headline||'')}</p>
+                            <p class="mt-2 text-xs text-slate-400">${escapeHtml(String(m.yearsExperience??0))} an(s) d'expérience</p>
+                        </div>
+                        <div class="grid gap-2 sm:grid-cols-3">
+                            <div class="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-right">
+                                <p class="text-xs uppercase tracking-wider text-emerald-200">Matching DevSpot</p>
+                                <p class="mt-1 text-sm font-bold text-white">${pct(m.semanticEnrichedPercentage)}</p>
+                            </div>
+                            <div class="rounded-2xl border border-violet-500/20 bg-violet-500/10 px-4 py-3 text-right">
+                                <p class="text-xs uppercase tracking-wider text-violet-200">CamemBERT</p>
+                                <p class="mt-1 text-sm font-semibold text-white">${pct(m.semanticPercentage)}</p>
+                            </div>
+                            <div class="rounded-2xl border border-slate-500/20 bg-slate-500/10 px-4 py-3 text-right">
+                                <p class="text-xs uppercase tracking-wider text-slate-300">Baseline</p>
+                                <p class="mt-1 text-sm font-semibold text-slate-200">${pct(m.percentage)}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 grid gap-4 lg:grid-cols-2">
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Compétences correspondantes</p>
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                ${renderTags(hardSkills,'border-emerald-500/20 bg-emerald-500/10 text-emerald-200')}
+                                ${renderTags(softSkills,'border-sky-500/20 bg-sky-500/10 text-sky-200')}
+                                ${hardSkills.length===0&&softSkills.length===0?'<span class="text-sm text-slate-500">Aucune correspondance directe détectée.</span>':''}
+                            </div>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Compétences inférées</p>
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                ${renderTags(inferredSoft,'border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-200')}
+                                ${renderTags(inferredTransf,'border-amber-500/20 bg-amber-500/10 text-amber-200')}
+                                ${renderTechTags(inferredTech)}
+                                ${inferredSoft.length===0&&inferredTransf.length===0&&inferredTech.length===0?'<span class="text-sm text-slate-500">Aucune compétence implicite détectée.</span>':''}
+                            </div>
+                        </div>
+                    </div>
+                </article>`;
+            };
+
+            /* ---------- Render pagination ---------- */
+            const renderPagination = () => {
+                const wrap = $('#matching-pagination');
+                if (!wrap) return;
+                if (totalPages <= 1) { wrap.innerHTML = ''; return; }
+
+                let html = '<nav class="flex items-center justify-center gap-2 pt-2">';
+                html += `<button data-page="${currentPage-1}" ${currentPage<=1?'disabled':''} class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed">← Préc.</button>`;
+
+                const maxVisible = 5;
+                let start = Math.max(1, currentPage - Math.floor(maxVisible/2));
+                let end = Math.min(totalPages, start + maxVisible - 1);
+                if (end - start < maxVisible - 1) start = Math.max(1, end - maxVisible + 1);
+
+                if (start > 1) {
+                    html += `<button data-page="1" class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white hover:bg-white/10">1</button>`;
+                    if (start > 2) html += '<span class="text-slate-500 px-1">…</span>';
+                }
+                for (let p = start; p <= end; p++) {
+                    const active = p === currentPage;
+                    html += `<button data-page="${p}" class="rounded-full border ${active?'border-emerald-400/40 bg-emerald-500/20 text-emerald-300':'border-white/10 bg-white/5 text-white hover:bg-white/10'} px-3 py-1.5 text-sm font-semibold">${p}</button>`;
+                }
+                if (end < totalPages) {
+                    if (end < totalPages - 1) html += '<span class="text-slate-500 px-1">…</span>';
+                    html += `<button data-page="${totalPages}" class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white hover:bg-white/10">${totalPages}</button>`;
+                }
+
+                html += `<button data-page="${currentPage+1}" ${currentPage>=totalPages?'disabled':''} class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed">Suiv. →</button>`;
+                html += '</nav>';
+                wrap.innerHTML = html;
+
+                wrap.querySelectorAll('button[data-page]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const p = parseInt(btn.dataset.page, 10);
+                        if (p >= 1 && p <= totalPages && p !== currentPage) loadPage(p);
+                    });
+                });
+            };
+
+            /* ---------- Render summary ---------- */
+            const renderSummary = (data) => {
+                const s = $('#matching-summary');
+                if (!s) return;
+                s.classList.remove('hidden');
+                $('#summary-top-score').textContent = pct(data.topMatchPercentage);
+                $('#summary-fairness').textContent = num(data?.enriched?.fairness?.disparate_impact_ratio);
+                $('#summary-count').textContent = `${data.matchesCount} profils`;
+                $('#summary-pages').textContent = `Page ${data.page} / ${data.totalPages}`;
+
+                // Show cache indicator
+                const cacheEl = $('#summary-cache');
+                if (cacheEl && data.cachedAt) {
+                    const ago = Math.round((Date.now() - new Date(data.cachedAt).getTime()) / 60000);
+                    cacheEl.textContent = ago < 1 ? 'À l\u2019instant' : `Il y a ${ago} min`;
+                    cacheEl.closest('[data-cache-card]')?.classList.remove('hidden');
+                }
+            };
+
+            /* ---------- Render matches ---------- */
+            const renderMatches = (matches, pageOffset) => {
+                const container = $('#matching-results');
+                if (!container) return;
+                container.innerHTML = '';
+                if (!matches.length) {
+                    container.innerHTML = '<div class="rounded-2xl border border-dashed border-white/10 bg-slate-950/30 px-4 py-5 text-sm text-slate-500">Aucun profil correspondant.</div>';
+                    return;
+                }
+                matches.forEach((m, i) => container.insertAdjacentHTML('beforeend', matchCard(m, pageOffset + i + 1)));
+            };
+
+            /* ---------- Load a page ---------- */
+            const loadPage = async (page) => {
+                if (loading) return;
+                loading = true;
+
+                const container = $('#matching-results');
+                if (container) container.innerHTML = '<div class="py-10 text-center text-sm text-slate-400">Chargement…</div>';
+
+                try {
+                    const sep = ENDPOINT.includes('?') ? '&' : '?';
+                    const resp = await fetch(`${ENDPOINT}${sep}page=${page}`, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+                    const data = await resp.json();
+                    if (!resp.ok) throw new Error(data.message || `HTTP ${resp.status}`);
+
+                    currentPage = data.page;
+                    totalPages = data.totalPages;
+                    renderSummary(data);
+                    renderMatches(data.matches || [], (currentPage - 1) * PER_PAGE);
+                    renderPagination();
+
+                    /* scroll to results */
+                    const anchor = $('#matching-section');
+                    if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } catch (err) {
+                    if (container) container.innerHTML = `<div class="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-5 text-sm text-rose-100">${escapeHtml(String(err))}</div>`;
+                } finally {
+                    loading = false;
+                }
+            };
+
+            /* ---------- Initial load (first page) ---------- */
+            const init = () => {
+                const btn = $('#btn-launch-matching');
+                const refreshBtn = $('#btn-refresh-matching');
+                if (!btn || btn.dataset.init === '1') return;
+                btn.dataset.init = '1';
+
+                // If we have cached data, auto-display it
+                if (CACHED_DATA) {
+                    currentPage = CACHED_DATA.page;
+                    totalPages = CACHED_DATA.totalPages;
+                    allData = CACHED_DATA;
+
+                    btn.classList.add('hidden');
+                    if (refreshBtn) refreshBtn.classList.remove('hidden');
+                    $('#matching-section').classList.remove('hidden');
+
+                    renderSummary(CACHED_DATA);
+                    renderMatches(CACHED_DATA.matches || [], 0);
+                    renderPagination();
+                }
+
+                // Launch fresh matching
+                const launchMatching = async (isRefresh) => {
+                    if (loading) return;
+                    const activeBtn = isRefresh ? refreshBtn : btn;
+                    if (activeBtn) {
+                        activeBtn.disabled = true;
+                        activeBtn.classList.add('opacity-60','cursor-not-allowed');
+                    }
+                    loading = true;
+
+                    await resetProgress();
+                    setProgress(5, 'Préparation du matching…');
+                    startTimer();
+
+                    try {
+                        const refreshParam = isRefresh ? '&refresh=1' : '';
+                        const resp = await fetch(`${ENDPOINT}?page=1${refreshParam}`, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+                        const data = await resp.json();
+                        if (!resp.ok) throw new Error(data.message || `HTTP ${resp.status}`);
+
+                        stopTimer();
+                        setProgress(100, 'Matching terminé !');
+
+                        currentPage = data.page;
+                        totalPages = data.totalPages;
+                        allData = data;
+
+                        btn.classList.add('hidden');
+                        if (refreshBtn) refreshBtn.classList.remove('hidden');
+                        $('#matching-section').classList.remove('hidden');
+
+                        renderSummary(data);
+                        renderMatches(data.matches || [], 0);
+                        renderPagination();
+
+                        setTimeout(() => { const p = $('#matching-progress'); if (p) p.classList.add('opacity-0','transition-opacity','duration-700'); setTimeout(() => { if (p) p.classList.add('hidden'); }, 800); }, 1500);
+                    } catch (err) {
+                        stopTimer();
+                        setProgress(100, 'Erreur.');
+                        const container = $('#matching-results');
+                        if (container) {
+                            $('#matching-section').classList.remove('hidden');
+                            container.innerHTML = `<div class="rounded-2xl border border-rose-500/20 bg-rose-500/10 px-4 py-5 text-sm text-rose-100">${escapeHtml(String(err))}</div>`;
+                        }
+                    } finally {
+                        loading = false;
+                        if (activeBtn) {
+                            activeBtn.disabled = false;
+                            activeBtn.classList.remove('opacity-60','cursor-not-allowed');
+                        }
+                    }
+                };
+
+                btn.addEventListener('click', () => launchMatching(false));
+                if (refreshBtn) refreshBtn.addEventListener('click', () => launchMatching(true));
+            };
+
+            document.addEventListener('DOMContentLoaded', init);
+            document.addEventListener('turbo:load', init);
+        })();
+    </script>
+{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-5xl space-y-8 font-sans">
+
+        {# ── Header ── #}
+        <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-10">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <p class="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-300">Détail de l'offre</p>
+                    <h1 class="mt-4 text-4xl font-semibold tracking-tight text-white">{{ offer.title }}</h1>
+                    <div class="mt-3 flex flex-wrap gap-2 text-xs">
+                        <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-slate-300">
+                            {% if offer.contractType %}
+                                {{ offer.contractType.value == 'full_time' ? 'Temps plein' :
+                                   offer.contractType.value == 'part_time' ? 'Temps partiel' :
+                                   offer.contractType.value == 'permanent' ? 'CDI' :
+                                   offer.contractType.value == 'fixed_term' ? 'CDD' :
+                                   offer.contractType.value == 'internship' ? 'Stage' :
+                                   offer.contractType.value == 'apprenticeship' ? 'Alternance' :
+                                   offer.contractType.value == 'freelance' ? 'Freelance' :
+                                   offer.contractType.value == 'contract' ? 'Contrat' : 'Non défini' }}
+                            {% else %}
+                                Type non défini
+                            {% endif %}
+                        </span>
+                        {% if offer.location %}
+                            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-slate-300">{{ offer.location }}</span>
+                        {% endif %}
+                        {% if offer.locationType %}
+                            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-slate-300">{{ offer.locationType.value|capitalize }}</span>
+                        {% endif %}
+                        <span class="inline-flex items-center rounded-full border {{ offer.isActive ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300' : 'border-yellow-400/20 bg-yellow-400/10 text-yellow-300' }} px-3 py-1 font-semibold">{{ offer.isActive ? 'Publiée' : 'Brouillon' }}</span>
+                    </div>
+                </div>
+                <a href="{{ path('app_recruiter_offers') }}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10">← Mes offres</a>
+            </div>
+        </div>
+
+        {# ── Offer details ── #}
+        <div class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
+            <h2 class="text-xl font-semibold text-white">Description de l'offre</h2>
+            <div class="mt-4 prose prose-sm prose-invert max-w-none text-slate-300 leading-relaxed whitespace-pre-line">{{ offer.description }}</div>
+
+            <div class="mt-6 grid gap-4 sm:grid-cols-3">
+                {% if offer.experienceLevel is not null %}
+                    <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                        <p class="text-xs uppercase tracking-wider text-slate-400">Expérience requise</p>
+                        <p class="mt-2 text-sm font-semibold text-white">{{ offer.experienceLevel }} an(s)</p>
+                    </div>
+                {% endif %}
+                {% if offer.salaryMin or offer.salaryMax %}
+                    <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                        <p class="text-xs uppercase tracking-wider text-slate-400">Salaire</p>
+                        <p class="mt-2 text-sm font-semibold text-white">
+                            {% if offer.salaryMin and offer.salaryMax %}
+                                {{ offer.salaryMin|number_format(0, ',', ' ') }} – {{ offer.salaryMax|number_format(0, ',', ' ') }} €
+                            {% elseif offer.salaryMin %}
+                                À partir de {{ offer.salaryMin|number_format(0, ',', ' ') }} €
+                            {% else %}
+                                Jusqu'à {{ offer.salaryMax|number_format(0, ',', ' ') }} €
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+                <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                    <p class="text-xs uppercase tracking-wider text-slate-400">Mise à jour</p>
+                    <p class="mt-2 text-sm font-semibold text-white">{{ offer.updatedAt|date('d/m/Y à H:i') }}</p>
+                </div>
+            </div>
+        </div>
+
+        {# ── Launch matching ── #}
+        <div class="flex flex-col items-center gap-4">
+            <button
+                id="btn-launch-matching"
+                type="button"
+                class="group relative inline-flex items-center gap-3 rounded-full bg-emerald-500 px-8 py-3.5 text-base font-bold text-slate-950 shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400 hover:shadow-emerald-400/30 active:scale-[.97]"
+            >
+                Calcul du matching
+            </button>
+            <button
+                id="btn-refresh-matching"
+                type="button"
+                class="hidden group relative inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-6 py-2.5 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-500/20 hover:border-emerald-400/40 active:scale-[.97]"
+            >
+                Recalculer le matching
+            </button>
+
+            {# Progress bar — video-game style #}
+            <div id="matching-progress" class="hidden w-full max-w-2xl">
+                <div class="flex items-center justify-between px-1">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Matching en cours</p>
+                    <p id="matching-progress-label" class="text-xs font-medium text-emerald-200/80">En attente 0%</p>
+                </div>
+                <div class="mt-2 h-4 overflow-hidden rounded-full border border-emerald-500/30 bg-slate-950/80 shadow-inner">
+                    <div
+                        id="matching-progress-bar"
+                        class="h-full rounded-full bg-gradient-to-r from-emerald-600 via-emerald-400 to-emerald-300 transition-all duration-300 ease-out"
+                        style="width:0%"
+                    ></div>
+                </div>
+            </div>
+        </div>
+
+        {# ── Matching results section (hidden until loaded) ── #}
+        <div id="matching-section" class="hidden space-y-6">
+
+            {# Summary cards #}
+            <div id="matching-summary" class="rounded-[1.5rem] border border-emerald-500/20 bg-emerald-500/10 p-5">
+                <div class="grid gap-3 sm:grid-cols-5">
+                    <div class="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3">
+                        <p class="text-xs uppercase tracking-wider text-slate-400">Top Matching DevSpot</p>
+                        <p id="summary-top-score" class="mt-2 text-lg font-semibold text-white">-</p>
+                    </div>
+                    <div class="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3">
+                        <p class="text-xs uppercase tracking-wider text-slate-400">Fairness ratio</p>
+                        <p id="summary-fairness" class="mt-2 text-lg font-semibold text-white">-</p>
+                    </div>
+                    <div class="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3">
+                        <p class="text-xs uppercase tracking-wider text-slate-400">Total profils</p>
+                        <p id="summary-count" class="mt-2 text-lg font-semibold text-white">-</p>
+                    </div>
+                    <div class="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3">
+                        <p class="text-xs uppercase tracking-wider text-slate-400">Pagination</p>
+                        <p id="summary-pages" class="mt-2 text-lg font-semibold text-white">-</p>
+                    </div>
+                    <div data-cache-card class="hidden rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3">
+                        <p class="text-xs uppercase tracking-wider text-amber-300/80">Cache</p>
+                        <p id="summary-cache" class="mt-2 text-lg font-semibold text-amber-200">-</p>
+                    </div>
+                </div>
+            </div>
+
+            {# Match cards #}
+            <div id="matching-results" class="space-y-3"></div>
+
+            {# Pagination #}
+            <div id="matching-pagination" class="pb-4"></div>
+        </div>
+    </section>
+{% endblock %}

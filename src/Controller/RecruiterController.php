@@ -5,17 +5,21 @@ namespace App\Controller;
 use App\Entity\Conversation;
 use App\Entity\DeveloperProfile;
 use App\Entity\FavoriteProfile;
+use App\Entity\JobOffer;
 use App\Entity\Message;
 use App\Entity\RecruiterProfile;
 use App\Entity\User;
 use App\Enum\UserStatus;
 use App\Form\ChatReplyType;
 use App\Repository\ConversationRepository;
+use App\Repository\DeveloperProfileRepository;
 use App\Repository\FavoriteProfileRepository;
 use App\Repository\MessageRepository;
 use App\Service\ChatMercure;
 use App\Service\NotificationManager;
+use App\Service\OfferMatchingService;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Cache\CacheItemPoolInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\FormError;
@@ -28,15 +32,39 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final class RecruiterController extends AbstractController
 {
+    private const MATCHING_CACHE_TTL = 1800;
+
     #[Route('/recruiter', name: 'app_recruiter_home')]
     #[IsGranted('ROLE_RECRUITER')]
-    public function home(FavoriteProfileRepository $favoriteProfileRepository): Response
-    {
-        $favorites = $this->findCurrentRecruiterFavorites($favoriteProfileRepository);
+    public function home(
+        FavoriteProfileRepository $favoriteProfileRepository,
+        #[Autowire(service: 'cache.app')] CacheItemPoolInterface $cache,
+    ): Response {
+        $recruiterProfile = $this->getRecruiterProfile();
+
+        if (!$recruiterProfile instanceof RecruiterProfile) {
+            throw $this->createNotFoundException('Profil recruteur introuvable.');
+        }
+
+        [$offerRows, $favoriteRows, $offersCount] = $this->buildRecruiterDashboardRows(
+            $recruiterProfile,
+            $favoriteProfileRepository,
+            $cache,
+        );
+
+        $favoriteProfiles = $this->findCurrentRecruiterFavorites($favoriteProfileRepository);
 
         return $this->render('recruiter/dashboard.html.twig', [
-            'favoriteProfiles' => $favorites,
-            'favoriteProfilesCount' => count($favorites),
+            'matchingPreviewEndpoint' => $this->generateUrl('api_matching_preview'),
+            'matchingPreviewPayload' => json_encode(
+                $this->buildMatchingPreviewPayload(),
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
+            ),
+            'offerRows' => $offerRows,
+            'favoriteRows' => $favoriteRows,
+            'offersCount' => $offersCount,
+            'favoriteProfiles' => $favoriteProfiles,
+            'favoriteProfilesCount' => count($favoriteProfiles),
         ]);
     }
 
@@ -62,7 +90,7 @@ final class RecruiterController extends AbstractController
     ): Response {
         $redirectPath = $this->resolveFavoriteRedirectPath(
             $request,
-            $this->generateUrl('app_public_profile_show', ['slug' => (string) $profile->getSlug()])
+            $this->generateUrl('app_public_profile_show', ['slug' => (string) $profile->getSlug()]),
         );
 
         if (!$this->isCsrfTokenValid('favorite_add_' . $profile->getId(), (string) $request->request->get('_token'))) {
@@ -121,6 +149,186 @@ final class RecruiterController extends AbstractController
         $entityManager->flush();
 
         return $this->favoriteSuccessResponse($request, $redirectPath, $favoriteProfileRepository, $recruiterProfile, $profile, false, 'Profil retiré des favoris.');
+    }
+
+    #[Route('/recruiter/offers', name: 'app_recruiter_offers')]
+    #[IsGranted('ROLE_RECRUITER')]
+    public function offers(
+        #[Autowire(service: 'cache.app')] CacheItemPoolInterface $cache,
+    ): Response {
+        $recruiterProfile = $this->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile) {
+            throw $this->createNotFoundException('Profil recruteur introuvable.');
+        }
+
+        $offerRows = $this->buildRecruiterOfferRows($recruiterProfile);
+
+        foreach ($offerRows as &$row) {
+            $item = $cache->getItem($this->buildMatchingSummaryCacheKey((int) $row['id']));
+            if ($item->isHit()) {
+                $cached = $item->get();
+                $row['topMatchPercentage'] = $cached['topMatchPercentage'] ?? null;
+                $row['cachedAt'] = $cached['cachedAt'] ?? null;
+                $row['matchesCount'] = $cached['matchesCount'] ?? 0;
+            }
+        }
+        unset($row);
+
+        return $this->render('recruiter/offers.html.twig', [
+            'offerRows' => $offerRows,
+        ]);
+    }
+
+    #[Route('/recruiter/offers/{id}', name: 'app_recruiter_offer_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[IsGranted('ROLE_RECRUITER')]
+    public function offerDetail(
+        JobOffer $offer,
+        #[Autowire(service: 'cache.app')] CacheItemPoolInterface $cache,
+    ): Response {
+        $recruiterProfile = $this->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile || $offer->getRecruiterProfile()?->getId() !== $recruiterProfile->getId()) {
+            throw $this->createNotFoundException('Offre introuvable.');
+        }
+
+        $cachedMatching = null;
+        $cacheKey = $this->buildMatchingCacheKey((int) $offer->getId());
+        $item = $cache->getItem($cacheKey);
+
+        if ($item->isHit()) {
+            $cached = $item->get();
+            $allMatches = $cached['matches'] ?? [];
+            $perPage = 10;
+            $totalPages = max(1, (int) ceil(count($allMatches) / $perPage));
+            $firstPageMatches = array_slice($allMatches, 0, $perPage);
+
+            $cachedMatching = json_encode([
+                'offer' => $cached['offer'] ?? ['id' => $offer->getId(), 'title' => (string) $offer->getTitle()],
+                'matchesCount' => count($allMatches),
+                'displayedMatches' => count($firstPageMatches),
+                'page' => 1,
+                'perPage' => $perPage,
+                'totalPages' => $totalPages,
+                'topMatchPercentage' => $cached['topMatchPercentage'] ?? null,
+                'fairness' => $cached['fairness'] ?? null,
+                'semantic' => $cached['semantic'] ?? null,
+                'enriched' => $cached['enriched'] ?? null,
+                'cachedAt' => $cached['cachedAt'] ?? null,
+                'matches' => $firstPageMatches,
+            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+
+        return $this->render('recruiter/offer_detail.html.twig', [
+            'offer' => $offer,
+            'matchingEndpoint' => $this->generateUrl('app_recruiter_offer_matching', ['id' => $offer->getId()]),
+            'cachedMatching' => $cachedMatching,
+        ]);
+    }
+
+    #[Route('/recruiter/offers/{id}/matching', name: 'app_recruiter_offer_matching', requirements: ['id' => '\d+'], methods: ['GET'])]
+    #[IsGranted('ROLE_RECRUITER')]
+    public function offerMatching(
+        JobOffer $offer,
+        Request $request,
+        DeveloperProfileRepository $developerProfileRepository,
+        OfferMatchingService $offerMatchingService,
+        #[Autowire(service: 'cache.app')] CacheItemPoolInterface $cache,
+    ): JsonResponse {
+        $recruiterProfile = $this->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile || $offer->getRecruiterProfile()?->getId() !== $recruiterProfile->getId()) {
+            throw $this->createNotFoundException('Offre introuvable.');
+        }
+
+        $cacheKey = $this->buildMatchingCacheKey((int) $offer->getId());
+        $forceRefresh = $request->query->getBoolean('refresh', false);
+        $item = $cache->getItem($cacheKey);
+
+        if ($forceRefresh || !$item->isHit()) {
+            $publicDevelopers = array_values(array_filter(
+                $developerProfileRepository->findAllForMatching(),
+                static fn (DeveloperProfile $developer): bool => true === $developer->isPublic() && null !== $developer->getPortfolioGeneratedAt(),
+            ));
+
+            $offerMatch = $offerMatchingService->buildSingleOfferMatch($offer, $publicDevelopers);
+            $allMatches = $offerMatch['matches'] ?? [];
+
+            $normalizedMatches = array_map(function (array $match): array {
+                return [
+                    'developerId' => $match['developerId'] ?? null,
+                    'slug' => $match['slug'] ?? null,
+                    'profileUrl' => isset($match['slug']) && is_string($match['slug']) && '' !== $match['slug']
+                        ? $this->generateUrl('app_public_profile_show', ['slug' => $match['slug']])
+                        : null,
+                    'fullName' => $match['fullName'] ?? 'Profil',
+                    'headline' => $match['headline'] ?? '',
+                    'yearsExperience' => $match['yearsExperience'] ?? 0,
+                    'percentage' => $match['percentage'] ?? null,
+                    'semanticPercentage' => $match['semanticPercentage'] ?? null,
+                    'semanticEnrichedPercentage' => $match['semanticEnrichedPercentage'] ?? null,
+                    'matchedHardSkills' => $match['matchedHardSkills'] ?? [],
+                    'matchedSoftSkills' => $match['matchedSoftSkills'] ?? [],
+                    'inferredSoftSkills' => $match['inferredSoftSkills'] ?? [],
+                    'inferredTransferableSkills' => $match['inferredTransferableSkills'] ?? [],
+                    'inferredTechnicalSkills' => $match['inferredTechnicalSkills'] ?? [],
+                    'scoreBreakdown' => $match['scoreBreakdown'] ?? [],
+                ];
+            }, $allMatches);
+
+            $cachedData = [
+                'offer' => $offerMatch['offer'] ?? [
+                    'id' => $offer->getId(),
+                    'title' => (string) $offer->getTitle(),
+                ],
+                'topMatchPercentage' => $normalizedMatches[0]['semanticEnrichedPercentage'] ?? null,
+                'fairness' => $offerMatch['fairness'] ?? null,
+                'semantic' => $offerMatch['semantic'] ?? null,
+                'enriched' => $offerMatch['enriched'] ?? null,
+                'matches' => $normalizedMatches,
+                'matchesCount' => count($normalizedMatches),
+                'cachedAt' => (new \DateTimeImmutable())->format('Y-m-d\TH:i:sP'),
+            ];
+
+            $item->set($cachedData);
+            $item->expiresAfter(self::MATCHING_CACHE_TTL);
+            $cache->save($item);
+
+            $summaryItem = $cache->getItem($this->buildMatchingSummaryCacheKey((int) $offer->getId()));
+            $summaryItem->set($this->extractMatchingSummary($cachedData));
+            $summaryItem->expiresAfter(self::MATCHING_CACHE_TTL);
+            $cache->save($summaryItem);
+        } else {
+            $cachedData = $item->get();
+
+            $summaryKey = $this->buildMatchingSummaryCacheKey((int) $offer->getId());
+            $summaryItem = $cache->getItem($summaryKey);
+            if (!$summaryItem->isHit()) {
+                $summaryItem->set($this->extractMatchingSummary($cachedData));
+                $summaryItem->expiresAfter(self::MATCHING_CACHE_TTL);
+                $cache->save($summaryItem);
+            }
+        }
+
+        $allMatches = $cachedData['matches'] ?? [];
+        $totalMatches = count($allMatches);
+        $page = max(1, $request->query->getInt('page', 1));
+        $perPage = 10;
+        $totalPages = max(1, (int) ceil($totalMatches / $perPage));
+        $page = min($page, $totalPages);
+        $visibleMatches = array_slice($allMatches, ($page - 1) * $perPage, $perPage);
+
+        return $this->json([
+            'offer' => $cachedData['offer'],
+            'matchesCount' => $totalMatches,
+            'displayedMatches' => count($visibleMatches),
+            'page' => $page,
+            'perPage' => $perPage,
+            'totalPages' => $totalPages,
+            'topMatchPercentage' => $cachedData['topMatchPercentage'],
+            'fairness' => $cachedData['fairness'],
+            'semantic' => $cachedData['semantic'],
+            'enriched' => $cachedData['enriched'],
+            'cachedAt' => $cachedData['cachedAt'],
+            'matches' => $visibleMatches,
+        ]);
     }
 
     #[Route('/recruiter/messages', name: 'app_recruiter_messages')]
@@ -424,5 +632,157 @@ final class RecruiterController extends AbstractController
         }
 
         return $favoriteProfileRepository->findForRecruiterProfile($recruiterProfile);
+    }
+
+    /**
+     * @return list<array{id: int, title: string, contract: string, status: string, isActive: bool, location: ?string, updatedAt: ?\DateTimeImmutable, detailUrl: string, topMatchPercentage: ?float, cachedAt: ?string, matchesCount: int}>
+     */
+    private function buildRecruiterOfferRows(RecruiterProfile $recruiterProfile): array
+    {
+        $offers = $recruiterProfile->getJobOffers();
+        $rows = [];
+
+        foreach ($offers as $offer) {
+            if (!$offer instanceof JobOffer) {
+                continue;
+            }
+
+            $contractType = $offer->getContractType();
+            $contractLabel = null !== $contractType ? match ($contractType->value) {
+                'full_time' => 'Temps plein',
+                'part_time' => 'Temps partiel',
+                'permanent' => 'CDI',
+                'fixed_term' => 'CDD',
+                'internship' => 'Stage',
+                'apprenticeship' => 'Alternance',
+                'freelance' => 'Freelance',
+                'contract' => 'Contrat',
+                default => $contractType->value,
+            } : 'Non défini';
+
+            $rows[] = [
+                'id' => $offer->getId(),
+                'title' => (string) $offer->getTitle(),
+                'contract' => $contractLabel,
+                'status' => $offer->isActive() ? 'Publiée' : 'Brouillon',
+                'isActive' => (bool) $offer->isActive(),
+                'location' => $offer->getLocation(),
+                'updatedAt' => $offer->getUpdatedAt(),
+                'detailUrl' => $this->generateUrl('app_recruiter_offer_detail', ['id' => $offer->getId()]),
+                'topMatchPercentage' => null,
+                'cachedAt' => null,
+                'matchesCount' => 0,
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @return array{0: list<array>, 1: list<array>, 2: int}
+     */
+    private function buildRecruiterDashboardRows(
+        RecruiterProfile $recruiterProfile,
+        FavoriteProfileRepository $favoriteProfileRepository,
+        CacheItemPoolInterface $cache,
+    ): array {
+        $allOfferRows = $this->buildRecruiterOfferRows($recruiterProfile);
+        $offersCount = count($allOfferRows);
+        $offerRows = [];
+        $recentOfferRows = array_slice($allOfferRows, 0, 6);
+
+        foreach ($recentOfferRows as $baseRow) {
+            $row = $baseRow;
+            $row['applicants'] = 0;
+            $row['topMatchName'] = null;
+
+            $item = $cache->getItem($this->buildMatchingSummaryCacheKey((int) $row['id']));
+            if ($item->isHit()) {
+                $cached = $item->get();
+                $matchesCount = (int) ($cached['matchesCount'] ?? 0);
+                $row['topMatchPercentage'] = $cached['topMatchPercentage'] ?? null;
+                $row['cachedAt'] = $cached['cachedAt'] ?? null;
+                $row['matchesCount'] = $matchesCount;
+                $row['applicants'] = $matchesCount;
+                $row['topMatchName'] = $cached['topMatchName'] ?? null;
+            }
+
+            $offerRows[] = $row;
+        }
+
+        $favoriteRows = [];
+        foreach ($favoriteProfileRepository->findForRecruiterProfile($recruiterProfile) as $favorite) {
+            if (!$favorite instanceof FavoriteProfile) {
+                continue;
+            }
+
+            $developer = $favorite->getDeveloperProfile();
+            if (!$developer instanceof DeveloperProfile) {
+                continue;
+            }
+
+            $locationParts = array_values(array_filter([
+                $developer->getCity(),
+                $developer->getCountry(),
+            ], static fn (?string $value): bool => null !== $value && '' !== trim($value)));
+
+            $availability = match ($developer->getLocationType()?->value) {
+                'remote' => 'Remote',
+                'hybrid' => 'Hybride',
+                'onsite' => 'Sur site',
+                default => 'Disponibilité non renseignée',
+            };
+
+            $favoriteRows[] = [
+                'fullName' => trim(sprintf('%s %s', (string) $developer->getFirstName(), (string) $developer->getLastName())),
+                'headline' => (string) $developer->getHeadline(),
+                'slug' => $developer->getSlug(),
+                'location' => [] !== $locationParts ? implode(', ', $locationParts) : null,
+                'availability' => $availability,
+                'yearsExperience' => (int) ($developer->getYearsExperience() ?? 0),
+                'bestMatchPercentage' => null,
+                'bestOfferTitle' => null,
+            ];
+        }
+
+        return [$offerRows, $favoriteRows, $offersCount];
+    }
+
+    private function buildMatchingCacheKey(int $offerId): string
+    {
+        return 'matching_offer_' . $offerId;
+    }
+
+    private function buildMatchingSummaryCacheKey(int $offerId): string
+    {
+        return 'matching_offer_summary_' . $offerId;
+    }
+
+    /**
+     * @param array<string, mixed> $cachedData
+     * @return array{topMatchPercentage: ?float, topMatchName: ?string, matchesCount: int, cachedAt: ?string}
+     */
+    private function extractMatchingSummary(array $cachedData): array
+    {
+        $firstMatch = $cachedData['matches'][0] ?? null;
+
+        return [
+            'topMatchPercentage' => isset($cachedData['topMatchPercentage']) && (is_float($cachedData['topMatchPercentage']) || is_int($cachedData['topMatchPercentage']))
+                ? (float) $cachedData['topMatchPercentage']
+                : null,
+            'topMatchName' => is_array($firstMatch) && isset($firstMatch['fullName']) && is_string($firstMatch['fullName'])
+                ? $firstMatch['fullName']
+                : null,
+            'matchesCount' => (int) ($cachedData['matchesCount'] ?? 0),
+            'cachedAt' => isset($cachedData['cachedAt']) && is_string($cachedData['cachedAt']) ? $cachedData['cachedAt'] : null,
+        ];
+    }
+
+    private function buildMatchingPreviewPayload(): array
+    {
+        return [
+            'offers' => [],
+            'developers' => [],
+        ];
     }
 }

@@ -1,0 +1,33 @@
+{
+  "input": "/home/mehdi/DevSpot/matching-demo-dataset-v2-realistic.json",
+  "output": "/home/mehdi/DevSpot/docs/matching-demo-dataset-v2-clean.json",
+  "developers": 192,
+  "offers": 90,
+  "changes": {
+    "position_normalized": 197,
+    "skill_normalized": 39,
+    "text_fix_postgresql": 30,
+    "text_fix_frontend": 28,
+    "technology_normalized": 121,
+    "bio_filled": 15,
+    "text_fix_devops_case": 82,
+    "text_fix_sql_phrase": 21,
+    "text_fix_backend": 11,
+    "text_fix_qa_case": 40,
+    "text_fix_mysql": 4,
+    "bio_seniority_rebalanced": 46,
+    "skill_years_rebalanced": 195,
+    "skill_level_rebalanced": 268,
+    "developer_experience_level_rebalanced": 136,
+    "developer_years_experience_rebalanced": 135,
+    "final_profiles_junior": 35,
+    "final_profiles_mid": 96,
+    "final_profiles_senior": 50,
+    "final_profiles_lead": 11,
+    "offer_experience_rebalanced": 71,
+    "final_offers_0-2": 14,
+    "final_offers_3-4": 41,
+    "final_offers_5-6": 23,
+    "final_offers_7+": 12
+  }
+}

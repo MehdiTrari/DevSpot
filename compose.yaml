@@ -49,3 +49,5 @@ volumes:
   mercure_data:
   mercure_config:
 ###< symfony/mercure-bundle ###
+
+huggingface_cache: 
