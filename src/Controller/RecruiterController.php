@@ -337,8 +337,7 @@ final class RecruiterController extends AbstractController
         ConversationRepository $conversationRepository,
         MessageRepository $messageRepository,
         ChatMercure $chatMercure,
-    ): Response
-    {
+    ): Response {
         $recruiterUser = $this->getRecruiterUser();
         $conversationRows = $this->buildRecruiterConversationRows($conversationRepository, $messageRepository, $recruiterUser);
 
@@ -477,7 +476,7 @@ final class RecruiterController extends AbstractController
         ]);
     }
 
-    #[Route('/recruiter/messages/{conversationId}/read', name: 'app_recruiter_message_mark_read', requirements: ['conversationId' => '\\d+'], methods: ['POST'])]
+    #[Route('/recruiter/messages/{conversationId}/read', name: 'app_recruiter_message_mark_read', requirements: ['conversationId' => '\d+'], methods: ['POST'])]
     #[IsGranted('ROLE_RECRUITER')]
     public function markConversationRead(
         int $conversationId,
