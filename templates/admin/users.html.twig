@@ -236,6 +236,9 @@
                 <p class="mt-2 text-[15px] text-slate-400">{{ totalUsersFiltered }} utilisateur(s) trouvé(s)</p>
             </div>
             <div class="flex items-center gap-2">
+                <a href="{{ path('app_admin_moderation_history') }}" class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-200 transition-all hover:bg-white/10">
+                    Historique
+                </a>
                 <a href="{{ path('app_admin_users') }}" class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-200 transition-all hover:bg-white/10" data-admin-users-pagination="true">
                     Réinitialiser
                 </a>
@@ -428,9 +431,15 @@
                                         {% if user.status and user.status.value in ['active', 'suspended', 'pending'] %}
                                             <form method="post" action="{{ path('app_admin_users_ban', {id: user.id}) }}">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('admin_user_ban_' ~ user.id) }}">
+                                                <textarea name="reason" rows="3" required class="mb-2 w-full rounded-lg border border-red-400/20 bg-slate-900 px-2.5 py-2 text-xs text-white placeholder:text-slate-500" placeholder="Motif du bannissement"></textarea>
+                                                <input type="number" name="durationDays" min="1" class="mb-2 w-full rounded-lg border border-white/10 bg-slate-900 px-2.5 py-2 text-xs text-white placeholder:text-slate-500" placeholder="Duree du ban en jours (optionnel)">
                                                 <button type="submit" class="w-full rounded-lg bg-red-500/20 px-3 py-2 text-xs font-semibold text-red-300 hover:bg-red-500/30" {% if isCurrentAdmin %}disabled{% endif %}>Bannir</button>
                                             </form>
                                         {% endif %}
+
+                                        <a href="{{ path('app_admin_moderation_history', {targetEmail: user.email}) }}" class="block rounded-lg bg-white/5 px-3 py-2 text-center text-xs font-semibold text-slate-200 hover:bg-white/10">
+                                            Voir ses logs
+                                        </a>
 
                                         <form method="post" action="{{ path('app_admin_users_delete', {id: user.id}) }}" onsubmit="return confirm('Supprimer définitivement ce compte et TOUTES ses données associées ?');">
                                             <input type="hidden" name="_token" value="{{ csrf_token('admin_user_delete_' ~ user.id) }}">

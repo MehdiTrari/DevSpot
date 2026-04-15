@@ -34,6 +34,11 @@ class AdminActionLog
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $targetUser = null;
 
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+    }
+
     public function getId(): ?int
     {
         return $this->id;

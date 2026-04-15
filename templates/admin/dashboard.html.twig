@@ -154,6 +154,17 @@
                     <h3 class="mt-4 font-semibold text-white group-hover:text-yellow-400 transition-colors">Messages de contact</h3>
                     <p class="mt-2 text-sm text-slate-400">{{ stats.totalMessages }} messages</p>
                 </a>
+
+                <a href="{{ path('app_admin_moderation_history') }}" class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-red-500/30 hover:scale-105">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-red-500/20">
+                        <svg class="h-5 w-5 shrink-0 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3.05 11A9 9 0 1 1 6 18.36"></path>
+                        </svg>
+                    </div>
+                    <h3 class="mt-4 font-semibold text-white group-hover:text-red-400 transition-colors">Historique moderation</h3>
+                    <p class="mt-2 text-sm text-slate-400">Preuves et filtres d'audit</p>
+                </a>
             </div>
 
             {# Derniers utilisateurs enregistrés #}

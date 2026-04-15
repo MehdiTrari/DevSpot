@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Entity\AdminActionLog;
 use App\Entity\User;
 use App\Enum\UserStatus;
 use App\Repository\AdminActionLogRepository;
@@ -10,6 +9,7 @@ use App\Repository\CompanyRepository;
 use App\Repository\ContactMessageRepository;
 use App\Repository\DeveloperProfileRepository;
 use App\Repository\UserRepository;
+use App\Service\AdminModerationService;
 use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -26,8 +26,10 @@ final class AdminController extends AbstractController
     /** @var string[] */
     private const ALLOWED_ROLES = ['ROLE_APPLICANT', 'ROLE_RECRUITER', 'ROLE_ADMIN'];
 
-    public function __construct(private readonly LoggerInterface $logger)
-    {
+    public function __construct(
+        private readonly LoggerInterface $logger,
+        private readonly AdminModerationService $adminModerationService,
+    ) {
     }
 
     #[Route('', name: 'app_admin_dashboard')]
@@ -60,6 +62,28 @@ final class AdminController extends AbstractController
             'recentActions' => $recentActions,
             'recentUsers' => $recentUsers,
             'recentMessages' => $recentMessages,
+        ]);
+    }
+
+    #[Route('/moderation-history', name: 'app_admin_moderation_history', methods: ['GET'])]
+    public function moderationHistory(AdminActionLogRepository $adminActionLogRepository, Request $request): Response
+    {
+        $adminEmail = trim((string) $request->query->get('adminEmail', ''));
+        $targetEmail = trim((string) $request->query->get('targetEmail', ''));
+        $action = trim((string) $request->query->get('action', ''));
+
+        return $this->render('admin/moderation_history.html.twig', [
+            'logs' => $adminActionLogRepository->findModerationHistory(
+                '' !== $adminEmail ? $adminEmail : null,
+                '' !== $targetEmail ? $targetEmail : null,
+                '' !== $action ? $action : null,
+            ),
+            'filters' => [
+                'adminEmail' => $adminEmail,
+                'targetEmail' => $targetEmail,
+                'action' => $action,
+            ],
+            'availableActions' => AdminModerationService::getAvailableActions(),
         ]);
     }
 
@@ -136,10 +160,14 @@ final class AdminController extends AbstractController
             $notificationManager->notifyAdminRoleAction($currentUser, $user, $currentRole, $requestedRole);
         }
 
-        $this->logAdminAction($entityManager, 'user.role_changed', $user, [
-            'previousRole' => $currentRole,
-            'newRole' => $requestedRole,
-        ]);
+        $this->adminModerationService->logAction(
+            AdminModerationService::ACTION_ROLE_UPDATE,
+            $user,
+            metadata: [
+                'previousRole' => $currentRole,
+                'newRole' => $requestedRole,
+            ]
+        );
 
         $entityManager->flush();
         $this->addFlash('success', 'Le rôle de l\'utilisateur a été mis à jour.');
@@ -170,7 +198,7 @@ final class AdminController extends AbstractController
             return $this->redirectToRoute('app_admin_users');
         }
 
-        $previousStatus = $user->getStatus()?->value;
+        $previousStatus = $user->getStatus();
         $shouldNotifyTargetUser = !$this->isApplicantUser($user);
         $user->setStatus($status);
         $user->setUpdatedAt(new \DateTimeImmutable());
@@ -179,16 +207,24 @@ final class AdminController extends AbstractController
         }
 
         if ($shouldNotifyTargetUser) {
-            $notificationManager->notifyUserStatusChanged($user, $previousStatus, $status);
+            $notificationManager->notifyUserStatusChanged($user, $previousStatus?->value, $status);
         }
         if ($currentUser instanceof User) {
-            $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $status);
+            $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus?->value, $status);
         }
 
-        $this->logAdminAction($entityManager, 'user.status_changed', $user, [
-            'previousStatus' => $previousStatus,
-            'newStatus' => $status->value,
-        ]);
+        try {
+            $this->adminModerationService->logStatusChange(
+                $user,
+                $previousStatus,
+                $status,
+                (string) $request->request->get('reason', ''),
+            );
+        } catch (\InvalidArgumentException $exception) {
+            $this->addFlash('error', $exception->getMessage());
+
+            return $this->redirectToRoute('app_admin_users');
+        }
 
         $entityManager->flush();
         $this->addFlash('success', 'Le statut de l\'utilisateur a été mis à jour.');
@@ -235,13 +271,18 @@ final class AdminController extends AbstractController
         $userEmail = $user->getEmail();
 
         try {
+            $this->adminModerationService->logAction(
+                AdminModerationService::ACTION_ACCOUNT_REJECTED,
+                $user,
+                (string) $request->request->get('reason', ''),
+                [
+                    'targetUserId' => $userId,
+                    'targetUserEmail' => $userEmail,
+                    'previousStatus' => $previousStatus,
+                    'newStatus' => 'deleted',
+                ]
+            );
             $this->removeUserDataGraph($user, $entityManager);
-            $this->logAdminAction($entityManager, 'user.rejected', null, [
-                'targetUserId' => $userId,
-                'targetUserEmail' => $userEmail,
-                'previousStatus' => $previousStatus,
-                'newStatus' => 'deleted',
-            ]);
 
             $entityManager->flush();
 
@@ -280,13 +321,18 @@ final class AdminController extends AbstractController
         $userEmail = $user->getEmail();
 
         try {
+            $this->adminModerationService->logAction(
+                AdminModerationService::ACTION_ACCOUNT_DELETED,
+                $user,
+                (string) $request->request->get('reason', ''),
+                [
+                    'targetUserId' => $userId,
+                    'targetUserEmail' => $userEmail,
+                    'previousStatus' => $previousStatus,
+                    'newStatus' => 'deleted',
+                ]
+            );
             $this->removeUserDataGraph($user, $entityManager);
-            $this->logAdminAction($entityManager, 'user.deleted', null, [
-                'targetUserId' => $userId,
-                'targetUserEmail' => $userEmail,
-                'previousStatus' => $previousStatus,
-                'newStatus' => 'deleted',
-            ]);
 
             $entityManager->flush();
 
@@ -356,7 +402,7 @@ final class AdminController extends AbstractController
             return $this->redirectToRoute('app_admin_users');
         }
 
-        $previousStatus = $user->getStatus()?->value;
+        $previousStatus = $user->getStatus();
         $shouldNotifyTargetUser = !$this->isApplicantUser($user);
         $user->setStatus($newStatus);
         $user->setUpdatedAt(new \DateTimeImmutable());
@@ -365,16 +411,28 @@ final class AdminController extends AbstractController
         }
 
         if ($shouldNotifyTargetUser) {
-            $notificationManager->notifyUserStatusChanged($user, $previousStatus, $newStatus);
+            $notificationManager->notifyUserStatusChanged($user, $previousStatus?->value, $newStatus);
         }
         if ($currentUser instanceof User) {
-            $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $newStatus);
+            $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus?->value, $newStatus);
         }
 
-        $this->logAdminAction($entityManager, $logAction, $user, [
-            'previousStatus' => $previousStatus,
-            'newStatus' => $newStatus->value,
-        ]);
+        try {
+            $this->adminModerationService->logStatusChange(
+                $user,
+                $previousStatus,
+                $newStatus,
+                (string) $request->request->get('reason', ''),
+                [
+                    'durationDays' => $request->request->getInt('durationDays', 0) > 0 ? $request->request->getInt('durationDays') : null,
+                    'statusRoute' => $logAction,
+                ]
+            );
+        } catch (\InvalidArgumentException $exception) {
+            $this->addFlash('error', $exception->getMessage());
+
+            return $this->redirectToRoute('app_admin_users');
+        }
 
         $entityManager->flush();
         $this->addFlash('success', $successMessage);
@@ -397,29 +455,6 @@ final class AdminController extends AbstractController
     private function isApplicantUser(User $user): bool
     {
         return in_array('ROLE_APPLICANT', $user->getRoles(), true);
-    }
-
-    private function logAdminAction(
-        EntityManagerInterface $entityManager,
-        string $action,
-        ?User $targetUser = null,
-        ?array $metadata = null,
-        ?string $reason = null,
-    ): void {
-        $adminUser = $this->getUser();
-        if (!$adminUser instanceof User) {
-            return;
-        }
-
-        $log = new AdminActionLog();
-        $log->setAction($action);
-        $log->setReason($reason);
-        $log->setMetadata($metadata);
-        $log->setCreatedAt(new \DateTimeImmutable());
-        $log->setAdminUser($adminUser);
-        $log->setTargetUser($targetUser);
-
-        $entityManager->persist($log);
     }
 
     private function removeUserDataGraph(User $user, EntityManagerInterface $entityManager): void
