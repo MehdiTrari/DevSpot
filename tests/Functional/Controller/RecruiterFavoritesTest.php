@@ -35,8 +35,9 @@ final class RecruiterFavoritesTest extends WebTestCase
         $favorite = $this->findFavorite($recruiter, $profile);
         self::assertNotNull($favorite);
 
-        $client->request('GET', '/recruiter');
-        self::assertSelectorTextContains('body', 'Alice Martin');
+        $crawler = $client->request('GET', '/recruiter');
+        self::assertSelectorTextContains('[data-favorite-count-value="true"]', '1');
+        self::assertGreaterThan(0, $crawler->filter('a[href="/recruiter/favorites"]')->count());
     }
 
     public function testRecruiterCanAddFavoriteFromPublicProfilePage(): void
@@ -100,19 +101,25 @@ final class RecruiterFavoritesTest extends WebTestCase
 
         $client->loginUser($recruiterB);
         $client->request('GET', '/recruiter');
-        self::assertSelectorTextNotContains('body', 'Unique Favorite');
+        self::assertSelectorTextContains('[data-favorite-count-value="true"]', '0');
 
         $client->loginUser($recruiterA);
-        $crawler = $client->request('GET', '/recruiter');
+        $client->request('GET', '/recruiter');
+        self::assertSelectorTextContains('[data-favorite-count-value="true"]', '1');
+
+        $crawler = $client->request('GET', '/recruiter/favorites');
         self::assertSelectorTextContains('body', 'Unique Favorite');
 
         $form = $crawler->filter(sprintf('form[action="/recruiter/favorites/%d/remove"]', $profile->getId()))->first()->form();
         $client->submit($form);
 
-        self::assertResponseRedirects('/recruiter');
+        self::assertResponseRedirects('/recruiter/favorites');
         $client->followRedirect();
         self::assertSelectorTextContains('body', 'Profil retiré des favoris.');
         self::assertSelectorTextNotContains('body', 'Unique Favorite');
+
+        $client->request('GET', '/recruiter');
+        self::assertSelectorTextContains('[data-favorite-count-value="true"]', '0');
         self::assertCount(0, $this->findFavoritesForRecruiter($recruiterA));
     }
 

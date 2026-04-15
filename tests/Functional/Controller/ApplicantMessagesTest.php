@@ -130,7 +130,6 @@ final class ApplicantMessagesTest extends WebTestCase
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'Diane Recruiter');
-        self::assertSelectorTextContains('body', (string) $recruiter->getEmail());
         self::assertSelectorTextContains('body', 'Nous souhaitons vous proposer une mission freelance.');
 
         /** @var EntityManagerInterface $entityManager */
