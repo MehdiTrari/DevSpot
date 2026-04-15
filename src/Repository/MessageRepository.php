@@ -32,9 +32,9 @@ class MessageRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function markConversationAsReadForUser(Conversation $conversation, User $viewerUser): int
+    public function markConversationAsReadForUser(Conversation $conversation, User $viewerUser): void
     {
-        return $this->createQueryBuilder('message')
+        $this->createQueryBuilder('message')
             ->update()
             ->set('message.isRead', ':isRead')
             ->andWhere('message.conversation = :conversation')

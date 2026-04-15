@@ -6,48 +6,11 @@
         <meta name="turbo-cache-control" content="no-preview">
         <title>{% block title %}DevSpot{% endblock %}</title>
         
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><rect width=%22128%22 height=%22128%22 rx=%2228%22 fill=%22%230f172a%22/><path d=%22M48 36L22 64l26 28%22 stroke=%22%2310b981%22 stroke-width=%229%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 fill=%22none%22/><path d=%22M80 36l26 28-26 28%22 stroke=%22%2310b981%22 stroke-width=%229%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 fill=%22none%22/><line x1=%2270%22 y1=%2228%22 x2=%2258%22 y2=%22100%22 stroke=%22%2334d399%22 stroke-width=%227%22 stroke-linecap=%22round%22 opacity=%22.6%22/></svg>">
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><rect width=%22128%22 height=%22128%22 rx=%2228%22 fill=%22%23f8fafc%22/><path d=%22M48 36L22 64l26 28%22 stroke=%22%232563eb%22 stroke-width=%229%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 fill=%22none%22/><path d=%22M80 36l26 28-26 28%22 stroke=%22%232563eb%22 stroke-width=%229%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 fill=%22none%22/><line x1=%2270%22 y1=%2228%22 x2=%2258%22 y2=%22100%22 stroke=%22%233b82f6%22 stroke-width=%227%22 stroke-linecap=%22round%22 opacity=%22.6%22/></svg>">
         
         {% block stylesheets %}
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-            <style>
-                /* Style du calendrier Flatpickr - adapté pour le Dark Mode avec le Vert */
-                .flatpickr-calendar {
-                    border-radius: 1.5rem !important;
-                    border: 1px solid rgba(255,255,255,0.1) !important;
-                    box-shadow: 0 20px 40px rgba(0,0,0,0.3) !important;
-                    padding: 8px !important;
-                    font-family: inherit !important;
-                    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
-                }
-                .flatpickr-day.selected {
-                    background: #10b981 !important; /* Vert Emerald */
-                    border-color: #10b981 !important;
-                }
-
-                /* ANIMATIONS */
-                @keyframes appleSlideUp {
-                    0% { opacity: 0; transform: translateY(24px); }
-                    100% { opacity: 1; transform: translateY(0); }
-                }
-                @keyframes appleFadeIn {
-                    0% { opacity: 0; }
-                    100% { opacity: 1; }
-                }
-
-                .apple-fade {
-                    animation: appleFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) both;
-                }
-                .apple-slide-up {
-                    animation: appleSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-                }
-                .apple-slide-up-delay-1 {
-                    animation: appleSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
-                }
-                .apple-slide-up-delay-2 {
-                    animation: appleSlideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
-                }
-            </style>
+            <link rel="stylesheet" href="{{ asset('styles/base-theme.css') }}">
         {% endblock %}
 
         {% block javascripts %}
@@ -245,14 +208,6 @@
                         document.querySelectorAll('[data-favorite-count-value="true"]').forEach((element) => {
                             element.textContent = String(favoriteCount);
                         });
-
-                        const countLabel = favoriteCount === 1
-                            ? 'profil développeur enregistré.'
-                            : 'profils développeurs enregistrés.';
-
-                        document.querySelectorAll('[data-favorite-count-label="true"]').forEach((element) => {
-                            element.textContent = countLabel;
-                        });
                     };
 
                     const refreshFavoriteListState = () => {
@@ -390,11 +345,11 @@
 
                                 const isPublic = payload.isPublic === true;
                                 badge.textContent = isPublic ? 'Public' : 'Privé';
-                                badge.classList.remove('border-emerald-500/30', 'bg-emerald-500/10', 'text-emerald-400', 'border-white/10', 'bg-white/5', 'text-slate-400');
+                                badge.classList.remove('border-emerald-200', 'bg-emerald-100', 'text-emerald-800', 'border-rose-200', 'bg-rose-100', 'text-rose-800');
                                 if (isPublic) {
-                                    badge.classList.add('border-emerald-500/30', 'bg-emerald-500/10', 'text-emerald-400');
+                                    badge.classList.add('border-emerald-200', 'bg-emerald-100', 'text-emerald-800');
                                 } else {
-                                    badge.classList.add('border-white/10', 'bg-white/5', 'text-slate-400');
+                                    badge.classList.add('border-rose-200', 'bg-rose-100', 'text-rose-800');
                                 }
 
                                 hiddenVisibilityInput.value = isPublic ? '0' : '1';
@@ -415,6 +370,39 @@
                             }
                         });
                     });
+
+                    const cardLinks = document.querySelectorAll('[data-card-clickable="true"][data-card-href]');
+
+                    cardLinks.forEach((cardElement) => {
+                        if (cardElement.dataset.cardLinkInitialized === 'true') {
+                            return;
+                        }
+                        cardElement.dataset.cardLinkInitialized = 'true';
+
+                        const goToCardHref = () => {
+                            const targetHref = cardElement.dataset.cardHref;
+                            if (!targetHref) {
+                                return;
+                            }
+                            window.location.href = targetHref;
+                        };
+
+                        cardElement.addEventListener('click', (event) => {
+                            const eventTarget = event.target;
+                            if (eventTarget instanceof Element && eventTarget.closest('a, button, input, textarea, select, label, form, [data-card-ignore="true"]')) {
+                                return;
+                            }
+                            goToCardHref();
+                        });
+
+                        cardElement.addEventListener('keydown', (event) => {
+                            if (event.key !== 'Enter' && event.key !== ' ') {
+                                return;
+                            }
+                            event.preventDefault();
+                            goToCardHref();
+                        });
+                    });
                 };
 
                 document.addEventListener('DOMContentLoaded', initUiBehaviors);
@@ -423,25 +411,25 @@
         {% endblock %}
     </head>
     
-    {# Fond Slate très foncé et sélection de texte en vert #}
-    <body class="min-h-screen bg-slate-950 text-slate-100 font-sans antialiased selection:bg-emerald-500 selection:text-white">
+    {# Theme global blanc/bleu #}
+    <body class="indeed-theme min-h-screen bg-slate-50 text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white">
         <div class="relative min-h-screen overflow-hidden">
             
             {# Les blobs avec la classe apple-fade (Opacité et taille augmentées pour bien ressortir) #}
-            <div class="apple-fade pointer-events-none absolute -top-32 -left-20 h-[500px] w-[500px] rounded-full bg-emerald-500/40 blur-[120px]"></div>
-            <div class="apple-fade pointer-events-none absolute -right-32 top-1/4 h-[500px] w-[500px] rounded-full bg-emerald-600/40 blur-[120px]" style="animation-delay: 0.2s;"></div>
-            <div class="apple-fade pointer-events-none absolute bottom-0 left-1/4 h-[600px] w-[600px] rounded-full bg-emerald-600/40 blur-[120px]" style="animation-delay: 0.4s;"></div>
+            <div class="apple-fade pointer-events-none absolute -top-32 -left-20 h-[500px] w-[500px] rounded-full bg-blue-300/40 blur-[120px]"></div>
+            <div class="apple-fade pointer-events-none absolute -right-32 top-1/4 h-[500px] w-[500px] rounded-full bg-blue-400/35 blur-[120px]" style="animation-delay: 0.2s;"></div>
+            <div class="apple-fade pointer-events-none absolute bottom-0 left-1/4 h-[600px] w-[600px] rounded-full bg-blue-200/45 blur-[120px]" style="animation-delay: 0.4s;"></div>
 
             {# HEADER stable (sans animation) #}
-            <header class="relative z-10 mx-auto w-full max-w-7xl px-3 pt-6 sm:px-4 lg:px-5">
+            <header class="relative z-40 mx-auto w-full max-w-6xl px-3 pt-6 sm:px-4 lg:px-5">
                 <nav class="flex items-center justify-between gap-3">
                     <div class="flex items-center gap-3">
                         <a href="{{ path('app_home') }}" class="group inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[15px] font-semibold tracking-tight text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95">
                             <span class="flex h-5 w-5 items-center justify-center transition-transform duration-300 group-hover:scale-110">
                                 <svg class="h-5 w-5" viewBox="0 0 128 128" fill="none">
-                                    <path d="M48 36L22 64l26 28" stroke="#10b981" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M80 36l26 28-26 28" stroke="#10b981" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <line x1="70" y1="28" x2="58" y2="100" stroke="#34d399" stroke-width="9" stroke-linecap="round" opacity=".6"/>
+                                    <path d="M48 36L22 64l26 28" stroke="#2557d6" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M80 36l26 28-26 28" stroke="#2557d6" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <line x1="70" y1="28" x2="58" y2="100" stroke="#4f83ff" stroke-width="9" stroke-linecap="round" opacity=".6"/>
                                 </svg>
                             </span>
                             DevSpot
@@ -463,13 +451,21 @@
                     <div class="flex items-center gap-3">
                         {% if app.user %}
                             {% set unreadNotificationsCount = unread_notifications_count(app.user) %}
+                            {% set profilePath = path('app_home') %}
+                            {% if is_granted('ROLE_ADMIN') %}
+                                {% set profilePath = path('app_admin_dashboard') %}
+                            {% elseif is_granted('ROLE_RECRUITER') %}
+                                {% set profilePath = path('app_recruiter_home') %}
+                            {% elseif is_granted('ROLE_APPLICANT') %}
+                                {% set profilePath = path('app_applicant_home') %}
+                            {% endif %}
 
                             <a href="{{ path('app_notifications_index') }}" class="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95" aria-label="Accéder aux notifications">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M14.86 17.082a2 2 0 1 1-3.72 0M4.5 17.25h15a1.5 1.5 0 0 0 1.177-2.427l-1.53-1.92A5.98 5.98 0 0 1 18 9.166V8a6 6 0 1 0-12 0v1.166c0 1.352-.455 2.665-1.292 3.737l-1.53 1.92A1.5 1.5 0 0 0 4.5 17.25Z" />
                                 </svg>
                                 {% if unreadNotificationsCount > 0 %}
-                                    <span class="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full border border-emerald-300/20 bg-emerald-500 px-1.5 text-[11px] font-bold leading-none text-slate-950 shadow-lg shadow-emerald-500/30">{{ unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount }}</span>
+                                    <span class="header-count-badge header-count-badge-notification absolute -right-1.5 -top-1.5">{{ unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount }}</span>
                                 {% endif %}
                             </a>
 
@@ -482,28 +478,128 @@
                                     </a>
                                 {% endif %}
 
-                                {% if is_granted('ROLE_APPLICANT') or is_granted('ROLE_RECRUITER') %}
-                                    {% include '_chat_entry_point.html.twig' with {
-                                        user: app.user,
-                                        unreadCount: chat_unread_count(app.user)
-                                    } only %}
+                                {% if is_granted('ROLE_APPLICANT') and app.user.developerProfile is not null and app.user.developerProfile.portfolioGeneratedAt is not null %}
+                                    <a href="{{ path('app_applicant_messages') }}" class="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95" aria-label="Accéder à la messagerie">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" />
+                                        </svg>
+                                        {% set unreadMessagesCount = chat_unread_count(app.user) %}
+                                        {% if unreadMessagesCount > 0 %}
+                                            <span class="header-count-badge header-count-badge-message absolute -right-1.5 -top-1.5">{{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}</span>
+                                        {% endif %}
+                                    </a>
+                                {% elseif is_granted('ROLE_RECRUITER') %}
+                                    <a href="{{ path('app_recruiter_messages') }}" class="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95" aria-label="Accéder à la messagerie recruteur">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" />
+                                        </svg>
+                                        {% set unreadMessagesCount = chat_unread_count(app.user) %}
+                                        {% if unreadMessagesCount > 0 %}
+                                            <span class="header-count-badge header-count-badge-message absolute -right-1.5 -top-1.5">{{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}</span>
+                                        {% endif %}
+                                    </a>
                                 {% endif %}
                             {% endif %}
 
-                            <a href="{{ logout_path() }}" class="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 px-4 py-2 text-[15px] font-semibold tracking-tight text-red-400 shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-red-500 hover:text-white active:scale-95">
-                                Déconnexion
-                            </a>
+                            <details class="relative z-50">
+                                <summary class="inline-flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full border border-white/10 bg-white/5 text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-blue-500/20 active:scale-95" aria-label="Ouvrir le menu du compte">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+                                        <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0Zm-1.53 9.47A6.75 6.75 0 0 1 12 12.75a6.75 6.75 0 0 1 6.03 2.72A4.5 4.5 0 0 1 21 19.5a.75.75 0 0 1-.75.75H3.75A.75.75 0 0 1 3 19.5a4.5 4.5 0 0 1 2.97-4.03Z" clip-rule="evenodd" />
+                                    </svg>
+                                </summary>
+                                <div class="account-menu-panel absolute right-0 top-14 z-[999] w-96 overflow-hidden rounded-2xl">
+                                    <div class="border-b border-slate-200 px-5 py-4">
+                                        <p class="truncate text-xl font-bold text-slate-800">{{ app.user.email }}</p>
+                                    </div>
+                                    <div class="space-y-1 px-3 py-3 text-slate-700">
+                                        <a href="{{ profilePath }}" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6.75h3a1.5 1.5 0 0 1 1.5 1.5v11.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h3"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 3.75h-6a1.5 1.5 0 0 0-1.5 1.5v3h9v-3a1.5 1.5 0 0 0-1.5-1.5Z"/>
+                                                </svg>
+                                            </span>
+                                            Profil
+                                        </a>
+                                        <a href="#" onclick="return false;" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 19.5h16.5M6.75 19.5V8.25m5.25 11.25V4.5m5.25 15V11.25"/>
+                                                </svg>
+                                            </span>
+                                            Ma démographie
+                                        </a>
+                                        <a href="#" onclick="return false;" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h3M3 12h3m12 0h3M10.5 18h3"/>
+                                                    <circle cx="12" cy="12" r="3"/>
+                                                </svg>
+                                            </span>
+                                            Paramètres
+                                        </a>
+                                        <a href="#" onclick="return false;" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.09 9a3 3 0 1 1 5.82 1c0 2-3 2-3 4"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 17h.01"/>
+                                                </svg>
+                                            </span>
+                                            Aide
+                                        </a>
+                                        <a href="#" onclick="return false;" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V7.875a4.5 4.5 0 0 0-9 0V10.5"/>
+                                                    <rect x="4.5" y="10.5" width="15" height="9" rx="1.5"/>
+                                                </svg>
+                                            </span>
+                                            Centre de confidentialité
+                                        </a>
+                                    </div>
+                                    <div class="border-t border-slate-200 px-4 py-3">
+                                        <a href="{{ logout_path() }}" class="account-menu-item account-menu-item-hover account-menu-logout justify-center text-[1.72rem] leading-none">
+                                            Déconnexion
+                                        </a>
+                                    </div>
+                                </div>
+                            </details>
                         {% else %}
-                            <a href="{{ path('app_login') }}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[15px] font-semibold tracking-tight text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95">
-                                Connexion
-                            </a>
+                            <details class="relative z-50">
+                                <summary class="inline-flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full border border-white/10 bg-white/5 text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-blue-500/20 active:scale-95" aria-label="Ouvrir le menu du compte">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+                                        <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0Zm-1.53 9.47A6.75 6.75 0 0 1 12 12.75a6.75 6.75 0 0 1 6.03 2.72A4.5 4.5 0 0 1 21 19.5a.75.75 0 0 1-.75.75H3.75A.75.75 0 0 1 3 19.5a4.5 4.5 0 0 1 2.97-4.03Z" clip-rule="evenodd" />
+                                    </svg>
+                                </summary>
+                                <div class="account-menu-panel absolute right-0 top-14 z-[999] w-72 overflow-hidden rounded-2xl">
+                                    <div class="space-y-1 px-3 py-3 text-slate-700">
+                                        <a href="{{ path('app_login') }}" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 15l3-3m0 0-3-3m3 3H9"/>
+                                                </svg>
+                                            </span>
+                                            Connexion
+                                        </a>
+                                        <a href="{{ path('app_register') }}" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/>
+                                                </svg>
+                                            </span>
+                                            Créer un compte
+                                        </a>
+                                    </div>
+                                </div>
+                            </details>
                         {% endif %}
                     </div>
                 </nav>
             </header>
 
             <div class="pointer-events-none fixed inset-x-0 top-6 z-50">
-                <div class="mx-auto w-full max-w-7xl px-3 sm:px-4 lg:px-5">
+                <div class="mx-auto w-full max-w-6xl px-3 sm:px-4 lg:px-5">
                     <div data-notification-stack="true" class="ml-auto flex w-full max-w-sm flex-col gap-3">
                         {% for message in app.flashes('success') %}
                             <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-3.5 text-[15px] font-medium text-emerald-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
@@ -545,7 +641,7 @@
             </div>
 
             {# MAIN avec apple-slide-up-delay-1 #}
-            <main class="apple-slide-up-delay-1 relative z-10 mx-auto flex min-h-[calc(100vh-84px)] w-full max-w-7xl items-center justify-center px-3 pb-12 pt-8 sm:px-4 lg:px-5">
+            <main class="apple-slide-up-delay-1 relative z-0 mx-auto flex min-h-[calc(100vh-84px)] w-full max-w-6xl items-center justify-center px-3 pb-12 pt-8 sm:px-4 lg:px-5">
                 {% block body %}{% endblock %}
             </main>
             

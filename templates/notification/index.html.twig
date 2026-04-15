@@ -3,7 +3,7 @@
 {% block title %}Notifications | DevSpot{% endblock %}
 
 {% block body %}
-<section class="w-full space-y-6" aria-labelledby="notifications-title">
+<section class="w-full self-start space-y-6" aria-labelledby="notifications-title">
     <div id="notifications-dynamic-content">
         {% include 'notification/_dynamic_content.html.twig' with {
             notifications: notifications,

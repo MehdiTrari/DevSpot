@@ -19,7 +19,7 @@
     {# LISTE DES MESSAGES #}
     <div class="space-y-3">
         {% for message in messages %}
-            <div class="rounded-2xl border {% if not message.isRead %}border-yellow-500/30 bg-yellow-500/5{% else %}border-white/10 bg-slate-900/50{% endif %} p-6 shadow-xl shadow-black/40 backdrop-blur-xl hover:bg-slate-900/60 transition-all">
+            <div class="rounded-2xl border {% if not message.isRead %}border-yellow-500/30 bg-yellow-500/5{% else %}border-white/10 bg-slate-900/50{% endif %} p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all">
                 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-3 mb-2">

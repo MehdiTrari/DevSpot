@@ -14,7 +14,6 @@ use App\Form\DeveloperProfileStep4Type;
 use App\Repository\ConversationRepository;
 use App\Repository\DeveloperProfileRepository;
 use App\Repository\MessageRepository;
-use App\Service\ChatMercure;
 use App\Service\NotificationManager;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -51,11 +50,7 @@ final class ApplicantController extends AbstractController
 
     #[Route('/applicant/messages', name: 'app_applicant_messages')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function messages(
-        ConversationRepository $conversationRepository,
-        MessageRepository $messageRepository,
-        ChatMercure $chatMercure,
-    ): Response
+    public function messages(ConversationRepository $conversationRepository, MessageRepository $messageRepository): Response
     {
         $user = $this->getApplicantUser();
         $profile = $user->getDeveloperProfile();
@@ -71,8 +66,6 @@ final class ApplicantController extends AbstractController
         return $this->render('applicant/messages.html.twig', [
             'profile' => $profile,
             'conversations' => $conversationRows,
-            'mercureTopics' => $chatMercure->getTopicsForUser($user),
-            'mercureNeedsCredentials' => $chatMercure->requiresCredentials(),
             'selectedConversation' => null,
             'selectedMessages' => [],
             'selectedRecruiterName' => null,
@@ -93,7 +86,6 @@ final class ApplicantController extends AbstractController
         #[Autowire(service: 'html_sanitizer.sanitizer.contact_message')]
         HtmlSanitizerInterface $contactMessageSanitizer,
         NotificationManager $notificationManager,
-        ChatMercure $chatMercure,
     ): Response
     {
         $applicantUser = $this->getApplicantUser();
@@ -137,7 +129,6 @@ final class ApplicantController extends AbstractController
                 $entityManager->persist($replyMessage);
                 $notificationManager->notifyConversationNewMessage($replyMessage);
                 $entityManager->flush();
-                $chatMercure->publishMessage($replyMessage);
 
                 if ($request->isXmlHttpRequest()) {
                     $html = $this->renderView('applicant/_chat_message.html.twig', [
@@ -168,8 +159,6 @@ final class ApplicantController extends AbstractController
         return $this->render('applicant/messages.html.twig', [
             'profile' => $profile,
             'conversations' => $conversationRows,
-            'mercureTopics' => $chatMercure->getTopicsForUser($applicantUser, $conversation),
-            'mercureNeedsCredentials' => $chatMercure->requiresCredentials(),
             'selectedConversation' => $conversation,
             'selectedMessages' => $conversationMessages,
             'selectedRecruiterEmail' => (string) ($recruiterUser?->getEmail() ?? ''),
@@ -215,34 +204,6 @@ final class ApplicantController extends AbstractController
             'html' => $html,
             'lastId' => $lastId,
         ]);
-    }
-
-    #[Route('/applicant/messages/{conversationId}/read', name: 'app_applicant_message_mark_read', requirements: ['conversationId' => '\\d+'], methods: ['POST'])]
-    #[IsGranted('ROLE_APPLICANT')]
-    public function markConversationRead(
-        int $conversationId,
-        Request $request,
-        ConversationRepository $conversationRepository,
-        MessageRepository $messageRepository,
-        ChatMercure $chatMercure,
-    ): JsonResponse {
-        $applicantUser = $this->getApplicantUser();
-
-        $conversation = $conversationRepository->find($conversationId);
-        if (!$conversation instanceof Conversation || $conversation->getApplicantUser()?->getId() !== $applicantUser->getId()) {
-            return new JsonResponse(['ok' => false], Response::HTTP_NOT_FOUND);
-        }
-
-        if (!$this->isCsrfTokenValid('chat_read_' . $conversationId, (string) $request->request->get('_token'))) {
-            return new JsonResponse(['ok' => false], Response::HTTP_FORBIDDEN);
-        }
-
-        $updatedCount = $messageRepository->markConversationAsReadForUser($conversation, $applicantUser);
-        if ($updatedCount > 0) {
-            $chatMercure->publishConversationReadState($applicantUser, $conversation);
-        }
-
-        return new JsonResponse(['ok' => true, 'updated' => $updatedCount]);
     }
 
     #[Route('/applicant/profile/create', name: 'app_applicant_profile_create')]

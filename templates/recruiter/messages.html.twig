@@ -3,55 +3,54 @@
 {% block title %}Conversations recruteur | DevSpot{% endblock %}
 
 {% block body %}
-    <section
-        class="w-full max-w-7xl font-sans"
-        data-chat-root="true"
-        data-chat-mercure-url="{{ mercure(mercureTopics, mercureNeedsCredentials ? {subscribe: mercureTopics} : {}) }}"
-        data-chat-mercure-credentials="{{ mercureNeedsCredentials ? 'true' : 'false' }}"
-        {% if selectedConversation %}
-            data-chat-poll-url="{{ path('app_recruiter_message_poll', {conversationId: selectedConversation.id}) }}"
-            data-chat-seen-url="{{ path('app_recruiter_message_mark_read', {conversationId: selectedConversation.id}) }}"
-            data-chat-seen-token="{{ csrf_token('chat_read_' ~ selectedConversation.id) }}"
-        {% endif %}
-    >
-        <div class="grid min-h-[78vh] grid-cols-1 gap-4 rounded-[2rem] border border-white/10 bg-slate-900/60 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl xl:grid-cols-[380px_minmax(0,1fr)_320px]">
-            <aside class="{{ selectedConversation ? 'hidden md:flex' : 'flex' }} min-h-[68vh] flex-col rounded-2xl border border-white/10 bg-[#0f1218] p-3">
+    <section class="w-[min(92rem,calc(100vw-1.5rem))] self-start font-sans h-[calc(100vh-10rem)]">
+        <div class="grid h-full grid-cols-1 gap-4 overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/60 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl xl:grid-cols-3">
+            <aside class="flex h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-white p-3">
                 <div class="mb-3 flex items-center justify-between gap-3 border-b border-white/10 px-2 pb-3">
-                    <h1 class="text-base font-semibold text-white">Messages priv&eacute;s</h1>
-                    <a href="{{ path('app_recruiter_home') }}" class="text-xs text-emerald-300 hover:text-emerald-200">Dashboard</a>
+                    <h1 class="text-base font-semibold text-white">Messages privés</h1>
                 </div>
 
-                <div
-                    id="conversation-list"
-                    data-conversation-list="true"
-                    data-selected-conversation-id="{{ selectedConversation ? selectedConversation.id : '' }}"
-                    class="flex-1 space-y-2 overflow-y-auto pr-1"
-                >
+                <div class="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
                     {% if conversations is empty %}
-                        <p data-conversation-empty-state="true" class="rounded-xl border border-yellow-400/20 bg-yellow-400/10 px-3 py-2 text-sm text-yellow-300">Aucune conversation active.</p>
+                        <p class="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700">Aucune conversation active.</p>
                     {% else %}
                         {% for row in conversations %}
-                            {% include 'recruiter/_conversation_row.html.twig' with {
-                                row: row,
-                                selectedConversationId: selectedConversation ? selectedConversation.id : null
-                            } only %}
+                            {% set conversation = row.conversation %}
+                            {% set profile = row.developerProfile %}
+                            {% set applicantName = (profile and profile.public) ? (profile.firstName ~ ' ' ~ profile.lastName) : 'Postulant anonyme' %}
+                            {% set active = selectedConversation and selectedConversation.id == conversation.id %}
+
+                            <a href="{{ path('app_recruiter_message_show', {conversationId: conversation.id}) }}" class="block rounded-xl border px-3 py-2.5 transition {{ active ? 'border-blue-300 bg-blue-100/70 shadow-sm' : 'border-blue-200 bg-white hover:border-blue-300 hover:bg-blue-50' }}">
+                                <div class="flex items-start justify-between gap-2">
+                                    <p class="truncate text-sm font-semibold text-slate-800">{{ applicantName }}</p>
+                                    {% if row.unreadCount > 0 %}
+                                        <span class="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-[11px] font-bold text-white">{{ row.unreadCount }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="mt-1 flex items-end justify-between gap-2">
+                                    <p class="min-w-0 truncate text-xs text-slate-600">{{ row.lastMessage.content|replace({'\n': ' '}) }}</p>
+                                    <span class="shrink-0 text-[11px] text-slate-500">{{ row.lastMessage.createdAt|date('H:i') }}</span>
+                                </div>
+                            </a>
                         {% endfor %}
                     {% endif %}
                 </div>
             </aside>
 
-            <div class="flex min-h-[68vh] flex-col rounded-2xl border border-white/10 bg-[#0b0e14]">
+            <div class="flex h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-white xl:col-span-2">
                 {% if selectedConversation and selectedProfile %}
                     {% set applicantName = selectedProfile.public ? (selectedProfile.firstName ~ ' ' ~ selectedProfile.lastName) : 'Postulant anonyme' %}
                     <header class="flex items-center justify-between border-b border-white/10 px-5 py-3">
-                        <div class="flex items-center gap-3">
-                            <a href="{{ path('app_recruiter_messages') }}" class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 md:hidden" aria-label="Retour à la liste des conversations">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                                </svg>
-                            </a>
-                            <div>
-                            <h2 class="text-base font-semibold text-white">{{ applicantName }}</h2>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-3">
+                                <div class="h-10 w-10 overflow-hidden rounded-full border border-blue-200 bg-blue-50">
+                                    {% if selectedProfile.avatarPath %}
+                                        <img src="{{ asset(selectedProfile.avatarPath) }}" alt="Avatar de {{ applicantName }}" class="h-full w-full object-cover">
+                                    {% else %}
+                                        <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Avatar par défaut" class="h-full w-full object-cover">
+                                    {% endif %}
+                                </div>
+                                <h2 class="truncate text-base font-semibold text-slate-800">{{ applicantName }}</h2>
                             </div>
                         </div>
                     </header>
@@ -59,9 +58,10 @@
                     {% set lastMessageId = selectedMessages is not empty ? selectedMessages|last.id : 0 %}
                     <div
                         id="chat-messages"
-                        data-chat-messages="true"
+                        data-chat-scroll="true"
+                        data-poll-url="{{ path('app_recruiter_message_poll', {conversationId: selectedConversation.id}) }}"
                         data-last-message-id="{{ lastMessageId }}"
-                        class="flex-1 space-y-3 overflow-y-auto px-5 py-4"
+                        class="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4"
                     >
                         {% for message in selectedMessages %}
                             {% include 'recruiter/_chat_message.html.twig' with {
@@ -72,11 +72,11 @@
                     </div>
 
                     {% if replyForm %}
-                        <div class="border-t border-white/10 bg-[#0f131b] p-3">
-                            {{ form_start(replyForm, {attr: {class: 'space-y-2', id: 'chat-form', 'data-chat-form': 'true'}}) }}
+                        <div class="border-t border-white/10 bg-white p-3">
+                            {{ form_start(replyForm, {attr: {class: 'space-y-2', id: 'chat-form'}}) }}
                                 <div class="relative">
-                                    {{ form_widget(replyForm.content, {attr: {class: 'h-11 w-full rounded-full border border-white/10 bg-black/30 py-2 pl-4 pr-14 text-sm text-white placeholder:text-slate-400 focus:border-emerald-400/40 focus:outline-none focus:ring-0', placeholder: 'Envoyer un message...'}}) }}
-                                    <button type="submit" class="absolute right-1.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-emerald-500 text-slate-950 transition hover:bg-emerald-400" aria-label="Envoyer le message">
+                                    {{ form_widget(replyForm.content, {attr: {class: 'h-11 w-full rounded-full border border-blue-200 bg-white py-2 pl-4 pr-14 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-0', placeholder: 'Envoyer un message...'}}) }}
+                                    <button type="submit" class="absolute right-1.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-blue-200 bg-blue-100 text-blue-800 transition hover:bg-blue-200" aria-label="Envoyer le message">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 14-7-4 7 4 7-14-7Z" />
                                         </svg>
@@ -88,167 +88,107 @@
                     {% endif %}
                 {% else %}
                     <div class="flex h-full min-h-[420px] items-center justify-center px-6 text-center text-slate-300">
-                        S&eacute;lectionnez une conversation &agrave; gauche.
+                        Sélectionnez une conversation à gauche.
                     </div>
                 {% endif %}
             </div>
 
-            <aside class="hidden min-h-[68vh] flex-col rounded-2xl border border-white/10 bg-[#12161f] xl:flex">
-                {% if selectedConversation and selectedProfile %}
-                    {% set applicantName = selectedProfile.public ? (selectedProfile.firstName ~ ' ' ~ selectedProfile.lastName) : 'Postulant anonyme' %}
-                    <div class="border-b border-white/10 p-5">
-                        <div class="mx-auto mb-4 h-20 w-20 overflow-hidden rounded-full border border-white/10 bg-white/10">
-                            {% if selectedProfile.avatarPath %}
-                                <img src="{{ asset(selectedProfile.avatarPath) }}" alt="Avatar" class="h-full w-full object-cover">
-                            {% else %}
-                                <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Avatar par d&eacute;faut" class="h-full w-full object-cover">
-                            {% endif %}
-                        </div>
-                        <h3 class="text-center text-2xl font-semibold text-white">{{ applicantName }}</h3>
-                        <p class="mt-1 text-center text-sm text-slate-400">{{ selectedProfile.user ? selectedProfile.user.email : 'Email non renseign&eacute;' }}</p>
-                    </div>
-
-                    <div class="space-y-3 p-4 text-sm">
-                        <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                            <p class="text-xs uppercase tracking-wide text-slate-400">Localisation</p>
-                            <p class="mt-1 text-slate-200">{{ selectedProfile.city ?: 'Ville' }}{{ selectedProfile.country ? ', ' ~ selectedProfile.country : '' }}</p>
-                        </div>
-                        <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                            <p class="text-xs uppercase tracking-wide text-slate-400">Exp&eacute;rience</p>
-                            <p class="mt-1 text-slate-200">{{ selectedProfile.yearsExperience is not null ? selectedProfile.yearsExperience ~ ' ans' : 'Non renseign&eacute;e' }}</p>
-                        </div>
-                        <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-                            <p class="text-xs uppercase tracking-wide text-slate-400">Bio</p>
-                            <p class="mt-1 line-clamp-4 whitespace-pre-line text-slate-200">{{ selectedProfile.bio ?: 'Aucune bio.' }}</p>
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="flex h-full items-center justify-center p-6 text-center text-sm text-slate-400">
-                        Le profil candidat appara&icirc;tra ici.
-                    </div>
-                {% endif %}
-            </aside>
         </div>
 
-        {% if selectedConversation %}
-            <script>
-                (() => {
-                    const root = document.querySelector('[data-chat-root="true"]');
-                    const chatMessages = document.getElementById('chat-messages');
-                    const chatForm = document.getElementById('chat-form');
-                    const pollUrl = root?.dataset.chatPollUrl;
-                    const seenUrl = root?.dataset.chatSeenUrl;
-                    const seenToken = root?.dataset.chatSeenToken;
+        <script>
+            (() => {
+                const chatMessages = document.getElementById('chat-messages');
+                const chatForm = document.getElementById('chat-form');
+                if (!chatMessages) {
+                    return;
+                }
 
-                    if (!chatMessages) {
-                        return;
-                    }
+                const scrollToBottom = () => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                };
 
-                    const scrollToBottom = () => {
-                        chatMessages.scrollTop = chatMessages.scrollHeight;
-                    };
+                const getLastId = () => Number(chatMessages.dataset.lastMessageId || 0);
+                const setLastIdFromDom = () => {
+                    const all = chatMessages.querySelectorAll('.js-chat-message[data-message-id]');
+                    const last = all.length ? Number(all[all.length - 1].dataset.messageId || 0) : 0;
+                    chatMessages.dataset.lastMessageId = String(last);
+                };
 
-                    const setLastIdFromDom = () => {
-                        const all = chatMessages.querySelectorAll('.js-chat-message[data-message-id]');
-                        const last = all.length ? Number(all[all.length - 1].dataset.messageId || 0) : 0;
-                        chatMessages.dataset.lastMessageId = String(last);
-                    };
+                scrollToBottom();
 
-                    const getLastId = () => Number(chatMessages.dataset.lastMessageId || 0);
+                if (chatForm) {
+                    chatForm.addEventListener('submit', async (event) => {
+                        event.preventDefault();
 
-                    const markRead = async () => {
-                        if (!seenUrl || !seenToken) {
+                        const input = chatForm.querySelector('input[name$="[content]"]');
+                        const submit = chatForm.querySelector('button[type="submit"]');
+                        if (!input || !submit || !input.value.trim()) {
                             return;
                         }
 
+                        submit.disabled = true;
                         try {
-                            await fetch(seenUrl, {
+                            const response = await fetch(chatForm.action, {
                                 method: 'POST',
                                 headers: {
                                     'X-Requested-With': 'XMLHttpRequest',
-                                    'Accept': 'application/json',
                                 },
-                                body: new URLSearchParams({_token: seenToken}),
-                                credentials: 'same-origin',
+                                body: new FormData(chatForm),
                             });
-                        } catch (_error) {
-                        }
-                    };
 
-                    scrollToBottom();
-                    setLastIdFromDom();
-
-                    if (chatForm) {
-                        chatForm.addEventListener('submit', async (event) => {
-                            event.preventDefault();
-
-                            const input = chatForm.querySelector('input[name$="[content]"]');
-                            const submit = chatForm.querySelector('button[type="submit"]');
-                            if (!input || !submit || !input.value.trim()) {
+                            if (!response.ok) {
                                 return;
                             }
 
-                            submit.disabled = true;
-                            try {
-                                const response = await fetch(chatForm.action, {
-                                    method: 'POST',
-                                    headers: {
-                                        'X-Requested-With': 'XMLHttpRequest',
-                                        'Accept': 'application/json',
-                                    },
-                                    body: new FormData(chatForm),
-                                    credentials: 'same-origin',
-                                });
-
-                                const payload = await response.json().catch(() => null);
-                                if (!response.ok || !payload || !payload.ok || !payload.html) {
-                                    return;
-                                }
-
+                            const payload = await response.json();
+                            if (payload && payload.ok && payload.html) {
+                                chatMessages.insertAdjacentHTML('beforeend', payload.html);
+                                setLastIdFromDom();
                                 input.value = '';
-                            } finally {
-                                submit.disabled = false;
+                                scrollToBottom();
                             }
-                        });
-                    }
+                        } finally {
+                            submit.disabled = false;
+                        }
+                    });
+                }
 
-                    if (!pollUrl) {
+                const pollUrl = chatMessages.dataset.pollUrl;
+                if (!pollUrl) {
+                    return;
+                }
+
+                let polling = false;
+                const poll = async () => {
+                    if (polling) {
                         return;
                     }
 
-                    let polling = false;
-                    window.setInterval(async () => {
-                        if (polling) {
+                    polling = true;
+                    try {
+                        const response = await fetch(`${pollUrl}?sinceId=${encodeURIComponent(getLastId())}`, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                        });
+
+                        if (!response.ok) {
                             return;
                         }
 
-                        polling = true;
-                        try {
-                            const response = await fetch(`${pollUrl}?sinceId=${encodeURIComponent(getLastId())}`, {
-                                headers: {
-                                    'X-Requested-With': 'XMLHttpRequest',
-                                    'Accept': 'application/json',
-                                },
-                                credentials: 'same-origin',
-                            });
-
-                            const payload = await response.json().catch(() => null);
-                            if (!response.ok || !payload || !payload.ok || !payload.html) {
-                                return;
-                            }
-
-                            if (payload.html) {
-                                chatMessages.insertAdjacentHTML('beforeend', payload.html);
-                                setLastIdFromDom();
-                                scrollToBottom();
-                                await markRead();
-                            }
-                        } finally {
-                            polling = false;
+                        const payload = await response.json();
+                        if (payload && payload.ok && payload.html) {
+                            chatMessages.insertAdjacentHTML('beforeend', payload.html);
+                            setLastIdFromDom();
+                            scrollToBottom();
                         }
-                    }, 2000);
-                })();
-            </script>
-        {% endif %}
+                    } finally {
+                        polling = false;
+                    }
+                };
+
+                window.setInterval(poll, 3500);
+            })();
+        </script>
     </section>
 {% endblock %}
