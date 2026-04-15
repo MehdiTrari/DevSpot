@@ -1,5 +1,43 @@
 import * as Turbo from '@hotwired/turbo';
 
+const initGlobalMercureStreams = () => {
+    const body = document.body;
+    if (!body) {
+        return;
+    }
+
+    if (document.querySelector('[data-chat-root="true"]')) {
+        return;
+    }
+
+    const mercureUrl = body.dataset.globalMercureUrl;
+    if (!mercureUrl || body.dataset.globalMercureInitialized === 'true') {
+        return;
+    }
+
+    body.dataset.globalMercureInitialized = 'true';
+
+    const mercureWithCredentials = body.dataset.globalMercureCredentials === 'true';
+    const eventSource = new EventSource(mercureUrl, {
+        withCredentials: mercureWithCredentials,
+    });
+
+    eventSource.onmessage = (event) => {
+        if (!event.data) {
+            return;
+        }
+
+        Turbo.renderStreamMessage(event.data);
+    };
+
+    const cleanup = () => {
+        eventSource.close();
+        delete body.dataset.globalMercureInitialized;
+    };
+
+    document.addEventListener('turbo:before-cache', cleanup, {once: true});
+};
+
 const initChatPages = () => {
     document.querySelectorAll('[data-chat-root="true"]').forEach((root) => {
         if (root.dataset.chatInlineManaged === 'true') {
@@ -254,3 +292,5 @@ const syncConversationListState = (root) => {
 
 document.addEventListener('DOMContentLoaded', initChatPages);
 document.addEventListener('turbo:load', initChatPages);
+document.addEventListener('DOMContentLoaded', initGlobalMercureStreams);
+document.addEventListener('turbo:load', initGlobalMercureStreams);

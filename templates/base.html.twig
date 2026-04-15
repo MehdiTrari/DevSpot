@@ -412,7 +412,13 @@
     </head>
     
     {# Theme global blanc/bleu #}
-    <body class="indeed-theme min-h-screen bg-slate-50 text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white">
+    <body
+        class="indeed-theme min-h-screen bg-slate-50 text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white"
+        {% if app.user and mercureTopics is defined and mercureTopics is not empty %}
+            data-global-mercure-url="{{ mercure(mercureTopics, (mercureNeedsCredentials|default(false)) ? {subscribe: mercureTopics} : {}) }}"
+            data-global-mercure-credentials="{{ (mercureNeedsCredentials|default(false)) ? 'true' : 'false' }}"
+        {% endif %}
+    >
         <div class="relative min-h-screen overflow-hidden">
             
             {# Les blobs avec la classe apple-fade (Opacité et taille augmentées pour bien ressortir) #}
@@ -479,10 +485,15 @@
                                 {% endif %}
 
                                 {% if is_granted('ROLE_APPLICANT') or is_granted('ROLE_RECRUITER') %}
-                                    {% include '_chat_entry_point.html.twig' with {
-                                        user: app.user,
-                                        unreadCount: chat_unread_count(app.user)
-                                    } only %}
+                                    <div
+                                        data-chat-entry-point-poll="true"
+                                        data-chat-entry-point-poll-url="{{ path('app_chat_entry_point') }}"
+                                    >
+                                        {% include '_chat_entry_point.html.twig' with {
+                                            user: app.user,
+                                            unreadCount: chat_unread_count(app.user)
+                                        } only %}
+                                    </div>
                                 {% endif %}
                             {% endif %}
 
@@ -631,5 +642,71 @@
             </main>
             
         </div>
+
+        <script>
+            (() => {
+                const initChatEntryPointPolling = () => {
+                    document.querySelectorAll('[data-chat-entry-point-poll="true"]').forEach((root) => {
+                        if (root.dataset.chatEntryPointPollInitialized === 'true') {
+                            return;
+                        }
+
+                        const pollUrl = root.dataset.chatEntryPointPollUrl;
+                        if (!pollUrl) {
+                            return;
+                        }
+
+                        root.dataset.chatEntryPointPollInitialized = 'true';
+
+                        let polling = false;
+                        let previousHtml = root.innerHTML;
+
+                        const poll = async () => {
+                            if (polling) {
+                                return;
+                            }
+
+                            polling = true;
+                            try {
+                                const response = await fetch(pollUrl, {
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json',
+                                    },
+                                    credentials: 'same-origin',
+                                });
+
+                                const payload = await response.json().catch(() => null);
+                                if (!response.ok || !payload || !payload.ok || typeof payload.html !== 'string') {
+                                    return;
+                                }
+
+                                if (payload.html !== previousHtml) {
+                                    root.innerHTML = payload.html;
+                                    previousHtml = payload.html;
+                                }
+                            } catch (_error) {
+                            } finally {
+                                polling = false;
+                            }
+                        };
+
+                        poll();
+
+                        const pollTimer = window.setInterval(poll, 2000);
+                        const stopPolling = () => {
+                            window.clearInterval(pollTimer);
+                            delete root.dataset.chatEntryPointPollInitialized;
+                        };
+
+                        window.addEventListener('beforeunload', stopPolling, {once: true});
+                        document.addEventListener('turbo:before-cache', stopPolling, {once: true});
+                    });
+                };
+
+                document.addEventListener('DOMContentLoaded', initChatEntryPointPolling);
+                document.addEventListener('turbo:load', initChatEntryPointPolling);
+            })();
+        </script>
     </body>
 </html>

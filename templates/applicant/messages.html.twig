@@ -4,7 +4,7 @@
 
 {% block body %}
     <section
-        class="w-full max-w-7xl font-sans"
+        class="w-full max-w-7xl self-start font-sans h-[calc(100vh-10rem)]"
         data-chat-root="true"
         data-chat-inline-managed="true"
         data-chat-mercure-url="{{ mercure(mercureTopics, mercureNeedsCredentials ? {subscribe: mercureTopics} : {}) }}"
@@ -15,11 +15,10 @@
             data-chat-seen-token="{{ csrf_token('chat_read_' ~ selectedConversation.id) }}"
         {% endif %}
     >
-        <div class="grid min-h-[78vh] grid-cols-1 gap-4 rounded-[2rem] border border-white/10 bg-slate-900/60 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl xl:grid-cols-[380px_minmax(0,1fr)_320px]">
-            <aside class="{{ selectedConversation ? 'hidden md:flex' : 'flex' }} min-h-[68vh] flex-col rounded-2xl border border-white/10 bg-[#0f1218] p-3">
-                <div class="mb-3 flex items-center justify-between gap-3 border-b border-white/10 px-2 pb-3">
-                    <h1 class="text-base font-semibold text-white">Messages priv&eacute;s</h1>
-                    <a href="{{ path('app_applicant_home') }}" class="text-xs text-emerald-300 hover:text-emerald-200">Dashboard</a>
+        <div class="grid h-full min-h-0 grid-cols-1 gap-4 overflow-hidden rounded-[2rem] border border-blue-200/70 bg-blue-50/70 p-4 shadow-xl shadow-blue-200/40 backdrop-blur-xl xl:grid-cols-[380px_minmax(0,1fr)_320px]">
+            <aside class="{{ selectedConversation ? 'hidden md:flex' : 'flex' }} h-full min-h-0 flex-col rounded-2xl border border-blue-100 bg-white p-3">
+                <div class="mb-3 flex items-center justify-between gap-3 border-b border-blue-100 px-2 pb-3">
+                    <h1 class="text-base font-semibold text-slate-800">Messages priv&eacute;s</h1>
                 </div>
 
                 <div
@@ -29,7 +28,7 @@
                     class="flex-1 space-y-2 overflow-y-auto pr-1"
                 >
                     {% if conversations is empty %}
-                        <p data-conversation-empty-state="true" class="rounded-xl border border-yellow-400/20 bg-yellow-400/10 px-3 py-2 text-sm text-yellow-300">Aucune conversation active.</p>
+                        <p data-conversation-empty-state="true" class="rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700">Aucune conversation active.</p>
                     {% else %}
                         {% for row in conversations %}
                             {% include 'applicant/_conversation_row.html.twig' with {
@@ -41,17 +40,17 @@
                 </div>
             </aside>
 
-            <div class="flex h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-white xl:col-span-2">
+            <div class="{{ selectedConversation ? 'flex' : 'hidden md:flex' }} h-full min-h-0 flex-col rounded-2xl border border-white/10 bg-white xl:col-span-2">
                 {% if selectedConversation %}
                     <header class="flex items-center justify-between border-b border-white/10 px-5 py-3">
                         <div class="flex items-center gap-3">
-                            <a href="{{ path('app_applicant_messages') }}" class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 md:hidden" aria-label="Retour à la liste des conversations">
+                            <a href="{{ path('app_applicant_messages') }}" class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-slate-600 md:hidden" aria-label="Retour à la liste des conversations">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                                 </svg>
                             </a>
                             <div>
-                            <h2 class="text-base font-semibold text-white">{{ selectedRecruiterName }}</h2>
+                            <h2 class="text-base font-semibold text-slate-800">{{ selectedRecruiterName }}</h2>
                             </div>
                         </div>
                     </header>
@@ -72,7 +71,7 @@
                     </div>
 
                     {% if replyForm %}
-                        <div class="border-t border-white/10 bg-[#0f131b] p-3">
+                        <div class="border-t border-blue-100 bg-blue-50/50 p-3">
                             {{ form_start(replyForm, {attr: {class: 'space-y-2', id: 'chat-form', 'data-chat-form': 'true'}}) }}
                                 <div class="relative">
                                     {{ form_widget(replyForm.content, {attr: {class: 'h-11 w-full rounded-full border border-blue-200 bg-white py-2 pl-4 pr-14 text-sm text-slate-800 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-0', placeholder: 'Envoyer un message...'}}) }}
@@ -87,35 +86,35 @@
                         </div>
                     {% endif %}
                 {% else %}
-                    <div class="flex h-full min-h-[420px] items-center justify-center px-6 text-center text-slate-300">
+                    <div class="flex h-full min-h-[420px] items-center justify-center px-6 text-center text-slate-500">
                         S&eacute;lectionnez une conversation &agrave; gauche.
                     </div>
                 {% endif %}
             </div>
 
-            <aside class="hidden min-h-[68vh] flex-col rounded-2xl border border-white/10 bg-[#12161f] xl:flex">
+            <aside class="hidden h-full min-h-0 flex-col overflow-y-auto rounded-2xl border border-blue-100 bg-blue-50/70 xl:flex">
                 {% if selectedConversation and selectedRecruiterUser %}
                     {% set recruiterProfile = selectedRecruiterUser.recruiterProfile %}
-                    <div class="border-b border-white/10 p-5">
-                        <div class="mx-auto mb-4 h-20 w-20 overflow-hidden rounded-full border border-white/10 bg-white/10">
+                    <div class="border-b border-blue-100 p-5">
+                        <div class="mx-auto mb-4 h-20 w-20 overflow-hidden rounded-full border border-blue-200 bg-white">
                             <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Avatar par d&eacute;faut" class="h-full w-full object-cover">
                         </div>
-                        <h3 class="text-center text-2xl font-semibold text-white">{{ selectedRecruiterName }}</h3>
-                        <p class="mt-1 text-center text-sm text-slate-400">{{ selectedRecruiterEmail }}</p>
+                        <h3 class="text-center text-2xl font-semibold text-slate-800">{{ selectedRecruiterName }}</h3>
+                        <p class="mt-1 text-center text-sm text-slate-500">{{ selectedRecruiterEmail }}</p>
                     </div>
 
                     <div class="space-y-3 p-4 text-sm">
-                        <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                        <div class="rounded-xl border border-blue-100 bg-white p-4">
                             <p class="text-xs uppercase tracking-wide text-slate-400">Poste</p>
-                            <p class="mt-1 text-slate-200">{{ recruiterProfile and recruiterProfile.jobTitle ? recruiterProfile.jobTitle : 'Non renseign&eacute;' }}</p>
+                            <p class="mt-1 text-slate-700">{{ recruiterProfile and recruiterProfile.jobTitle ? recruiterProfile.jobTitle : 'Non renseign&eacute;' }}</p>
                         </div>
-                        <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                        <div class="rounded-xl border border-blue-100 bg-white p-4">
                             <p class="text-xs uppercase tracking-wide text-slate-400">Entreprise</p>
-                            <p class="mt-1 text-slate-200">{{ recruiterProfile and recruiterProfile.company ? recruiterProfile.company.name : 'Non renseign&eacute;e' }}</p>
+                            <p class="mt-1 text-slate-700">{{ recruiterProfile and recruiterProfile.company ? recruiterProfile.company.name : 'Non renseign&eacute;e' }}</p>
                         </div>
-                        <div class="rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                        <div class="rounded-xl border border-blue-100 bg-white p-4">
                             <p class="text-xs uppercase tracking-wide text-slate-400">Email pro</p>
-                            <p class="mt-1 text-slate-200">{{ recruiterProfile and recruiterProfile.workEmail ? recruiterProfile.workEmail : selectedRecruiterEmail }}</p>
+                            <p class="mt-1 text-slate-700">{{ recruiterProfile and recruiterProfile.workEmail ? recruiterProfile.workEmail : selectedRecruiterEmail }}</p>
                         </div>
                     </div>
                 {% else %}
