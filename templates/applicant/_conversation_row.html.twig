@@ -9,6 +9,7 @@
 <div id="conversation-row-{{ conversation.id }}" data-conversation-id="{{ conversation.id }}">
     <a
         href="{{ path('app_applicant_message_show', {conversationId: conversation.id}) }}"
+        data-turbo="false"
         data-chat-conversation-link="true"
         data-chat-active-class="border-emerald-400/40 bg-emerald-500/15"
         data-chat-inactive-class="border-transparent bg-white/[0.03] hover:border-white/10 hover:bg-white/[0.06]"

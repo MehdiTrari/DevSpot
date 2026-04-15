@@ -6,6 +6,7 @@
     <section
         class="w-full max-w-7xl font-sans"
         data-chat-root="true"
+        data-chat-inline-managed="true"
         data-chat-mercure-url="{{ mercure(mercureTopics, mercureNeedsCredentials ? {subscribe: mercureTopics} : {}) }}"
         data-chat-mercure-credentials="{{ mercureNeedsCredentials ? 'true' : 'false' }}"
         {% if selectedConversation %}
@@ -133,16 +134,33 @@
         {% if selectedConversation %}
             <script>
                 (() => {
-                    const root = document.querySelector('[data-chat-root="true"]');
-                    const chatMessages = document.getElementById('chat-messages');
-                    const chatForm = document.getElementById('chat-form');
-                    const pollUrl = root?.dataset.chatPollUrl;
-                    const seenUrl = root?.dataset.chatSeenUrl;
-                    const seenToken = root?.dataset.chatSeenToken;
+                    const script = document.currentScript;
+                    const root = script.closest('[data-chat-root="true"]');
+                    if (!root || root.dataset.chatInlineBooted === 'true') {
+                        return;
+                    }
+
+                    root.dataset.chatInlineBooted = 'true';
+
+                    const chatMessages = root.querySelector('[data-chat-messages="true"]');
+                    const chatForm = root.querySelector('[data-chat-form="true"]');
+                    const pollUrl = root.dataset.chatPollUrl;
+                    const seenUrl = root.dataset.chatSeenUrl;
+                    const seenToken = root.dataset.chatSeenToken;
+                    const mercureUrl = root.dataset.chatMercureUrl;
+                    const mercureWithCredentials = root.dataset.chatMercureCredentials === 'true';
 
                     if (!chatMessages) {
                         return;
                     }
+
+                    const escapeSelector = (value) => {
+                        if (window.CSS && typeof window.CSS.escape === 'function') {
+                            return window.CSS.escape(String(value));
+                        }
+
+                        return String(value);
+                    };
 
                     const scrollToBottom = () => {
                         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -155,6 +173,27 @@
                     };
 
                     const getLastId = () => Number(chatMessages.dataset.lastMessageId || 0);
+
+                    const appendMissingMessages = (html) => {
+                        if (!html) {
+                            return;
+                        }
+
+                        const template = document.createElement('template');
+                        template.innerHTML = html.trim();
+
+                        Array.from(template.content.children).forEach((child) => {
+                            const messageId = child.getAttribute('data-message-id');
+                            if (messageId && chatMessages.querySelector(`[data-message-id="${escapeSelector(messageId)}"]`)) {
+                                return;
+                            }
+
+                            chatMessages.appendChild(child);
+                        });
+
+                        setLastIdFromDom();
+                        scrollToBottom();
+                    };
 
                     const markRead = async () => {
                         if (!seenUrl || !seenToken) {
@@ -201,15 +240,35 @@
                                 });
 
                                 const payload = await response.json().catch(() => null);
-                                if (!response.ok || !payload || !payload.ok || !payload.html) {
+                                if (!response.ok || !payload || !payload.ok) {
                                     return;
                                 }
 
                                 input.value = '';
+                                appendMissingMessages(payload.html || '');
+                                await markRead();
                             } finally {
                                 submit.disabled = false;
                             }
                         });
+                    }
+
+                    if (mercureUrl && window.Turbo && typeof window.Turbo.renderStreamMessage === 'function') {
+                        const eventSource = new EventSource(mercureUrl, {
+                            withCredentials: mercureWithCredentials,
+                        });
+
+                        eventSource.onmessage = (event) => {
+                            if (!event.data) {
+                                return;
+                            }
+
+                            window.Turbo.renderStreamMessage(event.data);
+                        };
+
+                        const closeMercure = () => eventSource.close();
+                        window.addEventListener('beforeunload', closeMercure, {once: true});
+                        document.addEventListener('turbo:before-cache', closeMercure, {once: true});
                     }
 
                     if (!pollUrl) {
@@ -217,7 +276,7 @@
                     }
 
                     let polling = false;
-                    window.setInterval(async () => {
+                    const poll = async () => {
                         if (polling) {
                             return;
                         }
@@ -233,20 +292,24 @@
                             });
 
                             const payload = await response.json().catch(() => null);
-                            if (!response.ok || !payload || !payload.ok || !payload.html) {
+                            if (!response.ok || !payload || !payload.ok) {
                                 return;
                             }
 
+                            appendMissingMessages(payload.html || '');
                             if (payload.html) {
-                                chatMessages.insertAdjacentHTML('beforeend', payload.html);
-                                setLastIdFromDom();
-                                scrollToBottom();
                                 await markRead();
                             }
                         } finally {
                             polling = false;
                         }
-                    }, 2000);
+                    };
+
+                    poll();
+                    const pollTimer = window.setInterval(poll, 1000);
+                    const stopPolling = () => window.clearInterval(pollTimer);
+                    window.addEventListener('beforeunload', stopPolling, {once: true});
+                    document.addEventListener('turbo:before-cache', stopPolling, {once: true});
                 })();
             </script>
         {% endif %}

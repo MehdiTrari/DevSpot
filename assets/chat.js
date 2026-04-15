@@ -2,6 +2,11 @@ import * as Turbo from '@hotwired/turbo';
 
 const initChatPages = () => {
     document.querySelectorAll('[data-chat-root="true"]').forEach((root) => {
+        if (root.dataset.chatInlineManaged === 'true') {
+            syncConversationListState(root);
+            return;
+        }
+
         if (root.dataset.chatInitialized === 'true') {
             syncConversationListState(root);
             return;
@@ -15,6 +20,23 @@ const initChatPages = () => {
         const mercureUrl = root.dataset.chatMercureUrl;
         const mercureWithCredentials = root.dataset.chatMercureCredentials === 'true';
         const pollUrl = root.dataset.chatPollUrl;
+        const cleanups = [];
+
+        const registerCleanup = (cleanup) => {
+            cleanups.push(cleanup);
+        };
+
+        root.addEventListener('turbo:before-cache', () => {
+            while (cleanups.length > 0) {
+                const cleanup = cleanups.pop();
+                try {
+                    cleanup?.();
+                } catch (_error) {
+                }
+            }
+
+            delete root.dataset.chatInitialized;
+        }, {once: true});
 
         const scrollToBottom = () => {
             if (!chatMessages) {
@@ -68,17 +90,23 @@ const initChatPages = () => {
             setLastIdFromDom();
             scrollToBottom();
 
-            new MutationObserver(() => {
+            const chatObserver = new MutationObserver(() => {
                 setLastIdFromDom();
                 scrollToBottom();
                 queueMarkRead();
-            }).observe(chatMessages, {childList: true});
+            });
+
+            chatObserver.observe(chatMessages, {childList: true});
+            registerCleanup(() => chatObserver.disconnect());
         }
 
         if (conversationList) {
-            new MutationObserver(() => {
+            const listObserver = new MutationObserver(() => {
                 syncConversationListState(root);
-            }).observe(conversationList, {childList: true, subtree: true});
+            });
+
+            listObserver.observe(conversationList, {childList: true, subtree: true});
+            registerCleanup(() => listObserver.disconnect());
         }
 
         if (chatForm && chatMessages) {
@@ -128,9 +156,7 @@ const initChatPages = () => {
                 Turbo.renderStreamMessage(event.data);
             };
 
-            root.addEventListener('turbo:before-cache', () => {
-                eventSource.close();
-            }, {once: true});
+            registerCleanup(() => eventSource.close());
         }
 
         if (pollUrl && chatMessages) {
@@ -157,19 +183,44 @@ const initChatPages = () => {
                         return;
                     }
 
-                    chatMessages.insertAdjacentHTML('beforeend', payload.html);
+                    appendMissingMessages(chatMessages, payload.html);
                 } finally {
                     polling = false;
                 }
             };
 
-            const pollTimer = window.setInterval(poll, 3000);
-            root.addEventListener('turbo:before-cache', () => {
-                window.clearInterval(pollTimer);
-            }, {once: true});
+            poll();
+            const pollTimer = window.setInterval(poll, 2000);
+            registerCleanup(() => window.clearInterval(pollTimer));
         }
 
         syncConversationListState(root);
+    });
+};
+
+const appendMissingMessages = (chatMessages, html) => {
+    if (!html) {
+        return;
+    }
+
+    const escapeSelector = (value) => {
+        if (window.CSS && typeof window.CSS.escape === 'function') {
+            return window.CSS.escape(String(value));
+        }
+
+        return String(value);
+    };
+
+    const template = document.createElement('template');
+    template.innerHTML = html.trim();
+
+    Array.from(template.content.children).forEach((child) => {
+        const messageId = child.getAttribute('data-message-id');
+        if (messageId && chatMessages.querySelector(`[data-message-id="${escapeSelector(messageId)}"]`)) {
+            return;
+        }
+
+        chatMessages.appendChild(child);
     });
 };
 
