@@ -866,7 +866,7 @@
             </div>
 
             {# MAIN avec apple-slide-up-delay-1 #}
-            <main class="apple-slide-up-delay-1 relative z-0 mx-auto flex min-h-[calc(100vh-84px)] w-full {{ isFavoritesRoute ? 'max-w-[88rem]' : 'max-w-6xl' }} items-center justify-center px-3 pb-12 pt-8 sm:px-4 sm:pt-10 lg:px-5">
+            <main class="apple-slide-up-delay-1 relative z-0 mx-auto flex {{ isMessagesRoute ? 'h-[calc(100vh-84px)]' : 'min-h-[calc(100vh-84px)]' }} w-full {{ isMessagesRoute ? 'max-w-none' : (isFavoritesRoute ? 'max-w-[88rem]' : 'max-w-6xl') }} {{ isMessagesRoute ? 'items-stretch justify-stretch px-3 pb-3 pt-3 sm:px-4 sm:pb-4 sm:pt-4 lg:px-5' : 'items-center justify-center px-3 pb-12 pt-8 sm:px-4 sm:pt-10 lg:px-5' }}">
                 {% block body %}{% endblock %}
             </main>
             

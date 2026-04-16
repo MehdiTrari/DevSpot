@@ -4,7 +4,7 @@
 
 {% block body %}
     <section
-        class="ui-message-shell grid h-[calc(100vh-10rem)] w-full max-w-7xl min-h-0 self-start grid-cols-1 gap-4 overflow-hidden rounded-[1.75rem] p-4 font-sans backdrop-blur-xl xl:grid-cols-[380px_minmax(0,1fr)]"
+        class="grid h-full w-full max-w-none min-h-0 self-stretch grid-cols-1 gap-4 font-sans xl:grid-cols-[380px_minmax(0,1fr)]"
         data-chat-root="true"
         data-chat-inline-managed="true"
         data-chat-mercure-url="{{ mercure(mercureTopics, mercureNeedsCredentials ? {subscribe: mercureTopics} : {}) }}"
@@ -39,7 +39,7 @@
                 </div>
             </aside>
 
-            <div class="ui-message-panel {{ selectedConversation ? 'flex' : 'hidden md:flex' }} h-full min-h-0 flex-col rounded-2xl">
+            <div class="ui-message-panel {{ selectedConversation ? 'flex' : 'hidden md:flex' }} h-full min-h-0 flex-col overflow-hidden rounded-2xl">
                 {% if selectedConversation and selectedProfile %}
                     {% set applicantName = selectedProfile.public ? (selectedProfile.firstName ~ ' ' ~ selectedProfile.lastName) : 'Postulant anonyme' %}
                     <header class="ui-message-divider flex items-center justify-between border-b px-5 py-3">
