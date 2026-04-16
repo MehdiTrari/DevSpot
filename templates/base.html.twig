@@ -526,42 +526,77 @@
             data-global-mercure-credentials="{{ (mercureNeedsCredentials|default(false)) ? 'true' : 'false' }}"
         {% endif %}
     >
-        <div class="relative min-h-screen overflow-hidden">
+        <div class="site-page-shell relative min-h-screen overflow-hidden">
             
             {# Les blobs avec la classe apple-fade (Opacité et taille augmentées pour bien ressortir) #}
-            <div class="apple-fade pointer-events-none absolute -top-32 -left-20 h-[500px] w-[500px] rounded-full bg-blue-300/40 blur-[120px]"></div>
-            <div class="apple-fade pointer-events-none absolute -right-32 top-1/4 h-[500px] w-[500px] rounded-full bg-blue-400/35 blur-[120px]" style="animation-delay: 0.2s;"></div>
-            <div class="apple-fade pointer-events-none absolute bottom-0 left-1/4 h-[600px] w-[600px] rounded-full bg-blue-200/45 blur-[120px]" style="animation-delay: 0.4s;"></div>
+            <div class="site-background-blob site-background-blob-1 apple-fade pointer-events-none absolute -top-32 -left-20 h-[500px] w-[500px]"></div>
+            <div class="site-background-blob site-background-blob-2 apple-fade pointer-events-none absolute -right-32 top-1/4 h-[500px] w-[500px]" style="animation-delay: 0.2s;"></div>
+            <div class="site-background-blob site-background-blob-3 apple-fade pointer-events-none absolute bottom-0 left-1/4 h-[600px] w-[600px]" style="animation-delay: 0.4s;"></div>
+
+            {% set currentRoute = app.request.attributes.get('_route')|default('') %}
+            {% set dashboardPath = null %}
+            {% set messagesPath = null %}
+            {% set chatUnreadCount = 0 %}
+            {% set unreadNotificationsCount = 0 %}
+            {% set profilePath = path('app_home') %}
+            {% if app.user %}
+                {% set unreadNotificationsCount = unread_notifications_count(app.user) %}
+                {% if is_granted('ROLE_ADMIN') %}
+                    {% set dashboardPath = path('app_admin_dashboard') %}
+                    {% set profilePath = path('app_admin_dashboard') %}
+                {% elseif is_granted('ROLE_APPLICANT') %}
+                    {% set dashboardPath = path('app_applicant_home') %}
+                    {% set profilePath = path('app_applicant_home') %}
+                    {% if app.user.developerProfile is not null and app.user.developerProfile.portfolioGeneratedAt is not null %}
+                        {% set messagesPath = path('app_applicant_messages') %}
+                        {% set chatUnreadCount = chat_unread_count(app.user) %}
+                    {% endif %}
+                {% elseif is_granted('ROLE_RECRUITER') %}
+                    {% set dashboardPath = path('app_recruiter_home') %}
+                    {% set profilePath = path('app_recruiter_home') %}
+                    {% set messagesPath = path('app_recruiter_messages') %}
+                    {% set chatUnreadCount = chat_unread_count(app.user) %}
+                {% endif %}
+            {% endif %}
+            {% set isHomeRoute = currentRoute == 'app_home' %}
+            {% set isDashboardRoute = currentRoute in ['app_admin_dashboard', 'app_applicant_home', 'app_recruiter_home'] %}
+            {% set isNotificationsRoute = currentRoute starts with 'app_notifications' %}
+            {% set isFavoritesRoute = currentRoute == 'app_recruiter_favorites' or currentRoute starts with 'app_recruiter_favorite_' %}
+            {% set isMessagesRoute = currentRoute in ['app_applicant_messages', 'app_applicant_message_show', 'app_recruiter_messages', 'app_recruiter_message_show'] %}
+            {% set helpPath = '#' %}
 
             {# HEADER stable (sans animation) #}
-            <header class="relative z-40 mx-auto w-full max-w-6xl px-3 pt-6 sm:px-4 lg:px-5">
-                <nav class="flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-3">
-                        <a href="{{ path('app_home') }}" class="group inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[15px] font-semibold tracking-tight text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95">
-                            <span class="flex h-5 w-5 items-center justify-center transition-transform duration-300 group-hover:scale-110">
-                                <svg class="h-5 w-5" viewBox="0 0 128 128" fill="none">
-                                    <path d="M48 36L22 64l26 28" stroke="#2557d6" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <path d="M80 36l26 28-26 28" stroke="#2557d6" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <line x1="70" y1="28" x2="58" y2="100" stroke="#4f83ff" stroke-width="9" stroke-linecap="round" opacity=".6"/>
-                                </svg>
-                            </span>
-                            DevSpot
-                        </a>
+            <header class="relative z-[70]">
+                <div class="mx-auto w-full max-w-[84rem] px-3 pt-3 sm:px-4 lg:px-5">
+                    <nav class="site-header-shell {{ isFavoritesRoute ? 'site-header-shell-favorites' : '' }} rounded-[2rem] px-3.5 py-1.5 sm:px-4.5 sm:py-2">
+                        <div class="site-header-layout">
+                        <div class="site-header-left">
+                            <a href="{{ path('app_home') }}" class="site-header-brand" aria-label="Aller a l'accueil de DevSpot">
+                                <span class="site-header-brand-mark">
+                                    <svg class="h-5 w-5" viewBox="0 0 128 128" fill="none" aria-hidden="true">
+                                        <path d="M48 36L22 64l26 28" stroke="#2557d6" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M80 36l26 28-26 28" stroke="#2557d6" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <line x1="70" y1="28" x2="58" y2="100" stroke="#4f83ff" stroke-width="9" stroke-linecap="round" opacity=".6"/>
+                                    </svg>
+                                </span>
+                            </a>
 
-                        {% if app.user and not is_granted('ROLE_ADMIN') %}
-                            {% if is_granted('ROLE_APPLICANT') %}
-                                <a href="{{ path('app_applicant_home') }}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[15px] font-semibold tracking-tight text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95">
-                                    Dashboard
+                            <div class="site-header-nav site-header-nav-desktop" aria-label="Navigation principale">
+                                <a href="{{ path('app_home') }}" class="site-header-link {{ isHomeRoute ? 'site-header-link-active' : '' }}" {% if isHomeRoute %}aria-current="page"{% endif %}>
+                                    Accueil
                                 </a>
-                            {% elseif is_granted('ROLE_RECRUITER') %}
-                                <a href="{{ path('app_recruiter_home') }}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[15px] font-semibold tracking-tight text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95">
-                                    Dashboard
+                                {% if dashboardPath %}
+                                    <a href="{{ dashboardPath }}" class="site-header-link {{ isDashboardRoute ? 'site-header-link-active' : '' }}" {% if isDashboardRoute %}aria-current="page"{% endif %}>
+                                        Dashboard
+                                    </a>
+                                {% endif %}
+                                <a href="{{ helpPath }}" class="site-header-link" onclick="return false;">
+                                    Help
                                 </a>
-                            {% endif %}
-                        {% endif %}
-                    </div>
+                            </div>
+                        </div>
 
-                    <div class="flex items-center gap-3">
+                        <div class="site-header-actions site-header-actions-desktop">
                         {% if app.user %}
                             {% set unreadNotificationsCount = unread_notifications_count(app.user) %}
                             {% set profilePath = path('app_home') %}
@@ -573,7 +608,7 @@
                                 {% set profilePath = path('app_applicant_home') %}
                             {% endif %}
 
-                            <a href="{{ path('app_notifications_index') }}" class="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95" aria-label="Accéder aux notifications">
+                            <a href="{{ path('app_notifications_index') }}" class="site-header-icon-button {{ isNotificationsRoute ? 'site-header-icon-button-active' : '' }}" aria-label="Accéder aux notifications">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M14.86 17.082a2 2 0 1 1-3.72 0M4.5 17.25h15a1.5 1.5 0 0 0 1.177-2.427l-1.53-1.92A5.98 5.98 0 0 1 18 9.166V8a6 6 0 1 0-12 0v1.166c0 1.352-.455 2.665-1.292 3.737l-1.53 1.92A1.5 1.5 0 0 0 4.5 17.25Z" />
                                 </svg>
@@ -584,7 +619,7 @@
 
                             {% if not is_granted('ROLE_ADMIN') %}
                                 {% if is_granted('ROLE_RECRUITER') %}
-                                    <a href="{{ path('app_recruiter_favorites') }}" class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-emerald-500/20 active:scale-95" aria-label="Acceder aux favoris">
+                                    <a href="{{ path('app_recruiter_favorites') }}" class="site-header-icon-button {{ isFavoritesRoute ? 'site-header-icon-button-active' : '' }}" aria-label="Acceder aux favoris">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-.32-.17C9.24 18.8 3 15.37 3 9.75A4.5 4.5 0 0 1 7.5 5.25c1.74 0 3.16.81 4.5 2.09 1.34-1.28 2.76-2.09 4.5-2.09A4.5 4.5 0 0 1 21 9.75c0 5.62-6.24 9.05-8.68 10.33L12 20.25Z" />
                                         </svg>
@@ -598,14 +633,15 @@
                                     >
                                         {% include '_chat_entry_point.html.twig' with {
                                             user: app.user,
-                                            unreadCount: chat_unread_count(app.user)
+                                            unreadCount: chat_unread_count(app.user),
+                                            isActive: isMessagesRoute
                                         } only %}
                                     </div>
                                 {% endif %}
                             {% endif %}
 
                             <details class="relative z-50">
-                                <summary class="inline-flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full border border-white/10 bg-white/5 text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-blue-500/20 active:scale-95" aria-label="Ouvrir le menu du compte">
+                                <summary class="site-header-account-button inline-flex cursor-pointer list-none items-center justify-center" aria-label="Ouvrir le menu du compte">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
                                         <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0Zm-1.53 9.47A6.75 6.75 0 0 1 12 12.75a6.75 6.75 0 0 1 6.03 2.72A4.5 4.5 0 0 1 21 19.5a.75.75 0 0 1-.75.75H3.75A.75.75 0 0 1 3 19.5a4.5 4.5 0 0 1 2.97-4.03Z" clip-rule="evenodd" />
                                     </svg>
@@ -669,13 +705,13 @@
                             </details>
                         {% else %}
                             <details class="relative z-50">
-                                <summary class="inline-flex h-11 w-11 cursor-pointer list-none items-center justify-center rounded-full border border-white/10 bg-white/5 text-white shadow-lg backdrop-blur-xl transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105 hover:bg-white/10 hover:shadow-blue-500/20 active:scale-95" aria-label="Ouvrir le menu du compte">
+                                <summary class="site-header-account-button inline-flex cursor-pointer list-none items-center justify-center" aria-label="Ouvrir le menu du compte">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
                                         <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0Zm-1.53 9.47A6.75 6.75 0 0 1 12 12.75a6.75 6.75 0 0 1 6.03 2.72A4.5 4.5 0 0 1 21 19.5a.75.75 0 0 1-.75.75H3.75A.75.75 0 0 1 3 19.5a4.5 4.5 0 0 1 2.97-4.03Z" clip-rule="evenodd" />
                                     </svg>
                                 </summary>
                                 <div class="account-menu-panel absolute right-0 top-14 z-[999] w-72 overflow-hidden rounded-2xl">
-                                    <div class="space-y-1 px-3 py-3 text-slate-700">
+                                    <div class="space-y-1 px-3 py-3">
                                         <a href="{{ path('app_login') }}" class="account-menu-item account-menu-item-hover">
                                             <span class="account-menu-icon" aria-hidden="true">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
@@ -697,11 +733,62 @@
                                 </div>
                             </details>
                         {% endif %}
-                    </div>
-                </nav>
+                        </div>
+
+                        <details class="site-mobile-menu">
+                            <summary class="site-mobile-menu-trigger" aria-label="Ouvrir le menu principal">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" class="h-5 w-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+                                </svg>
+                            </summary>
+                            <div class="site-mobile-menu-panel">
+                                <div class="site-mobile-menu-links">
+                                    <a href="{{ path('app_home') }}" class="site-mobile-menu-link {{ isHomeRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isHomeRoute %}aria-current="page"{% endif %}>Accueil</a>
+                                    {% if dashboardPath %}
+                                        <a href="{{ dashboardPath }}" class="site-mobile-menu-link {{ isDashboardRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isDashboardRoute %}aria-current="page"{% endif %}>Dashboard</a>
+                                    {% endif %}
+                                    <a href="{{ helpPath }}" class="site-mobile-menu-link" onclick="return false;">Help</a>
+
+                                    {% if app.user %}
+                                        <a href="{{ path('app_notifications_index') }}" class="site-mobile-menu-link {{ isNotificationsRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isNotificationsRoute %}aria-current="page"{% endif %}>
+                                            Notifications
+                                            {% if unreadNotificationsCount > 0 %}
+                                                <span class="header-count-badge header-count-badge-notification">{{ unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount }}</span>
+                                            {% endif %}
+                                        </a>
+
+                                        {% if is_granted('ROLE_RECRUITER') %}
+                                            <a href="{{ path('app_recruiter_favorites') }}" class="site-mobile-menu-link {{ isFavoritesRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isFavoritesRoute %}aria-current="page"{% endif %}>Favoris</a>
+                                        {% endif %}
+
+                                        {% if messagesPath %}
+                                            <a href="{{ messagesPath }}" class="site-mobile-menu-link {{ isMessagesRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isMessagesRoute %}aria-current="page"{% endif %}>
+                                                Messages
+                                                {% if chatUnreadCount > 0 %}
+                                                    <span class="header-count-badge header-count-badge-notification">{{ chatUnreadCount > 99 ? '99+' : chatUnreadCount }}</span>
+                                                {% endif %}
+                                            </a>
+                                        {% endif %}
+
+                                        <a href="{{ profilePath }}" class="site-mobile-menu-link">Profil</a>
+                                        <a href="#" onclick="return false;" class="site-mobile-menu-link">Ma démographie</a>
+                                        <a href="{{ path('app_settings_index') }}" class="site-mobile-menu-link">Paramètres</a>
+                                        <a href="#" onclick="return false;" class="site-mobile-menu-link">Aide</a>
+                                        <a href="#" onclick="return false;" class="site-mobile-menu-link">Centre de confidentialité</a>
+                                        <a href="{{ logout_path() }}" class="site-mobile-menu-link site-mobile-menu-link-logout">Déconnexion</a>
+                                    {% else %}
+                                        <a href="{{ path('app_login') }}" class="site-mobile-menu-link">Connexion</a>
+                                        <a href="{{ path('app_register') }}" class="site-mobile-menu-link">Créer un compte</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </details>
+                        </div>
+                    </nav>
+                </div>
             </header>
 
-            <div class="pointer-events-none fixed inset-x-0 top-6 z-50">
+            <div class="pointer-events-none fixed inset-x-0 top-24 z-[60] sm:top-28">
                 <div class="mx-auto w-full max-w-6xl px-3 sm:px-4 lg:px-5">
                     <div data-notification-stack="true" class="ml-auto flex w-full max-w-sm flex-col gap-3">
                         {% for message in app.flashes('success') %}
@@ -744,7 +831,7 @@
             </div>
 
             {# MAIN avec apple-slide-up-delay-1 #}
-            <main class="apple-slide-up-delay-1 relative z-0 mx-auto flex min-h-[calc(100vh-84px)] w-full max-w-6xl items-center justify-center px-3 pb-12 pt-8 sm:px-4 lg:px-5">
+            <main class="apple-slide-up-delay-1 relative z-0 mx-auto flex min-h-[calc(100vh-84px)] w-full {{ isFavoritesRoute ? 'max-w-[88rem]' : 'max-w-6xl' }} items-center justify-center px-3 pb-12 pt-8 sm:px-4 sm:pt-10 lg:px-5">
                 {% block body %}{% endblock %}
             </main>
             

@@ -3,29 +3,44 @@
 {% block title %}Mes favoris | DevSpot{% endblock %}
 
 {% block body %}
-    <section class="w-full max-w-6xl self-start font-sans">
-        <div class="theme-settings-card rounded-[2.75rem] p-6 sm:p-8">
-            <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-                <div class="flex-1">
-                    <p class="premium-kicker mb-4 inline-flex rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.24em]">
-                        Favoris recruteur
-                    </p>
-                    <h1 class="ui-title text-3xl font-semibold tracking-tight">Tes profils favoris.</h1>
-                    <p class="ui-text-muted mt-2 text-sm">Ici sont regroupés les profils qui t'intéressent.</p>
-                </div>
+    {% set experienceLevelLabels = {
+        'intern': 'Stagiaire',
+        'junior': 'Junior',
+        'mid': 'Intermediaire',
+        'senior': 'Senior',
+        'lead': 'Lead'
+    } %}
+    {% set locationTypeLabels = {
+        'remote': 'Remote',
+        'hybrid': 'Hybride',
+        'onsite': 'Sur site'
+    } %}
 
-                <div class="premium-card-soft rounded-[1.75rem] p-4 text-sm sm:min-w-72">
-                    <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Profil(s) enregistré(s)</p>
-                    <p data-favorite-count-value="true" class="ui-title mt-1 text-2xl font-semibold">{{ favoriteProfilesCount|default(0) }}</p>
-                </div>
-            </div>
-
-            <div class="premium-divider mt-10 border-t pt-8">
-                {% include 'recruiter/_favorite_profiles_list.html.twig' with {
-                    favoriteProfiles: favoriteProfiles|default([]),
-                    redirectPath: path('app_recruiter_favorites')
-                } only %}
-            </div>
+    <section class="favorites-showcase-page relative z-[1] w-full max-w-[86rem] self-start px-5 pb-8 pt-2 font-sans sm:px-8 sm:pb-10 sm:pt-3 lg:px-10 lg:pb-12 lg:pt-4">
+        <div class="favorite-showcase-hero mx-auto max-w-3xl text-center">
+            <p class="favorite-showcase-kicker">
+                Collection recruteur
+            </p>
+            <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Tes profils favoris.</h1>
+            <p class="ui-text-secondary mx-auto mt-4 max-w-2xl text-[13px] leading-relaxed sm:text-[15px]">
+                Retrouve ici les profils les plus prometteurs, compare-les rapidement et ouvre leur portfolio dès que tu veux.
+            </p>
         </div>
+
+        <div class="mt-10 lg:mt-12">
+            {% include 'recruiter/_favorite_profiles_list.html.twig' with {
+                favoriteProfiles: favoriteProfiles|default([]),
+                redirectPath: path('app_recruiter_favorites'),
+                experienceLevelLabels: experienceLevelLabels,
+                locationTypeLabels: locationTypeLabels,
+                favoriteProfilesCount: favoriteProfilesCount|default(0),
+                currentPage: currentPage|default(1),
+                totalPages: totalPages|default(1)
+            } only %}
+        </div>
+
+        <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
+            Garde sous la main les profils à fort potentiel et retire-les instantanément quand ta short-list évolue.
+        </p>
     </section>
 {% endblock %}
