@@ -15,7 +15,8 @@
             data-chat-seen-token="{{ csrf_token('chat_read_' ~ selectedConversation.id) }}"
         {% endif %}
     >
-        <div class="ui-message-shell grid h-full min-h-0 grid-cols-1 gap-4 overflow-hidden rounded-[2rem] p-4 backdrop-blur-xl xl:grid-cols-[380px_minmax(0,1fr)_320px]">
+        <div class="theme-settings-card h-full rounded-[2.35rem] p-4 sm:p-5">
+            <div class="ui-message-shell grid h-full min-h-0 grid-cols-1 gap-4 overflow-hidden rounded-[1.75rem] p-4 backdrop-blur-xl xl:grid-cols-[380px_minmax(0,1fr)]">
             <aside class="ui-message-panel {{ selectedConversation ? 'hidden md:flex' : 'flex' }} h-full min-h-0 flex-col rounded-2xl p-3">
                 <div class="ui-message-divider mb-3 flex items-center justify-between gap-3 border-b px-2 pb-3">
                     <h1 class="ui-title text-base font-semibold">Messages privés</h1>
@@ -40,7 +41,7 @@
                 </div>
             </aside>
 
-            <div class="ui-message-panel {{ selectedConversation ? 'flex' : 'hidden md:flex' }} h-full min-h-0 flex-col rounded-2xl xl:col-span-2">
+            <div class="ui-message-panel {{ selectedConversation ? 'flex' : 'hidden md:flex' }} h-full min-h-0 flex-col rounded-2xl">
                 {% if selectedConversation and selectedProfile %}
                     {% set applicantName = selectedProfile.public ? (selectedProfile.firstName ~ ' ' ~ selectedProfile.lastName) : 'Postulant anonyme' %}
                     <header class="ui-message-divider flex items-center justify-between border-b px-5 py-3">
@@ -92,42 +93,7 @@
                     </div>
                 {% endif %}
             </div>
-
-            <aside class="ui-message-panel-alt hidden h-full min-h-0 flex-col overflow-y-auto rounded-2xl xl:flex">
-                {% if selectedConversation and selectedProfile %}
-                    {% set applicantName = selectedProfile.public ? (selectedProfile.firstName ~ ' ' ~ selectedProfile.lastName) : 'Postulant anonyme' %}
-                    <div class="ui-message-divider border-b p-5">
-                        <div class="ui-message-panel mx-auto mb-4 h-20 w-20 overflow-hidden rounded-full">
-                            {% if selectedProfile.avatarPath %}
-                                <img src="{{ asset(selectedProfile.avatarPath) }}" alt="Avatar" class="h-full w-full object-cover">
-                            {% else %}
-                                <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Avatar par défaut" class="h-full w-full object-cover">
-                            {% endif %}
-                        </div>
-                        <h3 class="ui-title text-center text-2xl font-semibold">{{ applicantName }}</h3>
-                        <p class="ui-text-muted mt-1 text-center text-sm">{{ selectedProfile.user ? selectedProfile.user.email : 'Email non renseigné' }}</p>
-                    </div>
-
-                    <div class="space-y-3 p-4 text-sm">
-                        <div class="ui-message-panel rounded-xl p-4">
-                            <p class="ui-text-muted text-xs uppercase tracking-wide">Localisation</p>
-                            <p class="ui-text-primary mt-1">{{ selectedProfile.city ?: 'Ville' }}{{ selectedProfile.country ? ', ' ~ selectedProfile.country : '' }}</p>
-                        </div>
-                        <div class="ui-message-panel rounded-xl p-4">
-                            <p class="ui-text-muted text-xs uppercase tracking-wide">Expérience</p>
-                            <p class="ui-text-primary mt-1">{{ selectedProfile.yearsExperience is not null ? selectedProfile.yearsExperience ~ ' ans' : 'Non renseignée' }}</p>
-                        </div>
-                        <div class="ui-message-panel rounded-xl p-4">
-                            <p class="ui-text-muted text-xs uppercase tracking-wide">Bio</p>
-                            <p class="ui-text-primary mt-1 line-clamp-4 whitespace-pre-line">{{ selectedProfile.bio ?: 'Aucune bio.' }}</p>
-                        </div>
-                    </div>
-                {% else %}
-                    <div class="ui-message-empty flex h-full items-center justify-center p-6 text-center text-sm">
-                        Le profil candidat apparaîtra ici.
-                    </div>
-                {% endif %}
-            </aside>
+            </div>
         </div>
 
         {% if selectedConversation %}

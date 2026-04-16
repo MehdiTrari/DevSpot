@@ -1,8 +1,8 @@
 {% set isAdmin = is_granted('ROLE_ADMIN') %}
 
 <div class="space-y-6">
-    <div class="ui-shell rounded-3xl p-6 backdrop-blur-2xl sm:p-8">
-        <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="theme-settings-card rounded-[2.75rem] p-6 sm:p-8">
+        <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h1 id="notifications-title" class="ui-title text-3xl font-semibold tracking-tight">Notifications</h1>
                 <p class="ui-text-muted mt-1 text-sm">{{ unreadCount }} notification(s) non lue(s)</p>
@@ -11,7 +11,9 @@
                 {% if unreadCount > 0 %}
                     <form method="post" data-notification-async="true" data-turbo="false" action="{{ path('app_notifications_mark_all_read', {filter: currentFilter, page: currentPage}) }}">
                         <input type="hidden" name="_token" value="{{ csrf_token('notification_read_all') }}">
-                        <button type="submit" class="ui-button-warning inline-flex cursor-pointer items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2">Tout marquer comme lu</button>
+                        <button type="submit" class="ui-button-warning inline-flex cursor-pointer items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2">
+                            Tout marquer comme lu
+                        </button>
                     </form>
                 {% endif %}
                 <a data-notification-filter="true" data-turbo="false" href="{{ path('app_notifications_index') }}" class="ui-pill rounded-full px-4 py-1.5 text-xs font-semibold transition-colors {{ currentFilter is not defined or not currentFilter ? 'ui-pill-success' : 'ui-pill-muted' }}">Toutes</a>
@@ -21,16 +23,26 @@
         </div>
     </div>
 
-    <div class="space-y-3">
+    <div class="space-y-4">
         {% for notification in notifications %}
-            <article class="rounded-2xl p-4 shadow-xl backdrop-blur-xl transition-colors {{ notification.isRead ? 'ui-panel' : 'ui-panel-success' }}">
+            <article class="rounded-[1.75rem] p-5 shadow-xl backdrop-blur-xl transition-colors {{ notification.isRead ? 'ui-panel' : 'ui-panel-success' }}">
                 <div class="flex items-start gap-4">
-                    <div class="min-w-0 flex-1 space-y-1">
-                        <h2 class="ui-title text-sm font-semibold">{{ notification.title }}</h2>
+                    <div class="min-w-0 flex-1 space-y-2">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h2 class="ui-title text-sm font-semibold">{{ notification.title }}</h2>
+                            {% if notification.isRead %}
+                                <span class="ui-pill ui-pill-muted rounded-full px-2.5 py-1 text-[11px] font-semibold">Déjà lue</span>
+                            {% else %}
+                                <span class="ui-pill ui-pill-success rounded-full px-2.5 py-1 text-[11px] font-semibold">Nouvelle</span>
+                            {% endif %}
+                        </div>
+
                         {% if isAdmin %}
                             <p class="ui-text-secondary text-sm">{{ notification.content }}</p>
                         {% endif %}
+
                         <p class="ui-text-soft text-xs">{{ notification.createdAt ? notification.createdAt|date('d/m/Y H:i') : '' }}</p>
+
                         {% if notification.link %}
                             <a href="{{ notification.link }}" class="ui-link-accent inline-flex items-center text-xs font-semibold">Voir la page concernée</a>
                         {% endif %}
@@ -42,8 +54,6 @@
                                 <input type="hidden" name="_token" value="{{ csrf_token('notification_read_' ~ notification.id) }}">
                                 <button type="submit" class="ui-button-warning inline-flex cursor-pointer items-center rounded-full px-3 py-1.5 text-xs font-semibold">Marquer comme lue</button>
                             </form>
-                        {% else %}
-                            <span class="ui-pill ui-pill-muted rounded-full px-3 py-1.5 text-xs font-semibold">Déjà lue</span>
                         {% endif %}
 
                         <form method="post" data-notification-async="true" data-turbo="false" action="{{ path('app_notifications_delete', {id: notification.id, filter: currentFilter, page: currentPage}) }}">
@@ -63,13 +73,13 @@
                 </div>
             </article>
         {% else %}
-            <div class="ui-panel rounded-2xl p-8 text-center text-sm ui-text-muted shadow-xl backdrop-blur-xl">
-                Aucune notification pour le moment.
+            <div class="theme-settings-card rounded-[2.35rem] p-8 text-center text-sm">
+                <p class="ui-text-muted">Aucune notification pour le moment.</p>
             </div>
         {% endfor %}
 
         {% if totalPages > 1 %}
-            <div class="ui-panel flex items-center justify-between rounded-2xl px-4 py-3 text-sm shadow-xl backdrop-blur-xl">
+            <div class="theme-settings-card flex items-center justify-between rounded-[2rem] px-4 py-3 text-sm">
                 <p class="ui-text-muted">Page {{ currentPage }} / {{ totalPages }}</p>
                 <div class="flex items-center gap-2">
                     {% if currentPage > 1 %}

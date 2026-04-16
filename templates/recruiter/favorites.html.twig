@@ -3,26 +3,29 @@
 {% block title %}Mes favoris | DevSpot{% endblock %}
 
 {% block body %}
-    <section class="w-full max-w-6xl self-start space-y-8 font-sans">
-        <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:shadow-emerald-500/10 sm:p-8">
+    <section class="w-full max-w-6xl self-start font-sans">
+        <div class="theme-settings-card rounded-[2.75rem] p-6 sm:p-8">
             <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
                 <div class="flex-1">
-                    <h1 class="text-3xl font-semibold tracking-tight text-white">Tes profils favoris.</h1>
-                    <p class="mt-2 text-sm text-slate-400">Ici sont regroupés les profils qui t'intéressent.</p>
+                    <p class="premium-kicker mb-4 inline-flex rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.24em]">
+                        Favoris recruteur
+                    </p>
+                    <h1 class="ui-title text-3xl font-semibold tracking-tight">Tes profils favoris.</h1>
+                    <p class="ui-text-muted mt-2 text-sm">Ici sont regroupés les profils qui t'intéressent.</p>
                 </div>
 
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300 shadow-inner sm:min-w-72">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Profil(s) enregistré(s)</p>
-                    <p data-favorite-count-value="true" class="mt-1 text-2xl font-semibold text-white">{{ favoriteProfilesCount|default(0) }}</p>
+                <div class="premium-card-soft rounded-[1.75rem] p-4 text-sm sm:min-w-72">
+                    <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Profil(s) enregistré(s)</p>
+                    <p data-favorite-count-value="true" class="ui-title mt-1 text-2xl font-semibold">{{ favoriteProfilesCount|default(0) }}</p>
                 </div>
             </div>
-        </div>
 
-        <div class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
-            {% include 'recruiter/_favorite_profiles_list.html.twig' with {
-                favoriteProfiles: favoriteProfiles|default([]),
-                redirectPath: path('app_recruiter_favorites')
-            } only %}
+            <div class="premium-divider mt-10 border-t pt-8">
+                {% include 'recruiter/_favorite_profiles_list.html.twig' with {
+                    favoriteProfiles: favoriteProfiles|default([]),
+                    redirectPath: path('app_recruiter_favorites')
+                } only %}
+            </div>
         </div>
     </section>
 {% endblock %}

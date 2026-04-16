@@ -106,11 +106,11 @@
     --premium-card-bg: rgba(255, 255, 255, 0.82);
     --premium-card-soft-bg: rgba(244, 248, 255, 0.72);
     --premium-card-strong-bg: rgba(255, 255, 255, 0.9);
-    --premium-card-border: rgba(132, 162, 224, 0.18);
+    --premium-card-border: rgba(132, 162, 224, 0.26);
     --premium-card-hover-bg: rgba(255, 255, 255, 0.96);
-    --premium-card-hover-border: rgba(79, 131, 255, 0.24);
+    --premium-card-hover-border: rgba(79, 131, 255, 0.34);
     --premium-card-hover-shadow: 0 22px 48px rgba(37, 87, 214, 0.12);
-    --premium-divider: rgba(132, 162, 224, 0.18);
+    --premium-divider: rgba(132, 162, 224, 0.22);
     --premium-kicker-bg: rgba(255, 255, 255, 0.56);
     --premium-kicker-border: rgba(132, 162, 224, 0.2);
     --premium-kicker-text: #4f6b99;
@@ -292,11 +292,11 @@
     --premium-card-bg: rgba(18, 33, 58, 0.86);
     --premium-card-soft-bg: rgba(21, 38, 65, 0.74);
     --premium-card-strong-bg: rgba(20, 35, 61, 0.92);
-    --premium-card-border: rgba(141, 180, 255, 0.14);
+    --premium-card-border: rgba(141, 180, 255, 0.18);
     --premium-card-hover-bg: rgba(24, 43, 74, 0.96);
-    --premium-card-hover-border: rgba(141, 180, 255, 0.22);
+    --premium-card-hover-border: rgba(141, 180, 255, 0.26);
     --premium-card-hover-shadow: 0 24px 52px rgba(5, 12, 24, 0.4);
-    --premium-divider: rgba(141, 180, 255, 0.14);
+    --premium-divider: rgba(141, 180, 255, 0.18);
     --premium-kicker-bg: rgba(20, 35, 61, 0.72);
     --premium-kicker-border: rgba(141, 180, 255, 0.16);
     --premium-kicker-text: #b6c5e1;
@@ -561,9 +561,10 @@
 }
 
 .theme-settings-card {
-    border: 1px solid var(--indeed-border);
+    border: 1px solid transparent;
     background: rgba(var(--indeed-shadow-rgb), 0.04);
-    box-shadow: var(--indeed-card-shadow);
+    box-shadow: 0 0 0 1px var(--indeed-border), var(--indeed-card-shadow);
+    transition: background-color 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
 }
 
 .theme-settings-grid {
@@ -1076,8 +1077,9 @@
 .premium-stat-card,
 .premium-action-card,
 .premium-list-row {
-    border: 1px solid var(--premium-card-border);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 18px 40px rgba(var(--indeed-shadow-rgb), 0.08);
+    border: 1px solid transparent;
+    box-shadow: 0 0 0 1px var(--premium-card-border), inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 18px 40px rgba(var(--indeed-shadow-rgb), 0.08);
+    transition: background-color 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease, transform 0.24s ease;
 }
 
 .premium-card,
@@ -1095,17 +1097,11 @@
     background: var(--premium-card-strong-bg);
 }
 
-.premium-action-card,
-.premium-list-row {
-    transition: transform 0.24s ease, background-color 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
-}
-
 .premium-action-card:hover,
 .premium-list-row:hover {
     transform: translateY(-2px);
-    border-color: var(--premium-card-hover-border);
     background: var(--premium-card-hover-bg);
-    box-shadow: var(--premium-card-hover-shadow);
+    box-shadow: 0 0 0 1px var(--premium-card-hover-border), var(--premium-card-hover-shadow);
 }
 
 .premium-divider {
