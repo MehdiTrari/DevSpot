@@ -5,6 +5,113 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="turbo-cache-control" content="no-preview">
         <title>{% block title %}DevSpot{% endblock %}</title>
+        <script>
+            (() => {
+                if (window.DevSpotTheme) {
+                    return;
+                }
+
+                const storageKey = 'devspot-theme';
+                const defaultTheme = 'light';
+                const themeLabels = {
+                    light: 'Mode jour',
+                    dark: 'Mode nuit',
+                };
+
+                const isThemeValue = (value) => value === 'light' || value === 'dark';
+
+                const readStoredTheme = () => {
+                    try {
+                        const storedTheme = window.localStorage.getItem(storageKey);
+
+                        return isThemeValue(storedTheme) ? storedTheme : defaultTheme;
+                    } catch (_error) {
+                        return defaultTheme;
+                    }
+                };
+
+                const getCurrentTheme = () => {
+                    const currentTheme = document.documentElement.dataset.theme;
+
+                    return isThemeValue(currentTheme) ? currentTheme : readStoredTheme();
+                };
+
+                const refreshThemeControls = (theme) => {
+                    document.querySelectorAll('[data-theme-label="true"]').forEach((element) => {
+                        element.textContent = themeLabels[theme] ?? themeLabels[defaultTheme];
+                    });
+
+                    document.querySelectorAll('[data-theme-choice]').forEach((button) => {
+                        const isActive = button.dataset.themeChoice === theme;
+
+                        button.classList.toggle('is-active', isActive);
+                        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+                    });
+
+                };
+
+                const applyTheme = (theme) => {
+                    const resolvedTheme = isThemeValue(theme) ? theme : defaultTheme;
+
+                    document.documentElement.dataset.theme = resolvedTheme;
+                    document.documentElement.style.colorScheme = resolvedTheme;
+
+                    if (document.body) {
+                        document.body.dataset.theme = resolvedTheme;
+                    }
+
+                    refreshThemeControls(resolvedTheme);
+
+                    return resolvedTheme;
+                };
+
+                const setTheme = (theme, {persist = true} = {}) => {
+                    const resolvedTheme = applyTheme(theme);
+
+                    if (persist) {
+                        try {
+                            window.localStorage.setItem(storageKey, resolvedTheme);
+                        } catch (_error) {
+                        }
+                    }
+
+                    return resolvedTheme;
+                };
+
+                const initThemeControls = () => {
+                    applyTheme(getCurrentTheme());
+                };
+
+                document.addEventListener('click', (event) => {
+                    if (!(event.target instanceof Element)) {
+                        return;
+                    }
+
+                    const themeChoiceButton = event.target.closest('[data-theme-choice]');
+                    if (themeChoiceButton) {
+                        event.preventDefault();
+                        const theme = themeChoiceButton.dataset.themeChoice;
+                        if (isThemeValue(theme)) {
+                            setTheme(theme);
+                        }
+
+                        return;
+                    }
+                });
+
+                document.addEventListener('DOMContentLoaded', initThemeControls);
+                document.addEventListener('turbo:load', initThemeControls);
+
+                window.DevSpotTheme = {
+                    applyTheme,
+                    getCurrentTheme,
+                    refreshThemeControls,
+                    setTheme,
+                };
+
+                applyTheme(readStoredTheme());
+            })();
+        </script>
         
         <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><rect width=%22128%22 height=%22128%22 rx=%2228%22 fill=%22%23f8fafc%22/><path d=%22M48 36L22 64l26 28%22 stroke=%22%232563eb%22 stroke-width=%229%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 fill=%22none%22/><path d=%22M80 36l26 28-26 28%22 stroke=%22%232563eb%22 stroke-width=%229%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 fill=%22none%22/><line x1=%2270%22 y1=%2228%22 x2=%2258%22 y2=%22100%22 stroke=%22%233b82f6%22 stroke-width=%227%22 stroke-linecap=%22round%22 opacity=%22.6%22/></svg>">
         
@@ -413,7 +520,7 @@
     
     {# Theme global blanc/bleu #}
     <body
-        class="indeed-theme min-h-screen bg-slate-50 text-slate-900 font-sans antialiased selection:bg-blue-600 selection:text-white"
+        class="indeed-theme min-h-screen font-sans antialiased selection:bg-blue-600 selection:text-white"
         {% if app.user and mercureTopics is defined and mercureTopics is not empty %}
             data-global-mercure-url="{{ mercure(mercureTopics, (mercureNeedsCredentials|default(false)) ? {subscribe: mercureTopics} : {}) }}"
             data-global-mercure-credentials="{{ (mercureNeedsCredentials|default(false)) ? 'true' : 'false' }}"
@@ -504,10 +611,10 @@
                                     </svg>
                                 </summary>
                                 <div class="account-menu-panel absolute right-0 top-14 z-[999] w-96 overflow-hidden rounded-2xl">
-                                    <div class="border-b border-slate-200 px-5 py-4">
-                                        <p class="truncate text-xl font-bold text-slate-800">{{ app.user.email }}</p>
+                                    <div class="account-menu-divider border-b px-5 py-4">
+                                        <p class="account-menu-title truncate text-xl font-bold">{{ app.user.email }}</p>
                                     </div>
-                                    <div class="space-y-1 px-3 py-3 text-slate-700">
+                                    <div class="space-y-1 px-3 py-3">
                                         <a href="{{ profilePath }}" class="account-menu-item account-menu-item-hover">
                                             <span class="account-menu-icon" aria-hidden="true">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
@@ -525,7 +632,7 @@
                                             </span>
                                             Ma démographie
                                         </a>
-                                        <a href="#" onclick="return false;" class="account-menu-item account-menu-item-hover">
+                                        <a href="{{ path('app_settings_index') }}" class="account-menu-item account-menu-item-hover">
                                             <span class="account-menu-icon" aria-hidden="true">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h3M3 12h3m12 0h3M10.5 18h3"/>
@@ -553,7 +660,7 @@
                                             Centre de confidentialité
                                         </a>
                                     </div>
-                                    <div class="border-t border-slate-200 px-4 py-3">
+                                    <div class="account-menu-divider border-t px-4 py-3">
                                         <a href="{{ logout_path() }}" class="account-menu-item account-menu-item-hover account-menu-logout justify-center text-[1.72rem] leading-none">
                                             Déconnexion
                                         </a>

@@ -20,163 +20,76 @@
     {% endfor %}
 
     <section class="w-full max-w-6xl space-y-6 font-sans">
-        <article class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:shadow-emerald-500/10 sm:p-10">
+        <article class="ui-shell ui-shell-hover rounded-[2.5rem] p-8 backdrop-blur-2xl sm:p-10">
             <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
                 <div class="max-w-2xl">
-                    <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-100 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-blue-800">
+                    <p class="ui-pill ui-pill-info mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wider">
                         <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse"></span>
                         Espace candidat
                     </p>
-                    <h1 class="text-4xl font-semibold tracking-tight text-white">Bienvenue sur DevSpot.</h1>
-                    <p class="mt-2 text-[15px] leading-relaxed text-slate-400">
+                    <h1 class="ui-title text-4xl font-semibold tracking-tight">Bienvenue sur DevSpot.</h1>
+                    <p class="ui-text-muted mt-2 text-[15px] leading-relaxed">
                         {% if app.user %}
-                            Connecté en tant que <span class="font-semibold text-white">{{ is_granted('ROLE_APPLICANT') ? 'candidat' : 'recruteur' }}</span>.
+                            Connecté en tant que <span class="ui-title font-semibold">{{ is_granted('ROLE_APPLICANT') ? 'candidat' : 'recruteur' }}</span>.
                         {% else %}
                             Complète ton profil développeur, rends ton portfolio public et démarre ton matching.
                         {% endif %}
                     </p>
                 </div>
 
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300 shadow-inner sm:min-w-72">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Profils publics</p>
-                    <p class="mt-1 text-2xl font-semibold text-white">{{ totalPublicPortfolios }}</p>
-                    <p class="mt-2 text-xs text-slate-400">Annuaire actif et mis à jour automatiquement.</p>
+                <div class="ui-panel-subtle rounded-2xl p-4 text-sm shadow-inner sm:min-w-72">
+                    <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Profils publics</p>
+                    <p class="ui-title mt-1 text-2xl font-semibold">{{ totalPublicPortfolios }}</p>
+                    <p class="ui-text-muted mt-2 text-xs">Annuaire actif et mis à jour automatiquement.</p>
                 </div>
             </div>
 
             {% if not app.user %}
                 <div class="mt-8 flex flex-wrap gap-3">
-                    <a href="{{ path('app_register') }}" class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 py-3.5 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95">
+                    <a href="{{ path('app_register') }}" class="ui-button-primary inline-flex items-center justify-center rounded-full px-6 py-3.5 text-[15px] font-bold active:scale-95">
                         Créer un compte
                     </a>
-                    <a href="{{ path('app_login') }}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-6 py-3.5 text-[15px] font-semibold text-white transition-all duration-300 hover:bg-white/10 active:scale-95">
+                    <a href="{{ path('app_login') }}" class="ui-button-secondary inline-flex items-center justify-center rounded-full px-6 py-3.5 text-[15px] font-semibold active:scale-95">
                         Se connecter
                     </a>
                 </div>
             {% endif %}
         </article>
 
-        <article class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl transition-all duration-500 sm:p-8">
-                <div class="flex items-start justify-between gap-4">
-                    <div>
-                        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Espace recruteur</h2>
-                        <p class="mt-2 text-3xl font-semibold tracking-tight text-white">Trouvez les candidats idéaux</p>
-                        <p class="mt-3 max-w-2xl text-[15px] leading-relaxed text-slate-400">
-                            Découvrez des talents correspondant à vos offres d'emploi et générez un matching précis.
-                        </p>
-                    </div>
-                    <span class="inline-flex items-center rounded-full border border-blue-200 bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
-                        {{ totalPublicPortfolios }}
-                    </span>
+        <article class="ui-shell rounded-[2rem] p-6 backdrop-blur-xl sm:p-8">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Espace recruteur</h2>
+                    <p class="ui-title mt-2 text-3xl font-semibold tracking-tight">Trouvez les candidats idéaux</p>
+                    <p class="ui-text-muted mt-3 max-w-2xl text-[15px] leading-relaxed">
+                        Découvrez des talents correspondant à vos offres d'emploi et générez un matching précis.
+                    </p>
                 </div>
+                <span class="ui-pill ui-pill-info rounded-full px-3 py-1 text-xs font-semibold">
+                    {{ totalPublicPortfolios }}
+                </span>
+            </div>
 
-                <div class="mt-6 grid gap-2 sm:grid-cols-4">
-                    <span class="rounded-full border border-blue-200 bg-blue-100 px-3 py-2 text-xs font-semibold text-blue-800">Symfony</span>
-                    <span class="rounded-full border border-blue-200 bg-blue-100 px-3 py-2 text-xs font-semibold text-blue-800">PHP</span>
-                    <span class="rounded-full border border-blue-200 bg-blue-100 px-3 py-2 text-xs font-semibold text-blue-800">Remote</span>
-                    <span class="rounded-full border border-blue-200 bg-blue-100 px-3 py-2 text-xs font-semibold text-blue-800">Junior à Lead</span>
-                </div>
+            <div class="mt-6 grid gap-2 sm:grid-cols-4">
+                <span class="ui-pill ui-pill-info rounded-full px-3 py-2 text-xs font-semibold">Symfony</span>
+                <span class="ui-pill ui-pill-info rounded-full px-3 py-2 text-xs font-semibold">PHP</span>
+                <span class="ui-pill ui-pill-info rounded-full px-3 py-2 text-xs font-semibold">Remote</span>
+                <span class="ui-pill ui-pill-info rounded-full px-3 py-2 text-xs font-semibold">Junior à Lead</span>
+            </div>
 
-                {% if featuredCards is empty %}
-                    <p class="mt-6 text-[15px] text-slate-400">Aucun profil public n'est disponible pour le moment.</p>
-                {% else %}
-                    <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
-                        {% for portfolio in featuredCards %}
-                            {% set skillNames = [] %}
-                            {% for profileSkill in portfolio.profileSkills|slice(0, 3) %}
-                                {% if profileSkill.skill %}
-                                    {% set skillNames = skillNames|merge([profileSkill.skill.name]) %}
-                                {% endif %}
-                            {% endfor %}
-
-                            <article class="group rounded-2xl border border-white/10 bg-white/5 p-4 transition-all duration-300 hover:border-emerald-500/40 hover:bg-emerald-500/10">
-                                <div class="flex items-center gap-3">
-                                    {% if portfolio.avatarPath %}
-                                        <img src="{{ asset(portfolio.avatarPath) }}" alt="Photo de {{ portfolio.firstName }}" class="h-12 w-12 rounded-xl border border-white/15 object-cover">
-                                    {% else %}
-                                        <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Photo par défaut" class="h-12 w-12 rounded-xl border border-white/15 object-cover">
-                                    {% endif %}
-
-                                    <div class="min-w-0">
-                                        <p class="truncate text-sm font-semibold text-white">{{ portfolio.firstName ?: 'Profil' }} {{ portfolio.lastName ?: '' }}</p>
-                                        <p class="truncate text-xs text-slate-400">{{ portfolio.headline ?: 'Développeur web' }}</p>
-                                    </div>
-                                </div>
-
-                                <div class="mt-3 flex flex-wrap gap-2">
-                                    {% if portfolio.experienceLevel %}
-                                        <span class="rounded-full border border-blue-200 bg-blue-100 px-2.5 py-1 text-[10px] font-semibold text-blue-800">
-                                            {{ experienceLevelLabels[portfolio.experienceLevel.value] ?? portfolio.experienceLevel.value }}
-                                        </span>
-                                    {% endif %}
-                                    {% for skillName in skillNames %}
-                                        <span class="rounded-full border border-amber-200 bg-amber-100 px-2.5 py-1 text-[10px] font-semibold text-amber-900">{{ skillName }}</span>
-                                    {% endfor %}
-                                </div>
-
-                                <div class="mt-4 flex flex-wrap items-center gap-3">
-                                    <a href="{{ path('app_public_profile_show', { slug: portfolio.slug }) }}" class="inline-flex items-center text-xs font-semibold text-emerald-400 transition-colors duration-300 group-hover:text-emerald-300">
-                                        Voir profil →
-                                    </a>
-
-                                    {% if is_granted('ROLE_RECRUITER') %}
-                                        {% include 'recruiter/_favorite_toggle.html.twig' with {
-                                            profile: portfolio,
-                                            isFavorite: portfolio.id in favoriteProfileIds|default([]),
-                                            iconOnly: true,
-                                            formClass: 'ml-auto'
-                                        } only %}
-                                    {% endif %}
-                                </div>
-                            </article>
+            {% if featuredCards is empty %}
+                <p class="ui-text-muted mt-6 text-[15px]">Aucun profil public n'est disponible pour le moment.</p>
+            {% else %}
+                <div class="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-2">
+                    {% for portfolio in featuredCards %}
+                        {% set skillNames = [] %}
+                        {% for profileSkill in portfolio.profileSkills|slice(0, 3) %}
+                            {% if profileSkill.skill %}
+                                {% set skillNames = skillNames|merge([profileSkill.skill.name]) %}
+                            {% endif %}
                         {% endfor %}
-                    </div>
-                {% endif %}
 
-                {% if totalPages|default(1) > 1 %}
-                    <div class="mt-6 flex items-center justify-between gap-3">
-                        {% if currentPage|default(1) > 1 %}
-                            <a href="{{ path('app_home', { page: currentPage - 1 }) }}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:bg-white/10">
-                                ← Page précédente
-                            </a>
-                        {% else %}
-                            <span class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-500 opacity-60">
-                                ← Page précédente
-                            </span>
-                        {% endif %}
-
-                        <span class="text-sm font-medium text-slate-400">Page {{ currentPage|default(1) }} / {{ totalPages|default(1) }}</span>
-
-                        {% if currentPage|default(1) < totalPages|default(1) %}
-                            <a href="{{ path('app_home', { page: currentPage + 1 }) }}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:bg-white/10">
-                                Page suivante →
-                            </a>
-                        {% else %}
-                            <span class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-500 opacity-60">
-                                Page suivante →
-                            </span>
-                        {% endif %}
-                    </div>
-                {% endif %}
-            </article>
-
-        {% if topMatches is not empty %}
-            <article class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl transition-all duration-500 sm:p-8">
-                <div class="flex items-center justify-between gap-3">
-                    <div>
-                        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Top matchs</h2>
-                        <p class="mt-2 text-2xl font-semibold tracking-tight text-white">Top matchs selon vos offres</p>
-                    </div>
-                    <span class="rounded-full border border-blue-200 bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
-                        {{ topMatches|length }}
-                    </span>
-                </div>
-
-                <div class="mt-6 grid gap-4 md:grid-cols-3">
-                    {% for topMatch in topMatches %}
-                        {% set portfolio = topMatch.profile %}
-                        {% set topMatchScore = topMatch.score %}
-                        <article class="group rounded-2xl border border-white/10 bg-white/5 p-4 transition-all duration-300 hover:border-emerald-500/30 hover:bg-emerald-500/10">
+                        <article class="ui-panel ui-panel-success-hover group rounded-2xl p-4">
                             <div class="flex items-center gap-3">
                                 {% if portfolio.avatarPath %}
                                     <img src="{{ asset(portfolio.avatarPath) }}" alt="Photo de {{ portfolio.firstName }}" class="h-12 w-12 rounded-xl border border-white/15 object-cover">
@@ -185,18 +98,105 @@
                                 {% endif %}
 
                                 <div class="min-w-0">
-                                    <p class="truncate text-sm font-semibold text-white">{{ portfolio.firstName ?: 'Profil' }} {{ portfolio.lastName ?: '' }}</p>
-                                    <p class="truncate text-xs text-slate-400">{{ portfolio.headline ?: 'Développeur web' }}</p>
+                                    <p class="ui-title truncate text-sm font-semibold">{{ portfolio.firstName ?: 'Profil' }} {{ portfolio.lastName ?: '' }}</p>
+                                    <p class="ui-text-muted truncate text-xs">{{ portfolio.headline ?: 'Développeur web' }}</p>
                                 </div>
                             </div>
 
-                            <div class="mt-4 flex items-center justify-between rounded-xl border border-blue-200 bg-blue-100 px-3 py-2">
-                                <span class="text-xs font-semibold uppercase tracking-wider text-blue-700">Score match</span>
-                                <span class="text-lg font-semibold text-blue-900">{{ topMatchScore }}%</span>
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                {% if portfolio.experienceLevel %}
+                                    <span class="ui-pill ui-pill-info rounded-full px-2.5 py-1 text-[10px] font-semibold">
+                                        {{ experienceLevelLabels[portfolio.experienceLevel.value] ?? portfolio.experienceLevel.value }}
+                                    </span>
+                                {% endif %}
+                                {% for skillName in skillNames %}
+                                    <span class="ui-pill ui-pill-warning rounded-full px-2.5 py-1 text-[10px] font-semibold">{{ skillName }}</span>
+                                {% endfor %}
                             </div>
 
                             <div class="mt-4 flex flex-wrap items-center gap-3">
-                                <a href="{{ path('app_public_profile_show', { slug: portfolio.slug }) }}" class="inline-flex items-center text-xs font-semibold text-emerald-400 transition-colors duration-300 group-hover:text-emerald-300">
+                                <a href="{{ path('app_public_profile_show', { slug: portfolio.slug }) }}" class="ui-link-accent inline-flex items-center text-xs font-semibold">
+                                    Voir profil →
+                                </a>
+
+                                {% if is_granted('ROLE_RECRUITER') %}
+                                    {% include 'recruiter/_favorite_toggle.html.twig' with {
+                                        profile: portfolio,
+                                        isFavorite: portfolio.id in favoriteProfileIds|default([]),
+                                        iconOnly: true,
+                                        formClass: 'ml-auto'
+                                    } only %}
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if totalPages|default(1) > 1 %}
+                <div class="mt-6 flex items-center justify-between gap-3">
+                    {% if currentPage|default(1) > 1 %}
+                        <a href="{{ path('app_home', { page: currentPage - 1 }) }}" class="ui-button-secondary inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold">
+                            ← Page précédente
+                        </a>
+                    {% else %}
+                        <span class="ui-button-disabled inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold opacity-60">
+                            ← Page précédente
+                        </span>
+                    {% endif %}
+
+                    <span class="ui-text-muted text-sm font-medium">Page {{ currentPage|default(1) }} / {{ totalPages|default(1) }}</span>
+
+                    {% if currentPage|default(1) < totalPages|default(1) %}
+                        <a href="{{ path('app_home', { page: currentPage + 1 }) }}" class="ui-button-secondary inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold">
+                            Page suivante →
+                        </a>
+                    {% else %}
+                        <span class="ui-button-disabled inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold opacity-60">
+                            Page suivante →
+                        </span>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </article>
+
+        {% if topMatches is not empty %}
+            <article class="ui-shell rounded-[2rem] p-6 backdrop-blur-xl sm:p-8">
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <h2 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Top matchs</h2>
+                        <p class="ui-title mt-2 text-2xl font-semibold tracking-tight">Top matchs selon vos offres</p>
+                    </div>
+                    <span class="ui-pill ui-pill-info rounded-full px-3 py-1 text-xs font-semibold">
+                        {{ topMatches|length }}
+                    </span>
+                </div>
+
+                <div class="mt-6 grid gap-4 md:grid-cols-3">
+                    {% for topMatch in topMatches %}
+                        {% set portfolio = topMatch.profile %}
+                        {% set topMatchScore = topMatch.score %}
+                        <article class="ui-panel ui-panel-success-hover group rounded-2xl p-4">
+                            <div class="flex items-center gap-3">
+                                {% if portfolio.avatarPath %}
+                                    <img src="{{ asset(portfolio.avatarPath) }}" alt="Photo de {{ portfolio.firstName }}" class="h-12 w-12 rounded-xl border border-white/15 object-cover">
+                                {% else %}
+                                    <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Photo par défaut" class="h-12 w-12 rounded-xl border border-white/15 object-cover">
+                                {% endif %}
+
+                                <div class="min-w-0">
+                                    <p class="ui-title truncate text-sm font-semibold">{{ portfolio.firstName ?: 'Profil' }} {{ portfolio.lastName ?: '' }}</p>
+                                    <p class="ui-text-muted truncate text-xs">{{ portfolio.headline ?: 'Développeur web' }}</p>
+                                </div>
+                            </div>
+
+                            <div class="ui-pill ui-pill-info mt-4 flex items-center justify-between rounded-xl px-3 py-2">
+                                <span class="text-xs font-semibold uppercase tracking-wider">Score match</span>
+                                <span class="text-lg font-semibold">{{ topMatchScore }}%</span>
+                            </div>
+
+                            <div class="mt-4 flex flex-wrap items-center gap-3">
+                                <a href="{{ path('app_public_profile_show', { slug: portfolio.slug }) }}" class="ui-link-accent inline-flex items-center text-xs font-semibold">
                                     Voir profil →
                                 </a>
 
