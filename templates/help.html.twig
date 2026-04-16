@@ -1,0 +1,175 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Help | DevSpot{% endblock %}
+
+{% block body %}
+    {% set activeHelpRole = is_granted('ROLE_RECRUITER') ? 'recruiter' : 'applicant' %}
+
+    <section class="help-quickstart-page w-full max-w-6xl space-y-8 font-sans">
+        <div class="favorite-showcase-hero mx-auto w-full max-w-5xl px-1 py-2 sm:px-2 sm:py-3">
+            <div class="mx-auto max-w-4xl text-center">
+                <div class="help-role-switch" data-help-switcher="true">
+                    <button
+                        type="button"
+                        class="help-role-button {{ activeHelpRole == 'applicant' ? 'is-active' : '' }}"
+                        data-help-role-button="applicant"
+                        aria-pressed="{{ activeHelpRole == 'applicant' ? 'true' : 'false' }}"
+                    >
+                        Applicant
+                    </button>
+                    <button
+                        type="button"
+                        class="help-role-button {{ activeHelpRole == 'recruiter' ? 'is-active' : '' }}"
+                        data-help-role-button="recruiter"
+                        aria-pressed="{{ activeHelpRole == 'recruiter' ? 'true' : 'false' }}"
+                    >
+                        Recruteur
+                    </button>
+                </div>
+                <h1 class="ui-title mt-6 text-2xl font-semibold tracking-tight sm:text-3xl">Utilise DevSpot en quelques étapes.</h1>
+                <p class="ui-text-secondary mx-auto mt-4 max-w-3xl text-sm leading-relaxed sm:text-[15px]">
+                    Choisis un parcours puis suis les étapes. Tu peux basculer entre Applicant et Recruteur à tout moment.
+                </p>
+            </div>
+        </div>
+
+        <div data-help-panel="applicant" class="{{ activeHelpRole == 'applicant' ? '' : 'hidden ' }}">
+            <article class="help-quickstart-shell rounded-[2.35rem] p-5 sm:p-8">
+                <div class="help-quickstart-grid">
+                    <ol class="help-steps" aria-label="Parcours applicant">
+                        <li class="help-step help-step-active">
+                            <h2 class="help-step-title">1. Création du compte</h2>
+                            <p class="help-step-text">Crée ton compte pour accéder à ton espace candidat.</p>
+                            <a href="{{ path('app_register') }}" class="help-step-link">S'inscrire</a>
+                        </li>
+
+                        <li class="help-step">
+                            <h2 class="help-step-title">2. Complète ton profil développeur</h2>
+                            <p class="help-step-text">Renseigne ton parcours, tes compétences et tes préférences.</p>
+                        </li>
+
+                        <li class="help-step">
+                            <h2 class="help-step-title">3. Publie ton portfolio</h2>
+                            <p class="help-step-text">Génère et rends visible ton portfolio pour être découvert.</p>
+                        </li>
+
+                        <li class="help-step">
+                            <h2 class="help-step-title">4. Échange avec les recruteurs intéressés</h2>
+                            <p class="help-step-text">Réponds aux messages et démarre les discussions avec les recruteurs.</p>
+                        </li>
+                    </ol>
+
+                    <aside class="space-y-4">
+                        <article class="help-preview-card rounded-[2rem] p-4 sm:p-5">
+                            <div class="help-preview-media rounded-[1.4rem] p-4 sm:p-5">
+                                <div class="help-preview-field rounded-xl px-4 py-3">Entrer un mot de passe</div>
+                                <div class="help-preview-label mt-4">Confirmer le mot de passe</div>
+                                <div class="help-preview-field rounded-xl px-4 py-3">Confirmer votre mot de passe</div>
+                                <button type="button" class="help-preview-cta mt-4 w-full rounded-full px-5 py-3 text-[15px] font-bold">Créer un compte</button>
+                                <p class="help-preview-login mt-4 text-center text-sm">Déjà un compte ? <a href="{{ path('app_login') }}">Connexion</a></p>
+                            </div>
+
+                            <div class="mt-4">
+                                <h3 class="ui-title text-xl font-semibold tracking-tight sm:text-2xl">Parcours Applicant</h3>
+                                <p class="ui-text-muted mt-2 text-sm leading-relaxed sm:text-[15px]">Suis les 4 étapes pour rendre ton profil visible et démarrer les échanges.</p>
+                            </div>
+                        </article>
+                    </aside>
+                </div>
+            </article>
+        </div>
+
+        <div data-help-panel="recruiter" class="{{ activeHelpRole == 'recruiter' ? '' : 'hidden ' }}">
+            <article class="help-quickstart-shell rounded-[2.35rem] p-5 sm:p-8">
+                <div class="help-quickstart-grid">
+                    <ol class="help-steps" aria-label="Parcours recruteur">
+                        <li class="help-step help-step-active">
+                            <h2 class="help-step-title">1. Création du compte</h2>
+                            <p class="help-step-text">Crée ton compte pour ouvrir ton espace recruteur.</p>
+                            <a href="{{ path('app_register') }}" class="help-step-link">S'inscrire</a>
+                        </li>
+
+                        <li class="help-step">
+                            <h2 class="help-step-title">2. Création des offres</h2>
+                            <p class="help-step-text">Structure tes besoins pour lancer tes premières offres.</p>
+                        </li>
+
+                        <li class="help-step">
+                            <h2 class="help-step-title">3. Trouves des profils intéressants</h2>
+                            <p class="help-step-text">Explore les profils publics et constitue ta short-list.</p>
+                        </li>
+
+                        <li class="help-step">
+                            <h2 class="help-step-title">4. Échange avec les applicants</h2>
+                            <p class="help-step-text">Contacte les candidats pertinents et avance dans ton recrutement.</p>
+                        </li>
+                    </ol>
+
+                    <aside class="space-y-4">
+                        <article class="help-preview-card rounded-[2rem] p-4 sm:p-5">
+                            <div class="help-preview-media rounded-[1.4rem] p-4 sm:p-5">
+                                <div class="help-preview-field rounded-xl px-4 py-3">Titre de l'offre</div>
+                                <div class="help-preview-label mt-4">Contrat</div>
+                                <div class="help-preview-field rounded-xl px-4 py-3">CDI / Freelance</div>
+                                <button type="button" class="help-preview-cta mt-4 w-full rounded-full px-5 py-3 text-[15px] font-bold">Créer une offre</button>
+                                <p class="help-preview-login mt-4 text-center text-sm">Puis démarre le sourcing de candidats</p>
+                            </div>
+
+                            <div class="mt-4">
+                                <h3 class="ui-title text-xl font-semibold tracking-tight sm:text-2xl">Parcours Recruteur</h3>
+                                <p class="ui-text-muted mt-2 text-sm leading-relaxed sm:text-[15px]">Pose tes offres, sélectionne les profils utiles et passe rapidement en discussion.</p>
+                            </div>
+                        </article>
+                    </aside>
+                </div>
+            </article>
+        </div>
+
+        <script>
+            (() => {
+                const initHelpSwitcher = () => {
+                    const switcherRoot = document.querySelector('[data-help-switcher="true"]');
+                    if (!switcherRoot || switcherRoot.dataset.helpSwitcherInitialized === 'true') {
+                        return;
+                    }
+
+                    switcherRoot.dataset.helpSwitcherInitialized = 'true';
+
+                    const buttons = Array.from(document.querySelectorAll('[data-help-role-button]'));
+                    const panels = Array.from(document.querySelectorAll('[data-help-panel]'));
+
+                    const activateRole = (role) => {
+                        buttons.forEach((button) => {
+                            const isActive = button.dataset.helpRoleButton === role;
+                            button.classList.toggle('is-active', isActive);
+                            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+                        });
+
+                        panels.forEach((panel) => {
+                            const isActive = panel.dataset.helpPanel === role;
+                            panel.classList.toggle('hidden', !isActive);
+                        });
+                    };
+
+                    buttons.forEach((button) => {
+                        button.addEventListener('click', () => {
+                            const role = button.dataset.helpRoleButton;
+                            if (!role) {
+                                return;
+                            }
+
+                            activateRole(role);
+                        });
+                    });
+                };
+
+                document.addEventListener('DOMContentLoaded', initHelpSwitcher);
+                document.addEventListener('turbo:load', initHelpSwitcher);
+            })();
+        </script>
+
+        <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
+            Une mise en route simple, claire et rapide pour rester focus sur l'essentiel.
+        </p>
+    </section>
+{% endblock %}

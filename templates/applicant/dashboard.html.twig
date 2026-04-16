@@ -13,7 +13,7 @@
                         Espace candidat
                     </p>
                     <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Mon dashboard.</h1>
-                    <p class="ui-text-secondary mt-4 text-[15px]">{{ not checklist.step1.done ? 'Ton profil développeur est prêt à être créé.' : 'Ton profil développeur est en cours de complétion.' }}</p>
+                    <p class="ui-text-secondary mt-4 text-[15px]">{{ not checklist.step4.done ? 'Ton profil développeur est à compléter.' : 'Ton profil développeur est terminé.' }}</p>
 
                     {% if doneCount < 4 %}
                         <p class="ui-text-muted mt-2 text-[15px]">Complète ton profil en 4 étapes simples.</p>
@@ -171,5 +171,9 @@
                 </div>
             </aside>
         </div>
+
+        <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
+            Avance étape par étape, finalise ton profil et garde une vue claire sur ta progression développeur.
+        </p>
     </section>
 {% endblock %}

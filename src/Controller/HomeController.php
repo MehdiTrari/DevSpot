@@ -71,4 +71,10 @@ class HomeController extends AbstractController
 
         return $response;
     }
+
+    #[Route(path: '/help', name: 'app_help')]
+    public function help(): Response
+    {
+        return $this->render('help.html.twig');
+    }
 }
