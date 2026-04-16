@@ -7,14 +7,13 @@
     {% set progressPercent = doneCount * 25 %}
 
     <section class="w-full max-w-6xl space-y-8 font-sans">
-        <div class="theme-settings-card rounded-[2.75rem] p-8 sm:p-10">
-            <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-                <div class="flex-1">
-                    <p class="premium-kicker mb-4 inline-flex rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.24em]">
+        <div class="favorite-showcase-hero mx-auto w-full max-w-5xl px-1 py-2 text-center sm:px-2 sm:py-3">
+            <div class="mx-auto max-w-3xl">
+                    <p class="favorite-showcase-kicker">
                         Espace candidat
                     </p>
-                    <h1 class="ui-title text-4xl font-semibold tracking-tight">Bienvenue sur ton espace.</h1>
-                    <p class="ui-text-muted mt-2 text-[15px]">{{ not checklist.step1.done ? 'Ton profil développeur est prêt à être créé.' : 'Ton profil développeur est en cours de complétion.' }}</p>
+                    <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Mon dashboard.</h1>
+                    <p class="ui-text-secondary mt-4 text-[15px]">{{ not checklist.step1.done ? 'Ton profil développeur est prêt à être créé.' : 'Ton profil développeur est en cours de complétion.' }}</p>
 
                     {% if doneCount < 4 %}
                         <p class="ui-text-muted mt-2 text-[15px]">Complète ton profil en 4 étapes simples.</p>
@@ -29,20 +28,6 @@
                             <p class="ui-text-muted mt-3 text-sm">{{ progressPercent }}% complété</p>
                         </div>
                     {% endif %}
-                </div>
-
-                <div class="premium-card-soft rounded-[1.75rem] p-4 text-[15px] sm:min-w-64">
-                    <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Statut</p>
-                    <p class="mt-3">
-                        {% if not checklist.step1.done %}
-                            <span class="ui-pill ui-pill-danger rounded-full px-2.5 py-1 text-xs font-semibold">À créer</span>
-                        {% elseif doneCount < 4 %}
-                            <span class="ui-pill ui-pill-warning rounded-full px-2.5 py-1 text-xs font-semibold">En cours</span>
-                        {% else %}
-                            <span class="ui-pill ui-pill-success rounded-full px-2.5 py-1 text-xs font-semibold">Terminé</span>
-                        {% endif %}
-                    </p>
-                </div>
             </div>
         </div>
 
@@ -104,7 +89,16 @@
 
             <aside class="space-y-6">
                 <div class="theme-settings-card rounded-[2.35rem] p-6">
-                    <h2 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Progression</h2>
+                    <div class="flex items-center justify-between gap-3">
+                        <h2 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Progression</h2>
+                        {% if not checklist.step1.done %}
+                            <span class="ui-pill ui-pill-danger rounded-full px-2.5 py-1 text-xs font-semibold">À créer</span>
+                        {% elseif doneCount < 4 %}
+                            <span class="ui-pill ui-pill-warning rounded-full px-2.5 py-1 text-xs font-semibold">En cours</span>
+                        {% else %}
+                            <span class="ui-pill ui-pill-success rounded-full px-2.5 py-1 text-xs font-semibold">Terminé</span>
+                        {% endif %}
+                    </div>
                     <ul class="mt-5 space-y-3 text-[15px]">
                         {% for key, item in checklist %}
                             {% set index = loop.index %}

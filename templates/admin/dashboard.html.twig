@@ -6,19 +6,13 @@
     {% set activationRate = stats.totalUsers > 0 ? ((stats.totalApplicants + stats.totalRecruiters) / stats.totalUsers * 100)|round : 0 %}
 
     <section class="w-full max-w-7xl space-y-8 font-sans">
-        <div class="theme-settings-card rounded-[2.75rem] p-8 sm:p-10">
-            <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                    <p class="premium-kicker mb-4 inline-flex rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.24em]">
+        <div class="favorite-showcase-hero mx-auto w-full max-w-5xl px-1 py-2 text-center sm:px-2 sm:py-3">
+            <div class="mx-auto max-w-3xl">
+                    <p class="favorite-showcase-kicker">
                         Admin panel
                     </p>
-                    <h1 class="ui-title text-4xl font-semibold tracking-tight">Tableau de bord administrateur</h1>
-                    <p class="ui-text-muted mt-2 text-[15px]">Bienvenue sur votre espace d'administration.</p>
-                </div>
-                <div class="premium-card-soft rounded-[1.75rem] p-4 lg:min-w-80">
-                    <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Connecté en tant que</p>
-                    <p class="ui-title mt-2 text-lg font-semibold break-all">{{ app.user.email }}</p>
-                </div>
+                    <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Tableau de bord administrateur</h1>
+                    <p class="ui-text-secondary mt-4 text-[15px]">Bienvenue sur votre espace d'administration.</p>
             </div>
         </div>
 
