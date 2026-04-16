@@ -3,7 +3,7 @@
 {% set experienceLevelLabels = experienceLevelLabels|default({
     'intern': 'Stagiaire',
     'junior': 'Junior',
-    'mid': 'Intermediaire',
+    'mid': 'Intermédiaire',
     'senior': 'Senior',
     'lead': 'Lead'
 }) %}
@@ -13,7 +13,7 @@
     'onsite': 'Sur site'
 }) %}
 {% set emptyTitle = emptyTitle|default('Aucun profil favori pour le moment.') %}
-{% set emptyDescription = emptyDescription|default("Ajoute des profils depuis la page d'accueil ou depuis une fiche developpeur pour les retrouver ici.") %}
+{% set emptyDescription = emptyDescription|default("Ajoute des profils depuis la page d'accueil ou depuis une fiche portfolio pour les retrouver ici.") %}
 {% set favoriteProfilesCount = favoriteProfilesCount|default(favoriteProfiles|length) %}
 {% set currentPage = currentPage|default(1) %}
 {% set totalPages = totalPages|default(1) %}
@@ -63,14 +63,14 @@
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-2">
                                 <span class="favorite-showcase-card-badge {{ isFeatured ? 'favorite-showcase-card-badge-featured' : '' }}">
-                                    {{ isFeatured ? 'Plus recent' : 'Favori' }}
+                                    {{ isFeatured ? 'Plus récent' : 'Favori' }}
                                 </span>
                                 <span class="favorite-showcase-card-badge favorite-showcase-card-badge-soft">
-                                    {{ canOpenProfile ? 'Actif' : 'Archive' }}
+                                    {{ canOpenProfile ? 'Actif' : 'Archivé' }}
                                 </span>
                             </div>
-                            <h2 class="ui-title mt-5 truncate text-[1.7rem] font-semibold tracking-tight">{{ profileName }}</h2>
-                            <p class="ui-text-secondary mt-2 text-[15px] leading-relaxed">{{ headline }}</p>
+                            <h2 class="ui-title mt-5 truncate text-[1.30rem] font-semibold tracking-tight">{{ profileName }}</h2>
+                            <p class="ui-text-secondary mt-2 text-[13px] leading-relaxed">{{ headline }}</p>
                         </div>
 
                         {% if profile %}
@@ -85,26 +85,26 @@
                         {% endif %}
                     </div>
 
-                    <div class="mt-7 flex items-end gap-2">
+                    <div class="mt-4 flex items-end gap-2">
                         <p class="favorite-showcase-metric-value">{{ yearsValue is not null ? yearsValue : '—' }}</p>
-                        <p class="favorite-showcase-metric-label">
-                            {{ yearsValue is not null ? "ans d'experience" : 'profil suivi' }}
+                        <p class="favorite-showcase-metric-label text-[10px]">
+                            {{ yearsValue is not null ? "ans d'expérience" : 'profil suivi' }}
                         </p>
                     </div>
 
                     <div class="mt-5 flex flex-wrap gap-2">
-                        <span class="favorite-showcase-chip">{{ experienceLabel }}</span>
+                        <span class="favorite-showcase-chip text-[10px]">{{ experienceLabel }}</span>
                         {% if locationModeLabel %}
-                            <span class="favorite-showcase-chip">{{ locationModeLabel }}</span>
+                            <span class="favorite-showcase-chip text-[10px]">{{ locationModeLabel }}</span>
                         {% endif %}
                     </div>
 
                     {% if canOpenProfile %}
-                        <a href="{{ path('app_public_profile_show', {slug: profile.slug}) }}" class="favorite-showcase-primary-link mt-7">
+                        <a href="{{ path('app_public_profile_show', {slug: profile.slug}) }}" class="favorite-showcase-primary-link mt-7 text-sm">
                             Voir le profil
                         </a>
                     {% else %}
-                        <span class="favorite-showcase-disabled-link mt-7">
+                        <span class="favorite-showcase-disabled-link mt-7 text-sm">
                             Profil indisponible
                         </span>
                     {% endif %}
@@ -112,21 +112,9 @@
 
                 <div class="favorite-showcase-card-divider px-6 pb-6 pt-5">
                     <ul class="favorite-showcase-feature-list">
-                        <li class="favorite-showcase-feature-item">
+                        <li class="favorite-showcase-feature-item text-[11px]">
                             <span class="favorite-showcase-feature-icon" aria-hidden="true">+</span>
-                            <span>{{ locationLabel }}</span>
-                        </li>
-                        <li class="favorite-showcase-feature-item">
-                            <span class="favorite-showcase-feature-icon" aria-hidden="true">+</span>
-                            <span>{{ portfolioLabel }}</span>
-                        </li>
-                        <li class="favorite-showcase-feature-item">
-                            <span class="favorite-showcase-feature-icon" aria-hidden="true">+</span>
-                            <span>{{ statusLabel }}</span>
-                        </li>
-                        <li class="favorite-showcase-feature-item">
-                            <span class="favorite-showcase-feature-icon" aria-hidden="true">+</span>
-                            <span>Ajoute le {{ favorite.createdAt ? favorite.createdAt|date('d/m/Y') : 'N/A' }}</span>
+                            <span>Ajouté le {{ favorite.createdAt ? favorite.createdAt|date('d/m/Y') : 'N/A' }}</span>
                         </li>
                     </ul>
                 </div>

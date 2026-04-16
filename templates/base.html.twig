@@ -788,9 +788,8 @@
                 </div>
             </header>
 
-            <div class="pointer-events-none fixed inset-x-0 top-24 z-[60] sm:top-28">
-                <div class="mx-auto w-full max-w-6xl px-3 sm:px-4 lg:px-5">
-                    <div data-notification-stack="true" class="ml-auto flex w-full max-w-sm flex-col gap-3">
+            <div class="pointer-events-none fixed right-3 top-16 z-[60] w-[calc(100%-1.5rem)] max-w-sm sm:right-4 sm:top-20 sm:w-[calc(100%-2rem)] lg:right-6">
+                    <div data-notification-stack="true" class="flex w-full flex-col gap-3">
                         {% for message in app.flashes('success') %}
                             <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-3.5 text-[15px] font-medium text-emerald-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
                                 <div class="flex items-start justify-between gap-4">
@@ -827,7 +826,6 @@
                             </div>
                         {% endfor %}
                     </div>
-                </div>
             </div>
 
             {# MAIN avec apple-slide-up-delay-1 #}
