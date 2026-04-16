@@ -600,12 +600,16 @@
                         {% if app.user %}
                             {% set unreadNotificationsCount = unread_notifications_count(app.user) %}
                             {% set profilePath = path('app_home') %}
+                            {% set accountRoleLabel = 'Utilisateur' %}
                             {% if is_granted('ROLE_ADMIN') %}
                                 {% set profilePath = path('app_admin_dashboard') %}
+                                {% set accountRoleLabel = 'Administrateur' %}
                             {% elseif is_granted('ROLE_RECRUITER') %}
                                 {% set profilePath = path('app_recruiter_home') %}
+                                {% set accountRoleLabel = 'Recruteur' %}
                             {% elseif is_granted('ROLE_APPLICANT') %}
                                 {% set profilePath = path('app_applicant_home') %}
+                                {% set accountRoleLabel = 'Candidat' %}
                             {% endif %}
 
                             <a href="{{ path('app_notifications_index') }}" class="site-header-icon-button {{ isNotificationsRoute ? 'site-header-icon-button-active' : '' }}" aria-label="Accéder aux notifications">
@@ -649,6 +653,7 @@
                                 <div class="account-menu-panel absolute right-0 top-14 z-[999] w-96 overflow-hidden rounded-2xl">
                                     <div class="account-menu-divider border-b px-5 py-4">
                                         <p class="account-menu-title truncate text-xl font-bold">{{ app.user.email }}</p>
+                                        <p class="account-menu-subtitle mt-1">Connecté en tant que {{ accountRoleLabel }}.</p>
                                     </div>
                                     <div class="space-y-1 px-3 py-3">
                                         <a href="{{ profilePath }}" class="account-menu-item account-menu-item-hover">

@@ -4,7 +4,7 @@
 
 {% block body %}
     <section
-        class="h-[calc(100vh-10rem)] w-full max-w-7xl self-start font-sans"
+        class="ui-message-shell grid h-[calc(100vh-10rem)] w-full max-w-7xl min-h-0 self-start grid-cols-1 gap-4 overflow-hidden rounded-[1.75rem] p-4 font-sans backdrop-blur-xl xl:grid-cols-[380px_minmax(0,1fr)]"
         data-chat-root="true"
         data-chat-inline-managed="true"
         data-chat-mercure-url="{{ mercure(mercureTopics, mercureNeedsCredentials ? {subscribe: mercureTopics} : {}) }}"
@@ -15,8 +15,6 @@
             data-chat-seen-token="{{ csrf_token('chat_read_' ~ selectedConversation.id) }}"
         {% endif %}
     >
-        <div class="theme-settings-card h-full rounded-[2.35rem] p-4 sm:p-5">
-            <div class="ui-message-shell grid h-full min-h-0 grid-cols-1 gap-4 overflow-hidden rounded-[1.75rem] p-4 backdrop-blur-xl xl:grid-cols-[380px_minmax(0,1fr)]">
             <aside class="ui-message-panel {{ selectedConversation ? 'hidden md:flex' : 'flex' }} h-full min-h-0 flex-col rounded-2xl p-3">
                 <div class="ui-message-divider mb-3 flex items-center justify-between gap-3 border-b px-2 pb-3">
                     <h1 class="ui-title text-base font-semibold">Messages privés</h1>
@@ -92,8 +90,6 @@
                     </div>
                 {% endif %}
             </div>
-            </div>
-        </div>
 
         {% if selectedConversation %}
             <script>

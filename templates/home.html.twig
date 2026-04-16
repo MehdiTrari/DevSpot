@@ -28,7 +28,7 @@
                     <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Bienvenue sur DevSpot.</h1>
                     <p class="ui-text-secondary mt-4 text-[15px] leading-relaxed">
                         {% if app.user %}
-                            Connecté en tant que <span class="ui-title font-semibold">{{ is_granted('ROLE_APPLICANT') ? 'candidat' : 'recruteur' }}</span>.
+                            Connecté en tant que <span class="ui-title font-semibold">{{ is_granted('ROLE_ADMIN') ? 'admin' : (is_granted('ROLE_APPLICANT') ? 'candidat' : 'recruteur') }}</span>.
                         {% else %}
                             Complète ton profil développeur, rends ton portfolio public et démarre ton matching.
                         {% endif %}
