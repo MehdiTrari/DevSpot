@@ -19,35 +19,59 @@
     ] %}
 
     <section class="w-full max-w-6xl space-y-8 font-sans">
-        <div class="ui-shell ui-shell-hover rounded-[2.5rem] p-8 backdrop-blur-2xl sm:p-10">
+        <div class="theme-settings-card rounded-[2.75rem] p-8 sm:p-10">
             <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
                 <div class="flex-1">
-                    <p class="ui-kicker mb-4 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wider">
-                        <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse"></span>
+                    <p class="premium-kicker mb-4 inline-flex rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.24em]">
                         Espace recruteur
                     </p>
                     <h1 class="ui-title text-4xl font-semibold tracking-tight">Bienvenue sur ton espace.</h1>
-                    <p class="ui-text-muted mt-2 text-[15px]">Gère tes recherches de profils et suis tes interactions depuis un espace dédié.</p>
+                    <p class="ui-text-muted mt-2 max-w-2xl text-[15px]">Gère tes recherches de profils et suis tes interactions depuis un espace dédié.</p>
+                </div>
+
+                <div class="premium-card-soft rounded-[1.75rem] p-4 text-sm sm:min-w-72">
+                    <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Favoris</p>
+                    <p data-favorite-count-value="true" class="ui-title mt-1 text-2xl font-semibold">{{ favoriteProfilesCount|default(0) }}</p>
+                    <p class="ui-text-muted mt-2 text-xs">Profils enregistrés pour tes prochaines prises de contact.</p>
                 </div>
             </div>
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2">
-            <article class="ui-shell rounded-[2rem] p-6 backdrop-blur-xl">
-                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Mes offres</p>
-                <p class="ui-title mt-3 text-3xl font-semibold">{{ mockJobs|length }}</p>
-                <p class="ui-text-muted mt-2 text-sm">Offre{{ mockJobs|length > 1 ? 's' : '' }} de poste pour définir votre espace de publication.</p>
+            <article class="premium-stat-card rounded-[1.9rem] p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Mes offres</p>
+                        <p class="ui-title mt-3 text-3xl font-semibold">{{ mockJobs|length }}</p>
+                        <p class="ui-text-muted mt-2 text-sm">Offre{{ mockJobs|length > 1 ? 's' : '' }} de poste pour définir votre espace de publication.</p>
+                    </div>
+                    <span class="premium-icon premium-icon-info">
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3 4 7v10l8 4 8-4V7z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m4 7 8 4 8-4"></path>
+                        </svg>
+                    </span>
+                </div>
             </article>
 
-            <a href="{{ path('app_recruiter_favorites') }}" class="ui-shell ui-panel-accent-hover block rounded-[2rem] p-6 backdrop-blur-xl">
-                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Mes favoris</p>
-                <p data-favorite-count-value="true" class="ui-title mt-3 text-3xl font-semibold">{{ favoriteProfilesCount|default(0) }}</p>
-                <p class="ui-text-muted mt-2 text-sm">Retrouve rapidement les profils que tu as sauvegardés.</p>
+            <a href="{{ path('app_recruiter_favorites') }}" class="premium-stat-card premium-action-card block rounded-[1.9rem] p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Mes favoris</p>
+                        <p class="ui-title mt-3 text-3xl font-semibold">{{ favoriteProfilesCount|default(0) }}</p>
+                        <p class="ui-text-muted mt-2 text-sm">Retrouve rapidement les profils que tu as sauvegardés.</p>
+                    </div>
+                    <span class="premium-icon premium-icon-success">
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m12 21-1.45-1.32C5.4 15.04 2 11.95 2 8.15 2 5.06 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.06 22 8.15c0 3.8-3.4 6.89-8.55 11.54z"></path>
+                        </svg>
+                    </span>
+                </div>
             </a>
         </div>
 
         <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div class="ui-shell rounded-[2rem] p-8 backdrop-blur-xl">
+            <div class="theme-settings-card rounded-[2.35rem] p-8">
                 <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                         <h2 class="ui-title text-2xl font-semibold tracking-tight">Informations du compte recruteur</h2>
@@ -55,10 +79,11 @@
                             Cet espace te permet de centraliser tes recherches, préparer tes prises de contact et suivre les profils développeurs qui t'intéressent.
                         </p>
                     </div>
+                    <span class="premium-kicker rounded-full px-3 py-1.5 text-xs font-semibold">Pilotage en cours</span>
                 </div>
 
                 <div class="mt-6">
-                    <article class="ui-panel rounded-[1.75rem] p-6">
+                    <article class="premium-card rounded-[1.9rem] p-6">
                         <div class="flex items-center justify-between gap-3">
                             <div>
                                 <h3 class="ui-title text-lg font-semibold">Mes offres</h3>
@@ -69,7 +94,7 @@
 
                         <div class="mt-5 space-y-3">
                             {% for job in mockJobs %}
-                                <div class="ui-panel-subtle rounded-2xl px-4 py-4">
+                                <div class="premium-list-row rounded-[1.4rem] px-4 py-4">
                                     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                         <div>
                                             <p class="ui-title text-sm font-semibold">{{ job.title }}</p>
@@ -86,16 +111,16 @@
             </div>
 
             <aside class="space-y-6">
-                <div class="ui-shell rounded-[2rem] p-6 backdrop-blur-xl">
+                <div class="theme-settings-card rounded-[2.35rem] p-6">
                     <h2 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Vue d'ensemble</h2>
                     <ul class="mt-5 space-y-3 text-[15px]">
-                        <li class="ui-panel rounded-2xl px-4 py-3 ui-text-primary">
+                        <li class="premium-list-row rounded-[1.4rem] px-4 py-3 ui-text-primary">
                             Recherche de développeurs à partir des portfolios publics.
                         </li>
-                        <li class="ui-panel rounded-2xl px-4 py-3 ui-text-primary">
+                        <li class="premium-list-row rounded-[1.4rem] px-4 py-3 ui-text-primary">
                             Suivi des profils favoris et des opportunités que vous préparez.
                         </li>
-                        <li class="ui-panel rounded-2xl px-4 py-3 ui-text-primary">
+                        <li class="premium-list-row rounded-[1.4rem] px-4 py-3 ui-text-primary">
                             Préparation des futures interactions recruteur dans un espace sécurisé.
                         </li>
                     </ul>

@@ -19,12 +19,11 @@
         {% endif %}
     {% endfor %}
 
-    <section class="w-full max-w-6xl space-y-6 font-sans">
-        <article class="ui-shell ui-shell-hover rounded-[2.5rem] p-8 backdrop-blur-2xl sm:p-10">
+    <section class="w-full max-w-6xl space-y-8 font-sans">
+        <article class="theme-settings-card rounded-[2.75rem] p-8 sm:p-10">
             <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
                 <div class="max-w-2xl">
-                    <p class="ui-pill ui-pill-info mb-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-wider">
-                        <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse"></span>
+                    <p class="premium-kicker mb-4 inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.24em]">
                         Espace candidat
                     </p>
                     <h1 class="ui-title text-4xl font-semibold tracking-tight">Bienvenue sur DevSpot.</h1>
@@ -37,7 +36,7 @@
                     </p>
                 </div>
 
-                <div class="ui-panel-subtle rounded-2xl p-4 text-sm shadow-inner sm:min-w-72">
+                <div class="premium-card-soft rounded-[1.75rem] p-4 text-sm sm:min-w-72">
                     <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Profils publics</p>
                     <p class="ui-title mt-1 text-2xl font-semibold">{{ totalPublicPortfolios }}</p>
                     <p class="ui-text-muted mt-2 text-xs">Annuaire actif et mis à jour automatiquement.</p>
@@ -56,7 +55,7 @@
             {% endif %}
         </article>
 
-        <article class="ui-shell rounded-[2rem] p-6 backdrop-blur-xl sm:p-8">
+        <article class="theme-settings-card rounded-[2.35rem] p-6 sm:p-8">
             <div class="flex items-start justify-between gap-4">
                 <div>
                     <h2 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Espace recruteur</h2>
@@ -65,16 +64,16 @@
                         Découvrez des talents correspondant à vos offres d'emploi et générez un matching précis.
                     </p>
                 </div>
-                <span class="ui-pill ui-pill-info rounded-full px-3 py-1 text-xs font-semibold">
+                <span class="premium-kicker rounded-full px-3 py-1 text-xs font-semibold">
                     {{ totalPublicPortfolios }}
                 </span>
             </div>
 
             <div class="mt-6 grid gap-2 sm:grid-cols-4">
-                <span class="ui-pill ui-pill-info rounded-full px-3 py-2 text-xs font-semibold">Symfony</span>
-                <span class="ui-pill ui-pill-info rounded-full px-3 py-2 text-xs font-semibold">PHP</span>
-                <span class="ui-pill ui-pill-info rounded-full px-3 py-2 text-xs font-semibold">Remote</span>
-                <span class="ui-pill ui-pill-info rounded-full px-3 py-2 text-xs font-semibold">Junior à Lead</span>
+                <span class="premium-kicker rounded-full px-3 py-2 text-xs font-semibold">Symfony</span>
+                <span class="premium-kicker rounded-full px-3 py-2 text-xs font-semibold">PHP</span>
+                <span class="premium-kicker rounded-full px-3 py-2 text-xs font-semibold">Remote</span>
+                <span class="premium-kicker rounded-full px-3 py-2 text-xs font-semibold">Junior à Lead</span>
             </div>
 
             {% if featuredCards is empty %}
@@ -89,12 +88,12 @@
                             {% endif %}
                         {% endfor %}
 
-                        <article class="ui-panel ui-panel-success-hover group rounded-2xl p-4">
+                        <article class="premium-action-card group rounded-[1.75rem] p-5">
                             <div class="flex items-center gap-3">
                                 {% if portfolio.avatarPath %}
-                                    <img src="{{ asset(portfolio.avatarPath) }}" alt="Photo de {{ portfolio.firstName }}" class="h-12 w-12 rounded-xl border border-white/15 object-cover">
+                                    <img src="{{ asset(portfolio.avatarPath) }}" alt="Photo de {{ portfolio.firstName }}" class="h-12 w-12 rounded-xl border object-cover premium-divider">
                                 {% else %}
-                                    <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Photo par défaut" class="h-12 w-12 rounded-xl border border-white/15 object-cover">
+                                    <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Photo par défaut" class="h-12 w-12 rounded-xl border object-cover premium-divider">
                                 {% endif %}
 
                                 <div class="min-w-0">
@@ -114,7 +113,7 @@
                                 {% endfor %}
                             </div>
 
-                            <div class="mt-4 flex flex-wrap items-center gap-3">
+                            <div class="premium-divider mt-4 flex flex-wrap items-center gap-3 border-t pt-4">
                                 <a href="{{ path('app_public_profile_show', { slug: portfolio.slug }) }}" class="ui-link-accent inline-flex items-center text-xs font-semibold">
                                     Voir profil →
                                 </a>
@@ -134,7 +133,7 @@
             {% endif %}
 
             {% if totalPages|default(1) > 1 %}
-                <div class="mt-6 flex items-center justify-between gap-3">
+                <div class="premium-card-soft mt-6 flex items-center justify-between gap-3 rounded-[1.5rem] p-3">
                     {% if currentPage|default(1) > 1 %}
                         <a href="{{ path('app_home', { page: currentPage - 1 }) }}" class="ui-button-secondary inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold">
                             ← Page précédente
@@ -161,13 +160,13 @@
         </article>
 
         {% if topMatches is not empty %}
-            <article class="ui-shell rounded-[2rem] p-6 backdrop-blur-xl sm:p-8">
+            <article class="theme-settings-card rounded-[2.35rem] p-6 sm:p-8">
                 <div class="flex items-center justify-between gap-3">
                     <div>
                         <h2 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Top matchs</h2>
                         <p class="ui-title mt-2 text-2xl font-semibold tracking-tight">Top matchs selon vos offres</p>
                     </div>
-                    <span class="ui-pill ui-pill-info rounded-full px-3 py-1 text-xs font-semibold">
+                    <span class="premium-kicker rounded-full px-3 py-1 text-xs font-semibold">
                         {{ topMatches|length }}
                     </span>
                 </div>
@@ -176,12 +175,12 @@
                     {% for topMatch in topMatches %}
                         {% set portfolio = topMatch.profile %}
                         {% set topMatchScore = topMatch.score %}
-                        <article class="ui-panel ui-panel-success-hover group rounded-2xl p-4">
+                        <article class="premium-action-card group rounded-[1.75rem] p-5">
                             <div class="flex items-center gap-3">
                                 {% if portfolio.avatarPath %}
-                                    <img src="{{ asset(portfolio.avatarPath) }}" alt="Photo de {{ portfolio.firstName }}" class="h-12 w-12 rounded-xl border border-white/15 object-cover">
+                                    <img src="{{ asset(portfolio.avatarPath) }}" alt="Photo de {{ portfolio.firstName }}" class="h-12 w-12 rounded-xl border object-cover premium-divider">
                                 {% else %}
-                                    <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Photo par défaut" class="h-12 w-12 rounded-xl border border-white/15 object-cover">
+                                    <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Photo par défaut" class="h-12 w-12 rounded-xl border object-cover premium-divider">
                                 {% endif %}
 
                                 <div class="min-w-0">
@@ -190,12 +189,12 @@
                                 </div>
                             </div>
 
-                            <div class="ui-pill ui-pill-info mt-4 flex items-center justify-between rounded-xl px-3 py-2">
+                            <div class="premium-card-soft mt-4 flex items-center justify-between rounded-[1.25rem] px-3 py-2">
                                 <span class="text-xs font-semibold uppercase tracking-wider">Score match</span>
                                 <span class="text-lg font-semibold">{{ topMatchScore }}%</span>
                             </div>
 
-                            <div class="mt-4 flex flex-wrap items-center gap-3">
+                            <div class="premium-divider mt-4 flex flex-wrap items-center gap-3 border-t pt-4">
                                 <a href="{{ path('app_public_profile_show', { slug: portfolio.slug }) }}" class="ui-link-accent inline-flex items-center text-xs font-semibold">
                                     Voir profil →
                                 </a>
