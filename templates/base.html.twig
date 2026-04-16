@@ -510,6 +510,47 @@
                             goToCardHref();
                         });
                     });
+
+                    const profileMenus = document.querySelectorAll('[data-profile-menu="true"]');
+
+                    profileMenus.forEach((menuElement) => {
+                        if (menuElement.dataset.profileMenuInitialized === 'true') {
+                            return;
+                        }
+                        menuElement.dataset.profileMenuInitialized = 'true';
+
+                        let closeTimeoutId;
+                        const closeDelayMs = 220;
+
+                        const openMenu = () => {
+                            window.clearTimeout(closeTimeoutId);
+                            menuElement.setAttribute('open', 'open');
+                        };
+
+                        const closeMenu = () => {
+                            window.clearTimeout(closeTimeoutId);
+                            menuElement.removeAttribute('open');
+                        };
+
+                        const scheduleCloseMenu = (delay = closeDelayMs) => {
+                            window.clearTimeout(closeTimeoutId);
+                            closeTimeoutId = window.setTimeout(closeMenu, delay);
+                        };
+
+                        menuElement.addEventListener('mouseenter', openMenu);
+                        menuElement.addEventListener('mouseleave', () => scheduleCloseMenu());
+
+                        menuElement.addEventListener('focusin', openMenu);
+                        menuElement.addEventListener('focusout', (event) => {
+                            const nextFocusedElement = event.relatedTarget;
+
+                            if (nextFocusedElement instanceof Node && menuElement.contains(nextFocusedElement)) {
+                                return;
+                            }
+
+                            scheduleCloseMenu(0);
+                        });
+                    });
                 };
 
                 document.addEventListener('DOMContentLoaded', initUiBehaviors);
@@ -644,7 +685,7 @@
                                 {% endif %}
                             {% endif %}
 
-                            <details class="relative z-50">
+                            <details class="relative z-50" data-profile-menu="true">
                                 <summary class="site-header-account-button inline-flex cursor-pointer list-none items-center justify-center" aria-label="Ouvrir le menu du compte">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
                                         <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0Zm-1.53 9.47A6.75 6.75 0 0 1 12 12.75a6.75 6.75 0 0 1 6.03 2.72A4.5 4.5 0 0 1 21 19.5a.75.75 0 0 1-.75.75H3.75A.75.75 0 0 1 3 19.5a4.5 4.5 0 0 1 2.97-4.03Z" clip-rule="evenodd" />
@@ -709,7 +750,7 @@
                                 </div>
                             </details>
                         {% else %}
-                            <details class="relative z-50">
+                            <details class="relative z-50" data-profile-menu="true">
                                 <summary class="site-header-account-button inline-flex cursor-pointer list-none items-center justify-center" aria-label="Ouvrir le menu du compte">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
                                         <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0Zm-1.53 9.47A6.75 6.75 0 0 1 12 12.75a6.75 6.75 0 0 1 6.03 2.72A4.5 4.5 0 0 1 21 19.5a.75.75 0 0 1-.75.75H3.75A.75.75 0 0 1 3 19.5a4.5 4.5 0 0 1 2.97-4.03Z" clip-rule="evenodd" />

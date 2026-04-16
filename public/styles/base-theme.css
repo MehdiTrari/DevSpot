@@ -815,6 +815,11 @@ details[open] > .site-header-account-button {
         flex-direction: row;
     }
 
+    .site-header-brand-mark {
+        height: 1.4rem;
+        width: 1.4rem;
+    }
+
     .site-header-left {
         min-width: 0;
         width: auto;
