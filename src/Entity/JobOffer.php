@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Enum\ContractType;
 use App\Enum\LocationType;
+use App\Enum\OfferStatus;
 use App\Repository\JobOfferRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -43,6 +44,9 @@ class JobOffer
     #[ORM\Column]
     private ?bool $isActive = null;
 
+    #[ORM\Column(length: 20, enumType: OfferStatus::class, options: ['default' => 'published'])]
+    private OfferStatus $status = OfferStatus::PUBLISHED;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -57,6 +61,8 @@ class JobOffer
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = $this->createdAt;
+        $this->isActive = true;
+        $this->status = OfferStatus::PUBLISHED;
     }
 
     public function getId(): ?int
@@ -168,6 +174,20 @@ class JobOffer
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getStatus(): OfferStatus
+    {
+        return $this->status;
+    }
+
+    public function setStatus(OfferStatus $status): static
+    {
+        $this->status = $status;
+        $this->isActive = ($status === OfferStatus::PUBLISHED);
+        $this->updatedAt = new \DateTimeImmutable();
 
         return $this;
     }

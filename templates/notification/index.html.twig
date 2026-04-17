@@ -3,15 +3,15 @@
 {% block title %}Notifications | DevSpot{% endblock %}
 
 {% block body %}
-<section class="w-full self-start space-y-6" aria-labelledby="notifications-title">
-    <div id="notifications-dynamic-content">
-        {% include 'notification/_dynamic_content.html.twig' with {
-            notifications: notifications,
-            currentFilter: currentFilter,
-            unreadCount: unreadCount
-        } %}
-    </div>
-</section>
+    <section class="w-full max-w-6xl self-start space-y-8 font-sans" aria-labelledby="notifications-title">
+        <div id="notifications-dynamic-content">
+            {% include 'notification/_dynamic_content.html.twig' with {
+                notifications: notifications,
+                currentFilter: currentFilter,
+                unreadCount: unreadCount
+            } %}
+        </div>
+    </section>
 {% endblock %}
 
 {% block javascripts %}

@@ -1,0 +1,117 @@
+{
+  "model": "camembert-base",
+  "projectionPath": null,
+  "offersEvaluated": 90,
+  "recall@1": 0.9222,
+  "recall@3": 1.0,
+  "recall@5": 1.0,
+  "mrr": 0.9611,
+  "ndcg@5": 0.9371,
+  "sampleOffers": [
+    {
+      "title": "Developpeur Full Stack React / Symfony",
+      "positiveCandidates": 191,
+      "top3": [
+        {
+          "fullName": "Marius Masson",
+          "score": 0.9662,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Noa Morel",
+          "score": 0.9641,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Marius Rossi",
+          "score": 0.9621,
+          "weakRelevance": 3
+        }
+      ]
+    },
+    {
+      "title": "Developpeur Full Stack React / Symfony",
+      "positiveCandidates": 191,
+      "top3": [
+        {
+          "fullName": "Marius Masson",
+          "score": 0.9662,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Noa Morel",
+          "score": 0.9641,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Marius Rossi",
+          "score": 0.9621,
+          "weakRelevance": 3
+        }
+      ]
+    },
+    {
+      "title": "DevOps Engineer",
+      "positiveCandidates": 143,
+      "top3": [
+        {
+          "fullName": "Noa Chevalier",
+          "score": 0.9555,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Yanis Lefevre",
+          "score": 0.9494,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Mael Lopez",
+          "score": 0.9493,
+          "weakRelevance": 3
+        }
+      ]
+    },
+    {
+      "title": "Developpeur Android Kotlin",
+      "positiveCandidates": 83,
+      "top3": [
+        {
+          "fullName": "Aya Robin",
+          "score": 0.9392,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Sofia Robin",
+          "score": 0.9382,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Samir Thomas",
+          "score": 0.9378,
+          "weakRelevance": 3
+        }
+      ]
+    },
+    {
+      "title": "Developpeur Android Kotlin",
+      "positiveCandidates": 83,
+      "top3": [
+        {
+          "fullName": "Loris Fournier",
+          "score": 0.9637,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Eva Lefevre",
+          "score": 0.9473,
+          "weakRelevance": 2
+        },
+        {
+          "fullName": "Mael Lopez",
+          "score": 0.9451,
+          "weakRelevance": 0
+        }
+      ]
+    }
+  ]
+}

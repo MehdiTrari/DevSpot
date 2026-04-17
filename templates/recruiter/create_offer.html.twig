@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer une offre | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-3xl space-y-8 font-sans">
+
+        {# ── HEADER ── #}
+        <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-10">
+            <a href="{{ path('app_recruiter_offers') }}" class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-300 transition hover:bg-white/10">
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+                Retour aux offres
+            </a>
+            <h1 class="text-3xl font-semibold tracking-tight text-white">Créer une nouvelle offre</h1>
+            <p class="mt-2 text-[15px] text-slate-400">Remplis les informations ci-dessous pour publier une offre et trouver les meilleurs profils.</p>
+        </div>
+
+        {# ── FORMULAIRE ── #}
+        <div class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
+            {% form_theme form 'form/my_theme.html.twig' %}
+
+            {{ form_start(form, { attr: { class: 'space-y-2', novalidate: 'novalidate' } }) }}
+
+                {# Titre + Description #}
+                <div class="space-y-1">
+                    {{ form_row(form.title) }}
+                    {{ form_row(form.description) }}
+                </div>
+
+                {# Localisation + Mode de travail #}
+                <div class="grid gap-4 sm:grid-cols-2">
+                    {{ form_row(form.location) }}
+                    {{ form_row(form.locationType) }}
+                </div>
+
+                {# Contrat + Expérience #}
+                <div class="grid gap-4 sm:grid-cols-2">
+                    {{ form_row(form.contractType) }}
+                    {{ form_row(form.experienceLevel) }}
+                </div>
+
+                {# Salaire #}
+                <div class="grid gap-4 sm:grid-cols-2">
+                    {{ form_row(form.salaryMin) }}
+                    {{ form_row(form.salaryMax) }}
+                </div>
+
+                {# Statut #}
+                <div class="pt-2">
+                    {{ form_row(form.status) }}
+                </div>
+
+                {# Bouton submit #}
+                <div class="flex items-center justify-end gap-3 pt-4">
+                    <a href="{{ path('app_recruiter_offers') }}" class="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10">Annuler</a>
+                    <button type="submit" class="rounded-2xl bg-emerald-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-600 hover:shadow-emerald-500/30 active:scale-95">
+                        Créer l'offre
+                    </button>
+                </div>
+
+            {{ form_end(form) }}
+        </div>
+
+    </section>
+{% endblock %}

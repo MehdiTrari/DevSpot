@@ -1,0 +1,538 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes offres | DevSpot{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        (() => {
+            const pct = (v) => typeof v === 'number' ? `${v.toFixed(1)}%` : '-';
+            const esc = (v) => String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
+            const nextFrame = () => new Promise(resolve => requestAnimationFrame(() => resolve()));
+
+            const initCards = () => {
+                document.querySelectorAll('[data-offer-card]').forEach(card => {
+                    if (card.dataset.init === '1') return;
+                    card.dataset.init = '1';
+
+                    const endpoint = card.dataset.offerEndpoint;
+                    const detailUrl = card.dataset.offerDetailUrl;
+                    const btn = card.querySelector('[data-offer-btn]');
+                    const dropdown = card.querySelector('[data-offer-dropdown]');
+                    const dropdownBody = card.querySelector('[data-offer-dropdown-body]');
+                    const progressWrap = card.querySelector('[data-offer-progress]');
+                    const progressBar = card.querySelector('[data-offer-progress-bar]');
+                    const progressLabel = card.querySelector('[data-offer-progress-label]');
+                    const clickZone = card.querySelector('[data-offer-click-zone]');
+
+                    if (!endpoint || !btn) return;
+
+                    /* Navigate to detail page when clicking card header */
+                    if (clickZone && detailUrl) {
+                        clickZone.style.cursor = 'pointer';
+                        clickZone.addEventListener('click', (e) => {
+                            if (e.target.closest('button') || e.target.closest('a')) return;
+                            window.location.href = detailUrl;
+                        });
+                    }
+
+                    let loaded = false, open = false, loading = false;
+                    let timer = null, prog = 0;
+
+                    const setProgress = (v, label) => {
+                        prog = v;
+                        if (!progressWrap || !progressBar || !progressLabel) return;
+                        const safeValue = Math.max(0, Math.min(100, Number(v) || 0));
+                        progressWrap.classList.remove('hidden', 'opacity-0');
+                        progressBar.style.display = 'block';
+                        progressBar.style.opacity = '1';
+                        progressBar.style.minWidth = safeValue > 0 ? '0.75rem' : '0';
+                        progressBar.style.width = safeValue > 0 ? `max(${safeValue}%, 0.75rem)` : '0%';
+                        progressBar.style.background = 'linear-gradient(90deg, rgb(5 150 105) 0%, rgb(52 211 153) 55%, rgb(110 231 183) 100%)';
+                        progressBar.style.boxShadow = safeValue >= 100 ? '0 0 20px rgba(16,185,129,.5)' : 'none';
+                        progressLabel.textContent = `${label} ${safeValue}%`;
+                    };
+                    const resetProgress = async () => {
+                        if (!progressWrap || !progressBar || !progressLabel) return;
+                        progressWrap.classList.remove('hidden', 'opacity-0', 'transition-opacity', 'duration-700');
+                        progressBar.style.display = 'block';
+                        progressBar.style.opacity = '1';
+                        progressBar.style.minWidth = '0';
+                        progressBar.style.width = '0%';
+                        progressBar.style.boxShadow = 'none';
+                        progressLabel.textContent = 'Préparation... 0%';
+                        await nextFrame();
+                        await nextFrame();
+                    };
+                    const startTimer = () => { timer = setInterval(() => { const nv = Math.min(prog + (prog < 50 ? 7 : 3), 88); setProgress(nv, nv < 40 ? 'Analyse...' : 'Scoring...'); }, 320); };
+                    const stopTimer = () => { if (timer) { clearInterval(timer); timer = null; } };
+
+                    const updateBtn = () => {
+                        if (!loaded) { btn.innerHTML = 'Calculer le matching'; return; }
+                        btn.textContent = open ? '\u25B2 Masquer le top 5' : '\u25BC Voir le top 5';
+                    };
+                    updateBtn();
+
+                    btn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        if (loaded) {
+                            open = !open;
+                            dropdown.classList.toggle('hidden', !open);
+                            updateBtn();
+                            return;
+                        }
+
+                        if (loading) return;
+                        loading = true;
+                        btn.disabled = true;
+                        btn.classList.add('opacity-60','cursor-not-allowed');
+
+                        await resetProgress();
+                        setProgress(5, 'Preparation...');
+                        startTimer();
+
+                        try {
+                            const resp = await fetch(endpoint, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+                            const data = await resp.json();
+                            if (!resp.ok) throw new Error(data.message || `HTTP ${resp.status}`);
+
+                            stopTimer();
+                            setProgress(100, 'Termine !');
+
+                            const top5 = (data.matches || []).slice(0, 5);
+                            if (!dropdownBody) return;
+                            dropdownBody.innerHTML = '';
+
+                            if (top5.length === 0) {
+                                dropdownBody.innerHTML = '<p class="px-4 py-3 text-sm text-slate-500">Aucun profil correspondant.</p>';
+                            } else {
+                                const outlinedHeart = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-.32-.17C9.24 18.8 3 15.37 3 9.75A4.5 4.5 0 0 1 7.5 5.25c1.74 0 3.16.81 4.5 2.09 1.34-1.28 2.76-2.09 4.5-2.09A4.5 4.5 0 0 1 21 9.75c0 5.62-6.24 9.05-8.68 10.33L12 20.25Z"/></svg>`;
+                                const filledHeart = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5"><path d="M11.645 20.91a.75.75 0 0 0 .71 0c1.055-.518 9.145-4.707 9.145-11.41A5.25 5.25 0 0 0 12 6.084 5.25 5.25 0 0 0 2.5 9.5c0 6.703 8.09 10.892 9.145 11.41Z"/></svg>`;
+
+                                top5.forEach((m, i) => {
+                                    const link = m.profileUrl ? `<a href="${esc(m.profileUrl)}" class="text-emerald-300 hover:underline">${esc(m.fullName||'Profil')}</a>` : esc(m.fullName||'Profil');
+                                    const hasFavData = m.developerId && m.favoriteAddUrl;
+                                    const favBtnId = `fav-match-${m.developerId}`;
+                                    const favHtml = hasFavData ? `
+                                        <button type="button" id="${favBtnId}" data-dev-id="${m.developerId}" data-is-fav="${m.isFavorite ? '1' : '0'}" data-add-url="${esc(m.favoriteAddUrl)}" data-remove-url="${esc(m.favoriteRemoveUrl)}" data-add-token="${esc(m.favoriteAddToken)}" data-remove-token="${esc(m.favoriteRemoveToken)}" class="inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-300 active:scale-90 ${m.isFavorite ? 'border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/15' : 'border-white/15 bg-white/5 text-slate-300 hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-300'}" title="${m.isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
+                                            ${m.isFavorite ? filledHeart : outlinedHeart}
+                                        </button>` : '';
+
+                                    dropdownBody.insertAdjacentHTML('beforeend', `
+                                        <div class="flex items-center justify-between gap-4 rounded-xl border border-white/5 bg-white/[.02] px-4 py-3 transition hover:bg-white/5">
+                                            <div class="flex items-center gap-3 min-w-0">
+                                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-300">${i+1}</span>
+                                                <div class="min-w-0">
+                                                    <p class="truncate text-sm font-semibold text-white">${link}</p>
+                                                    <p class="truncate text-xs text-slate-400">${esc(m.headline||'')}</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-3 shrink-0">
+                                                <div class="text-right">
+                                                    <p class="text-[10px] uppercase tracking-wider text-emerald-400/70">DevSpot</p>
+                                                    <p class="text-sm font-bold text-emerald-300">${pct(m.semanticEnrichedPercentage)}</p>
+                                                </div>
+                                                <div class="text-right">
+                                                    <p class="text-[10px] uppercase tracking-wider text-violet-400/70">CamemBERT</p>
+                                                    <p class="text-sm font-semibold text-violet-300">${pct(m.semanticPercentage)}</p>
+                                                </div>
+                                                ${favHtml}
+                                            </div>
+                                        </div>
+                                    `);
+                                });
+                            }
+
+                            const badge = card.querySelector('[data-offer-top-badge]');
+                            if (badge && data.topMatchPercentage != null) {
+                                badge.textContent = pct(data.topMatchPercentage);
+                            }
+
+                            if (detailUrl && top5.length > 0) {
+                                dropdownBody.insertAdjacentHTML('beforeend', `
+                                    <a href="${esc(detailUrl)}" class="mt-3 mb-2 flex items-center justify-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-500/20">
+                                        Voir tous les resultats (${data.matchesCount} profils) &rarr;
+                                    </a>
+                                `);
+                            }
+
+                            dropdown.classList.remove('hidden');
+                            loaded = true;
+                            open = true;
+                            updateBtn();
+
+                            /* Wire up favorite heart buttons */
+                            dropdownBody.querySelectorAll('[data-dev-id]').forEach(favBtn => {
+                                favBtn.addEventListener('click', async (ev) => {
+                                    ev.preventDefault();
+                                    ev.stopPropagation();
+                                    const b = ev.currentTarget;
+                                    const isFav = b.dataset.isFav === '1';
+                                    const url = isFav ? b.dataset.removeUrl : b.dataset.addUrl;
+                                    const token = isFav ? b.dataset.removeToken : b.dataset.addToken;
+
+                                    b.disabled = true;
+                                    b.classList.add('opacity-50', 'cursor-not-allowed');
+
+                                    try {
+                                        const fd = new FormData();
+                                        fd.append('_token', token);
+                                        fd.append('_redirect', window.location.pathname);
+                                        const r = await fetch(url, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }, body: fd, credentials: 'same-origin' });
+                                        const p = await r.json().catch(() => ({}));
+
+                                        if (r.ok && p.success) {
+                                            const nowFav = p.isFavorite === true;
+                                            b.dataset.isFav = nowFav ? '1' : '0';
+                                            b.title = nowFav ? 'Retirer des favoris' : 'Ajouter aux favoris';
+                                            b.className = `inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-300 active:scale-90 ${nowFav ? 'border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/15' : 'border-white/15 bg-white/5 text-slate-300 hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-300'}`;
+                                            const outH = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-.32-.17C9.24 18.8 3 15.37 3 9.75A4.5 4.5 0 0 1 7.5 5.25c1.74 0 3.16.81 4.5 2.09 1.34-1.28 2.76-2.09 4.5-2.09A4.5 4.5 0 0 1 21 9.75c0 5.62-6.24 9.05-8.68 10.33L12 20.25Z"/></svg>`;
+                                            const filH = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5"><path d="M11.645 20.91a.75.75 0 0 0 .71 0c1.055-.518 9.145-4.707 9.145-11.41A5.25 5.25 0 0 0 12 6.084 5.25 5.25 0 0 0 2.5 9.5c0 6.703 8.09 10.892 9.145 11.41Z"/></svg>`;
+                                            b.innerHTML = nowFav ? filH : outH;
+
+                                            /* Update tokens for next toggle */
+                                            if (p.isFavorite) {
+                                                b.dataset.removeToken = b.dataset.removeToken;
+                                            }
+
+                                            if (typeof pushNotification === 'function') pushNotification(p.message || 'Favoris mis à jour.', p.type || 'success');
+                                        } else {
+                                            if (typeof pushNotification === 'function') pushNotification(p?.message || 'Action impossible.', 'error');
+                                        }
+                                    } catch (_) {
+                                        if (typeof pushNotification === 'function') pushNotification('Erreur réseau.', 'error');
+                                    } finally {
+                                        b.disabled = false;
+                                        b.classList.remove('opacity-50', 'cursor-not-allowed');
+                                    }
+                                });
+                            });
+
+                            setTimeout(() => { if (progressWrap) { progressWrap.classList.add('opacity-0','transition-opacity','duration-700'); setTimeout(() => progressWrap.classList.add('hidden'), 800); } }, 1200);
+
+                        } catch (err) {
+                            stopTimer();
+                            setProgress(100, 'Erreur.');
+                            if (dropdownBody) {
+                                dropdown.classList.remove('hidden');
+                                dropdownBody.innerHTML = `<div class="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">${esc(String(err))}</div>`;
+                            }
+                        } finally {
+                            loading = false;
+                            btn.disabled = false;
+                            btn.classList.remove('opacity-60','cursor-not-allowed');
+                        }
+                    });
+                });
+            };
+
+            document.addEventListener('DOMContentLoaded', initCards);
+            document.addEventListener('turbo:load', initCards);
+        })();
+
+        /* ── Search & Filter ── */
+        (() => {
+            const init = () => {
+                const searchInput = document.getElementById('offers-search');
+                const countEl = document.getElementById('offers-filter-count');
+                const resetBtn = document.querySelector('[data-filter-reset]');
+                const filterMenu = document.querySelector('[data-offers-filter-menu]');
+                const filterBtns = document.querySelectorAll('.offers-filter-btn');
+                if (!searchInput || searchInput.dataset.init === '1') return;
+                searchInput.dataset.init = '1';
+
+                let activeFilter = 'all';
+
+                const setFilterButtonState = (button, isActive) => {
+                    const filter = button.dataset.filter;
+
+                    button.style.borderColor = '';
+                    button.style.backgroundColor = '';
+                    button.style.color = '';
+
+                    const resetClasses = [
+                        'border-emerald-500/30', 'bg-emerald-500/15', 'text-emerald-300',
+                        'border-emerald-500/20', 'bg-emerald-500/10',
+                        'border-yellow-400/30', 'bg-yellow-400/15', 'text-yellow-300',
+                        'border-yellow-400/20', 'bg-yellow-400/10',
+                        'border-red-400/30', 'bg-red-400/15', 'text-red-300',
+                        'border-red-400/20', 'bg-red-400/10',
+                        'border-white/10', 'bg-white/5', 'text-slate-400'
+                    ];
+                    button.classList.remove(...resetClasses);
+
+                    if (filter === 'all') {
+                        if (isActive) {
+                            button.classList.add('border-white/20', 'bg-white/10', 'text-slate-200');
+                        } else {
+                            button.classList.add('border-white/10', 'bg-white/5', 'text-slate-400');
+                        }
+                        return;
+                    }
+
+                    if (filter === 'published') {
+                        button.classList.add(
+                            isActive ? 'border-emerald-500/30' : 'border-emerald-500/20',
+                            isActive ? 'bg-emerald-500/15' : 'bg-emerald-500/10',
+                            'text-emerald-300'
+                        );
+                        button.style.borderColor = isActive ? 'rgba(16,185,129,0.35)' : 'rgba(16,185,129,0.24)';
+                        button.style.backgroundColor = isActive ? 'rgba(16,185,129,0.16)' : 'rgba(16,185,129,0.10)';
+                        button.style.color = '#6ee7b7';
+                        return;
+                    }
+
+                    if (filter === 'draft') {
+                        button.classList.add(
+                            isActive ? 'border-yellow-400/30' : 'border-yellow-400/20',
+                            isActive ? 'bg-yellow-400/15' : 'bg-yellow-400/10',
+                            'text-yellow-300'
+                        );
+                        button.style.borderColor = isActive ? 'rgba(250,204,21,0.35)' : 'rgba(250,204,21,0.24)';
+                        button.style.backgroundColor = isActive ? 'rgba(250,204,21,0.16)' : 'rgba(250,204,21,0.10)';
+                        button.style.color = '#fcd34d';
+                        return;
+                    }
+
+                    if (filter === 'closed') {
+                        button.classList.add(
+                            isActive ? 'border-red-400/30' : 'border-red-400/20',
+                            isActive ? 'bg-red-400/15' : 'bg-red-400/10',
+                            'text-red-300'
+                        );
+                        button.style.borderColor = isActive ? 'rgba(248,113,113,0.35)' : 'rgba(248,113,113,0.24)';
+                        button.style.backgroundColor = isActive ? 'rgba(248,113,113,0.16)' : 'rgba(248,113,113,0.10)';
+                        button.style.color = '#fca5a5';
+                    }
+                };
+
+                const applyFilters = () => {
+                    const query = searchInput.value.trim().toLowerCase();
+                    const cards = document.querySelectorAll('[data-offer-card]');
+                    let visible = 0;
+
+                    cards.forEach(card => {
+                        const matchesStatus = activeFilter === 'all' || card.dataset.offerStatus === activeFilter;
+                        const matchesSearch = !query || (card.dataset.offerSearchable || '').includes(query);
+                        const show = matchesStatus && matchesSearch;
+                        card.style.display = show ? '' : 'none';
+                        if (show) visible++;
+                    });
+
+                    if (countEl) {
+                        countEl.textContent = String(visible);
+                    }
+                };
+
+                searchInput.addEventListener('input', applyFilters);
+
+                filterBtns.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        activeFilter = btn.dataset.filter;
+                        filterBtns.forEach(b => setFilterButtonState(b, b === btn));
+                        if (filterMenu) {
+                            filterMenu.open = false;
+                        }
+                        applyFilters();
+                    });
+                });
+
+                if (resetBtn) {
+                    resetBtn.addEventListener('click', () => {
+                        activeFilter = 'all';
+                        searchInput.value = '';
+                        filterBtns.forEach(b => setFilterButtonState(b, b.dataset.filter === 'all'));
+                        applyFilters();
+                    });
+                }
+
+                filterBtns.forEach(b => setFilterButtonState(b, b.dataset.filter === 'all'));
+                applyFilters();
+            };
+            document.addEventListener('DOMContentLoaded', init);
+            document.addEventListener('turbo:load', init);
+        })();
+    </script>
+{% endblock %}
+
+{% block body %}
+    <section class="favorites-showcase-page relative z-[1] w-full max-w-[86rem] self-start px-5 pb-8 pt-2 font-sans sm:px-8 sm:pb-10 sm:pt-3 lg:px-10 lg:pb-12 lg:pt-4">
+        <div class="favorite-showcase-hero mx-auto max-w-3xl text-center">
+            <p class="favorite-showcase-kicker">
+                Espace recruteur
+            </p>
+            <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Mes offres.</h1>
+            <p class="ui-text-secondary mx-auto mt-4 max-w-2xl text-[13px] leading-relaxed sm:text-[15px]">
+                Gère tes offres, filtre rapidement par statut et lance un aperçu matching top 5 en un clic.
+            </p>
+        </div>
+
+        <div class="mt-10 lg:mt-12">
+            <div class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
+                <div class="flex flex-wrap items-center justify-end gap-3">
+                    <a href="{{ path('app_recruiter_offer_create') }}" class="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-600 active:scale-95">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        Nouvelle offre
+                    </a>
+                </div>
+
+                {# ── Barre de recherche + Filtres ── #}
+                <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+                    <div class="min-w-[260px] w-full lg:w-1/2 lg:flex-none">
+                        <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition focus-within:border-emerald-400/40 focus-within:ring-2 focus-within:ring-emerald-500/20">
+                            <svg class="h-5 w-5 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
+                            <input id="offers-search" type="text" placeholder="Rechercher par titre, contrat, localisation…" class="w-full bg-transparent text-sm text-white placeholder-slate-500 outline-none">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <details data-offers-filter-menu class="relative">
+                            <summary class="inline-flex h-9 cursor-pointer list-none items-center justify-center rounded-full border border-white/10 bg-white/5 px-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10">
+                                Filtres
+                            </summary>
+                            <div class="absolute right-0 top-11 z-20 w-44 rounded-2xl border border-white/10 bg-slate-900/95 p-2 shadow-2xl shadow-black/40 backdrop-blur-xl">
+                                <div class="flex flex-col gap-2">
+                                    <button type="button" data-filter="all" class="offers-filter-btn inline-flex h-9 items-center justify-center rounded-full border border-white/20 bg-white/10 px-3 text-sm font-semibold text-slate-200 transition hover:bg-white/15">Toutes</button>
+                                    <button type="button" data-filter="published" class="offers-filter-btn inline-flex h-9 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-500/15">Publiées</button>
+                                    <button type="button" data-filter="draft" class="offers-filter-btn inline-flex h-9 items-center justify-center rounded-full border border-yellow-400/20 bg-yellow-400/10 px-3 text-sm font-semibold text-yellow-300 transition hover:bg-yellow-400/15">Brouillons</button>
+                                    <button type="button" data-filter="closed" class="offers-filter-btn inline-flex h-9 items-center justify-center rounded-full border border-red-400/20 bg-red-400/10 px-3 text-sm font-semibold text-red-300 transition hover:bg-red-400/15">Fermées</button>
+                                </div>
+                            </div>
+                        </details>
+                        <button type="button" data-filter-reset class="inline-flex h-9 items-center justify-center rounded-full border border-white/10 bg-white/5 px-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10">Réinitialiser</button>
+                        <span id="offers-filter-count" class="favorite-showcase-toolbar-count inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-bold">{{ offerRows|length }}</span>
+                    </div>
+                </div>
+
+                <div id="offers-list" class="mt-6 space-y-4">
+            {% for job in offerRows %}
+                <article
+                    data-offer-card
+                    data-offer-endpoint="{{ path('app_recruiter_offer_matching', { id: job.id }) }}"
+                    data-offer-detail-url="{{ job.detailUrl }}"
+                    data-offer-status="{{ job.statusValue }}"
+                    data-offer-searchable="{{ job.title|lower }} {{ job.contract|lower }} {{ job.location|default('')|lower }} {{ job.status|lower }}"
+                    class="group rounded-[2rem] border border-white/10 bg-slate-900/50 shadow-2xl shadow-black/40 backdrop-blur-xl transition hover:border-emerald-400/20 hover:shadow-emerald-500/10"
+                >
+                    {# Clickable zone navigates to detail page #}
+                    <div data-offer-click-zone class="p-6 transition hover:bg-slate-900/60 rounded-t-[2rem]">
+                        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div>
+                                <div class="flex items-center gap-3">
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Offre #{{ job.id }}</p>
+                                    {% if job.statusValue == 'published' %}
+                                        <span class="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 px-2.5 py-0.5 text-[10px] font-semibold">Publiée</span>
+                                    {% elseif job.statusValue == 'draft' %}
+                                        <span class="inline-flex items-center rounded-full border border-yellow-400/20 bg-yellow-400/10 text-yellow-300 px-2.5 py-0.5 text-[10px] font-semibold">Brouillon</span>
+                                    {% elseif job.statusValue == 'closed' %}
+                                        <span class="inline-flex items-center rounded-full border border-red-400/20 bg-red-400/10 text-red-300 px-2.5 py-0.5 text-[10px] font-semibold">Fermée</span>
+                                    {% endif %}
+                                </div>
+                                <h2 class="mt-2 text-2xl font-semibold text-white group-hover:text-emerald-200 transition-colors">{{ job.title }}</h2>
+                                <div class="mt-3 flex flex-wrap gap-2 text-xs text-slate-300">
+                                    <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1">{{ job.contract }}</span>
+                                    {% if job.location %}
+                                        <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1">{{ job.location }}</span>
+                                    {% endif %}
+                                    {% if job.updatedAt %}
+                                        <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1">{{ job.updatedAt|date('d/m/Y') }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <div class="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-right">
+                                    <p class="text-[10px] uppercase tracking-wider text-emerald-200/70">Top DevSpot</p>
+                                    <p data-offer-top-badge class="mt-1 text-lg font-bold text-white">{{ job.topMatchPercentage is not null ? job.topMatchPercentage|number_format(1, '.', ' ') ~ '%' : '—' }}</p>
+                                </div>
+                                {% if job.cachedAt is defined and job.cachedAt %}
+                                    <div class="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[10px] font-semibold text-amber-300" title="Résultats en cache">
+                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                                        En cache
+                                    </div>
+                                {% endif %}
+                                <svg class="h-5 w-5 text-slate-500 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Action bar #}
+                    <div class="border-t border-white/5 px-6 py-3 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <button type="button" data-offer-btn class="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-500/20 hover:border-emerald-400/40">
+                                &#9889; Calculer le matching
+                            </button>
+
+                            {# Status toggle buttons #}
+                            {% if job.statusValue == 'published' %}
+                                <form method="post" action="{{ path('app_recruiter_offer_toggle_status', { id: job.id }) }}" class="inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('offer_toggle_' ~ job.id) }}">
+                                    <input type="hidden" name="action" value="close">
+                                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-full border border-red-400/20 bg-red-400/10 px-3.5 py-2 text-xs font-semibold text-red-300 transition hover:bg-red-400/20" onclick="return confirm('Fermer cette offre ?')">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                        Fermer
+                                    </button>
+                                </form>
+                            {% elseif job.statusValue == 'draft' %}
+                                <form method="post" action="{{ path('app_recruiter_offer_toggle_status', { id: job.id }) }}" class="inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('offer_toggle_' ~ job.id) }}">
+                                    <input type="hidden" name="action" value="publish">
+                                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                                        Publier
+                                    </button>
+                                </form>
+                            {% elseif job.statusValue == 'closed' %}
+                                <form method="post" action="{{ path('app_recruiter_offer_toggle_status', { id: job.id }) }}" class="inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('offer_toggle_' ~ job.id) }}">
+                                    <input type="hidden" name="action" value="publish">
+                                    <button type="submit" class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+                                        Réouvrir
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                        <a href="{{ job.detailUrl }}" class="text-xs font-medium text-slate-500 hover:text-emerald-300 transition">Voir le detail &rarr;</a>
+                    </div>
+
+                    {# Progress bar #}
+                    <div data-offer-progress class="hidden px-6 pb-4">
+                        <div class="flex items-center justify-between px-1">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Matching en cours</p>
+                            <p data-offer-progress-label class="text-xs font-medium text-emerald-200/80">0%</p>
+                        </div>
+                        <div class="mt-1.5 h-3.5 overflow-hidden rounded-full border border-emerald-500/30 bg-slate-950/80 shadow-inner">
+                            <div data-offer-progress-bar class="h-full rounded-full bg-gradient-to-r from-emerald-600 via-emerald-400 to-emerald-300 transition-all duration-300 ease-out" style="width:0%"></div>
+                        </div>
+                    </div>
+
+                    {# Collapsible dropdown top 5 #}
+                    <div data-offer-dropdown class="hidden border-t border-white/5">
+                        <div class="px-6 py-2">
+                            <p class="text-[10px] font-semibold uppercase tracking-widest text-emerald-400/60">Top 5 des profils correspondants</p>
+                        </div>
+                        <div data-offer-dropdown-body class="space-y-1 px-6 pb-5"></div>
+                    </div>
+                </article>
+            {% else %}
+                <div class="favorite-showcase-empty rounded-[2.2rem] px-6 py-10 text-center sm:px-8">
+                    <p class="ui-title text-xl font-semibold">Aucune offre pour le moment.</p>
+                    <p class="ui-text-secondary mx-auto mt-3 max-w-2xl text-sm leading-relaxed sm:text-[15px]">
+                        Crée ta première offre depuis ton espace recruteur pour trouver des profils correspondants.
+                    </p>
+                    <a href="{{ path('app_recruiter_offer_create') }}" class="favorite-showcase-primary-link mx-auto mt-6 max-w-xs">
+                        Créer une offre
+                    </a>
+                </div>
+            {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
+            Structure tes publications, garde la visibilite de tes offres et pilote tes matchings depuis un espace unique.
+        </p>
+    </section>
+{% endblock %}

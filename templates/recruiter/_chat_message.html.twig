@@ -1,6 +1,6 @@
 <div id="chat-message-{{ message.id }}" class="js-chat-message flex items-end gap-2 {{ mine ? 'justify-end' : 'justify-start' }}" data-message-id="{{ message.id }}">
-    <div class="max-w-[78%] rounded-2xl px-4 py-2.5 {{ mine ? 'border border-emerald-200 bg-emerald-100 text-emerald-900' : 'border border-blue-100 bg-blue-50 text-slate-800' }}">
-        <p class="whitespace-pre-line text-sm break-words">{{ message.content }}</p>
-        <p class="mt-1 text-right text-[11px] {{ mine ? 'text-emerald-700' : 'text-slate-500' }}">{{ message.createdAt|date('H:i') }}</p>
+    <div class="max-w-[78%] rounded-2xl px-4 py-2.5 {{ mine ? 'ui-chat-bubble-me' : 'ui-chat-bubble-other' }}">
+        <p class="whitespace-pre-line break-words text-sm">{{ message.content }}</p>
+        <p class="mt-1 text-right text-[11px] {{ mine ? 'ui-chat-meta-me' : 'ui-chat-meta-other' }}">{{ message.createdAt|date('H:i') }}</p>
     </div>
 </div>

@@ -84,6 +84,7 @@
             "assets:install %PUBLIC_DIR%": "symfony-cmd",
             "importmap:install": "symfony-cmd"
         },
+        "reset:front": "php bin/console app:frontend:reset",
         "test": "php bin/phpunit --testsuite=app",
         "test:coverage": "php -d xdebug.mode=coverage bin/phpunit --testsuite=app --coverage-clover=var/coverage/clover.xml --coverage-html=var/coverage/html",
         "test:parallel": "paratest --testsuite=app --processes=4",

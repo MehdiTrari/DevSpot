@@ -3,59 +3,64 @@
 {% block title %}Messages de contact | DevSpot Admin{% endblock %}
 
 {% block body %}
-<section class="w-full space-y-8 font-sans">
-    
-    {# HEADER #}
-    <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-10">
-        <div class="flex items-center justify-between">
-            <div>
-                <a href="{{ path('app_admin_dashboard') }}" class="text-emerald-400 hover:text-emerald-300 text-sm mb-2 inline-block">← Retour au tableau de bord</a>
-                <h1 class="text-4xl font-semibold tracking-tight text-white">Messages de contact</h1>
-                <p class="mt-2 text-[15px] text-slate-400">{{ messages|length }} messages au total</p>
-            </div>
-        </div>
-    </div>
-
-    {# LISTE DES MESSAGES #}
-    <div class="space-y-3">
-        {% for message in messages %}
-            <div class="rounded-2xl border {% if not message.isRead %}border-yellow-500/30 bg-yellow-500/5{% else %}border-white/10 bg-slate-900/50{% endif %} p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all">
-                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-3 mb-2">
-                            <h3 class="text-lg font-semibold text-white">{{ message.subject }}</h3>
-                            {% if not message.isRead %}
-                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-yellow-500/20 text-yellow-400">Non lu</span>
-                            {% else %}
-                                <span class="inline-flex items-center px-2 py-1 rounded text-xs font-semibold bg-slate-500/20 text-slate-400">Lu</span>
-                            {% endif %}
-                        </div>
-                        <p class="text-sm text-slate-400">De: <span class="text-white">{{ message.recruiterEmail }}</span></p>
-                        <p class="text-sm text-slate-500 mt-1">Nom: {{ message.recruiterName }}</p>
-                    </div>
-                    <p class="text-xs text-slate-500 whitespace-nowrap">{{ message.createdAt|date('d/m/Y à H:i') }}</p>
+    <section class="w-full max-w-7xl space-y-8 font-sans">
+        <div class="theme-settings-card rounded-[2.75rem] p-8 sm:p-10">
+            <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <a href="{{ path('app_admin_dashboard') }}" class="ui-link-accent mb-3 inline-flex text-sm font-semibold">← Retour au tableau de bord</a>
+                    <h1 class="ui-title text-4xl font-semibold tracking-tight">Messages de contact</h1>
+                    <p class="ui-text-muted mt-2 text-[15px]">{{ messages|length }} messages au total</p>
                 </div>
 
-                <div class="mt-4 p-4 rounded-lg bg-white/5 border border-white/10">
-                    <p class="text-slate-300 text-sm">{{ message.message[:200] }}{% if message.message|length > 200 %}...{% endif %}</p>
-                </div>
-
-                <div class="mt-4 flex gap-2 sm:justify-end">
-                    <button class="py-2 px-4 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors text-sm font-medium" onclick="alert('Réponse à implémenter')">
-                        Répondre
-                    </button>
-                    <button class="py-2 px-4 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors text-sm font-medium" onclick="alert('Suppression à implémenter')">
-                        Supprimer
-                    </button>
+                <div class="premium-card-soft rounded-[1.75rem] p-4 text-sm sm:min-w-72">
+                    <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Boîte de réception</p>
+                    <p class="ui-title mt-1 text-2xl font-semibold">{{ messages|length }}</p>
+                    <p class="ui-text-muted mt-2 text-xs">Messages reçus depuis le formulaire de contact.</p>
                 </div>
             </div>
-        {% endfor %}
-    </div>
-
-    {% if messages|length == 0 %}
-        <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-12 text-center shadow-xl shadow-black/40 backdrop-blur-xl">
-            <p class="text-slate-400">Aucun message trouvé</p>
         </div>
-    {% endif %}
-</section>
+
+        {% if messages|length > 0 %}
+            <div class="theme-settings-card rounded-[2.35rem] p-6 sm:p-8">
+                <div class="space-y-4">
+                    {% for message in messages %}
+                        <article class="premium-action-card rounded-[1.75rem] p-6">
+                            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                <div class="min-w-0 flex-1">
+                                    <div class="mb-2 flex flex-wrap items-center gap-3">
+                                        <h2 class="ui-title text-lg font-semibold">{{ message.subject }}</h2>
+                                        {% if not message.isRead %}
+                                            <span class="ui-pill ui-pill-warning rounded-full px-2.5 py-1 text-xs font-semibold">Non lu</span>
+                                        {% else %}
+                                            <span class="ui-pill ui-pill-muted rounded-full px-2.5 py-1 text-xs font-semibold">Lu</span>
+                                        {% endif %}
+                                    </div>
+                                    <p class="ui-text-secondary text-sm">De : <span class="ui-title font-medium">{{ message.recruiterEmail }}</span></p>
+                                    <p class="ui-text-muted mt-1 text-sm">Nom : {{ message.recruiterName }}</p>
+                                </div>
+                                <p class="ui-text-muted shrink-0 whitespace-nowrap text-xs">{{ message.createdAt|date('d/m/Y à H:i') }}</p>
+                            </div>
+
+                            <div class="premium-card-soft mt-4 rounded-[1.25rem] p-4">
+                                <p class="ui-text-primary text-sm leading-relaxed">{{ message.message[:200] }}{% if message.message|length > 200 %}...{% endif %}</p>
+                            </div>
+
+                            <div class="premium-divider mt-4 flex gap-2 border-t pt-4 sm:justify-end">
+                                <button class="ui-button-warning rounded-lg px-4 py-2 text-sm font-medium" onclick="alert('Réponse à implémenter')">
+                                    Répondre
+                                </button>
+                                <button class="ui-button-danger rounded-lg px-4 py-2 text-sm font-medium" onclick="alert('Suppression à implémenter')">
+                                    Supprimer
+                                </button>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div class="theme-settings-card rounded-[2.35rem] p-12 text-center">
+                <p class="ui-text-muted">Aucun message trouvé.</p>
+            </div>
+        {% endif %}
+    </section>
 {% endblock %}

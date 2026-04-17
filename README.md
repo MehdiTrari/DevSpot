@@ -72,6 +72,13 @@ php bin/console doctrine:migrations:migrate
 php bin/console tailwind:build --watch
 ```
 
+#### 8. Réinitialiser le frontend local si le rendu est cassé
+```bash
+composer reset:front
+```
+
+Cette commande purge les assets compilés locaux, relance `cache:clear`, `cache:warmup`, `tailwind:build` et `asset-map:compile`.
+
 ## Tests E2E
 
 Le mode recommandé par Symfony pour les tests end-to-end est Panther.
