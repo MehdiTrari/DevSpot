@@ -1983,10 +1983,22 @@ details[open] > .site-header-account-button {
     margin: 0;
     padding: 0 0 3.9rem 1.05rem;
     opacity: 0.62;
+    cursor: pointer;
+    transition: opacity 0.22s ease;
 }
 
 .help-step:last-child {
     padding-bottom: 0;
+}
+
+.help-step:hover {
+    opacity: 0.85;
+}
+
+.help-step:focus-visible {
+    outline: 2px solid var(--ui-input-focus-border);
+    outline-offset: 0.35rem;
+    border-radius: 0.85rem;
 }
 
 .help-step-active {
@@ -2029,7 +2041,15 @@ details[open] > .site-header-account-button {
 
 .help-preview-media {
     border: 1px solid var(--ui-panel-border);
-    background: linear-gradient(180deg, rgba(8, 12, 20, 0.92) 0%, rgba(11, 16, 26, 0.96) 100%);
+    background: var(--ui-panel-subtle-bg);
+}
+
+.help-preview-video {
+    display: block;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border: 1px solid var(--ui-panel-border);
+    background: #0b111b;
 }
 
 .help-preview-label {

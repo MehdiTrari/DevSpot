@@ -1,20 +1,20 @@
-<div class="mt-10 rounded-[2rem] border border-white/10 bg-white/5 p-5 shadow-xl shadow-black/20">
+<div class="mt-10 rounded-[2rem] border p-5 shadow-xl dashboard-actions-card">
     <input type="hidden" name="form_action" value="continue">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <p class="max-w-2xl text-sm leading-relaxed text-slate-400">
+        <p class="max-w-2xl text-sm leading-relaxed dashboard-actions-text">
             Choisis l'action à effectuer. Si tu retournes au dashboard, tu peux quitter immédiatement ou enregistrer cette étape avant de partir.
         </p>
         <div class="flex flex-col-reverse gap-3 sm:flex-row">
             <a
                 href="{{ path('app_applicant_home') }}"
                 data-dashboard-exit-trigger="{{ dialog_id }}"
-                class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-3 text-[15px] font-semibold text-white transition hover:bg-white/10"
+                class="inline-flex items-center justify-center rounded-full border px-5 py-3 text-center text-[13px] font-semibold whitespace-nowrap transition dashboard-exit-secondary"
             >
                 Retour dashboard
             </a>
             <button
                 type="submit"
-                class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 py-3 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition hover:bg-emerald-400"
+                class="inline-flex items-center justify-center rounded-full border px-6 py-3 text-center text-[13px] font-bold whitespace-nowrap transition dashboard-actions-next-success"
             >
                 {{ next_label }}
             </button>
@@ -23,13 +23,12 @@
 </div>
 
 <dialog id="{{ dialog_id }}"
-    class="fixed inset-0 m-auto w-full max-w-md rounded-[2rem] border border-white/10 p-0 text-white shadow-2xl shadow-black/50"
-    style="background: rgb(2 6 23 / 0.97); color: white;"
+    class="fixed inset-0 m-auto w-full max-w-md rounded-[2rem] border p-0 shadow-2xl dashboard-exit-dialog"
 >
     <div class="space-y-6 p-7">
         <div>
-            <h2 class="text-xl font-semibold tracking-tight text-white">Voulez-vous enregistrer ?</h2>
-            <p class="mt-2 text-sm leading-relaxed text-slate-400">
+            <h2 class="text-xl font-semibold tracking-tight dashboard-exit-title">Voulez-vous enregistrer ?</h2>
+            <p class="mt-2 text-sm leading-relaxed dashboard-exit-text">
                 Tu peux enregistrer cette étape avant de revenir au dashboard, ou quitter sans sauvegarder.
             </p>
         </div>
@@ -38,21 +37,20 @@
             <button
                 type="button"
                 data-dashboard-save-exit="{{ form_id }}"
-                class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 py-3 text-[15px] font-bold text-slate-950 transition hover:bg-emerald-400"
+                class="inline-flex items-center justify-center rounded-full border px-5 py-3 text-[15px] font-bold transition dashboard-actions-next-success"
             >
                 Enregistrer et quitter
             </button>
             <a
                 href="{{ path('app_applicant_home') }}"
-                class="inline-flex items-center justify-center rounded-full border border-white/10 px-5 py-3 text-[15px] font-semibold text-white transition hover:bg-white/10"
-                style="background: rgb(255 255 255 / 0.05);"
+                class="inline-flex items-center justify-center rounded-full border px-5 py-3 text-[15px] font-semibold transition dashboard-exit-secondary"
             >
                 Quitter sans enregistrer
             </a>
             <button
                 type="button"
                 data-dashboard-exit-close="{{ dialog_id }}"
-                class="inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-medium text-slate-400 transition hover:text-white"
+                class="inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-medium transition dashboard-exit-close"
             >
                 Continuer l'édition
             </button>
@@ -61,14 +59,91 @@
 </dialog>
 
 <style>
+    .dashboard-actions-card {
+        border-color: var(--ui-panel-border);
+        background: var(--ui-panel-bg);
+        box-shadow: 0 18px 40px rgba(var(--indeed-shadow-rgb), 0.18);
+    }
+
+    .dashboard-actions-text {
+        color: var(--ui-text-muted);
+    }
+
+    .dashboard-actions-secondary {
+        border-color: var(--ui-button-secondary-border);
+        background: var(--ui-button-secondary-bg);
+        color: var(--ui-button-secondary-text);
+    }
+
+    .dashboard-actions-secondary:hover {
+        background: var(--ui-button-secondary-hover);
+    }
+
+    .dashboard-actions-primary {
+        border-color: rgba(16, 185, 129, 0.52);
+        background: #10b981;
+        color: #022c22;
+        box-shadow: 0 12px 26px rgba(16, 185, 129, 0.2);
+    }
+
+    .dashboard-actions-primary:hover {
+        background: #34d399;
+        border-color: rgba(52, 211, 153, 0.56);
+    }
+
+    .dashboard-actions-next-success {
+        border-color: var(--ui-success-border);
+        background: var(--ui-success-bg);
+        color: var(--ui-success-text-muted);
+        box-shadow: 0 10px 22px rgba(var(--indeed-shadow-rgb), 0.12);
+    }
+
+    .dashboard-actions-next-success:hover {
+        filter: brightness(0.98);
+    }
+
     #{{ dialog_id }} {
         inset: 0;
         margin: auto;
+        border-color: var(--ui-panel-border);
+        background: var(--ui-panel-bg);
+        color: var(--ui-text-primary);
+        box-shadow: 0 24px 56px rgba(var(--indeed-shadow-rgb), 0.24);
     }
 
     #{{ dialog_id }}::backdrop {
-        background: rgb(2 6 23 / 0.75);
+        background: rgba(var(--indeed-shadow-rgb), 0.28);
         backdrop-filter: blur(4px);
+    }
+
+    .dashboard-exit-title {
+        color: var(--ui-heading);
+    }
+
+    .dashboard-exit-text {
+        color: var(--ui-text-muted);
+    }
+
+    .dashboard-exit-secondary {
+        border-color: var(--ui-button-secondary-border);
+        background: var(--ui-button-secondary-bg);
+        color: var(--ui-button-secondary-text);
+    }
+
+    .dashboard-exit-secondary:hover {
+        background: var(--ui-button-secondary-hover);
+    }
+
+    .dashboard-exit-close {
+        color: var(--ui-text-muted);
+    }
+
+    .dashboard-exit-close:hover {
+        color: var(--ui-heading);
+    }
+
+    :root[data-theme="dark"] #{{ dialog_id }}::backdrop {
+        background: rgba(4, 8, 15, 0.72);
     }
 </style>
 
