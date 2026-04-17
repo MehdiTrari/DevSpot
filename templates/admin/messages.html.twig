@@ -3,19 +3,21 @@
 {% block title %}Messages de contact | DevSpot Admin{% endblock %}
 
 {% block body %}
-    <section class="w-full max-w-7xl space-y-8 font-sans">
-        <div class="theme-settings-card rounded-[2.75rem] p-8 sm:p-10">
-            <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+    <section class="w-full space-y-8 font-sans">
+        <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-10">
+            <div class="flex items-start justify-between gap-4">
                 <div>
-                    <a href="{{ path('app_admin_dashboard') }}" class="ui-link-accent mb-3 inline-flex text-sm font-semibold">← Retour au tableau de bord</a>
-                    <h1 class="ui-title text-4xl font-semibold tracking-tight">Messages de contact</h1>
-                    <p class="ui-text-muted mt-2 text-[15px]">{{ messages|length }} messages au total</p>
+                    <h1 class="text-2xl font-semibold tracking-tight text-white">Messages de contact</h1>
+                    <p class="mt-2 text-[15px] text-slate-400">Supervise les échanges entrants et traite les demandes en attente.</p>
                 </div>
-
-                <div class="premium-card-soft rounded-[1.75rem] p-4 text-sm sm:min-w-72">
-                    <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Boîte de réception</p>
-                    <p class="ui-title mt-1 text-2xl font-semibold">{{ messages|length }}</p>
-                    <p class="ui-text-muted mt-2 text-xs">Messages reçus depuis le formulaire de contact.</p>
+                <div class="flex items-center gap-2">
+                    <a href="{{ path('app_admin_messages') }}" class="favorite-showcase-toolbar-pill inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/12 hover:text-white">
+                        Réinitialiser
+                    </a>
+                    <button type="button" class="favorite-showcase-toolbar-pill inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/12 hover:text-white">
+                        Filtres
+                    </button>
+                    <span class="favorite-showcase-toolbar-count inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-bold">{{ messages|length }}</span>
                 </div>
             </div>
         </div>

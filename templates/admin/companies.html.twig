@@ -3,15 +3,23 @@
 {% block title %}Gérer les entreprises | DevSpot Admin{% endblock %}
 
 {% block body %}
-<section class="w-full space-y-8 font-sans">
+<section class="w-full self-start space-y-8 font-sans">
     
     {# HEADER #}
     <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-10">
-        <div class="flex items-center justify-between">
+        <div class="flex items-start justify-between gap-4">
             <div>
-                <a href="{{ path('app_admin_dashboard') }}" class="text-emerald-400 hover:text-emerald-300 text-sm mb-2 inline-block">← Retour au tableau de bord</a>
-                <h1 class="text-4xl font-semibold tracking-tight text-white">Gérer les entreprises</h1>
-                <p class="mt-2 text-[15px] text-slate-400">{{ companies|length }} entreprises au total</p>
+                <h1 class="text-2xl font-semibold tracking-tight text-white">Gérer les entreprises</h1>
+                <p class="mt-2 text-[15px] text-slate-400">Garde un suivi clair des organisations et vérifie rapidement leurs informations.</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ path('app_admin_companies') }}" class="favorite-showcase-toolbar-pill inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/12 hover:text-white">
+                    Réinitialiser
+                </a>
+                <button type="button" class="favorite-showcase-toolbar-pill inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/12 hover:text-white">
+                    Filtres
+                </button>
+                <span class="favorite-showcase-toolbar-count inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-bold">{{ companies|length }}</span>
             </div>
         </div>
     </div>
