@@ -3,105 +3,203 @@
 {% block title %}Mon espace | DevSpot{% endblock %}
 
 {% block body %}
-    {% set mockJobs = [
-        {
-            title: 'Développeur Symfony confirmé',
-            contract: 'CDI',
-            status: 'Brouillon',
-            applicants: 0
-        },
-        {
-            title: 'Lead backend PHP / Symfony',
-            contract: 'Temps plein',
-            status: 'Publiée',
-            applicants: 12
-        }
-    ] %}
-
-    <section class="w-full max-w-6xl space-y-8 font-sans">
+    <section class="w-full max-w-6xl space-y-8 font-sans" data-controller="matching-preview" data-matching-preview-endpoint-value="{{ matchingPreviewEndpoint }}">
         <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:shadow-emerald-500/10 sm:p-10">
-            <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-                <div class="flex-1">
-                    <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-300">
-                        <span class="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse"></span>
-                        Espace recruteur
-                    </p>
-                    <h1 class="text-4xl font-semibold tracking-tight text-white">Bienvenue sur ton espace.</h1>
-                    <p class="mt-2 text-[15px] text-slate-400">Gère tes recherches de profils et suis tes interactions depuis un espace dédié.</p>
+            <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-300">
+                <span class="h-2 w-2 animate-pulse rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]"></span>
+                Espace recruteur
+            </p>
+            <h1 class="text-4xl font-semibold tracking-tight text-white">Bienvenue sur ton espace.</h1>
+            <p class="mt-2 text-[15px] text-slate-400">Gère tes recherches de profils, tes offres et tes interactions depuis un espace dédié.</p>
+        </div>
+
+        <div class="grid gap-6 sm:grid-cols-2">
+            <div class="flex flex-col rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
+                <div class="flex items-center justify-between gap-3">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Mes offres</p>
+                    <a href="{{ path('app_recruiter_offers') }}" class="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20">Voir tout</a>
                 </div>
-            </div>
-        </div>
 
-        <div class="grid gap-4 sm:grid-cols-2">
-            <article class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Mes offres</p>
-                <p class="mt-3 text-3xl font-semibold text-white">{{ mockJobs|length }}</p>
-                <p class="mt-2 text-sm text-slate-400">Offre{{ mockJobs|length > 1 ? 's' : '' }} de poste pour définir votre espace de publication.</p>
-            </article>
+                <div class="mt-4 flex-1 space-y-3">
+                    <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-400">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-white">{{ activeOffersCount }} offre{{ activeOffersCount > 1 ? 's' : '' }} publiée{{ activeOffersCount > 1 ? 's' : '' }}</p>
+                            <p class="text-xs text-slate-400">Visible{{ activeOffersCount > 1 ? 's' : '' }} par les candidats</p>
+                        </div>
+                    </div>
 
-            <a href="{{ path('app_recruiter_favorites') }}" class="block rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-blue-300/40 hover:bg-blue-50/40">
-                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Mes favoris</p>
-                <p data-favorite-count-value="true" class="mt-3 text-3xl font-semibold text-white">{{ favoriteProfilesCount|default(0) }}</p>
-                <p class="mt-2 text-sm text-slate-400">Retrouve rapidement les profils que tu as sauvegardés.</p>
-            </a>
-        </div>
+                    {% set draftCount = offersCount - activeOffersCount - closedOffersCount %}
+                    <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-yellow-400/15 text-yellow-400">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-white">{{ draftCount }} brouillon{{ draftCount > 1 ? 's' : '' }}</p>
+                            <p class="text-xs text-slate-400">En attente de publication</p>
+                        </div>
+                    </div>
 
-        <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-xl transition-all duration-500">
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                        <h2 class="text-2xl font-semibold tracking-tight text-white">Informations du compte recruteur</h2>
-                        <p class="mt-3 max-w-2xl text-[15px] leading-relaxed text-slate-400">
-                            Cet espace te permet de centraliser tes recherches, préparer tes prises de contact et suivre les profils développeurs qui t'intéressent.
-                        </p>
+                    <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-500/15 text-red-400">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-white">{{ closedOffersCount }} offre{{ closedOffersCount > 1 ? 's' : '' }} fermée{{ closedOffersCount > 1 ? 's' : '' }}</p>
+                            <p class="text-xs text-slate-400">Retirées de la recherche</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-blue-400">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"/></svg>
+                        </div>
+                        <div>
+                            <p class="text-sm font-semibold text-white">{{ offersCount }} offre{{ offersCount > 1 ? 's' : '' }} au total</p>
+                            <p class="text-xs text-slate-400">Créées depuis ton espace</p>
+                        </div>
                     </div>
                 </div>
 
-                <div class="mt-6">
-                    <article class="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
-                        <div class="flex items-center justify-between gap-3">
-                            <div>
-                                <h3 class="text-lg font-semibold text-white">Mes offres</h3>
-                                <p class="mt-1 text-sm text-slate-400">Prévisualisation des offres que vous pourrez publier et suivre.</p>
-                            </div>
-                            <span class="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300">Bientôt</span>
-                        </div>
+                <a href="{{ path('app_recruiter_offer_create') }}" class="mt-4 inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-600 hover:shadow-emerald-500/30 active:scale-95">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                    Créer une offre
+                </a>
+            </div>
 
-                        <div class="mt-5 space-y-3">
-                            {% for job in mockJobs %}
-                                <div class="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-4">
-                                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                        <div>
-                                            <p class="text-sm font-semibold text-white">{{ job.title }}</p>
-                                            <p class="mt-1 text-sm text-slate-300">{{ job.contract }}</p>
-                                            <p class="mt-2 text-xs text-slate-400">{{ job.applicants }} candidature{{ job.applicants > 1 ? 's' : '' }} simulée{{ job.applicants > 1 ? 's' : '' }} pour cette offre.</p>
-                                        </div>
-                                        <span class="inline-flex items-center rounded-full border {{ job.status == 'Publiée' ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300' : 'border-yellow-400/20 bg-yellow-400/10 text-yellow-300' }} px-2.5 py-1 text-xs font-semibold">{{ job.status }}</span>
-                                    </div>
-                                </div>
-                            {% endfor %}
+            <div class="flex flex-col rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
+                <div class="flex items-center justify-between gap-3">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Mes profils favoris</p>
+                    <a href="{{ path('app_recruiter_favorites') }}" class="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20">Voir tout</a>
+                </div>
+
+                <div class="mt-4 flex-1 space-y-3">
+                    {% set maxFavorites = 3 %}
+                    {% for favorite in favoriteRows|slice(0, maxFavorites) %}
+                        <a href="{{ path('app_public_profile_show', { slug: favorite.slug }) }}" class="block rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition duration-300 hover:border-emerald-400/30 hover:bg-white/10">
+                            <p class="text-sm font-semibold text-white">{{ favorite.fullName }}</p>
+                            <p class="mt-1 text-sm text-slate-300">{{ favorite.headline }}</p>
+                            <div class="mt-2 flex flex-wrap gap-2 text-xs text-slate-400">
+                                <span>{{ favorite.location ?: 'Localisation non renseignée' }}</span>
+                                <span>•</span>
+                                <span>{{ favorite.yearsExperience }} an(s) d'expérience</span>
+                            </div>
+                        </a>
+                    {% else %}
+                        <div class="rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-5 text-sm text-slate-500">
+                            Aucun profil favori pour le moment.
                         </div>
-                    </article>
+                    {% endfor %}
+                    {% if favoriteRows|length > maxFavorites %}
+                        <a href="{{ path('app_recruiter_favorites') }}" class="mt-1 flex items-center justify-center gap-2 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-500/20">
+                            Voir les {{ favoriteRows|length }} profils favoris →
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-xl transition-all duration-500">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <h2 class="text-2xl font-semibold tracking-tight text-white">Informations du compte recruteur</h2>
+                    <p class="mt-3 max-w-3xl text-[15px] leading-relaxed text-slate-400">
+                        Cet espace te permet de centraliser tes recherches, préparer tes prises de contact et suivre les profils développeurs qui t'intéressent.
+                    </p>
                 </div>
             </div>
 
-            <aside class="space-y-6">
+            <div class="mt-6">
+                <article class="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-lg font-semibold text-white">Mes offres</h3>
+                            <p class="mt-1 text-sm text-slate-400">Clique sur une offre pour ouvrir ta liste dédiée.</p>
+                        </div>
+                        <a href="{{ path('app_recruiter_offers') }}" class="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20">Voir mes offres</a>
+                    </div>
 
-                <div class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
-                    <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Vue d'ensemble</h2>
-                    <ul class="mt-5 space-y-3 text-[15px] text-slate-300">
-                        <li class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                            Recherche de développeurs à partir des portfolios publics.
-                        </li>
-                        <li class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                            Suivi des profils favoris et des opportunités que vous préparez.
-                        </li>
-                        <li class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                            Préparation des futures interactions recruteur dans un espace sécurisé.
-                        </li>
-                    </ul>
-                </div>
-            </aside>
+                    <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {% for job in offerRows %}
+                            <a href="{{ path('app_recruiter_offer_detail', { id: job.id }) }}" class="block rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-4 transition duration-300 hover:border-emerald-400/30 hover:bg-slate-950/60">
+                                <p class="text-sm font-semibold text-white">{{ job.title }}</p>
+                                <p class="mt-1 text-sm text-slate-300">{{ job.contract }}</p>
+                                <p class="mt-2 text-xs text-slate-400">{{ job.applicants }} candidature{{ job.applicants > 1 ? 's' : '' }} simulée{{ job.applicants > 1 ? 's' : '' }}</p>
+                                {% if job.topMatchPercentage is not null %}
+                                    <p class="mt-2 text-xs text-emerald-300">Top matching enrichi : {{ job.topMatchPercentage|number_format(1, '.', ' ') }}%</p>
+                                {% endif %}
+                                <span class="mt-3 inline-flex items-center rounded-full border {% if job.statusValue == 'published' %}border-emerald-500/20 bg-emerald-500/10 text-emerald-300{% elseif job.statusValue == 'closed' %}border-red-400/20 bg-red-400/10 text-red-300{% else %}border-yellow-400/20 bg-yellow-400/10 text-yellow-300{% endif %} px-2.5 py-1 text-xs font-semibold">{{ job.status }}</span>
+                            </a>
+                        {% else %}
+                            <div class="rounded-2xl border border-dashed border-white/10 bg-slate-950/30 px-4 py-5 text-sm text-slate-500 sm:col-span-2 lg:col-span-3">
+                                Aucune offre recruteur pour le moment.
+                            </div>
+                        {% endfor %}
+                    </div>
+                </article>
+            </div>
         </div>
+
+        <section class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-xl">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Laboratoire matching</p>
+                    <h2 class="mt-2 text-2xl font-semibold tracking-tight text-white">Tester le matching directement dans le site</h2>
+                    <p class="mt-3 max-w-3xl text-[15px] leading-relaxed text-slate-400">
+                        Modifie le JSON, lance le test, puis vérifie le classement, le détail du score, l'anonymisation et l'indicateur de fairness sans passer par curl.
+                    </p>
+                </div>
+                <button type="button" data-action="matching-preview#run" class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95">
+                    Lancer le matching
+                </button>
+            </div>
+
+            <div class="mt-6 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+                <div class="space-y-3">
+                    <label for="matching-preview-payload" class="block text-xs font-semibold uppercase tracking-wider text-slate-400">Payload JSON</label>
+                    <textarea id="matching-preview-payload" data-matching-preview-target="payload" class="min-h-[34rem] w-full rounded-[1.5rem] border border-white/10 bg-slate-950/70 px-4 py-4 font-mono text-sm leading-6 text-slate-100 outline-none transition duration-300 placeholder:text-slate-500 focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-500/20" spellcheck="false">{{ matchingPreviewPayload }}</textarea>
+                </div>
+
+                <div class="space-y-4">
+                    <div data-matching-preview-target="status" class="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 text-sm text-slate-300">
+                        Prêt à exécuter le scénario de test.
+                    </div>
+
+                    <div data-matching-preview-target="summary" class="hidden rounded-[1.5rem] border border-emerald-500/20 bg-emerald-500/10 p-5">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Synthèse</p>
+                        <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                            <div class="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3">
+                                <p class="text-xs uppercase tracking-wider text-slate-400">Top candidat</p>
+                                <p data-matching-preview-target="topCandidate" class="mt-2 text-lg font-semibold text-white">-</p>
+                            </div>
+                            <div class="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3">
+                                <p class="text-xs uppercase tracking-wider text-slate-400">Top enrichi</p>
+                                <p data-matching-preview-target="topScore" class="mt-2 text-lg font-semibold text-white">-</p>
+                            </div>
+                            <div class="rounded-2xl border border-white/10 bg-slate-950/40 px-4 py-3">
+                                <p class="text-xs uppercase tracking-wider text-slate-400">Fairness ratio</p>
+                                <p data-matching-preview-target="fairness" class="mt-2 text-lg font-semibold text-white">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Résultats</h3>
+                        <div data-matching-preview-target="results" class="mt-4 space-y-3">
+                            <div class="rounded-[1.5rem] border border-dashed border-white/10 bg-slate-950/30 px-4 py-6 text-sm text-slate-500">
+                                Aucun résultat affiché pour l'instant.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Réponse brute</h3>
+                        <pre data-matching-preview-target="rawResponse" class="mt-4 max-h-[18rem] overflow-auto rounded-[1.5rem] border border-white/10 bg-slate-950/70 px-4 py-4 font-mono text-xs leading-6 text-slate-300">En attente d'un test.</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
     </section>
 {% endblock %}

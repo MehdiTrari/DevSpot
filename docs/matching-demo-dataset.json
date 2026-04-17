@@ -1,0 +1,666 @@
+{
+  "recruiter": {
+    "user": {
+      "email": "recruiter.demo@demo.devspot.local",
+      "password": "Demo1234!",
+      "roles": [
+        "ROLE_RECRUITER"
+      ],
+      "isVerified": true,
+      "status": "active"
+    },
+    "profile": {
+      "firstName": "Camille",
+      "lastName": "Roussel",
+      "jobTitle": "Talent Acquisition Lead",
+      "workEmail": "camille.roussel@demo.devspot.local",
+      "phone": "+33 6 10 20 30 40"
+    }
+  },
+  "developers": [
+    {
+      "user": {
+        "email": "ines.benamara@demo.devspot.local",
+        "password": "Demo1234!",
+        "roles": [
+          "ROLE_APPLICANT"
+        ],
+        "isVerified": true,
+        "status": "active"
+      },
+      "profile": {
+        "firstName": "Ines",
+        "lastName": "Benamara",
+        "headline": "Developpeuse Symfony / API Platform",
+        "bio": "Developpeuse backend orientee Symfony, APIs REST et qualite logicielle. Je cherche un poste backend produit en environnement agile avec de la montee en competence rapide.",
+        "city": "Lille",
+        "country": "France",
+        "locationType": "hybrid",
+        "experienceLevel": "junior",
+        "yearsExperience": 2,
+        "isPublic": true,
+        "slug": "ines-benamara-demo",
+        "portfolioUrl": "https://portfolio.devspot.local/ines-benamara",
+        "githubUrl": "https://github.com/ines-benamara",
+        "linkedinUrl": "https://www.linkedin.com/in/ines-benamara/",
+        "portfolioGeneratedAt": "2026-04-13T09:00:00+00:00",
+        "desiredPositions": [
+          "Symfony Developer",
+          "Backend Developer",
+          "PHP Developer"
+        ],
+        "profileSkills": [
+          { "skill": "PHP", "level": "advanced", "years": 2 },
+          { "skill": "Symfony", "level": "advanced", "years": 2 },
+          { "skill": "SQL", "level": "intermediate", "years": 2 },
+          { "skill": "Docker", "level": "intermediate", "years": 1 },
+          { "skill": "Git", "level": "advanced", "years": 2 },
+          { "skill": "Communication", "level": "advanced", "years": 2 },
+          { "skill": "Teamwork", "level": "advanced", "years": 2 }
+        ],
+        "experiences": [
+          {
+            "companyName": "Studio API Nord",
+            "title": "Developpeuse backend junior",
+            "startDate": "2024-01-08",
+            "endDate": null,
+            "isCurrent": true,
+            "description": "Developpement et maintenance d'API Symfony, integration SQL, tests et revue de code.",
+            "technologies": ["PHP", "Symfony", "MySQL", "Docker"]
+          },
+          {
+            "companyName": "Lab Connect",
+            "title": "Stagiaire backend",
+            "startDate": "2023-04-03",
+            "endDate": "2023-09-29",
+            "isCurrent": false,
+            "description": "Mise en place de routes API, correction de bugs et documentation technique.",
+            "technologies": ["PHP", "Symfony", "MySQL", "Git"]
+          }
+        ],
+        "education": [
+          {
+            "schoolName": "Epitech Lille",
+            "degree": "Bachelor",
+            "field": "Developpement web",
+            "startDate": "2020-09-01",
+            "endDate": "2023-06-30",
+            "description": "Specialisation backend PHP et architecture web."
+          }
+        ]
+      }
+    },
+    {
+      "user": {
+        "email": "lucas.moreau@demo.devspot.local",
+        "password": "Demo1234!",
+        "roles": [
+          "ROLE_APPLICANT"
+        ],
+        "isVerified": true,
+        "status": "active"
+      },
+      "profile": {
+        "firstName": "Lucas",
+        "lastName": "Moreau",
+        "headline": "Developpeur Full Stack React / Symfony",
+        "bio": "Profil full stack a l'aise sur des interfaces React et des APIs Symfony. J'aime les produits B2B avec forte collaboration produit-tech.",
+        "city": "Paris",
+        "country": "France",
+        "locationType": "remote",
+        "experienceLevel": "mid",
+        "yearsExperience": 4,
+        "isPublic": true,
+        "slug": "lucas-moreau-demo",
+        "portfolioUrl": "https://portfolio.devspot.local/lucas-moreau",
+        "githubUrl": "https://github.com/lucas-moreau",
+        "linkedinUrl": "https://www.linkedin.com/in/lucas-moreau/",
+        "portfolioGeneratedAt": "2026-04-13T09:05:00+00:00",
+        "desiredPositions": [
+          "Full Stack Developer",
+          "React Developer",
+          "Symfony Developer"
+        ],
+        "profileSkills": [
+          { "skill": "PHP", "level": "advanced", "years": 4 },
+          { "skill": "Symfony", "level": "intermediate", "years": 2 },
+          { "skill": "React", "level": "advanced", "years": 4 },
+          { "skill": "TypeScript", "level": "advanced", "years": 3 },
+          { "skill": "JavaScript", "level": "expert", "years": 4 },
+          { "skill": "SQL", "level": "intermediate", "years": 3 },
+          { "skill": "Communication", "level": "advanced", "years": 4 },
+          { "skill": "Problem Solving", "level": "advanced", "years": 4 }
+        ],
+        "experiences": [
+          {
+            "companyName": "Product Flow",
+            "title": "Developpeur full stack",
+            "startDate": "2022-02-01",
+            "endDate": null,
+            "isCurrent": true,
+            "description": "Conception de dashboards React, APIs Symfony et optimisation de parcours utilisateurs.",
+            "technologies": ["React", "TypeScript", "PHP", "Symfony", "PostgreSQL", "Docker"]
+          },
+          {
+            "companyName": "Pixel Forge",
+            "title": "Developpeur frontend",
+            "startDate": "2020-09-01",
+            "endDate": "2022-01-14",
+            "isCurrent": false,
+            "description": "Implementation d'interfaces reactives et maintenance d'un design system.",
+            "technologies": ["React", "TypeScript", "HTML", "CSS", "Tailwind CSS"]
+          }
+        ],
+        "education": [
+          {
+            "schoolName": "IUT de Paris",
+            "degree": "DUT",
+            "field": "Informatique",
+            "startDate": "2018-09-01",
+            "endDate": "2020-06-30",
+            "description": "Formation en developpement logiciel et gestion de projet."
+          }
+        ]
+      }
+    },
+    {
+      "user": {
+        "email": "sarah.nguyen@demo.devspot.local",
+        "password": "Demo1234!",
+        "roles": [
+          "ROLE_APPLICANT"
+        ],
+        "isVerified": true,
+        "status": "active"
+      },
+      "profile": {
+        "firstName": "Sarah",
+        "lastName": "Nguyen",
+        "headline": "DevOps Engineer orientee plateformes PHP",
+        "bio": "Ingenieure DevOps avec forte culture delivery, observabilite et industrialisation de plateformes Symfony et Node.js.",
+        "city": "Lyon",
+        "country": "France",
+        "locationType": "remote",
+        "experienceLevel": "senior",
+        "yearsExperience": 6,
+        "isPublic": true,
+        "slug": "sarah-nguyen-demo",
+        "portfolioUrl": "https://portfolio.devspot.local/sarah-nguyen",
+        "githubUrl": "https://github.com/sarah-nguyen",
+        "linkedinUrl": "https://www.linkedin.com/in/sarah-nguyen/",
+        "portfolioGeneratedAt": "2026-04-13T09:10:00+00:00",
+        "desiredPositions": [
+          "DevOps Engineer",
+          "Cloud Engineer",
+          "Site Reliability Engineer"
+        ],
+        "profileSkills": [
+          { "skill": "Docker", "level": "expert", "years": 6 },
+          { "skill": "PHP", "level": "intermediate", "years": 3 },
+          { "skill": "Node.js", "level": "intermediate", "years": 2 },
+          { "skill": "SQL", "level": "intermediate", "years": 4 },
+          { "skill": "Leadership", "level": "advanced", "years": 3 },
+          { "skill": "Adaptability", "level": "expert", "years": 6 },
+          { "skill": "Problem Solving", "level": "expert", "years": 6 }
+        ],
+        "experiences": [
+          {
+            "companyName": "Scale Cloud",
+            "title": "DevOps Engineer",
+            "startDate": "2021-05-03",
+            "endDate": null,
+            "isCurrent": true,
+            "description": "Industrialisation CI/CD, conteneurisation et observabilite d'une plateforme produit PHP.",
+            "technologies": ["Docker", "Kubernetes", "Redis", "Elasticsearch", "PHP"]
+          },
+          {
+            "companyName": "Node Factory",
+            "title": "Platform Engineer",
+            "startDate": "2019-01-07",
+            "endDate": "2021-04-30",
+            "isCurrent": false,
+            "description": "Support plateforme, automatisation et fiabilisation d'environnements cloud.",
+            "technologies": ["Docker", "Node.js", "PostgreSQL", "Redis"]
+          }
+        ],
+        "education": [
+          {
+            "schoolName": "INSA Lyon",
+            "degree": "Diplome d'ingenieur",
+            "field": "Systemes et reseaux",
+            "startDate": "2014-09-01",
+            "endDate": "2019-06-30",
+            "description": "Parcours infrastructures, cloud et automatisation."
+          }
+        ]
+      }
+    },
+    {
+      "user": {
+        "email": "amir.khelifi@demo.devspot.local",
+        "password": "Demo1234!",
+        "roles": [
+          "ROLE_APPLICANT"
+        ],
+        "isVerified": true,
+        "status": "active"
+      },
+      "profile": {
+        "firstName": "Amir",
+        "lastName": "Khelifi",
+        "headline": "Frontend Developer React / TypeScript",
+        "bio": "Developpeur frontend axe performance, accessibilite et design systems. Je vise des produits web modernes avec forte exigence UX.",
+        "city": "Bordeaux",
+        "country": "France",
+        "locationType": "remote",
+        "experienceLevel": "mid",
+        "yearsExperience": 3,
+        "isPublic": true,
+        "slug": "amir-khelifi-demo",
+        "portfolioUrl": "https://portfolio.devspot.local/amir-khelifi",
+        "githubUrl": "https://github.com/amir-khelifi",
+        "linkedinUrl": "https://www.linkedin.com/in/amir-khelifi/",
+        "portfolioGeneratedAt": "2026-04-13T09:15:00+00:00",
+        "desiredPositions": [
+          "Frontend Developer",
+          "React Developer",
+          "Web Developer"
+        ],
+        "profileSkills": [
+          { "skill": "React", "level": "expert", "years": 3 },
+          { "skill": "TypeScript", "level": "advanced", "years": 3 },
+          { "skill": "JavaScript", "level": "expert", "years": 3 },
+          { "skill": "HTML", "level": "expert", "years": 3 },
+          { "skill": "CSS", "level": "advanced", "years": 3 },
+          { "skill": "Tailwind CSS", "level": "advanced", "years": 2 },
+          { "skill": "Creativity", "level": "advanced", "years": 3 },
+          { "skill": "Communication", "level": "advanced", "years": 3 }
+        ],
+        "experiences": [
+          {
+            "companyName": "UX Orbit",
+            "title": "Frontend Developer",
+            "startDate": "2023-01-02",
+            "endDate": null,
+            "isCurrent": true,
+            "description": "Construction d'interfaces React et evolution d'un design system accessible.",
+            "technologies": ["React", "TypeScript", "HTML", "CSS", "Tailwind CSS"]
+          },
+          {
+            "companyName": "Studio Motion",
+            "title": "Integrateur web",
+            "startDate": "2021-01-04",
+            "endDate": "2022-12-23",
+            "isCurrent": false,
+            "description": "Integration responsive et optimisation de pages marketing.",
+            "technologies": ["JavaScript", "HTML", "CSS"]
+          }
+        ],
+        "education": [
+          {
+            "schoolName": "Universite de Bordeaux",
+            "degree": "Licence",
+            "field": "Informatique",
+            "startDate": "2018-09-01",
+            "endDate": "2021-06-30",
+            "description": "Parcours developpement web et interfaces."
+          }
+        ]
+      }
+    },
+    {
+      "user": {
+        "email": "manon.dupuis@demo.devspot.local",
+        "password": "Demo1234!",
+        "roles": [
+          "ROLE_APPLICANT"
+        ],
+        "isVerified": true,
+        "status": "active"
+      },
+      "profile": {
+        "firstName": "Manon",
+        "lastName": "Dupuis",
+        "headline": "Lead backend PHP / Symfony",
+        "bio": "Experte backend PHP et Symfony, j'accompagne des equipes produit sur l'architecture, la qualite et la mise en production continue.",
+        "city": "Nantes",
+        "country": "France",
+        "locationType": "hybrid",
+        "experienceLevel": "lead",
+        "yearsExperience": 8,
+        "isPublic": true,
+        "slug": "manon-dupuis-demo",
+        "portfolioUrl": "https://portfolio.devspot.local/manon-dupuis",
+        "githubUrl": "https://github.com/manon-dupuis",
+        "linkedinUrl": "https://www.linkedin.com/in/manon-dupuis/",
+        "portfolioGeneratedAt": "2026-04-13T09:20:00+00:00",
+        "desiredPositions": [
+          "Technical Lead",
+          "Symfony Developer",
+          "Backend Developer"
+        ],
+        "profileSkills": [
+          { "skill": "PHP", "level": "expert", "years": 8 },
+          { "skill": "Symfony", "level": "expert", "years": 7 },
+          { "skill": "Laravel", "level": "advanced", "years": 3 },
+          { "skill": "SQL", "level": "advanced", "years": 7 },
+          { "skill": "Docker", "level": "advanced", "years": 5 },
+          { "skill": "Leadership", "level": "expert", "years": 5 },
+          { "skill": "Critical Thinking", "level": "expert", "years": 8 }
+        ],
+        "experiences": [
+          {
+            "companyName": "SaaS Atlantique",
+            "title": "Lead backend",
+            "startDate": "2020-03-02",
+            "endDate": null,
+            "isCurrent": true,
+            "description": "Pilotage technique d'une equipe backend, architecture Symfony, optimisation SQL et mentoring.",
+            "technologies": ["PHP", "Symfony", "PostgreSQL", "Docker", "Redis"]
+          },
+          {
+            "companyName": "Agence Kernel",
+            "title": "Developpeuse Symfony senior",
+            "startDate": "2017-01-02",
+            "endDate": "2020-02-28",
+            "isCurrent": false,
+            "description": "Conception d'applications metier, APIs et pipelines de deploiement.",
+            "technologies": ["PHP", "Symfony", "MySQL", "Docker", "Git"]
+          }
+        ],
+        "education": [
+          {
+            "schoolName": "Universite de Nantes",
+            "degree": "Master",
+            "field": "Ingenierie logicielle",
+            "startDate": "2013-09-01",
+            "endDate": "2015-06-30",
+            "description": "Approfondissement architecture logicielle et bases de donnees."
+          }
+        ]
+      }
+    },
+    {
+      "user": {
+        "email": "nora.elmansouri@demo.devspot.local",
+        "password": "Demo1234!",
+        "roles": [
+          "ROLE_APPLICANT"
+        ],
+        "isVerified": true,
+        "status": "active"
+      },
+      "profile": {
+        "firstName": "Nora",
+        "lastName": "El Mansouri",
+        "headline": "Data Engineer Python / SQL",
+        "bio": "Profil data oriente pipelines, qualite de donnees et industrialisation analytique. Je cherche une equipe produit ou data platform.",
+        "city": "Toulouse",
+        "country": "France",
+        "locationType": "hybrid",
+        "experienceLevel": "mid",
+        "yearsExperience": 4,
+        "isPublic": true,
+        "slug": "nora-el-mansouri-demo",
+        "portfolioUrl": "https://portfolio.devspot.local/nora-el-mansouri",
+        "githubUrl": "https://github.com/nora-el-mansouri",
+        "linkedinUrl": "https://www.linkedin.com/in/nora-el-mansouri/",
+        "portfolioGeneratedAt": "2026-04-13T09:25:00+00:00",
+        "desiredPositions": [
+          "Data Engineer",
+          "Backend Developer",
+          "Software Developer"
+        ],
+        "profileSkills": [
+          { "skill": "SQL", "level": "expert", "years": 4 },
+          { "skill": "Python", "level": "advanced", "years": 4 },
+          { "skill": "Docker", "level": "intermediate", "years": 2 },
+          { "skill": "Git", "level": "advanced", "years": 4 },
+          { "skill": "Problem Solving", "level": "expert", "years": 4 },
+          { "skill": "Critical Thinking", "level": "advanced", "years": 4 }
+        ],
+        "experiences": [
+          {
+            "companyName": "Data Rail",
+            "title": "Data Engineer",
+            "startDate": "2022-01-10",
+            "endDate": null,
+            "isCurrent": true,
+            "description": "Construction de pipelines de donnees, modelisation SQL et industrialisation de traitements analytiques.",
+            "technologies": ["PostgreSQL", "Docker", "Git"]
+          },
+          {
+            "companyName": "Insight Lab",
+            "title": "Analyste data",
+            "startDate": "2020-02-03",
+            "endDate": "2021-12-17",
+            "isCurrent": false,
+            "description": "Preparation de jeux de donnees et automatisation de rapports metiers.",
+            "technologies": ["PostgreSQL", "Git"]
+          }
+        ],
+        "education": [
+          {
+            "schoolName": "Universite Toulouse III",
+            "degree": "Master",
+            "field": "Data engineering",
+            "startDate": "2017-09-01",
+            "endDate": "2019-06-30",
+            "description": "Traitement de donnees, statistiques appliquees et automatisation."
+          }
+        ]
+      }
+    },
+    {
+      "user": {
+        "email": "hugo.leroy@demo.devspot.local",
+        "password": "Demo1234!",
+        "roles": [
+          "ROLE_APPLICANT"
+        ],
+        "isVerified": true,
+        "status": "active"
+      },
+      "profile": {
+        "firstName": "Hugo",
+        "lastName": "Leroy",
+        "headline": "Developpeur Node.js / Vue.js",
+        "bio": "Developpeur web full stack leger, oriente APIs Node.js et front Vue.js. Je cherche un produit SaaS avec rythme rapide et beaucoup d'ownership.",
+        "city": "Montpellier",
+        "country": "France",
+        "locationType": "remote",
+        "experienceLevel": "junior",
+        "yearsExperience": 2,
+        "isPublic": true,
+        "slug": "hugo-leroy-demo",
+        "portfolioUrl": "https://portfolio.devspot.local/hugo-leroy",
+        "githubUrl": "https://github.com/hugo-leroy",
+        "linkedinUrl": "https://www.linkedin.com/in/hugo-leroy/",
+        "portfolioGeneratedAt": "2026-04-13T09:30:00+00:00",
+        "desiredPositions": [
+          "Node.js Developer",
+          "Full Stack Developer",
+          "Vue.js Developer"
+        ],
+        "profileSkills": [
+          { "skill": "Node.js", "level": "advanced", "years": 2 },
+          { "skill": "Vue.js", "level": "advanced", "years": 2 },
+          { "skill": "JavaScript", "level": "advanced", "years": 2 },
+          { "skill": "TypeScript", "level": "intermediate", "years": 1 },
+          { "skill": "HTML", "level": "advanced", "years": 2 },
+          { "skill": "CSS", "level": "advanced", "years": 2 },
+          { "skill": "Adaptability", "level": "advanced", "years": 2 },
+          { "skill": "Teamwork", "level": "advanced", "years": 2 }
+        ],
+        "experiences": [
+          {
+            "companyName": "Fast Build",
+            "title": "Developpeur web",
+            "startDate": "2024-02-05",
+            "endDate": null,
+            "isCurrent": true,
+            "description": "Developpement de dashboards Vue.js et d'API Node.js pour des outils internes.",
+            "technologies": ["Node.js", "Vue.js", "JavaScript", "TypeScript", "HTML", "CSS"]
+          },
+          {
+            "companyName": "Mini Apps",
+            "title": "Alternant full stack",
+            "startDate": "2022-09-05",
+            "endDate": "2024-01-26",
+            "isCurrent": false,
+            "description": "Creation de fonctionnalites frontend et backend sur un produit de gestion.",
+            "technologies": ["Node.js", "Vue.js", "JavaScript", "PostgreSQL"]
+          }
+        ],
+        "education": [
+          {
+            "schoolName": "IUT Montpellier",
+            "degree": "BUT",
+            "field": "Informatique",
+            "startDate": "2020-09-01",
+            "endDate": "2023-06-30",
+            "description": "Formation developpement applicatif et web."
+          }
+        ]
+      }
+    },
+    {
+      "user": {
+        "email": "lea.garnier@demo.devspot.local",
+        "password": "Demo1234!",
+        "roles": [
+          "ROLE_APPLICANT"
+        ],
+        "isVerified": true,
+        "status": "active"
+      },
+      "profile": {
+        "firstName": "Lea",
+        "lastName": "Garnier",
+        "headline": "QA Engineer et automatisation de tests",
+        "bio": "Ingenieure QA orientee strategie de test, automatisation et fiabilite des releases sur produits web B2B.",
+        "city": "Rennes",
+        "country": "France",
+        "locationType": "hybrid",
+        "experienceLevel": "mid",
+        "yearsExperience": 5,
+        "isPublic": true,
+        "slug": "lea-garnier-demo",
+        "portfolioUrl": "https://portfolio.devspot.local/lea-garnier",
+        "githubUrl": "https://github.com/lea-garnier",
+        "linkedinUrl": "https://www.linkedin.com/in/lea-garnier/",
+        "portfolioGeneratedAt": "2026-04-13T09:35:00+00:00",
+        "desiredPositions": [
+          "QA Engineer",
+          "Test Automation Engineer",
+          "Software Developer"
+        ],
+        "profileSkills": [
+          { "skill": "SQL", "level": "intermediate", "years": 3 },
+          { "skill": "Git", "level": "advanced", "years": 5 },
+          { "skill": "Time Management", "level": "expert", "years": 5 },
+          { "skill": "Critical Thinking", "level": "expert", "years": 5 },
+          { "skill": "Communication", "level": "advanced", "years": 5 }
+        ],
+        "experiences": [
+          {
+            "companyName": "Release Guard",
+            "title": "QA Engineer",
+            "startDate": "2021-04-12",
+            "endDate": null,
+            "isCurrent": true,
+            "description": "Strategie de tests, campagnes de non regression et mise en place d'automatisation sur un SaaS RH.",
+            "technologies": ["Git", "PostgreSQL", "Docker"]
+          },
+          {
+            "companyName": "Web Scope",
+            "title": "Testeuse fonctionnelle",
+            "startDate": "2019-01-07",
+            "endDate": "2021-03-26",
+            "isCurrent": false,
+            "description": "Execution de plans de tests, qualification d'incidents et suivi des corrections.",
+            "technologies": ["Git", "HTML", "CSS"]
+          }
+        ],
+        "education": [
+          {
+            "schoolName": "Universite Rennes 1",
+            "degree": "Master",
+            "field": "Qualite logicielle",
+            "startDate": "2016-09-01",
+            "endDate": "2018-06-30",
+            "description": "Tests logiciels, qualite et ingenierie des systemes."
+          }
+        ]
+      }
+    }
+  ],
+  "offers": [
+    {
+      "title": "Developpeur Symfony Backend",
+      "description": "Nous cherchons un profil backend PHP / Symfony pour construire des APIs, travailler avec SQL, Docker et collaborer avec l'equipe produit. Une bonne communication est attendue.",
+      "location": "Lille",
+      "locationType": "hybrid",
+      "contractType": "permanent",
+      "experienceLevel": 2,
+      "salaryMin": 35000,
+      "salaryMax": 42000,
+      "isActive": true
+    },
+    {
+      "title": "Developpeur Full Stack React / Symfony",
+      "description": "Poste full stack avec React, TypeScript, Symfony, SQL et Docker. Le candidat doit aimer travailler en equipe et resoudre des problemes produit rapidement.",
+      "location": "Paris",
+      "locationType": "remote",
+      "contractType": "full_time",
+      "experienceLevel": 4,
+      "salaryMin": 45000,
+      "salaryMax": 58000,
+      "isActive": true
+    },
+    {
+      "title": "DevOps Engineer plateforme PHP",
+      "description": "Recherche DevOps Engineer pour une plateforme PHP avec Docker, Kubernetes, Redis, PostgreSQL et enjeux de fiabilite. Leadership et adaptability apprecies.",
+      "location": "Lyon",
+      "locationType": "remote",
+      "contractType": "permanent",
+      "experienceLevel": 5,
+      "salaryMin": 55000,
+      "salaryMax": 70000,
+      "isActive": true
+    },
+    {
+      "title": "Frontend Developer React / Design System",
+      "description": "Nous recrutons un profil frontend avec React, TypeScript, HTML, CSS et Tailwind CSS pour faire evoluer un design system produit. Communication et creativity attendues.",
+      "location": "Bordeaux",
+      "locationType": "remote",
+      "contractType": "full_time",
+      "experienceLevel": 3,
+      "salaryMin": 42000,
+      "salaryMax": 52000,
+      "isActive": true
+    },
+    {
+      "title": "Node.js Developer SaaS",
+      "description": "Poste backend / full stack avec Node.js, Vue.js, JavaScript, TypeScript et PostgreSQL. Nous cherchons quelqu'un de tres adaptable, capable de travailler vite en equipe.",
+      "location": "Montpellier",
+      "locationType": "remote",
+      "contractType": "permanent",
+      "experienceLevel": 2,
+      "salaryMin": 36000,
+      "salaryMax": 46000,
+      "isActive": true
+    },
+    {
+      "title": "QA Engineer Automatisation",
+      "description": "Recherche QA Engineer pour structurer la non regression, automatiser les tests et suivre la qualite des releases. Git, Docker, SQL, communication et critical thinking sont importants.",
+      "location": "Rennes",
+      "locationType": "hybrid",
+      "contractType": "full_time",
+      "experienceLevel": 4,
+      "salaryMin": 40000,
+      "salaryMax": 50000,
+      "isActive": true
+    }
+  ]
+}
