@@ -638,9 +638,11 @@
                                         Dashboard
                                     </a>
                                 {% endif %}
-                                <a href="{{ helpPath }}" class="site-header-link {{ isHelpRoute ? 'site-header-link-active' : '' }}" {% if isHelpRoute %}aria-current="page"{% endif %}>
-                                    Help
-                                </a>
+                                {% if app.user and not is_granted('ROLE_ADMIN') and (is_granted('ROLE_RECRUITER') or is_granted('ROLE_APPLICANT')) %}
+                                    <a href="{{ helpPath }}" class="site-header-link {{ isHelpRoute ? 'site-header-link-active' : '' }}" {% if isHelpRoute %}aria-current="page"{% endif %}>
+                                        Help
+                                    </a>
+                                {% endif %}
                             </div>
                         </div>
 
