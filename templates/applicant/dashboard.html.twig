@@ -85,6 +85,34 @@
                         </div>
                     {% endif %}
                 {% endif %}
+
+                {% if profile is not null %}
+                    <div class="mt-6 grid gap-4 lg:grid-cols-2">
+                        <article class="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
+                            <h3 class="text-lg font-semibold text-white">Demande de changement de rôle</h3>
+                            <p class="mt-2 text-sm text-slate-400">Transmets une demande aux administrateurs si tu souhaites basculer vers un compte recruteur.</p>
+                            <form method="post" action="{{ path('app_account_request_role') }}" class="mt-4 space-y-3">
+                                <input type="hidden" name="_token" value="{{ csrf_token('request_role') }}">
+                                <input type="hidden" name="role" value="ROLE_RECRUITER">
+                                <button type="submit" class="inline-flex w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition-all duration-300 hover:bg-white/10 active:scale-95">
+                                    Demander le rôle recruteur
+                                </button>
+                            </form>
+                        </article>
+
+                        <article class="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
+                            <h3 class="text-lg font-semibold text-white">Demande de changement de slug</h3>
+                            <p class="mt-2 text-sm text-slate-400">Propose un nouveau slug pour ton portfolio. Un administrateur devra le valider.</p>
+                            <form method="post" action="{{ path('app_account_request_slug') }}" class="mt-4 space-y-3">
+                                <input type="hidden" name="_token" value="{{ csrf_token('request_slug') }}">
+                                <input type="text" name="desired_slug" value="{{ profile.slug }}" class="block w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white outline-none transition-all duration-300 placeholder:text-slate-500 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20" placeholder="mon-nouveau-slug">
+                                <button type="submit" class="inline-flex w-full items-center justify-center rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-3 text-sm font-semibold text-emerald-300 transition-all duration-300 hover:bg-emerald-500/15 active:scale-95">
+                                    Envoyer la demande
+                                </button>
+                            </form>
+                        </article>
+                    </div>
+                {% endif %}
             </div>
 
             <aside class="space-y-6">
