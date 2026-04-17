@@ -120,6 +120,23 @@ class NotificationRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function existsUnreadForUserTypeAndLink(User $user, NotificationType $type, ?string $link): bool
+    {
+        return null !== $this->createQueryBuilder('n')
+            ->select('n.id')
+            ->andWhere('n.user = :user')
+            ->andWhere('n.type = :type')
+            ->andWhere('n.link = :link')
+            ->andWhere('n.isRead = :isRead')
+            ->setParameter('user', $user)
+            ->setParameter('type', $type)
+            ->setParameter('link', $link)
+            ->setParameter('isRead', false)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     //    /**
     //     * @return Notification[] Returns an array of Notification objects
     //     */
