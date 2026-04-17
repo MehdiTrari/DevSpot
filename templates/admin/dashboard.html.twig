@@ -3,253 +3,283 @@
 {% block title %}Tableau de bord Admin | DevSpot{% endblock %}
 
 {% block body %}
-<section class="w-full space-y-8 font-sans">
-    
-    {# HEADER #}
-    <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-10">
-        <div class="flex items-center justify-between">
-            <div>
-                <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-300">
-                    <span class="h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.6)] animate-pulse"></span>
-                    Admin Panel
-                </p>
-                <h1 class="text-4xl font-semibold tracking-tight text-white">Tableau de bord administrateur</h1>
-                <p class="mt-2 text-[15px] text-slate-400">Bienvenue sur votre espace d'administration</p>
-            </div>
-            <div class="hidden text-right lg:block">
-                <p class="text-sm text-slate-400">Connecté en tant que</p>
-                <p class="text-lg font-semibold text-white">{{ app.user.email }}</p>
+    {% set activationRate = stats.totalUsers > 0 ? ((stats.totalApplicants + stats.totalRecruiters) / stats.totalUsers * 100)|round : 0 %}
+
+    <section class="w-full max-w-7xl space-y-8 font-sans">
+        <div class="favorite-showcase-hero mx-auto w-full max-w-5xl px-1 py-2 text-center sm:px-2 sm:py-3">
+            <div class="mx-auto max-w-3xl">
+                    <p class="favorite-showcase-kicker">
+                        Admin panel
+                    </p>
+                    <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Tableau de bord administrateur</h1>
+                    <p class="ui-text-secondary mt-4 text-[15px]">Bienvenue sur votre espace d'administration.</p>
             </div>
         </div>
-    </div>
 
-    {# STATISTIQUES GLOBALES #}
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {# Total Utilisateurs #}
-        <div class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-blue-500/30 hover:shadow-blue-500/10">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-slate-400">Utilisateurs totaux</p>
-                    <p class="mt-2 text-3xl font-bold text-white">{{ stats.totalUsers }}</p>
-                </div>
-                <div class="flex h-14 w-14 items-center justify-center rounded-full bg-blue-500/20">
-                    <svg class="h-5 w-5 shrink-0 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 8v6"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M23 11h-6"></path>
-                    </svg>
-                </div>
-            </div>
-            <p class="mt-4 text-xs text-slate-500">Tous les comptes</p>
-        </div>
-
-        {# Candidats #}
-        <div class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/30 hover:shadow-emerald-500/10">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-slate-400">Candidats</p>
-                    <p class="mt-2 text-3xl font-bold text-white">{{ stats.totalApplicants }}</p>
-                </div>
-                <div class="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/20">
-                    <svg class="h-5 w-5 shrink-0 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m13 2-8 12h6l-1 8 9-13h-6z"></path>
-                    </svg>
-                </div>
-            </div>
-            <p class="mt-4 text-xs text-slate-500">Développeurs actifs</p>
-        </div>
-
-        {# Recruteurs #}
-        <div class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-purple-500/30 hover:shadow-purple-500/10">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-slate-400">Recruteurs</p>
-                    <p class="mt-2 text-3xl font-bold text-white">{{ stats.totalRecruiters }}</p>
-                </div>
-                <div class="flex h-14 w-14 items-center justify-center rounded-full bg-purple-500/20">
-                    <svg class="h-5 w-5 shrink-0 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V5a4 4 0 1 1 8 0v2"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16l-1 12H5z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 11v4"></path>
-                    </svg>
-                </div>
-            </div>
-            <p class="mt-4 text-xs text-slate-500">Entreprises et RH</p>
-        </div>
-
-        {# Messages non lus #}
-        <div class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-yellow-500/30 hover:shadow-yellow-500/10">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-slate-400">Messages</p>
-                    <p class="mt-2 text-3xl font-bold text-white">{{ stats.unreadMessages }}</p>
-                </div>
-                <div class="flex h-14 w-14 items-center justify-center rounded-full bg-yellow-500/20">
-                    <svg class="h-5 w-5 shrink-0 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 6h18v12H3z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m3 7 9 6 9-6"></path>
-                    </svg>
-                </div>
-            </div>
-            <p class="mt-4 text-xs text-slate-500">À traiter</p>
-        </div>
-    </div>
-
-    {# GRILLE PRINCIPALE #}
-    <div class="grid gap-6 lg:grid-cols-3">
-        
-        {# GESTION PRINCIPALE #}
-        <div class="lg:col-span-2 space-y-6">
-            {# Sections de gestion #}
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {# Gérer les utilisateurs #}
-                <a href="{{ path('app_admin_users') }}" class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-blue-500/30 hover:scale-105">
-                    <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-500/20">
-                        <svg class="h-5 w-5 shrink-0 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <article class="premium-stat-card rounded-[1.9rem] p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="ui-text-muted text-sm font-medium">Utilisateurs totaux</p>
+                        <p class="ui-title mt-2 text-3xl font-bold">{{ stats.totalUsers }}</p>
                     </div>
-                    <h3 class="mt-4 font-semibold text-white group-hover:text-blue-400 transition-colors">Gérer les utilisateurs</h3>
-                    <p class="mt-2 text-sm text-slate-400">{{ stats.totalUsers }} utilisateurs</p>
-                </a>
-
-                {# Gérer les profils #}
-                <a href="{{ path('app_admin_profiles') }}" class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-emerald-500/30 hover:scale-105">
-                    <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-500/20">
-                        <svg class="h-5 w-5 shrink-0 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 5h18v14H3z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 9h8"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 13h5"></path>
+                    <span class="premium-icon premium-icon-info">
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 8v6"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M23 11h-6"></path>
                         </svg>
-                    </div>
-                    <h3 class="mt-4 font-semibold text-white group-hover:text-emerald-400 transition-colors">Profils développeur</h3>
-                    <p class="mt-2 text-sm text-slate-400">{{ stats.totalProfiles }} profils</p>
-                </a>
-
-                {# Gérer les entreprises #}
-                <a href="{{ path('app_admin_companies') }}" class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-purple-500/30 hover:scale-105">
-                    <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-purple-500/20">
-                        <svg class="h-5 w-5 shrink-0 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 21h18"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 21V7l7-4 7 4v14"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 10h6"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 14h6"></path>
-                        </svg>
-                    </div>
-                    <h3 class="mt-4 font-semibold text-white group-hover:text-purple-400 transition-colors">Gérer les entreprises</h3>
-                    <p class="mt-2 text-sm text-slate-400">{{ stats.totalCompanies }} entreprises</p>
-                </a>
-
-                {# Gérer les messages #}
-                <a href="{{ path('app_admin_messages') }}" class="group rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all duration-300 hover:border-yellow-500/30 hover:scale-105">
-                    <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-yellow-500/20">
-                        <svg class="h-5 w-5 shrink-0 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="mt-4 font-semibold text-white group-hover:text-yellow-400 transition-colors">Messages de contact</h3>
-                    <p class="mt-2 text-sm text-slate-400">{{ stats.totalMessages }} messages</p>
-                </a>
-            </div>
-
-            {# Derniers utilisateurs enregistrés #}
-            <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl">
-                <div class="mb-6 flex items-center justify-between">
-                    <h2 class="text-xl font-semibold text-white">Derniers utilisateurs</h2>
-                    <a href="{{ path('app_admin_users') }}" class="text-sm text-emerald-400 hover:text-emerald-300 transition-colors">Voir tous →</a>
+                    </span>
                 </div>
-                <div class="space-y-3">
-                    {% for user in recentUsers %}
-                        <div class="flex items-center justify-between rounded-lg border border-white/5 bg-white/5 p-3 transition-all hover:bg-white/10">
-                            <div class="flex-1">
-                                <p class="font-medium text-white">{{ user.email }}</p>
-                                <p class="text-xs text-slate-400">
-                                    {% if 'ROLE_APPLICANT' in user.roles %}
-                                        <span class="text-emerald-400">Candidat</span>
-                                    {% elseif 'ROLE_RECRUITER' in user.roles %}
-                                        <span class="text-purple-400">Recruteur</span>
-                                    {% else %}
-                                        <span class="text-blue-400">Admin</span>
-                                    {% endif %}
-                                </p>
-                            </div>
-                            <p class="text-xs text-slate-500">{{ user.createdAt|date('d/m/Y') }}</p>
+                <p class="ui-text-muted mt-4 text-xs">Tous les comptes de la plateforme.</p>
+            </article>
+
+            <article class="premium-stat-card rounded-[1.9rem] p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="ui-text-muted text-sm font-medium">Candidats</p>
+                        <p class="ui-title mt-2 text-3xl font-bold">{{ stats.totalApplicants }}</p>
+                    </div>
+                    <span class="premium-icon premium-icon-success">
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m13 2-8 12h6l-1 8 9-13h-6z"></path>
+                        </svg>
+                    </span>
+                </div>
+                <p class="ui-text-muted mt-4 text-xs">Développeurs actifs et visibles.</p>
+            </article>
+
+            <article class="premium-stat-card rounded-[1.9rem] p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="ui-text-muted text-sm font-medium">Recruteurs</p>
+                        <p class="ui-title mt-2 text-3xl font-bold">{{ stats.totalRecruiters }}</p>
+                    </div>
+                    <span class="premium-icon premium-icon-violet">
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V5a4 4 0 1 1 8 0v2"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16l-1 12H5z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 11v4"></path>
+                        </svg>
+                    </span>
+                </div>
+                <p class="ui-text-muted mt-4 text-xs">Entreprises et équipes RH.</p>
+            </article>
+
+            <article class="premium-stat-card rounded-[1.9rem] p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="ui-text-muted text-sm font-medium">Messages</p>
+                        <p class="ui-title mt-2 text-3xl font-bold">{{ stats.unreadMessages }}</p>
+                    </div>
+                    <span class="premium-icon premium-icon-warning">
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 6h18v12H3z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m3 7 9 6 9-6"></path>
+                        </svg>
+                    </span>
+                </div>
+                <p class="ui-text-muted mt-4 text-xs">Messages non lus à traiter.</p>
+            </article>
+        </div>
+
+        <div class="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
+            <div class="space-y-6">
+                <div class="theme-settings-card rounded-[2.35rem] p-6 sm:p-8">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h2 class="ui-title text-2xl font-semibold tracking-tight">Gestion de la plateforme</h2>
+                            <p class="ui-text-muted mt-2 max-w-2xl text-[15px]">Accédez rapidement aux modules de supervision et aux espaces de modération les plus utilisés.</p>
                         </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
+                        <span class="premium-kicker rounded-full px-3 py-1.5 text-xs font-semibold">Pilotage global</span>
+                    </div>
 
-        {# BARRE LATÉRALE #}
-        <div class="space-y-6">
-            {# Statistiques clés #}
-            <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl">
-                <h3 class="text-lg font-semibold text-white mb-4">Statistiques clés</h3>
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center py-2 border-b border-white/10">
-                        <span class="text-slate-400 text-sm">Profils complets</span>
-                        <span class="font-semibold text-white">{{ stats.totalProfiles }}</span>
-                    </div>
-                    <div class="flex justify-between items-center py-2 border-b border-white/10">
-                        <span class="text-slate-400 text-sm">Entreprises</span>
-                        <span class="font-semibold text-white">{{ stats.totalCompanies }}</span>
-                    </div>
-                    <div class="flex justify-between items-center py-2">
-                        <span class="text-slate-400 text-sm">Taux activation</span>
-                        <span class="font-semibold text-emerald-400">
-                            {% if stats.totalUsers > 0 %}
-                                {{ ((stats.totalApplicants + stats.totalRecruiters) / stats.totalUsers * 100)|round }}%
-                            {% else %}
-                                0%
-                            {% endif %}
-                        </span>
-                    </div>
-                </div>
-            </div>
+                    <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <a href="{{ path('app_admin_users') }}" class="premium-action-card group rounded-[1.75rem] p-6">
+                            <span class="premium-icon premium-icon-info">
+                                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                </svg>
+                            </span>
+                            <h3 class="ui-title mt-4 font-semibold">Gérer les utilisateurs</h3>
+                            <p class="ui-text-muted mt-2 text-sm">{{ stats.totalUsers }} utilisateurs enregistrés.</p>
+                            <span class="ui-link-accent mt-4 inline-flex items-center text-sm font-semibold">Ouvrir le module →</span>
+                        </a>
 
-            {# Derniers messages de contact #}
-            <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl">
-                <div class="mb-4 flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-white">Messages</h3>
-                    {% if stats.unreadMessages > 0 %}
-                        <span class="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded-full font-semibold">{{ stats.unreadMessages }}</span>
-                    {% endif %}
+                        <a href="{{ path('app_admin_profiles') }}" class="premium-action-card group rounded-[1.75rem] p-6">
+                            <span class="premium-icon premium-icon-success">
+                                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 5h18v14H3z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 9h8"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 13h5"></path>
+                                </svg>
+                            </span>
+                            <h3 class="ui-title mt-4 font-semibold">Profils développeur</h3>
+                            <p class="ui-text-muted mt-2 text-sm">{{ stats.totalProfiles }} profils à superviser.</p>
+                            <span class="ui-link-accent mt-4 inline-flex items-center text-sm font-semibold">Ouvrir le module →</span>
+                        </a>
+
+                        <a href="{{ path('app_admin_companies') }}" class="premium-action-card group rounded-[1.75rem] p-6">
+                            <span class="premium-icon premium-icon-violet">
+                                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 21h18"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 21V7l7-4 7 4v14"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 10h6"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 14h6"></path>
+                                </svg>
+                            </span>
+                            <h3 class="ui-title mt-4 font-semibold">Gérer les entreprises</h3>
+                            <p class="ui-text-muted mt-2 text-sm">{{ stats.totalCompanies }} entreprises suivies.</p>
+                            <span class="ui-link-accent mt-4 inline-flex items-center text-sm font-semibold">Ouvrir le module →</span>
+                        </a>
+
+                        <a href="{{ path('app_admin_messages') }}" class="premium-action-card group rounded-[1.75rem] p-6">
+                            <span class="premium-icon premium-icon-warning">
+                                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                            </span>
+                            <h3 class="ui-title mt-4 font-semibold">Messages de contact</h3>
+                            <p class="ui-text-muted mt-2 text-sm">{{ stats.totalMessages }} messages reçus.</p>
+                            <span class="ui-link-accent mt-4 inline-flex items-center text-sm font-semibold">Ouvrir le module →</span>
+                        </a>
+                    </div>
                 </div>
-                <div class="space-y-2">
-                    {% if recentMessages %}
-                        {% for message in recentMessages[:3] %}
-                            <div class="rounded-lg bg-white/5 p-3 text-sm {% if not message.isRead %}border-l-2 border-red-400{% endif %}">
-                                <p class="font-medium text-white truncate">{{ message.subject }}</p>
-                                <p class="text-xs text-slate-500">{{ message.recruiterEmail }}</p>
+
+                <div class="theme-settings-card rounded-[2.35rem] p-6">
+                    <div class="mb-6 flex items-center justify-between gap-3">
+                        <h2 class="ui-title text-xl font-semibold">Derniers utilisateurs</h2>
+                        <a href="{{ path('app_admin_users') }}" class="ui-link-accent text-sm font-semibold">Voir tous →</a>
+                    </div>
+
+                    <div class="space-y-3">
+                        {% if recentUsers is not empty %}
+                            {% for user in recentUsers %}
+                                <div class="premium-list-row flex items-center justify-between gap-4 rounded-[1.4rem] p-4">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="ui-title truncate text-sm font-semibold">{{ user.email }}</p>
+                                        <div class="mt-2">
+                                            {% if 'ROLE_APPLICANT' in user.roles %}
+                                                <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold u-border-pale-emerald u-bg-pale-emerald u-text-pale-emerald">Candidat</span>
+                                            {% elseif 'ROLE_RECRUITER' in user.roles %}
+                                                <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold u-border-pale-purple u-bg-pale-purple u-text-pale-purple">Recruteur</span>
+                                            {% else %}
+                                                <span class="inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold u-border-pale-blue u-bg-pale-blue u-text-pale-blue">Admin</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <p class="ui-text-muted shrink-0 text-xs">{{ user.createdAt|date('d/m/Y') }}</p>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="premium-card-soft rounded-[1.4rem] p-4">
+                                <p class="ui-text-muted text-sm">Aucun utilisateur récent à afficher.</p>
                             </div>
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-slate-400 text-sm">Aucun message</p>
-                    {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
-                <a href="{{ path('app_admin_messages') }}" class="mt-4 inline-block text-sm text-emerald-400 hover:text-emerald-300 transition-colors">Voir tous les messages →</a>
             </div>
 
-            {# Zone d'actions rapides #}
-            <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl">
-                <h3 class="text-lg font-semibold text-white mb-4">Actions rapides</h3>
-                <div class="space-y-2">
-                    <button onclick="alert('Fonctionnalité à implémenter')" class="w-full py-2 px-4 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors text-sm font-medium">
-                        Générer rapport
-                    </button>
-                    <button onclick="alert('Fonctionnalité à implémenter')" class="w-full py-2 px-4 rounded-lg bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 transition-colors text-sm font-medium">
-                        Exporter données
-                    </button>
-                    <button onclick="alert('Fonctionnalité à implémenter')" class="w-full py-2 px-4 rounded-lg bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-colors text-sm font-medium">
-                        Paramètres
-                    </button>
+            <aside class="space-y-6">
+                <div class="theme-settings-card rounded-[2.35rem] p-6">
+                    <h3 class="ui-title text-lg font-semibold">Statistiques clés</h3>
+                    <div class="mt-4 space-y-3">
+                        <div class="premium-divider flex items-center justify-between gap-3 border-b py-2">
+                            <span class="ui-text-muted text-sm">Profils complets</span>
+                            <span class="ui-title font-semibold">{{ stats.totalProfiles }}</span>
+                        </div>
+                        <div class="premium-divider flex items-center justify-between gap-3 border-b py-2">
+                            <span class="ui-text-muted text-sm">Entreprises</span>
+                            <span class="ui-title font-semibold">{{ stats.totalCompanies }}</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-3 py-2">
+                            <span class="ui-text-muted text-sm">Taux d'activation</span>
+                            <span class="ui-pill ui-pill-success rounded-full px-2.5 py-1 text-xs font-semibold">{{ activationRate }}%</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                <div class="theme-settings-card rounded-[2.35rem] p-6">
+                    <div class="mb-4 flex items-center justify-between gap-3">
+                        <h3 class="ui-title text-lg font-semibold">Messages</h3>
+                        {% if stats.unreadMessages > 0 %}
+                            <span class="ui-pill ui-pill-danger rounded-full px-2.5 py-1 text-xs font-semibold">{{ stats.unreadMessages }}</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="space-y-2">
+                        {% if recentMessages %}
+                            {% for message in recentMessages[:3] %}
+                                <div class="premium-list-row rounded-[1.4rem] border-l-2 p-4 {{ not message.isRead ? 'u-border-pale-red' : 'premium-divider' }}">
+                                    <p class="ui-title truncate text-sm font-semibold">{{ message.subject }}</p>
+                                    <p class="ui-text-muted mt-1 text-xs">{{ message.recruiterEmail }}</p>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="premium-card-soft rounded-[1.4rem] p-4">
+                                <p class="ui-text-muted text-sm">Aucun message.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <a href="{{ path('app_admin_messages') }}" class="ui-link-accent mt-4 inline-flex text-sm font-semibold">Voir tous les messages →</a>
+                </div>
+
+                <div class="theme-settings-card rounded-[2.35rem] p-6">
+                    <h3 class="ui-title text-lg font-semibold">Actions rapides</h3>
+                    <div class="mt-4 space-y-3">
+                        <button onclick="alert('Fonctionnalité à implémenter')" class="premium-action-card flex w-full items-center gap-3 rounded-[1.4rem] p-4 text-left">
+                            <span class="premium-icon premium-icon-success">
+                                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 19h16"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 15h12"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 11h8"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 7h4"></path>
+                                </svg>
+                            </span>
+                            <span>
+                                <span class="ui-title block text-sm font-semibold">Générer rapport</span>
+                                <span class="ui-text-muted block text-xs">Créer un export récapitulatif.</span>
+                            </span>
+                        </button>
+
+                        <button onclick="alert('Fonctionnalité à implémenter')" class="premium-action-card flex w-full items-center gap-3 rounded-[1.4rem] p-4 text-left">
+                            <span class="premium-icon premium-icon-info">
+                                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 19h16"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 5h16v10H4z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m4 15 4-4 3 3 5-5 4 4"></path>
+                                </svg>
+                            </span>
+                            <span>
+                                <span class="ui-title block text-sm font-semibold">Exporter données</span>
+                                <span class="ui-text-muted block text-xs">Préparer les données de supervision.</span>
+                            </span>
+                        </button>
+
+                        <button onclick="alert('Fonctionnalité à implémenter')" class="premium-action-card flex w-full items-center gap-3 rounded-[1.4rem] p-4 text-left">
+                            <span class="premium-icon premium-icon-violet">
+                                <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
+                                </svg>
+                            </span>
+                            <span>
+                                <span class="ui-title block text-sm font-semibold">Paramètres</span>
+                                <span class="ui-text-muted block text-xs">Ajuster les préférences globales.</span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </aside>
         </div>
-    </div>
-</section>
+
+        <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
+            Supervisez les espaces clés, suivez les indicateurs essentiels et gardez la plateforme sous contrôle en continu.
+        </p>
+    </section>
 {% endblock %}

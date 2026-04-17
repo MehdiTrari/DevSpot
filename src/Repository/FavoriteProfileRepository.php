@@ -74,6 +74,47 @@ class FavoriteProfileRepository extends ServiceEntityRepository
     }
 
     /**
+     * @return list<FavoriteProfile>
+     */
+    public function findForRecruiterProfilePaginated(RecruiterProfile $recruiterProfile, int $page, int $limit): array
+    {
+        $recruiterProfileId = $recruiterProfile->getId();
+        if (null === $recruiterProfileId) {
+            return [];
+        }
+
+        $safePage = max(1, $page);
+        $safeLimit = max(1, $limit);
+        $offset = ($safePage - 1) * $safeLimit;
+
+        return $this->createQueryBuilder('favorite_profile')
+            ->leftJoin('favorite_profile.developerProfile', 'developerProfile')->addSelect('developerProfile')
+            ->leftJoin('developerProfile.user', 'user')->addSelect('user')
+            ->andWhere('IDENTITY(favorite_profile.recruiterProfile) = :recruiterProfileId')
+            ->setParameter('recruiterProfileId', $recruiterProfileId)
+            ->orderBy('favorite_profile.createdAt', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($safeLimit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countForRecruiterProfile(RecruiterProfile $recruiterProfile): int
+    {
+        $recruiterProfileId = $recruiterProfile->getId();
+        if (null === $recruiterProfileId) {
+            return 0;
+        }
+
+        return (int) $this->createQueryBuilder('favorite_profile')
+            ->select('COUNT(favorite_profile.id)')
+            ->andWhere('IDENTITY(favorite_profile.recruiterProfile) = :recruiterProfileId')
+            ->setParameter('recruiterProfileId', $recruiterProfileId)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
      * @return list<int>
      */
     public function findFavoriteDeveloperProfileIdsForRecruiterProfile(RecruiterProfile $recruiterProfile): array

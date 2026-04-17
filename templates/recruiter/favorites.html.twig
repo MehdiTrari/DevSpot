@@ -3,41 +3,62 @@
 {% block title %}Mes favoris | DevSpot{% endblock %}
 
 {% block body %}
-    <section class="w-full max-w-6xl self-start space-y-8 font-sans">
-        <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:shadow-emerald-500/10 sm:p-8">
-            <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-                <div class="flex-1">
-                    <h1 class="text-3xl font-semibold tracking-tight text-white">Tes profils favoris.</h1>
-                    <p class="mt-2 text-sm text-slate-400">Ici sont regroupés les profils qui t'intéressent.</p>
+    {% set experienceLevelLabels = {
+        'intern': 'Stagiaire',
+        'junior': 'Junior',
+        'mid': 'Intermediaire',
+        'senior': 'Senior',
+        'lead': 'Lead'
+    } %}
+    {% set locationTypeLabels = {
+        'remote': 'Remote',
+        'hybrid': 'Hybride',
+        'onsite': 'Sur site'
+    } %}
+
+    <section class="favorites-showcase-page relative z-[1] w-full max-w-[86rem] self-start px-5 pb-8 pt-2 font-sans sm:px-8 sm:pb-10 sm:pt-3 lg:px-10 lg:pb-12 lg:pt-4">
+        <div class="favorite-showcase-hero mx-auto max-w-3xl text-center">
+            <p class="favorite-showcase-kicker">
+                Collection recruteur
+            </p>
+            <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Tes profils favoris.</h1>
+            <p class="ui-text-secondary mx-auto mt-4 max-w-2xl text-[13px] leading-relaxed sm:text-[15px]">
+                Retrouve ici les profils les plus prometteurs, compare-les rapidement et ouvre leur portfolio dès que tu veux.
+            </p>
+        </div>
+
+        <div class="mt-10 lg:mt-12">
+            <div class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
+                {# Search / filter bar #}
+                <div class="mb-5">
+                    <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition focus-within:border-emerald-400/40 focus-within:ring-2 focus-within:ring-emerald-500/20">
+                        <svg class="h-5 w-5 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
+                        <input
+                            id="favorites-search"
+                            type="text"
+                            placeholder="Rechercher par nom, titre, localisation…"
+                            class="w-full bg-transparent text-sm text-white placeholder-slate-500 outline-none"
+                        >
+                    </div>
+                    <p id="favorites-search-count" class="mt-2 hidden text-xs text-slate-400"></p>
                 </div>
 
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300 shadow-inner sm:min-w-72">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Profil(s) enregistré(s)</p>
-                    <p data-favorite-count-value="true" class="mt-1 text-2xl font-semibold text-white">{{ favoriteProfilesCount|default(0) }}</p>
-                </div>
+                {% include 'recruiter/_favorite_profiles_list.html.twig' with {
+                    favoriteProfiles: favoriteProfiles|default([]),
+                    redirectPath: path('app_recruiter_favorites'),
+                    experienceLevelLabels: experienceLevelLabels,
+                    locationTypeLabels: locationTypeLabels,
+                    favoriteProfilesCount: favoriteProfilesCount|default(0),
+                    currentPage: currentPage|default(1),
+                    totalPages: totalPages|default(1)
+                } only %}
             </div>
         </div>
 
-        <div class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
-            {# Search / filter bar #}
-            <div class="mb-5">
-                <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition focus-within:border-emerald-400/40 focus-within:ring-2 focus-within:ring-emerald-500/20">
-                    <svg class="h-5 w-5 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
-                    <input
-                        id="favorites-search"
-                        type="text"
-                        placeholder="Rechercher par nom, titre, localisation…"
-                        class="w-full bg-transparent text-sm text-white placeholder-slate-500 outline-none"
-                    >
-                </div>
-                <p id="favorites-search-count" class="mt-2 hidden text-xs text-slate-400"></p>
-            </div>
 
-            {% include 'recruiter/_favorite_profiles_list.html.twig' with {
-                favoriteProfiles: favoriteProfiles|default([]),
-                redirectPath: path('app_recruiter_favorites')
-            } only %}
-        </div>
+        <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
+            Garde sous la main les profils à fort potentiel et retire-les instantanément quand ta short-list évolue.
+        </p>
     </section>
 
     <script>

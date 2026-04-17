@@ -75,13 +75,30 @@ final class RecruiterController extends AbstractController
 
     #[Route('/recruiter/favorites', name: 'app_recruiter_favorites', methods: ['GET'])]
     #[IsGranted('ROLE_RECRUITER')]
-    public function favorites(FavoriteProfileRepository $favoriteProfileRepository): Response
+    public function favorites(Request $request, FavoriteProfileRepository $favoriteProfileRepository): Response
     {
-        $favorites = $this->findCurrentRecruiterFavorites($favoriteProfileRepository);
+        $recruiterProfile = $this->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile) {
+            return $this->render('recruiter/favorites.html.twig', [
+                'favoriteProfiles' => [],
+                'favoriteProfilesCount' => 0,
+                'currentPage' => 1,
+                'totalPages' => 1,
+            ]);
+        }
+
+        $page = max(1, (int) $request->query->get('page', 1));
+        $perPage = 9;
+        $totalFavorites = $favoriteProfileRepository->countForRecruiterProfile($recruiterProfile);
+        $totalPages = max(1, (int) ceil($totalFavorites / $perPage));
+        $currentPage = min($page, $totalPages);
+        $favorites = $favoriteProfileRepository->findForRecruiterProfilePaginated($recruiterProfile, $currentPage, $perPage);
 
         return $this->render('recruiter/favorites.html.twig', [
             'favoriteProfiles' => $favorites,
-            'favoriteProfilesCount' => count($favorites),
+            'favoriteProfilesCount' => $totalFavorites,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
         ]);
     }
 
