@@ -137,7 +137,7 @@ final class RecruiterFavoritesTest extends WebTestCase
 
         $client->request('GET', '/recruiter/favorites');
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('body', 'Tes profils favoris.');
+        self::assertSelectorTextContains('body', 'Mes profils favoris.');
         self::assertSelectorTextContains('body', 'Laura Favre');
     }
 
