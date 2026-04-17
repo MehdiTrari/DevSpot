@@ -237,11 +237,76 @@
             const init = () => {
                 const searchInput = document.getElementById('offers-search');
                 const countEl = document.getElementById('offers-filter-count');
+                const resetBtn = document.querySelector('[data-filter-reset]');
+                const filterMenu = document.querySelector('[data-offers-filter-menu]');
                 const filterBtns = document.querySelectorAll('.offers-filter-btn');
                 if (!searchInput || searchInput.dataset.init === '1') return;
                 searchInput.dataset.init = '1';
 
                 let activeFilter = 'all';
+
+                const setFilterButtonState = (button, isActive) => {
+                    const filter = button.dataset.filter;
+
+                    button.style.borderColor = '';
+                    button.style.backgroundColor = '';
+                    button.style.color = '';
+
+                    const resetClasses = [
+                        'border-emerald-500/30', 'bg-emerald-500/15', 'text-emerald-300',
+                        'border-emerald-500/20', 'bg-emerald-500/10',
+                        'border-yellow-400/30', 'bg-yellow-400/15', 'text-yellow-300',
+                        'border-yellow-400/20', 'bg-yellow-400/10',
+                        'border-red-400/30', 'bg-red-400/15', 'text-red-300',
+                        'border-red-400/20', 'bg-red-400/10',
+                        'border-white/10', 'bg-white/5', 'text-slate-400'
+                    ];
+                    button.classList.remove(...resetClasses);
+
+                    if (filter === 'all') {
+                        if (isActive) {
+                            button.classList.add('border-white/20', 'bg-white/10', 'text-slate-200');
+                        } else {
+                            button.classList.add('border-white/10', 'bg-white/5', 'text-slate-400');
+                        }
+                        return;
+                    }
+
+                    if (filter === 'published') {
+                        button.classList.add(
+                            isActive ? 'border-emerald-500/30' : 'border-emerald-500/20',
+                            isActive ? 'bg-emerald-500/15' : 'bg-emerald-500/10',
+                            'text-emerald-300'
+                        );
+                        button.style.borderColor = isActive ? 'rgba(16,185,129,0.35)' : 'rgba(16,185,129,0.24)';
+                        button.style.backgroundColor = isActive ? 'rgba(16,185,129,0.16)' : 'rgba(16,185,129,0.10)';
+                        button.style.color = '#6ee7b7';
+                        return;
+                    }
+
+                    if (filter === 'draft') {
+                        button.classList.add(
+                            isActive ? 'border-yellow-400/30' : 'border-yellow-400/20',
+                            isActive ? 'bg-yellow-400/15' : 'bg-yellow-400/10',
+                            'text-yellow-300'
+                        );
+                        button.style.borderColor = isActive ? 'rgba(250,204,21,0.35)' : 'rgba(250,204,21,0.24)';
+                        button.style.backgroundColor = isActive ? 'rgba(250,204,21,0.16)' : 'rgba(250,204,21,0.10)';
+                        button.style.color = '#fcd34d';
+                        return;
+                    }
+
+                    if (filter === 'closed') {
+                        button.classList.add(
+                            isActive ? 'border-red-400/30' : 'border-red-400/20',
+                            isActive ? 'bg-red-400/15' : 'bg-red-400/10',
+                            'text-red-300'
+                        );
+                        button.style.borderColor = isActive ? 'rgba(248,113,113,0.35)' : 'rgba(248,113,113,0.24)';
+                        button.style.backgroundColor = isActive ? 'rgba(248,113,113,0.16)' : 'rgba(248,113,113,0.10)';
+                        button.style.color = '#fca5a5';
+                    }
+                };
 
                 const applyFilters = () => {
                     const query = searchInput.value.trim().toLowerCase();
@@ -256,11 +321,8 @@
                         if (show) visible++;
                     });
 
-                    if (query || activeFilter !== 'all') {
-                        countEl.textContent = visible + ' résultat' + (visible > 1 ? 's' : '') + ' sur ' + cards.length;
-                        countEl.classList.remove('hidden');
-                    } else {
-                        countEl.classList.add('hidden');
+                    if (countEl) {
+                        countEl.textContent = String(visible);
                     }
                 };
 
@@ -269,15 +331,25 @@
                 filterBtns.forEach(btn => {
                     btn.addEventListener('click', () => {
                         activeFilter = btn.dataset.filter;
-                        filterBtns.forEach(b => {
-                            b.classList.remove('border-emerald-500/30', 'bg-emerald-500/15', 'text-emerald-300');
-                            b.classList.add('border-white/10', 'bg-white/5', 'text-slate-400');
-                        });
-                        btn.classList.remove('border-white/10', 'bg-white/5', 'text-slate-400');
-                        btn.classList.add('border-emerald-500/30', 'bg-emerald-500/15', 'text-emerald-300');
+                        filterBtns.forEach(b => setFilterButtonState(b, b === btn));
+                        if (filterMenu) {
+                            filterMenu.open = false;
+                        }
                         applyFilters();
                     });
                 });
+
+                if (resetBtn) {
+                    resetBtn.addEventListener('click', () => {
+                        activeFilter = 'all';
+                        searchInput.value = '';
+                        filterBtns.forEach(b => setFilterButtonState(b, b.dataset.filter === 'all'));
+                        applyFilters();
+                    });
+                }
+
+                filterBtns.forEach(b => setFilterButtonState(b, b.dataset.filter === 'all'));
+                applyFilters();
             };
             document.addEventListener('DOMContentLoaded', init);
             document.addEventListener('turbo:load', init);
@@ -286,45 +358,55 @@
 {% endblock %}
 
 {% block body %}
-    <section class="w-full max-w-5xl space-y-8 font-sans">
-        <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-10">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                    <p class="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-300">Espace recruteur</p>
-                    <h1 class="mt-4 text-4xl font-semibold tracking-tight text-white">Mes offres</h1>
-                    <p class="mt-3 max-w-3xl text-[15px] leading-relaxed text-slate-400">Clique sur une offre pour voir sa description et tous les matchings, ou utilise le bouton pour un apercu rapide du top 5.</p>
-                </div>
-                <div class="flex items-center gap-3">
+    <section class="favorites-showcase-page relative z-[1] w-full max-w-[86rem] self-start px-5 pb-8 pt-2 font-sans sm:px-8 sm:pb-10 sm:pt-3 lg:px-10 lg:pb-12 lg:pt-4">
+        <div class="favorite-showcase-hero mx-auto max-w-3xl text-center">
+            <p class="favorite-showcase-kicker">
+                Espace recruteur
+            </p>
+            <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Mes offres.</h1>
+            <p class="ui-text-secondary mx-auto mt-4 max-w-2xl text-[13px] leading-relaxed sm:text-[15px]">
+                Gère tes offres, filtre rapidement par statut et lance un aperçu matching top 5 en un clic.
+            </p>
+        </div>
+
+        <div class="mt-10 lg:mt-12">
+            <div class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
+                <div class="flex flex-wrap items-center justify-end gap-3">
                     <a href="{{ path('app_recruiter_offer_create') }}" class="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-600 active:scale-95">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                         Nouvelle offre
                     </a>
-                    <a href="{{ path('app_recruiter_home') }}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10">&larr; Dashboard</a>
-                </div>
-            </div>
-        </div>
-
-        {# ── Barre de recherche + Filtres ── #}
-        <div class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-5 shadow-2xl shadow-black/40 backdrop-blur-xl">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
-                {# Recherche #}
-                <div class="flex flex-1 items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition focus-within:border-emerald-400/40 focus-within:ring-2 focus-within:ring-emerald-500/20">
-                    <svg class="h-5 w-5 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
-                    <input id="offers-search" type="text" placeholder="Rechercher par titre, contrat, localisation…" class="w-full bg-transparent text-sm text-white placeholder-slate-500 outline-none">
                 </div>
 
-                {# Filtres par statut #}
-                <div class="flex items-center gap-2">
-                    <button type="button" data-filter="all" class="offers-filter-btn active rounded-full border border-emerald-500/30 bg-emerald-500/15 px-3.5 py-1.5 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/25">Toutes</button>
-                    <button type="button" data-filter="published" class="offers-filter-btn rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-slate-400 transition hover:bg-white/10">Publiées</button>
-                    <button type="button" data-filter="draft" class="offers-filter-btn rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-slate-400 transition hover:bg-white/10">Brouillons</button>
-                    <button type="button" data-filter="closed" class="offers-filter-btn rounded-full border border-white/10 bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-slate-400 transition hover:bg-white/10">Fermées</button>
-                </div>
-            </div>
-            <p id="offers-filter-count" class="mt-3 hidden text-xs text-slate-400"></p>
-        </div>
+                {# ── Barre de recherche + Filtres ── #}
+                <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+                    <div class="min-w-[260px] w-full lg:w-1/2 lg:flex-none">
+                        <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition focus-within:border-emerald-400/40 focus-within:ring-2 focus-within:ring-emerald-500/20">
+                            <svg class="h-5 w-5 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
+                            <input id="offers-search" type="text" placeholder="Rechercher par titre, contrat, localisation…" class="w-full bg-transparent text-sm text-white placeholder-slate-500 outline-none">
+                        </div>
+                    </div>
 
-        <div id="offers-list" class="space-y-4">
+                    <div class="flex items-center gap-2">
+                        <details data-offers-filter-menu class="relative">
+                            <summary class="inline-flex h-9 cursor-pointer list-none items-center justify-center rounded-full border border-white/10 bg-white/5 px-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10">
+                                Filtres
+                            </summary>
+                            <div class="absolute right-0 top-11 z-20 w-44 rounded-2xl border border-white/10 bg-slate-900/95 p-2 shadow-2xl shadow-black/40 backdrop-blur-xl">
+                                <div class="flex flex-col gap-2">
+                                    <button type="button" data-filter="all" class="offers-filter-btn inline-flex h-9 items-center justify-center rounded-full border border-white/20 bg-white/10 px-3 text-sm font-semibold text-slate-200 transition hover:bg-white/15">Toutes</button>
+                                    <button type="button" data-filter="published" class="offers-filter-btn inline-flex h-9 items-center justify-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-500/15">Publiées</button>
+                                    <button type="button" data-filter="draft" class="offers-filter-btn inline-flex h-9 items-center justify-center rounded-full border border-yellow-400/20 bg-yellow-400/10 px-3 text-sm font-semibold text-yellow-300 transition hover:bg-yellow-400/15">Brouillons</button>
+                                    <button type="button" data-filter="closed" class="offers-filter-btn inline-flex h-9 items-center justify-center rounded-full border border-red-400/20 bg-red-400/10 px-3 text-sm font-semibold text-red-300 transition hover:bg-red-400/15">Fermées</button>
+                                </div>
+                            </div>
+                        </details>
+                        <button type="button" data-filter-reset class="inline-flex h-9 items-center justify-center rounded-full border border-white/10 bg-white/5 px-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10">Réinitialiser</button>
+                        <span id="offers-filter-count" class="favorite-showcase-toolbar-count inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-bold">{{ offerRows|length }}</span>
+                    </div>
+                </div>
+
+                <div id="offers-list" class="mt-6 space-y-4">
             {% for job in offerRows %}
                 <article
                     data-offer-card
@@ -365,10 +447,10 @@
                                     <p data-offer-top-badge class="mt-1 text-lg font-bold text-white">{{ job.topMatchPercentage is not null ? job.topMatchPercentage|number_format(1, '.', ' ') ~ '%' : '—' }}</p>
                                 </div>
                                 {% if job.cachedAt is defined and job.cachedAt %}
-                                    <span class="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[10px] font-semibold text-amber-300" title="Résultats en cache">
+                                    <div class="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-[10px] font-semibold text-amber-300" title="Résultats en cache">
                                         <svg class="h-3 w-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
                                         En cache
-                                    </span>
+                                    </div>
                                 {% endif %}
                                 <svg class="h-5 w-5 text-slate-500 group-hover:text-emerald-400 transition-colors" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
                             </div>
@@ -435,10 +517,22 @@
                     </div>
                 </article>
             {% else %}
-                <div class="rounded-[2rem] border border-dashed border-white/10 bg-slate-900/30 px-6 py-10 text-center text-slate-400">
-                    Aucune offre recruteur a afficher pour le moment.
+                <div class="favorite-showcase-empty rounded-[2.2rem] px-6 py-10 text-center sm:px-8">
+                    <p class="ui-title text-xl font-semibold">Aucune offre pour le moment.</p>
+                    <p class="ui-text-secondary mx-auto mt-3 max-w-2xl text-sm leading-relaxed sm:text-[15px]">
+                        Crée ta première offre depuis ton espace recruteur pour trouver des profils correspondants.
+                    </p>
+                    <a href="{{ path('app_recruiter_offer_create') }}" class="favorite-showcase-primary-link mx-auto mt-6 max-w-xs">
+                        Créer une offre
+                    </a>
                 </div>
             {% endfor %}
+                </div>
+            </div>
         </div>
+
+        <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
+            Structure tes publications, garde la visibilite de tes offres et pilote tes matchings depuis un espace unique.
+        </p>
     </section>
 {% endblock %}
