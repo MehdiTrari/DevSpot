@@ -21,7 +21,7 @@
             <p class="favorite-showcase-kicker">
                 Collection recruteur
             </p>
-            <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Tes profils favoris.</h1>
+            <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Mes profils favoris.</h1>
             <p class="ui-text-secondary mx-auto mt-4 max-w-2xl text-[13px] leading-relaxed sm:text-[15px]">
                 Retrouve ici les profils les plus prometteurs, compare-les rapidement et ouvre leur portfolio dès que tu veux.
             </p>
@@ -29,20 +29,6 @@
 
         <div class="mt-10 lg:mt-12">
             <div class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
-                {# Search / filter bar #}
-                <div class="mb-5">
-                    <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition focus-within:border-emerald-400/40 focus-within:ring-2 focus-within:ring-emerald-500/20">
-                        <svg class="h-5 w-5 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
-                        <input
-                            id="favorites-search"
-                            type="text"
-                            placeholder="Rechercher par nom, titre, localisation…"
-                            class="w-full bg-transparent text-sm text-white placeholder-slate-500 outline-none"
-                        >
-                    </div>
-                    <p id="favorites-search-count" class="mt-2 hidden text-xs text-slate-400"></p>
-                </div>
-
                 {% include 'recruiter/_favorite_profiles_list.html.twig' with {
                     favoriteProfiles: favoriteProfiles|default([]),
                     redirectPath: path('app_recruiter_favorites'),
