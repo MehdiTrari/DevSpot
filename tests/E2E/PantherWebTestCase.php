@@ -4,9 +4,12 @@ namespace App\Tests\E2E;
 
 use App\Entity\DeveloperProfile;
 use App\Entity\Position;
+use App\Entity\JobOffer;
+use App\Entity\RecruiterProfile;
 use App\Entity\Skill;
 use App\Entity\Technology;
 use App\Entity\User;
+use App\Enum\OfferStatus;
 use App\Enum\UserStatus;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
@@ -82,10 +85,38 @@ abstract class PantherWebTestCase extends PantherTestCase
         $user->setIsVerified(true);
         $user->setPassword($hasher->hashPassword($user, $password));
 
+        $recruiterProfile = new RecruiterProfile();
+        $recruiterProfile->setFirstName('Mylène');
+        $recruiterProfile->setLastName('Recruiter');
+        $recruiterProfile->setJobTitle('Talent Partner');
+        $recruiterProfile->setWorkEmail($email);
+        $recruiterProfile->setUser($user);
+        $user->setRecruiterProfile($recruiterProfile);
+
         $entityManager->persist($user);
+        $entityManager->persist($recruiterProfile);
         $entityManager->flush();
 
         return $user;
+    }
+
+    protected function createJobOffer(EntityManagerInterface $entityManager, User $recruiter, array $overrides = []): JobOffer
+    {
+        $recruiterProfile = $recruiter->getRecruiterProfile();
+        self::assertInstanceOf(RecruiterProfile::class, $recruiterProfile);
+
+        $offer = new JobOffer();
+        $offer->setRecruiterProfile($recruiterProfile);
+        $offer->setTitle((string) ($overrides['title'] ?? 'Développeur Symfony'));
+        $offer->setDescription((string) ($overrides['description'] ?? 'Nous cherchons un développeur Symfony full-stack pour renforcer l\'équipe produit.'));
+        $offer->setLocation($overrides['location'] ?? 'Lyon');
+        $offer->setExperienceLevel((int) ($overrides['experienceLevel'] ?? 2));
+        $offer->setStatus($overrides['status'] ?? OfferStatus::PUBLISHED);
+
+        $entityManager->persist($offer);
+        $entityManager->flush();
+
+        return $offer;
     }
 
     /**
@@ -171,7 +202,22 @@ abstract class PantherWebTestCase extends PantherTestCase
         $this->type($client, '#inputEmail', $email);
         $this->type($client, '#inputPassword', $password);
         $this->click($client, 'button[type="submit"]');
-        $client->waitFor('a[href="/logout"]');
+
+        $deadline = microtime(true) + 30;
+
+        while (microtime(true) < $deadline) {
+            $currentUrl = $client->getWebDriver()->getCurrentURL();
+
+            if (!str_contains($currentUrl, '/login')) {
+                $client->waitFor('body');
+
+                return;
+            }
+
+            usleep(100000);
+        }
+
+        self::fail('La connexion n\'a pas redirigé hors de la page de login.');
     }
 
     protected function click(Client $client, string $cssSelector): void
