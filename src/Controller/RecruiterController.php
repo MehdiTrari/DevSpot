@@ -109,6 +109,7 @@ final class RecruiterController extends AbstractController
         Request $request,
         FavoriteProfileRepository $favoriteProfileRepository,
         EntityManagerInterface $entityManager,
+        NotificationManager $notificationManager,
     ): Response {
         $redirectPath = $this->resolveFavoriteRedirectPath(
             $request,
@@ -138,6 +139,7 @@ final class RecruiterController extends AbstractController
         $favoriteProfile->setDeveloperProfile($profile);
 
         $entityManager->persist($favoriteProfile);
+        $notificationManager->notifyApplicantProfileFavorited($profile, $recruiterProfile);
         $entityManager->flush();
 
         return $this->favoriteSuccessResponse($request, $redirectPath, $favoriteProfileRepository, $recruiterProfile, $profile, true, 'Profil ajouté aux favoris.');
@@ -443,6 +445,12 @@ final class RecruiterController extends AbstractController
         };
 
         if ($newStatus instanceof OfferStatus) {
+            if (OfferStatus::PUBLISHED === $newStatus && null !== $offer->getApplicationDeadline() && $offer->getApplicationDeadline() < new \DateTimeImmutable('today')) {
+                $this->addFlash('error', 'Impossible de republier une offre dont la date limite est dépassée. Mettez à jour sa date avant publication.');
+
+                return $this->redirectToRoute('app_recruiter_offers');
+            }
+
             $offer->setStatus($newStatus);
             $entityManager->flush();
         }
@@ -740,7 +748,7 @@ final class RecruiterController extends AbstractController
     }
 
     /**
-     * @return list<array{id: int, title: string, contract: string, status: string, statusValue: string, isActive: bool, location: ?string, updatedAt: mixed, detailUrl: string, topMatchPercentage: ?float, cachedAt: ?string, matchesCount: int}>
+    * @return list<array{id: int, title: string, contract: string, status: string, statusValue: string, isActive: bool, location: ?string, updatedAt: mixed, applicationDeadline: mixed, detailUrl: string, topMatchPercentage: ?float, cachedAt: ?string, matchesCount: int}>
      */
     private function buildRecruiterOfferRows(RecruiterProfile $recruiterProfile): array
     {
@@ -780,6 +788,7 @@ final class RecruiterController extends AbstractController
                 'isActive' => $status === OfferStatus::PUBLISHED,
                 'location' => $offer->getLocation(),
                 'updatedAt' => $offer->getUpdatedAt(),
+                'applicationDeadline' => $offer->getApplicationDeadline(),
                 'detailUrl' => $this->generateUrl('app_recruiter_offer_detail', ['id' => $offer->getId()]),
                 'topMatchPercentage' => null,
                 'cachedAt' => null,

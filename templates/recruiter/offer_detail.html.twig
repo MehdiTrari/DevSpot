@@ -399,6 +399,10 @@
             <div class="mt-4 prose prose-sm prose-invert max-w-none text-slate-300 leading-relaxed whitespace-pre-line">{{ offer.description }}</div>
 
             <div class="mt-6 grid gap-4 sm:grid-cols-3">
+                <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                    <p class="text-xs uppercase tracking-wider text-slate-400">Date limite</p>
+                    <p class="mt-2 text-sm font-semibold text-white">{{ offer.applicationDeadline ? offer.applicationDeadline|date('d/m/Y') : 'Non définie' }}</p>
+                </div>
                 {% if offer.experienceLevel is not null %}
                     <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                         <p class="text-xs uppercase tracking-wider text-slate-400">Expérience requise</p>

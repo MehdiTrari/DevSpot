@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\AdminActionLog;
+use App\Entity\DeveloperProfile;
 use App\Entity\User;
 use App\Enum\UserStatus;
 use App\Repository\AdminActionLogRepository;
@@ -171,16 +172,13 @@ final class AdminController extends AbstractController
         }
 
         $previousStatus = $user->getStatus()?->value;
-        $shouldNotifyTargetUser = !$this->isApplicantUser($user);
         $user->setStatus($status);
         $user->setUpdatedAt(new \DateTimeImmutable());
         if (UserStatus::ACTIVE === $status) {
             $user->setIsVerified(true);
         }
 
-        if ($shouldNotifyTargetUser) {
-            $notificationManager->notifyUserStatusChanged($user, $previousStatus, $status);
-        }
+        $notificationManager->notifyUserStatusChanged($user, $previousStatus, $status);
         if ($currentUser instanceof User) {
             $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $status);
         }
@@ -312,6 +310,37 @@ final class AdminController extends AbstractController
         ]);
     }
 
+    #[Route('/profiles/{id}/moderate', name: 'app_admin_profiles_moderate', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    public function moderateProfile(DeveloperProfile $profile, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    {
+        if (!$this->isCsrfTokenValid('admin_profile_moderate_' . $profile->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_profiles');
+        }
+
+        $reason = trim((string) $request->request->get('reason', ''));
+        if ('' === $reason) {
+            $reason = 'Votre profil nécessite une revue administrateur.';
+        }
+
+        $profile->setIsPublic(false);
+        $profile->setModeratedAt(new \DateTimeImmutable());
+        $profile->setModerationReason($reason);
+        $profile->setUpdatedAt(new \DateTimeImmutable());
+        $notificationManager->notifyApplicantProfileModerated($profile, $reason);
+
+        $this->logAdminAction($entityManager, 'profile.moderated', $profile->getUser(), [
+            'profileId' => $profile->getId(),
+            'reason' => $reason,
+        ]);
+
+        $entityManager->flush();
+        $this->addFlash('success', 'Le profil a été modéré et l\'utilisateur a été notifié.');
+
+        return $this->redirectToRoute('app_admin_profiles');
+    }
+
     #[Route('/companies', name: 'app_admin_companies')]
     public function companies(CompanyRepository $companyRepository): Response
     {
@@ -357,16 +386,13 @@ final class AdminController extends AbstractController
         }
 
         $previousStatus = $user->getStatus()?->value;
-        $shouldNotifyTargetUser = !$this->isApplicantUser($user);
         $user->setStatus($newStatus);
         $user->setUpdatedAt(new \DateTimeImmutable());
         if (UserStatus::ACTIVE === $newStatus) {
             $user->setIsVerified(true);
         }
 
-        if ($shouldNotifyTargetUser) {
-            $notificationManager->notifyUserStatusChanged($user, $previousStatus, $newStatus);
-        }
+        $notificationManager->notifyUserStatusChanged($user, $previousStatus, $newStatus);
         if ($currentUser instanceof User) {
             $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $newStatus);
         }

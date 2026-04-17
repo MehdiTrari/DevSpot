@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Repository\DeveloperProfileRepository;
 use App\Repository\FavoriteProfileRepository;
+use App\Service\OfferLifecycleManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -17,7 +18,10 @@ class HomeController extends AbstractController
         Request $request,
         DeveloperProfileRepository $developerProfileRepository,
         FavoriteProfileRepository $favoriteProfileRepository,
+        OfferLifecycleManager $offerLifecycleManager,
     ): Response {
+        $offerLifecycleManager->expireDueOffers();
+
         if ($this->isGranted('ROLE_ADMIN')) {
             return $this->redirectToRoute('app_admin_dashboard');
         }

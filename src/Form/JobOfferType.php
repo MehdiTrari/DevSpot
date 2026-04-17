@@ -7,12 +7,14 @@ use App\Enum\ContractType;
 use App\Enum\LocationType;
 use App\Enum\OfferStatus;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\PositiveOrZero;
 
@@ -101,6 +103,17 @@ class JobOfferType extends AbstractType
                     'min' => 0,
                     'inputmode' => 'numeric',
                     'placeholder' => '55000',
+                ],
+            ])
+            ->add('applicationDeadline', DateType::class, [
+                'label' => 'Date limite de candidature',
+                'widget' => 'single_text',
+                'input' => 'datetime_immutable',
+                'required' => true,
+                'help' => 'Au lendemain de cette date, l’offre passe automatiquement en expirée/fermée.',
+                'constraints' => [
+                    new NotBlank(message: 'La date limite est obligatoire.'),
+                    new GreaterThanOrEqual('today', message: 'La date limite doit être aujourd\'hui ou dans le futur.'),
                 ],
             ])
             ->add('status', EnumType::class, [

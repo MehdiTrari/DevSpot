@@ -66,6 +66,35 @@ class ConversationRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    /**
+     * @return list<User>
+     */
+    public function findDistinctApplicantsForRecruiter(User $recruiterUser): array
+    {
+        $users = [];
+        $seenIds = [];
+
+        foreach ($this->findActiveForRecruiter($recruiterUser) as $conversation) {
+            $applicant = $conversation->getApplicantUser();
+            if (!$applicant instanceof User) {
+                continue;
+            }
+
+            $applicantId = $applicant->getId();
+            if (null !== $applicantId && isset($seenIds[$applicantId])) {
+                continue;
+            }
+
+            if (null !== $applicantId) {
+                $seenIds[$applicantId] = true;
+            }
+
+            $users[] = $applicant;
+        }
+
+        return $users;
+    }
+
 //    /**
 //     * @return Conversation[] Returns an array of Conversation objects
 //     */

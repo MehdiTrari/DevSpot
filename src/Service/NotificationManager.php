@@ -5,8 +5,10 @@ namespace App\Service;
 use App\Entity\Company;
 use App\Entity\ContactMessage;
 use App\Entity\DeveloperProfile;
+use App\Entity\JobOffer;
 use App\Entity\Message;
 use App\Entity\Notification;
+use App\Entity\RecruiterProfile;
 use App\Entity\User;
 use App\Enum\NotificationType;
 use App\Enum\UserStatus;
@@ -177,12 +179,161 @@ final class NotificationManager
 
     public function notifyApplicantNewMessage(ContactMessage $contactMessage): void
     {
-        // Message notifications are intentionally disabled.
+        // Legacy entry point kept for backward compatibility.
     }
 
     public function notifyConversationNewMessage(Message $message): void
     {
-        // Message notifications are intentionally disabled.
+        $conversation = $message->getConversation();
+        $sender = $message->getSenderUser();
+
+        if (null === $conversation || !$sender instanceof User) {
+            return;
+        }
+
+        $applicantUser = $conversation->getApplicantUser();
+        $recruiterUser = $conversation->getRecruiterUser();
+        $recipient = $sender->getId() === $applicantUser?->getId() ? $recruiterUser : $applicantUser;
+
+        if (!$recipient instanceof User || $recipient->getId() === $sender->getId()) {
+            return;
+        }
+
+        $subject = trim((string) ($conversation->getSubject() ?? ''));
+        $content = sprintf(
+            '%s vous a envoyé un nouveau message%s.',
+            $this->resolveUserDisplayName($sender),
+            '' !== $subject ? sprintf(' à propos de "%s"', $subject) : ''
+        );
+
+        $conversationId = $conversation->getId();
+        $link = in_array('ROLE_APPLICANT', $recipient->getRoles(), true)
+            ? (null !== $conversationId
+                ? $this->urlGenerator->generate('app_applicant_message_show', ['conversationId' => $conversationId])
+                : $this->urlGenerator->generate('app_applicant_messages'))
+            : (null !== $conversationId
+                ? $this->urlGenerator->generate('app_recruiter_message_show', ['conversationId' => $conversationId])
+                : $this->urlGenerator->generate('app_recruiter_messages'));
+
+        $this->createNotification(
+            $recipient,
+            NotificationType::NEW_MESSAGE,
+            'Nouveau message reçu',
+            $content,
+            $link
+        );
+    }
+
+    public function notifyApplicantProfileFavorited(DeveloperProfile $profile, RecruiterProfile $recruiterProfile): bool
+    {
+        $targetUser = $profile->getUser();
+        if (!$targetUser instanceof User) {
+            return false;
+        }
+
+        $link = null !== $profile->getSlug()
+            ? $this->urlGenerator->generate('app_public_profile_show', ['slug' => (string) $profile->getSlug()])
+            : $this->urlGenerator->generate('app_applicant_home');
+
+        $this->createNotification(
+            $targetUser,
+            NotificationType::PROFILE_FAVORITED,
+            'Votre profil a été ajouté aux favoris',
+            sprintf('%s a ajouté votre profil à ses favoris.', $this->resolveRecruiterProfileLabel($recruiterProfile)),
+            $link
+        );
+
+        return true;
+    }
+
+    /**
+     * @param array<string, array{done: bool, route: string, label: string}> $checklist
+     */
+    public function notifyApplicantIncompleteProfileReminder(User $user, array $checklist): bool
+    {
+        if (!in_array('ROLE_APPLICANT', $user->getRoles(), true)) {
+            return false;
+        }
+
+        $completedSteps = 0;
+        foreach ($checklist as $step) {
+            if (($step['done'] ?? false) === true) {
+                ++$completedSteps;
+            }
+        }
+
+        if ($completedSteps >= 4) {
+            return false;
+        }
+
+        $link = $this->urlGenerator->generate('app_applicant_home');
+        if ($this->notificationRepository->existsForUserTypeAndLink($user, NotificationType::PROFILE_INCOMPLETE, $link)) {
+            return false;
+        }
+
+        $this->createNotification(
+            $user,
+            NotificationType::PROFILE_INCOMPLETE,
+            'Complétez votre profil développeur',
+            sprintf('Votre profil est incomplet : il vous reste %d étape(s) à finaliser pour débloquer tout votre espace applicant.', 4 - $completedSteps),
+            $link
+        );
+
+        return true;
+    }
+
+    public function notifyApplicantOfferExpired(User $user, JobOffer $offer): bool
+    {
+        if (!in_array('ROLE_APPLICANT', $user->getRoles(), true)) {
+            return false;
+        }
+
+        $link = sprintf(
+            '%s?offer=%d',
+            $this->urlGenerator->generate('app_applicant_messages'),
+            (int) ($offer->getId() ?? 0)
+        );
+
+        if ($this->notificationRepository->existsForUserTypeAndLink($user, NotificationType::JOB_OFFER_EXPIRED, $link)) {
+            return false;
+        }
+
+        $companyName = $offer->getRecruiterProfile()?->getCompany()?->getName();
+
+        $this->createNotification(
+            $user,
+            NotificationType::JOB_OFFER_EXPIRED,
+            'Une offre en cours de discussion a expiré',
+            sprintf(
+                'L\'offre "%s"%s est arrivée à expiration. Si vous étiez en échange avec ce recruteur, pensez à vérifier si une autre opportunité reste ouverte.',
+                $offer->getTitle() ?? 'Offre',
+                $companyName ? sprintf(' chez %s', $companyName) : ''
+            ),
+            $link
+        );
+
+        return true;
+    }
+
+    public function notifyApplicantProfileModerated(DeveloperProfile $profile, ?string $reason = null): bool
+    {
+        $user = $profile->getUser();
+        if (!$user instanceof User) {
+            return false;
+        }
+
+        $this->createNotification(
+            $user,
+            NotificationType::PROFILE_MODERATED,
+            'Votre profil a été modéré',
+            sprintf(
+                'Votre profil a été temporairement retiré de la visibilité publique par un administrateur.%s',
+                $reason ? sprintf(' Motif : %s', $reason) : ''
+            ),
+            $this->urlGenerator->generate('app_applicant_home')
+        );
+
+        return true;
     }
 
     public function notifyRecruitersFollowingProfileUpdated(DeveloperProfile $profile): void
@@ -392,6 +543,32 @@ final class NotificationManager
         }
 
         return 'utilisateur';
+    }
+
+    private function resolveUserDisplayName(User $user): string
+    {
+        $recruiterProfile = $user->getRecruiterProfile();
+        if ($recruiterProfile instanceof RecruiterProfile) {
+            return $this->resolveRecruiterProfileLabel($recruiterProfile);
+        }
+
+        $developerProfile = $user->getDeveloperProfile();
+        if ($developerProfile instanceof DeveloperProfile) {
+            return $this->resolveDeveloperProfileLabel($developerProfile);
+        }
+
+        return $user->getEmail() ?? 'Un utilisateur';
+    }
+
+    private function resolveRecruiterProfileLabel(RecruiterProfile $recruiterProfile): string
+    {
+        $fullName = trim(sprintf('%s %s', (string) $recruiterProfile->getFirstName(), (string) $recruiterProfile->getLastName()));
+
+        if ('' !== $fullName) {
+            return $fullName;
+        }
+
+        return $recruiterProfile->getUser()?->getEmail() ?? 'un recruteur';
     }
 
     private function toReadableRole(string $role): string
