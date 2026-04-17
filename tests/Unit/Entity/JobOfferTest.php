@@ -105,4 +105,14 @@ final class JobOfferTest extends TestCase
         self::assertSame(35000, $offer->getSalaryMin());
         self::assertSame(55000, $offer->getSalaryMax());
     }
+
+    public function testSetApplicationDeadline(): void
+    {
+        $offer = new JobOffer();
+        $deadline = new \DateTimeImmutable('2026-05-01');
+
+        $offer->setApplicationDeadline($deadline);
+
+        self::assertSame($deadline, $offer->getApplicationDeadline());
+    }
 }

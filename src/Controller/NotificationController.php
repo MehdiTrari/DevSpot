@@ -17,21 +17,18 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class NotificationController extends AbstractController
 {
     private const PER_PAGE = 10;
+    private const FILTER_ALL = 'all';
+    private const FILTER_UNREAD = 'unread';
+    private const FILTER_READ = 'read';
 
     #[Route('', name: 'app_notifications_index', methods: ['GET'])]
     public function index(Request $request, NotificationRepository $notificationRepository): Response
     {
         $user = $this->getAuthenticatedUser();
-        $filter = $request->query->get('filter');
+        $filter = $this->normalizeFilter($request->query->get('filter'));
         $requestedPage = max(1, $request->query->getInt('page', 1));
 
-        $isRead = null;
-        if ('read' === $filter) {
-            $isRead = true;
-        }
-        if ('unread' === $filter) {
-            $isRead = false;
-        }
+        $isRead = $this->resolveReadFilter($filter);
 
         $total = $notificationRepository->countForUser($user, $isRead);
         $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
@@ -62,7 +59,7 @@ final class NotificationController extends AbstractController
     public function markRead(Notification $notification, Request $request, EntityManagerInterface $entityManager, NotificationRepository $notificationRepository): Response
     {
         $user = $this->getAuthenticatedUser();
-        $filter = $request->query->get('filter');
+        $filter = $this->normalizeFilter($request->query->get('filter'));
         $page = max(1, $request->query->getInt('page', 1));
 
         if ($notification->getUser()?->getId() !== $user->getId()) {
@@ -98,7 +95,7 @@ final class NotificationController extends AbstractController
     public function delete(Notification $notification, Request $request, EntityManagerInterface $entityManager, NotificationRepository $notificationRepository): Response
     {
         $user = $this->getAuthenticatedUser();
-        $filter = $request->query->get('filter');
+        $filter = $this->normalizeFilter($request->query->get('filter'));
         $page = max(1, $request->query->getInt('page', 1));
 
         if ($notification->getUser()?->getId() !== $user->getId()) {
@@ -134,7 +131,7 @@ final class NotificationController extends AbstractController
     public function markAllRead(Request $request, NotificationRepository $notificationRepository): Response
     {
         $user = $this->getAuthenticatedUser();
-        $filter = $request->query->get('filter');
+        $filter = $this->normalizeFilter($request->query->get('filter'));
         $page = max(1, $request->query->getInt('page', 1));
 
         if (!$this->isCsrfTokenValid('notification_read_all', (string) $request->request->get('_token'))) {
@@ -170,14 +167,9 @@ final class NotificationController extends AbstractController
 
     private function renderNotificationsPartial(?string $filter, User $user, Request $request, NotificationRepository $notificationRepository): Response
     {
+        $filter = $this->normalizeFilter($filter);
         $requestedPage = max(1, $request->query->getInt('page', 1));
-        $isRead = null;
-        if ('read' === $filter) {
-            $isRead = true;
-        }
-        if ('unread' === $filter) {
-            $isRead = false;
-        }
+        $isRead = $this->resolveReadFilter($filter);
 
         $total = $notificationRepository->countForUser($user, $isRead);
         $totalPages = max(1, (int) ceil($total / self::PER_PAGE));
@@ -212,5 +204,24 @@ final class NotificationController extends AbstractController
         }
 
         return $user;
+    }
+
+    private function normalizeFilter(?string $filter): string
+    {
+        return match ($filter) {
+            self::FILTER_ALL,
+            self::FILTER_READ,
+            self::FILTER_UNREAD => $filter,
+            default => self::FILTER_UNREAD,
+        };
+    }
+
+    private function resolveReadFilter(string $filter): ?bool
+    {
+        return match ($filter) {
+            self::FILTER_READ => true,
+            self::FILTER_UNREAD => false,
+            default => null,
+        };
     }
 }

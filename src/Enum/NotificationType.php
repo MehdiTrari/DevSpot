@@ -28,6 +28,7 @@ enum NotificationType: string
     case PROFILE_UNPUBLISHED = 'profile_unpublished';
     case PROFILE_VIEWED = 'profile_viewed'; // optionnel
     case PROFILE_MODERATED = 'profile_moderated';
+    case PROFILE_INCOMPLETE = 'profile_incomplete';
 
     // =========================
     // FAVORITES

@@ -2,7 +2,9 @@
 
 namespace App\Tests\Functional\Controller;
 
+use App\Entity\Notification;
 use App\Entity\User;
+use App\Enum\NotificationType;
 use App\Enum\UserStatus;
 use App\Repository\NotificationRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -49,15 +51,13 @@ final class AdminApplicantNotificationSuppressionTest extends WebTestCase
         self::assertSame($initialCount, $this->countNotificationsForUser($reloadedApplicant));
     }
 
-    public function testAdminStatusChangeDoesNotNotifyApplicantTarget(): void
+    public function testAdminStatusChangeNotifiesApplicantTarget(): void
     {
         $client = static::createClient();
         $this->initializeSchemaIfNeeded();
 
         $admin = $this->createUser('admin_status_'.bin2hex(random_bytes(6)).'@example.com', ['ROLE_ADMIN']);
         $applicant = $this->createUser('applicant_status_'.bin2hex(random_bytes(6)).'@example.com', ['ROLE_APPLICANT']);
-
-        $initialCount = $this->countNotificationsForUser($applicant);
 
         $client->loginUser($admin);
         $crawler = $client->request('GET', '/admin/users');
@@ -80,7 +80,14 @@ final class AdminApplicantNotificationSuppressionTest extends WebTestCase
         $reloadedApplicant = $entityManager->getRepository(User::class)->find($applicant->getId());
         self::assertInstanceOf(User::class, $reloadedApplicant);
         self::assertSame(UserStatus::SUSPENDED, $reloadedApplicant->getStatus());
-        self::assertSame($initialCount, $this->countNotificationsForUser($reloadedApplicant));
+
+        $notification = $entityManager->getRepository(Notification::class)->findOneBy([
+            'user' => $reloadedApplicant,
+            'type' => NotificationType::ACCOUNT_SUSPENDED,
+        ], ['id' => 'DESC']);
+
+        self::assertInstanceOf(Notification::class, $notification);
+        self::assertStringContainsString('suspendu', (string) $notification->getContent());
     }
 
     private function countNotificationsForUser(User $user): int

@@ -50,6 +50,7 @@ final class RecruiterOffersTest extends WebTestCase
             'job_offer[title]' => 'Développeur Symfony Senior',
             'job_offer[description]' => 'Nous recherchons un développeur Symfony expérimenté.',
             'job_offer[location]' => 'Paris, France',
+            'job_offer[applicationDeadline]' => (new \DateTimeImmutable('+10 days'))->format('Y-m-d'),
             'job_offer[status]' => 'published',
         ]);
 
@@ -64,6 +65,7 @@ final class RecruiterOffersTest extends WebTestCase
         self::assertSame('Développeur Symfony Senior', $offer->getTitle());
         self::assertSame(OfferStatus::PUBLISHED, $offer->getStatus());
         self::assertTrue($offer->isActive());
+        self::assertSame((new \DateTimeImmutable('+10 days'))->format('Y-m-d'), $offer->getApplicationDeadline()?->format('Y-m-d'));
         self::assertSame($recruiter->getRecruiterProfile()->getId(), $offer->getRecruiterProfile()->getId());
     }
 
@@ -77,6 +79,7 @@ final class RecruiterOffersTest extends WebTestCase
         $form = $crawler->selectButton('Créer l\'offre')->form([
             'job_offer[title]' => 'Offre brouillon test',
             'job_offer[description]' => 'Description du brouillon.',
+            'job_offer[applicationDeadline]' => (new \DateTimeImmutable('+15 days'))->format('Y-m-d'),
             'job_offer[status]' => 'draft',
         ]);
 
@@ -102,6 +105,7 @@ final class RecruiterOffersTest extends WebTestCase
         $form = $crawler->selectButton('Créer l\'offre')->form([
             'job_offer[title]' => '',
             'job_offer[description]' => '',
+            'job_offer[applicationDeadline]' => '',
         ]);
 
         $client->submit($form);
@@ -300,6 +304,7 @@ final class RecruiterOffersTest extends WebTestCase
         $form = $crawler->selectButton('Créer l\'offre')->form([
             'job_offer[title]' => $title,
             'job_offer[description]' => 'Description de test pour ' . $title,
+            'job_offer[applicationDeadline]' => (new \DateTimeImmutable('+14 days'))->format('Y-m-d'),
             'job_offer[status]' => $status,
         ]);
         $client->submit($form);
