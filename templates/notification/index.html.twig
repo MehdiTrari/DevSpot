@@ -87,14 +87,41 @@
 
                 event.preventDefault();
 
+                const article = form.closest('article');
+                const isMarkAllRead = !article;
+
                 const submitButton = form.querySelector('button[type="submit"]');
                 if (submitButton) {
                     submitButton.setAttribute('disabled', 'disabled');
                     submitButton.classList.add('opacity-70', 'cursor-not-allowed');
                 }
 
-                container.setAttribute('aria-busy', 'true');
-                container.classList.add('opacity-60', 'pointer-events-none');
+                if (article) {
+                    article.style.transition = 'opacity 0.35s ease, transform 0.35s ease, max-height 0.4s ease 0.1s, padding 0.4s ease 0.1s, margin 0.4s ease 0.1s';
+                    article.style.maxHeight = article.scrollHeight + 'px';
+                    article.style.overflow = 'hidden';
+
+                    requestAnimationFrame(() => {
+                        article.style.opacity = '0';
+                        article.style.transform = 'translateX(30px) scale(0.97)';
+                    });
+                } else {
+                    container.setAttribute('aria-busy', 'true');
+                    container.classList.add('opacity-60', 'pointer-events-none');
+                }
+
+                const delay = article ? 380 : 0;
+                await new Promise(r => setTimeout(r, delay));
+
+                if (article) {
+                    article.style.maxHeight = '0';
+                    article.style.paddingTop = '0';
+                    article.style.paddingBottom = '0';
+                    article.style.marginTop = '0';
+                    article.style.marginBottom = '0';
+                }
+
+                await new Promise(r => setTimeout(r, article ? 300 : 0));
 
                 try {
                     const response = await fetch(form.action, {
@@ -114,7 +141,29 @@
                     }
 
                     const html = await response.text();
+                    const tmp = document.createElement('div');
+                    tmp.innerHTML = html;
+
+                    const newArticles = tmp.querySelectorAll('article');
+                    newArticles.forEach(a => {
+                        a.style.opacity = '0';
+                        a.style.transform = 'translateY(8px)';
+                    });
+
                     container.innerHTML = html;
+
+                    const articles = container.querySelectorAll('article');
+                    requestAnimationFrame(() => {
+                        articles.forEach((a, i) => {
+                            a.style.transition = `opacity 0.35s ease ${i * 0.04}s, transform 0.35s ease ${i * 0.04}s`;
+                            a.style.opacity = '0';
+                            a.style.transform = 'translateY(8px)';
+                            requestAnimationFrame(() => {
+                                a.style.opacity = '1';
+                                a.style.transform = 'translateY(0)';
+                            });
+                        });
+                    });
                 } catch (_error) {
                     window.location.href = form.action;
                 } finally {

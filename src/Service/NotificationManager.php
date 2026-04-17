@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Entity\Company;
 use App\Entity\ContactMessage;
 use App\Entity\DeveloperProfile;
 use App\Entity\Message;
@@ -228,6 +229,91 @@ final class NotificationManager
         );
     }
 
+    public function notifyAdminsRoleRequest(User $requester, string $requestedRole): bool
+    {
+        $link = $this->urlGenerator->generate('app_admin_users', [
+            'q' => $requester->getEmail(),
+            'requestedRole' => $requestedRole,
+        ]);
+
+        return $this->broadcastToAdmins(
+            NotificationType::ROLE_REQUEST,
+            'Demande de changement de rôle',
+            sprintf(
+                '%s demande le passage de %s vers %s.',
+                $requester->getEmail() ?? 'Utilisateur inconnu',
+                $this->toReadableRole($this->extractPrimaryRole($requester)),
+                $this->toReadableRole($requestedRole)
+            ),
+            $link
+        );
+    }
+
+    public function notifyAdminsSlugChangeRequest(User $requester, DeveloperProfile $profile, string $desiredSlug): bool
+    {
+        $link = sprintf(
+            '%s?requestedSlug=%s',
+            $this->urlGenerator->generate('app_public_profile_show', ['slug' => $profile->getSlug()]),
+            rawurlencode($desiredSlug)
+        );
+
+        return $this->broadcastToAdmins(
+            NotificationType::SLUG_CHANGE_REQUEST,
+            'Demande de changement de slug',
+            sprintf(
+                '%s demande le slug "%s" pour le portfolio de %s %s.',
+                $requester->getEmail() ?? 'Utilisateur inconnu',
+                $desiredSlug,
+                $profile->getFirstName() ?? '',
+                $profile->getLastName() ?? ''
+            ),
+            $link
+        );
+    }
+
+    public function notifyAdminsCompanyCreated(User $requester, Company $company): bool
+    {
+        $link = sprintf(
+            '%s?company=%s',
+            $this->urlGenerator->generate('app_admin_companies'),
+            rawurlencode((string) $company->getName())
+        );
+
+        return $this->broadcastToAdmins(
+            NotificationType::SYSTEM_NOTIFICATION,
+            'Nouvelle entreprise créée',
+            sprintf(
+                'L\'entreprise %s a été créée lors de l\'inscription de %s.',
+                $company->getName() ?? 'Entreprise inconnue',
+                $requester->getEmail() ?? 'un recruteur'
+            ),
+            $link
+        );
+    }
+
+    public function notifyAdminsProfileReported(User $reporter, DeveloperProfile $profile, string $reason, bool $abusiveContent = false): bool
+    {
+        $link = sprintf(
+            '%s?reporter=%s&category=%s',
+            $this->urlGenerator->generate('app_public_profile_show', ['slug' => $profile->getSlug()]),
+            rawurlencode((string) ($reporter->getEmail() ?? 'unknown')),
+            $abusiveContent ? 'abusive_content' : 'profile'
+        );
+
+        return $this->broadcastToAdmins(
+            NotificationType::CONTENT_REPORTED,
+            $abusiveContent ? 'Signalement de contenu abusif' : 'Profil signalé',
+            sprintf(
+                '%s a signalé le profil de %s %s. Motif : %s',
+                $reporter->getEmail() ?? 'Utilisateur inconnu',
+                $profile->getFirstName() ?? '',
+                $profile->getLastName() ?? '',
+                $reason
+            ),
+            $link
+        );
+    }
+
     private function createNotification(User $targetUser, NotificationType $type, string $title, string $content, ?string $link = null): void
     {
         $notification = new Notification();
@@ -239,6 +325,26 @@ final class NotificationManager
         $notification->setIsRead(false);
 
         $this->entityManager->persist($notification);
+    }
+
+    private function broadcastToAdmins(NotificationType $type, string $title, string $content, ?string $link = null): bool
+    {
+        $admins = $this->userRepository->findAdmins();
+        if ([] === $admins) {
+            return false;
+        }
+
+        $created = false;
+        foreach ($admins as $admin) {
+            if (null !== $link && $this->notificationRepository->existsForUserTypeAndLink($admin, $type, $link)) {
+                continue;
+            }
+
+            $this->createNotification($admin, $type, $title, $content, $link);
+            $created = true;
+        }
+
+        return $created;
     }
 
     private function notifyRecruitersFollowingProfileEvent(DeveloperProfile $profile, NotificationType $type, string $title, string $content, ?string $link): void
@@ -296,5 +402,16 @@ final class NotificationManager
             'ROLE_APPLICANT' => 'Applicant',
             default => $role,
         };
+    }
+
+    private function extractPrimaryRole(User $user): string
+    {
+        foreach (['ROLE_ADMIN', 'ROLE_RECRUITER', 'ROLE_APPLICANT'] as $role) {
+            if (in_array($role, $user->getRoles(), true)) {
+                return $role;
+            }
+        }
+
+        return 'ROLE_USER';
     }
 }

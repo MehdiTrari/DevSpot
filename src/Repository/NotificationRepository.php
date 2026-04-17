@@ -28,7 +28,8 @@ class NotificationRepository extends ServiceEntityRepository
             ->andWhere('n.type != :excludedType')
             ->setParameter('user', $user)
             ->setParameter('excludedType', NotificationType::NEW_MESSAGE)
-            ->orderBy('n.createdAt', 'DESC');
+            ->orderBy('n.isRead', 'ASC')
+            ->addOrderBy('n.createdAt', 'DESC');
 
         if (null !== $isRead) {
             $qb
@@ -52,7 +53,8 @@ class NotificationRepository extends ServiceEntityRepository
             ->andWhere('n.type != :excludedType')
             ->setParameter('user', $user)
             ->setParameter('excludedType', NotificationType::NEW_MESSAGE)
-            ->orderBy('n.createdAt', 'DESC')
+            ->orderBy('n.isRead', 'ASC')
+            ->addOrderBy('n.createdAt', 'DESC')
             ->setFirstResult(($safePage - 1) * $safePerPage)
             ->setMaxResults($safePerPage);
 
