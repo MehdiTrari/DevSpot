@@ -145,6 +145,7 @@ final class AdminNotificationRequestsTest extends WebTestCase
         $profile->setWorkEmail($user->getEmail());
         $profile->setCompany($company);
         $profile->setUser($user);
+        $user->setRecruiterProfile($profile);
 
         $entityManager->persist($profile);
         $entityManager->flush();
