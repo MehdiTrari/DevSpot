@@ -50,6 +50,16 @@ final class SemanticMatchingServiceTest extends TestCase
             {
                 return null;
             }
+
+            public function embedBatch(array $texts): ?array
+            {
+                return null;
+            }
+
+            public function inferSkillsBatch(array $texts): ?array
+            {
+                return null;
+            }
         });
 
         $offer = new JobOffer('offer-1', 'Offre', [], [], 'Symfony API');
@@ -84,6 +94,16 @@ final class SemanticMatchingServiceTest extends TestCase
             }
 
             public function inferSkills(string $text): ?array
+            {
+                return null;
+            }
+
+            public function embedBatch(array $texts): ?array
+            {
+                return null;
+            }
+
+            public function inferSkillsBatch(array $texts): ?array
             {
                 return null;
             }

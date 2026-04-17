@@ -9,8 +9,10 @@ use App\Entity\JobOffer;
 use App\Entity\Message;
 use App\Entity\RecruiterProfile;
 use App\Entity\User;
+use App\Enum\OfferStatus;
 use App\Enum\UserStatus;
 use App\Form\ChatReplyType;
+use App\Form\JobOfferType;
 use App\Repository\ConversationRepository;
 use App\Repository\DeveloperProfileRepository;
 use App\Repository\FavoriteProfileRepository;
@@ -28,6 +30,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 final class RecruiterController extends AbstractController
@@ -46,7 +49,7 @@ final class RecruiterController extends AbstractController
             throw $this->createNotFoundException('Profil recruteur introuvable.');
         }
 
-        [$offerRows, $favoriteRows, $offersCount] = $this->buildRecruiterDashboardRows(
+        [$offerRows, $favoriteRows, $offersCount, $activeOffersCount, $closedOffersCount] = $this->buildRecruiterDashboardRows(
             $recruiterProfile,
             $favoriteProfileRepository,
             $cache,
@@ -63,6 +66,8 @@ final class RecruiterController extends AbstractController
             'offerRows' => $offerRows,
             'favoriteRows' => $favoriteRows,
             'offersCount' => $offersCount,
+            'activeOffersCount' => $activeOffersCount,
+            'closedOffersCount' => $closedOffersCount,
             'favoriteProfiles' => $favoriteProfiles,
             'favoriteProfilesCount' => count($favoriteProfiles),
         ]);
@@ -151,6 +156,38 @@ final class RecruiterController extends AbstractController
         return $this->favoriteSuccessResponse($request, $redirectPath, $favoriteProfileRepository, $recruiterProfile, $profile, false, 'Profil retiré des favoris.');
     }
 
+    #[Route('/recruiter/offers/new', name: 'app_recruiter_offer_create', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_RECRUITER')]
+    public function createOffer(
+        Request $request,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $recruiterProfile = $this->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile) {
+            throw $this->createNotFoundException('Profil recruteur introuvable.');
+        }
+
+        $offer = new JobOffer();
+        $offer->setRecruiterProfile($recruiterProfile);
+        $offer->setStatus(OfferStatus::PUBLISHED);
+
+        $form = $this->createForm(JobOfferType::class, $offer);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->persist($offer);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Offre créée avec succès !');
+
+            return $this->redirectToRoute('app_recruiter_offer_detail', ['id' => $offer->getId()]);
+        }
+
+        return $this->render('recruiter/create_offer.html.twig', [
+            'form' => $form,
+        ]);
+    }
+
     #[Route('/recruiter/offers', name: 'app_recruiter_offers')]
     #[IsGranted('ROLE_RECRUITER')]
     public function offers(
@@ -183,6 +220,8 @@ final class RecruiterController extends AbstractController
     #[IsGranted('ROLE_RECRUITER')]
     public function offerDetail(
         JobOffer $offer,
+        FavoriteProfileRepository $favoriteProfileRepository,
+        CsrfTokenManagerInterface $csrfTokenManager,
         #[Autowire(service: 'cache.app')] CacheItemPoolInterface $cache,
     ): Response {
         $recruiterProfile = $this->getRecruiterProfile();
@@ -191,15 +230,29 @@ final class RecruiterController extends AbstractController
         }
 
         $cachedMatching = null;
-        $cacheKey = $this->buildMatchingCacheKey((int) $offer->getId());
-        $item = $cache->getItem($cacheKey);
-
+        $item = $cache->getItem($this->buildMatchingCacheKey((int) $offer->getId()));
         if ($item->isHit()) {
             $cached = $item->get();
             $allMatches = $cached['matches'] ?? [];
             $perPage = 10;
             $totalPages = max(1, (int) ceil(count($allMatches) / $perPage));
             $firstPageMatches = array_slice($allMatches, 0, $perPage);
+
+            $favoriteDeveloperIds = $favoriteProfileRepository->findFavoriteDeveloperProfileIdsForRecruiterProfile($recruiterProfile);
+            $firstPageMatches = array_map(function (array $match) use ($favoriteDeveloperIds, $csrfTokenManager): array {
+                $developerId = $match['developerId'] ?? null;
+                $isFavorite = null !== $developerId && in_array($developerId, $favoriteDeveloperIds, true);
+                $match['isFavorite'] = $isFavorite;
+
+                if (null !== $developerId) {
+                    $match['favoriteAddUrl'] = $this->generateUrl('app_recruiter_favorite_add', ['id' => $developerId]);
+                    $match['favoriteRemoveUrl'] = $this->generateUrl('app_recruiter_favorite_remove', ['id' => $developerId]);
+                    $match['favoriteAddToken'] = $csrfTokenManager->getToken('favorite_add_' . $developerId)->getValue();
+                    $match['favoriteRemoveToken'] = $csrfTokenManager->getToken('favorite_remove_' . $developerId)->getValue();
+                }
+
+                return $match;
+            }, $firstPageMatches);
 
             $cachedMatching = json_encode([
                 'offer' => $cached['offer'] ?? ['id' => $offer->getId(), 'title' => (string) $offer->getTitle()],
@@ -231,6 +284,8 @@ final class RecruiterController extends AbstractController
         Request $request,
         DeveloperProfileRepository $developerProfileRepository,
         OfferMatchingService $offerMatchingService,
+        FavoriteProfileRepository $favoriteProfileRepository,
+        CsrfTokenManagerInterface $csrfTokenManager,
         #[Autowire(service: 'cache.app')] CacheItemPoolInterface $cache,
     ): JsonResponse {
         $recruiterProfile = $this->getRecruiterProfile();
@@ -298,8 +353,7 @@ final class RecruiterController extends AbstractController
         } else {
             $cachedData = $item->get();
 
-            $summaryKey = $this->buildMatchingSummaryCacheKey((int) $offer->getId());
-            $summaryItem = $cache->getItem($summaryKey);
+            $summaryItem = $cache->getItem($this->buildMatchingSummaryCacheKey((int) $offer->getId()));
             if (!$summaryItem->isHit()) {
                 $summaryItem->set($this->extractMatchingSummary($cachedData));
                 $summaryItem->expiresAfter(self::MATCHING_CACHE_TTL);
@@ -307,6 +361,7 @@ final class RecruiterController extends AbstractController
             }
         }
 
+        $favoriteDeveloperIds = $favoriteProfileRepository->findFavoriteDeveloperProfileIdsForRecruiterProfile($recruiterProfile);
         $allMatches = $cachedData['matches'] ?? [];
         $totalMatches = count($allMatches);
         $page = max(1, $request->query->getInt('page', 1));
@@ -314,6 +369,20 @@ final class RecruiterController extends AbstractController
         $totalPages = max(1, (int) ceil($totalMatches / $perPage));
         $page = min($page, $totalPages);
         $visibleMatches = array_slice($allMatches, ($page - 1) * $perPage, $perPage);
+        $visibleMatches = array_map(function (array $match) use ($favoriteDeveloperIds, $csrfTokenManager): array {
+            $developerId = $match['developerId'] ?? null;
+            $isFavorite = null !== $developerId && in_array($developerId, $favoriteDeveloperIds, true);
+            $match['isFavorite'] = $isFavorite;
+
+            if (null !== $developerId) {
+                $match['favoriteAddUrl'] = $this->generateUrl('app_recruiter_favorite_add', ['id' => $developerId]);
+                $match['favoriteRemoveUrl'] = $this->generateUrl('app_recruiter_favorite_remove', ['id' => $developerId]);
+                $match['favoriteAddToken'] = $csrfTokenManager->getToken('favorite_add_' . $developerId)->getValue();
+                $match['favoriteRemoveToken'] = $csrfTokenManager->getToken('favorite_remove_' . $developerId)->getValue();
+            }
+
+            return $match;
+        }, $visibleMatches);
 
         return $this->json([
             'offer' => $cachedData['offer'],
@@ -329,6 +398,39 @@ final class RecruiterController extends AbstractController
             'cachedAt' => $cachedData['cachedAt'],
             'matches' => $visibleMatches,
         ]);
+    }
+
+    #[Route('/recruiter/offers/{id}/toggle-status', name: 'app_recruiter_offer_toggle_status', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_RECRUITER')]
+    public function toggleOfferStatus(
+        JobOffer $offer,
+        Request $request,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $recruiterProfile = $this->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile || $offer->getRecruiterProfile()?->getId() !== $recruiterProfile->getId()) {
+            throw $this->createNotFoundException('Offre introuvable.');
+        }
+
+        if (!$this->isCsrfTokenValid('offer_toggle_' . $offer->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+
+            return $this->redirectToRoute('app_recruiter_offers');
+        }
+
+        $newStatus = match ((string) $request->request->get('action')) {
+            'publish' => OfferStatus::PUBLISHED,
+            'close' => OfferStatus::CLOSED,
+            'draft' => OfferStatus::DRAFT,
+            default => null,
+        };
+
+        if ($newStatus instanceof OfferStatus) {
+            $offer->setStatus($newStatus);
+            $entityManager->flush();
+        }
+
+        return $this->redirectToRoute('app_recruiter_offers');
     }
 
     #[Route('/recruiter/messages', name: 'app_recruiter_messages')]
@@ -519,19 +621,6 @@ final class RecruiterController extends AbstractController
         return $this->getRecruiterUser()->getRecruiterProfile();
     }
 
-    private function resolveRecruiterDisplayName(User $recruiterUser): string
-    {
-        $recruiterProfile = $recruiterUser->getRecruiterProfile();
-        if (null !== $recruiterProfile) {
-            $fullName = trim(sprintf('%s %s', (string) $recruiterProfile->getFirstName(), (string) $recruiterProfile->getLastName()));
-            if ('' !== $fullName) {
-                return $fullName;
-            }
-        }
-
-        return (string) ($recruiterUser->getEmail() ?? 'Recruteur');
-    }
-
     /**
      * @return list<array{conversation: Conversation, developerProfile: ?DeveloperProfile, lastMessage: Message, unreadCount: int}>
      */
@@ -634,14 +723,13 @@ final class RecruiterController extends AbstractController
     }
 
     /**
-     * @return list<array{id: int, title: string, contract: string, status: string, isActive: bool, location: ?string, updatedAt: ?\DateTimeImmutable, detailUrl: string, topMatchPercentage: ?float, cachedAt: ?string, matchesCount: int}>
+     * @return list<array{id: int, title: string, contract: string, status: string, statusValue: string, isActive: bool, location: ?string, updatedAt: mixed, detailUrl: string, topMatchPercentage: ?float, cachedAt: ?string, matchesCount: int}>
      */
     private function buildRecruiterOfferRows(RecruiterProfile $recruiterProfile): array
     {
-        $offers = $recruiterProfile->getJobOffers();
         $rows = [];
 
-        foreach ($offers as $offer) {
+        foreach ($recruiterProfile->getJobOffers() as $offer) {
             if (!$offer instanceof JobOffer) {
                 continue;
             }
@@ -659,12 +747,20 @@ final class RecruiterController extends AbstractController
                 default => $contractType->value,
             } : 'Non défini';
 
+            $status = $offer->getStatus();
+            $statusLabel = match ($status) {
+                OfferStatus::PUBLISHED => 'Publiée',
+                OfferStatus::CLOSED => 'Fermée',
+                OfferStatus::DRAFT => 'Brouillon',
+            };
+
             $rows[] = [
                 'id' => $offer->getId(),
                 'title' => (string) $offer->getTitle(),
                 'contract' => $contractLabel,
-                'status' => $offer->isActive() ? 'Publiée' : 'Brouillon',
-                'isActive' => (bool) $offer->isActive(),
+                'status' => $statusLabel,
+                'statusValue' => $status->value,
+                'isActive' => $status === OfferStatus::PUBLISHED,
                 'location' => $offer->getLocation(),
                 'updatedAt' => $offer->getUpdatedAt(),
                 'detailUrl' => $this->generateUrl('app_recruiter_offer_detail', ['id' => $offer->getId()]),
@@ -678,7 +774,7 @@ final class RecruiterController extends AbstractController
     }
 
     /**
-     * @return array{0: list<array>, 1: list<array>, 2: int}
+     * @return array{0: list<array>, 1: list<array>, 2: int, 3: int, 4: int}
      */
     private function buildRecruiterDashboardRows(
         RecruiterProfile $recruiterProfile,
@@ -687,10 +783,11 @@ final class RecruiterController extends AbstractController
     ): array {
         $allOfferRows = $this->buildRecruiterOfferRows($recruiterProfile);
         $offersCount = count($allOfferRows);
-        $offerRows = [];
-        $recentOfferRows = array_slice($allOfferRows, 0, 6);
+        $activeOffersCount = count(array_filter($allOfferRows, static fn (array $row): bool => ($row['statusValue'] ?? '') === OfferStatus::PUBLISHED->value));
+        $closedOffersCount = count(array_filter($allOfferRows, static fn (array $row): bool => ($row['statusValue'] ?? '') === OfferStatus::CLOSED->value));
 
-        foreach ($recentOfferRows as $baseRow) {
+        $offerRows = [];
+        foreach (array_slice($allOfferRows, 0, 6) as $baseRow) {
             $row = $baseRow;
             $row['applicants'] = 0;
             $row['topMatchName'] = null;
@@ -744,7 +841,7 @@ final class RecruiterController extends AbstractController
             ];
         }
 
-        return [$offerRows, $favoriteRows, $offersCount];
+        return [$offerRows, $favoriteRows, $offersCount, $activeOffersCount, $closedOffersCount];
     }
 
     private function buildMatchingCacheKey(int $offerId): string
