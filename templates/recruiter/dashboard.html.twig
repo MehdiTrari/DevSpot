@@ -3,125 +3,220 @@
 {% block title %}Mon espace | DevSpot{% endblock %}
 
 {% block body %}
-    {% set mockJobs = [
-        {
-            title: 'Développeur Symfony confirmé',
-            contract: 'CDI',
-            status: 'Brouillon',
-            applicants: 0
-        },
-        {
-            title: 'Lead backend PHP / Symfony',
-            contract: 'Temps plein',
-            status: 'Publiée',
-            applicants: 12
-        }
-    ] %}
+    {% set draftCount = offersCount - activeOffersCount - closedOffersCount %}
 
-    <section class="w-full max-w-6xl space-y-8 font-sans">
+    <section class="w-full max-w-6xl space-y-8 font-sans" data-controller="matching-preview" data-matching-preview-endpoint-value="{{ matchingPreviewEndpoint }}">
         <div class="favorite-showcase-hero mx-auto w-full max-w-5xl px-1 py-2 text-center sm:px-2 sm:py-3">
             <div class="mx-auto max-w-3xl">
-                    <p class="favorite-showcase-kicker">
-                        Espace recruteur
-                    </p>
-                    <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Mon dashboard.</h1>
-                    <p class="ui-text-secondary mt-4 max-w-2xl text-[15px]">Gère tes recherches de profils et suis tes interactions depuis un espace dédié.</p>
+                <p class="favorite-showcase-kicker">
+                    Espace recruteur
+                </p>
+                <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Mon dashboard.</h1>
+                <p class="ui-text-secondary mt-4 max-w-2xl text-[15px]">Gere tes recherches de profils, tes offres et tes interactions depuis un espace dedie.</p>
             </div>
         </div>
 
-        <div class="grid gap-4 sm:grid-cols-2">
-            <article class="premium-stat-card rounded-[1.9rem] p-6">
-                <div class="flex items-start justify-between gap-4">
-                    <div>
-                        <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Mes offres</p>
-                        <p class="ui-title mt-3 text-3xl font-semibold">{{ mockJobs|length }}</p>
-                        <p class="ui-text-muted mt-2 text-sm">Offre{{ mockJobs|length > 1 ? 's' : '' }} de poste pour définir votre espace de publication.</p>
-                    </div>
-                    <span class="premium-icon premium-icon-info">
-                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 3 4 7v10l8 4 8-4V7z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m4 7 8 4 8-4"></path>
-                        </svg>
-                    </span>
-                </div>
-            </article>
-
-            <a href="{{ path('app_recruiter_favorites') }}" class="premium-stat-card premium-action-card block rounded-[1.9rem] p-6">
-                <div class="flex items-start justify-between gap-4">
-                    <div>
-                        <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Mes favoris</p>
-                        <p data-favorite-count-value="true" class="ui-title mt-3 text-3xl font-semibold">{{ favoriteProfilesCount|default(0) }}</p>
-                        <p class="ui-text-muted mt-2 text-sm">Retrouve rapidement les profils que tu as sauvegardés.</p>
-                    </div>
-                    <span class="premium-icon premium-icon-success">
-                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m12 21-1.45-1.32C5.4 15.04 2 11.95 2 8.15 2 5.06 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.06 22 8.15c0 3.8-3.4 6.89-8.55 11.54z"></path>
-                        </svg>
-                    </span>
-                </div>
-            </a>
-        </div>
-
-        <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div class="theme-settings-card rounded-[2.35rem] p-8">
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                        <h2 class="ui-title text-2xl font-semibold tracking-tight">Informations du compte recruteur</h2>
-                        <p class="ui-text-muted mt-3 max-w-2xl text-[15px] leading-relaxed">
-                            Cet espace te permet de centraliser tes recherches, préparer tes prises de contact et suivre les profils développeurs qui t'intéressent.
-                        </p>
-                    </div>
-                    <span class="premium-kicker rounded-full px-3 py-1.5 text-xs font-semibold">Pilotage en cours</span>
+        <div class="grid gap-6 sm:grid-cols-2">
+            <div class="theme-settings-card flex flex-col rounded-[2.35rem] p-6">
+                <div class="flex items-center justify-between gap-3">
+                    <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Mes offres</p>
+                    <a href="{{ path('app_recruiter_offers') }}" class="ui-pill ui-pill-success inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">Voir tout</a>
                 </div>
 
-                <div class="mt-6">
-                    <article class="premium-card rounded-[1.9rem] p-6">
-                        <div class="flex items-center justify-between gap-3">
-                            <div>
-                                <h3 class="ui-title text-lg font-semibold">Mes offres</h3>
-                                <p class="ui-text-muted mt-1 text-sm">Prévisualisation des offres que vous pourrez publier et suivre.</p>
+                <div class="mt-4 flex-1 space-y-3">
+                    <div class="premium-list-row flex items-center gap-3 rounded-[1.4rem] px-4 py-3">
+                        <span class="premium-icon premium-icon-success">
+                            <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
+                            </svg>
+                        </span>
+                        <div>
+                            <p class="ui-title text-sm font-semibold">{{ activeOffersCount }} offre{{ activeOffersCount > 1 ? 's' : '' }} publiee{{ activeOffersCount > 1 ? 's' : '' }}</p>
+                            <p class="ui-text-muted text-xs">Visible{{ activeOffersCount > 1 ? 's' : '' }} par les candidats</p>
+                        </div>
+                    </div>
+
+                    <div class="premium-list-row flex items-center gap-3 rounded-[1.4rem] px-4 py-3">
+                        <span class="premium-icon premium-icon-warning">
+                            <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125"></path>
+                            </svg>
+                        </span>
+                        <div>
+                            <p class="ui-title text-sm font-semibold">{{ draftCount }} brouillon{{ draftCount > 1 ? 's' : '' }}</p>
+                            <p class="ui-text-muted text-xs">En attente de publication</p>
+                        </div>
+                    </div>
+
+                    <div class="premium-list-row flex items-center gap-3 rounded-[1.4rem] px-4 py-3">
+                        <span class="premium-icon premium-icon-danger">
+                            <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"></path>
+                            </svg>
+                        </span>
+                        <div>
+                            <p class="ui-title text-sm font-semibold">{{ closedOffersCount }} offre{{ closedOffersCount > 1 ? 's' : '' }} fermee{{ closedOffersCount > 1 ? 's' : '' }}</p>
+                            <p class="ui-text-muted text-xs">Retirees de la recherche</p>
+                        </div>
+                    </div>
+
+                    <div class="premium-list-row flex items-center gap-3 rounded-[1.4rem] px-4 py-3">
+                        <span class="premium-icon premium-icon-info">
+                            <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"></path>
+                            </svg>
+                        </span>
+                        <div>
+                            <p class="ui-title text-sm font-semibold">{{ offersCount }} offre{{ offersCount > 1 ? 's' : '' }} au total</p>
+                            <p class="ui-text-muted text-xs">Creees depuis ton espace</p>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="{{ path('app_recruiter_offer_create') }}" class="premium-action-card mt-4 inline-flex items-center justify-center gap-2 rounded-[1.2rem] px-5 py-3.5 text-sm font-semibold">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                    </svg>
+                    Creer une offre
+                </a>
+            </div>
+
+            <div class="theme-settings-card flex flex-col rounded-[2.35rem] p-6">
+                <div class="flex items-center justify-between gap-3">
+                    <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Mes profils favoris</p>
+                    <a href="{{ path('app_recruiter_favorites') }}" class="ui-pill ui-pill-success inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">Voir tout</a>
+                </div>
+
+                <div class="mt-4 flex-1 space-y-3">
+                    {% set maxFavorites = 3 %}
+                    {% for favorite in favoriteRows|slice(0, maxFavorites) %}
+                        <a href="{{ path('app_public_profile_show', { slug: favorite.slug }) }}" class="premium-list-row block rounded-[1.4rem] px-4 py-3 transition duration-300 hover:scale-[1.01]">
+                            <p class="ui-title text-sm font-semibold">{{ favorite.fullName }}</p>
+                            <p class="ui-text-secondary mt-1 text-sm">{{ favorite.headline }}</p>
+                            <div class="ui-text-muted mt-2 flex flex-wrap gap-2 text-xs">
+                                <span>{{ favorite.location ?: 'Localisation non renseignee' }}</span>
+                                <span>•</span>
+                                <span>{{ favorite.yearsExperience }} an(s) d'experience</span>
                             </div>
-                            <span class="ui-pill ui-pill-success rounded-full px-3 py-1 text-xs font-semibold">Bientôt</span>
+                        </a>
+                    {% else %}
+                        <div class="premium-list-row ui-text-muted rounded-[1.4rem] px-4 py-5 text-sm">
+                            Aucun profil favori pour le moment.
                         </div>
+                    {% endfor %}
 
-                        <div class="mt-5 space-y-3">
-                            {% for job in mockJobs %}
-                                <div class="premium-list-row rounded-[1.4rem] px-4 py-4">
-                                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                        <div>
-                                            <p class="ui-title text-sm font-semibold">{{ job.title }}</p>
-                                            <p class="ui-text-secondary mt-1 text-sm">{{ job.contract }}</p>
-                                            <p class="ui-text-muted mt-2 text-xs">{{ job.applicants }} candidature{{ job.applicants > 1 ? 's' : '' }} simulée{{ job.applicants > 1 ? 's' : '' }} pour cette offre.</p>
-                                        </div>
-                                        <span class="ui-pill {{ job.status == 'Publiée' ? 'ui-pill-success' : 'ui-pill-warning' }} rounded-full px-2.5 py-1 text-xs font-semibold">{{ job.status }}</span>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </article>
+                    {% if favoriteRows|length > maxFavorites %}
+                        <a href="{{ path('app_recruiter_favorites') }}" class="ui-pill ui-pill-success mt-1 flex items-center justify-center gap-2 rounded-[1.2rem] px-4 py-2.5 text-sm font-semibold">
+                            Voir les {{ favoriteRows|length }} profils favoris ->
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="theme-settings-card rounded-[2.35rem] p-8">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <h2 class="ui-title text-2xl font-semibold tracking-tight">Informations du compte recruteur</h2>
+                    <p class="ui-text-muted mt-3 max-w-3xl text-[15px] leading-relaxed">
+                        Cet espace te permet de centraliser tes recherches, preparer tes prises de contact et suivre les profils developpeurs qui t'interessent.
+                    </p>
                 </div>
             </div>
 
-            <aside class="space-y-6">
-                <div class="theme-settings-card rounded-[2.35rem] p-6">
-                    <h2 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Vue d'ensemble</h2>
-                    <ul class="mt-5 space-y-3 text-[15px]">
-                        <li class="premium-list-row rounded-[1.4rem] px-4 py-3 ui-text-primary">
-                            Recherche de développeurs à partir des portfolios publics.
-                        </li>
-                        <li class="premium-list-row rounded-[1.4rem] px-4 py-3 ui-text-primary">
-                            Suivi des profils favoris et des opportunités que vous préparez.
-                        </li>
-                        <li class="premium-list-row rounded-[1.4rem] px-4 py-3 ui-text-primary">
-                            Préparation des futures interactions recruteur dans un espace sécurisé.
-                        </li>
-                    </ul>
-                </div>
-            </aside>
+            <div class="mt-6">
+                <article class="premium-card rounded-[1.9rem] p-6">
+                    <div class="flex items-center justify-between gap-3">
+                        <div>
+                            <h3 class="ui-title text-lg font-semibold">Mes offres</h3>
+                            <p class="ui-text-muted mt-1 text-sm">Clique sur une offre pour ouvrir ta liste dediee.</p>
+                        </div>
+                        <a href="{{ path('app_recruiter_offers') }}" class="ui-pill ui-pill-success inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">Voir mes offres</a>
+                    </div>
+
+                    <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {% for job in offerRows %}
+                            <a href="{{ path('app_recruiter_offer_detail', { id: job.id }) }}" class="premium-list-row block rounded-[1.4rem] px-4 py-4 transition duration-300 hover:scale-[1.01]">
+                                <p class="ui-title text-sm font-semibold">{{ job.title }}</p>
+                                <p class="ui-text-secondary mt-1 text-sm">{{ job.contract }}</p>
+                                <p class="ui-text-muted mt-2 text-xs">{{ job.applicants }} candidature{{ job.applicants > 1 ? 's' : '' }} simulee{{ job.applicants > 1 ? 's' : '' }}</p>
+                                {% if job.topMatchPercentage is not null %}
+                                    <p class="mt-2 text-xs font-semibold text-emerald-400">Top matching enrichi : {{ job.topMatchPercentage|number_format(1, '.', ' ') }}%</p>
+                                {% endif %}
+                                <span class="ui-pill {% if job.statusValue == 'published' %}ui-pill-success{% elseif job.statusValue == 'closed' %}ui-pill-danger{% else %}ui-pill-warning{% endif %} mt-3 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold">{{ job.status }}</span>
+                            </a>
+                        {% else %}
+                            <div class="premium-list-row ui-text-muted rounded-[1.4rem] px-4 py-5 text-sm sm:col-span-2 lg:col-span-3">
+                                Aucune offre recruteur pour le moment.
+                            </div>
+                        {% endfor %}
+                    </div>
+                </article>
+            </div>
         </div>
+
+        <section class="theme-settings-card rounded-[2.35rem] p-8">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p class="premium-kicker text-xs font-semibold uppercase tracking-wider">Laboratoire matching</p>
+                    <h2 class="ui-title mt-2 text-2xl font-semibold tracking-tight">Tester le matching directement dans le site</h2>
+                    <p class="ui-text-muted mt-3 max-w-3xl text-[15px] leading-relaxed">
+                        Modifie le JSON, lance le test, puis verifie le classement, le detail du score, l'anonymisation et l'indicateur de fairness sans passer par curl.
+                    </p>
+                </div>
+                <button type="button" data-action="matching-preview#run" class="premium-action-card inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold">
+                    Lancer le matching
+                </button>
+            </div>
+
+            <div class="mt-6 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+                <div class="space-y-3">
+                    <label for="matching-preview-payload" class="ui-text-muted block text-xs font-semibold uppercase tracking-wider">Payload JSON</label>
+                    <textarea id="matching-preview-payload" data-matching-preview-target="payload" class="min-h-[34rem] w-full rounded-[1.5rem] border border-white/10 bg-slate-950/70 px-4 py-4 font-mono text-sm leading-6 text-slate-100 outline-none transition duration-300 placeholder:text-slate-500 focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-500/20" spellcheck="false">{{ matchingPreviewPayload }}</textarea>
+                </div>
+
+                <div class="space-y-4">
+                    <div data-matching-preview-target="status" class="premium-list-row ui-text-secondary rounded-[1.5rem] px-4 py-4 text-sm">
+                        Pret a executer le scenario de test.
+                    </div>
+
+                    <div data-matching-preview-target="summary" class="hidden rounded-[1.5rem] border border-emerald-500/20 bg-emerald-500/10 p-5">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Synthese</p>
+                        <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                            <div class="premium-list-row rounded-[1.4rem] px-4 py-3">
+                                <p class="ui-text-muted text-xs uppercase tracking-wider">Top candidat</p>
+                                <p data-matching-preview-target="topCandidate" class="ui-title mt-2 text-lg font-semibold">-</p>
+                            </div>
+                            <div class="premium-list-row rounded-[1.4rem] px-4 py-3">
+                                <p class="ui-text-muted text-xs uppercase tracking-wider">Top enrichi</p>
+                                <p data-matching-preview-target="topScore" class="ui-title mt-2 text-lg font-semibold">-</p>
+                            </div>
+                            <div class="premium-list-row rounded-[1.4rem] px-4 py-3">
+                                <p class="ui-text-muted text-xs uppercase tracking-wider">Fairness ratio</p>
+                                <p data-matching-preview-target="fairness" class="ui-title mt-2 text-lg font-semibold">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Resultats</h3>
+                        <div data-matching-preview-target="results" class="mt-4 space-y-3">
+                            <div class="premium-list-row ui-text-muted rounded-[1.5rem] px-4 py-6 text-sm">
+                                Aucun resultat affiche pour l'instant.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Reponse brute</h3>
+                        <pre data-matching-preview-target="rawResponse" class="mt-4 max-h-[18rem] overflow-auto rounded-[1.5rem] border border-white/10 bg-slate-950/70 px-4 py-4 font-mono text-xs leading-6 text-slate-300">En attente d'un test.</pre>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
-            Pilote tes recherches, garde tes favoris à portée de main et structure ton suivi recruteur au même endroit.
+            Pilote tes recherches, garde tes favoris a portee de main et structure ton suivi recruteur au meme endroit.
         </p>
     </section>
 {% endblock %}

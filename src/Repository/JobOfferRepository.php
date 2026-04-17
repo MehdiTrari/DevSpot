@@ -16,6 +16,19 @@ class JobOfferRepository extends ServiceEntityRepository
         parent::__construct($registry, JobOffer::class);
     }
 
+    /**
+     * @return JobOffer[]
+     */
+    public function findActiveForMatching(): array
+    {
+        return $this->createQueryBuilder('j')
+            ->andWhere('j.isActive = :active')
+            ->setParameter('active', true)
+            ->orderBy('j.updatedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return JobOffer[] Returns an array of JobOffer objects
     //     */

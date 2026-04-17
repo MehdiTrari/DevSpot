@@ -36,7 +36,7 @@ final class RecruiterFavoritesTest extends WebTestCase
         self::assertNotNull($favorite);
 
         $crawler = $client->request('GET', '/recruiter');
-        self::assertSelectorTextContains('[data-favorite-count-value="true"]', '1');
+        self::assertSelectorTextContains('body', 'Mes profils favoris');
         self::assertGreaterThan(0, $crawler->filter('a[href="/recruiter/favorites"]')->count());
     }
 
@@ -101,11 +101,11 @@ final class RecruiterFavoritesTest extends WebTestCase
 
         $client->loginUser($recruiterB);
         $client->request('GET', '/recruiter');
-        self::assertSelectorTextContains('[data-favorite-count-value="true"]', '0');
+        self::assertSelectorTextContains('body', 'Aucun profil favori pour le moment.');
 
         $client->loginUser($recruiterA);
         $client->request('GET', '/recruiter');
-        self::assertSelectorTextContains('[data-favorite-count-value="true"]', '1');
+        self::assertSelectorTextContains('body', 'Unique Favorite');
 
         $crawler = $client->request('GET', '/recruiter/favorites');
         self::assertSelectorTextContains('body', 'Unique Favorite');
@@ -119,7 +119,7 @@ final class RecruiterFavoritesTest extends WebTestCase
         self::assertSelectorTextNotContains('body', 'Unique Favorite');
 
         $client->request('GET', '/recruiter');
-        self::assertSelectorTextContains('[data-favorite-count-value="true"]', '0');
+        self::assertSelectorTextContains('body', 'Aucun profil favori pour le moment.');
         self::assertCount(0, $this->findFavoritesForRecruiter($recruiterA));
     }
 
