@@ -815,8 +815,8 @@ details[open] > .site-header-account-button {
 }
 
 .site-mobile-menu-link-logout:hover {
-    background: var(--indeed-logout-hover-bg);
-    color: var(--indeed-logout-hover-text);
+    background: #b4233f;
+    color: #ffe6ea;
 }
 
 @media (max-width: 960px) {
@@ -902,9 +902,10 @@ details[open] > .site-header-account-button {
     background: var(--indeed-logout-hover-bg);
 }
 .account-menu-logout.account-menu-item-hover:hover {
-    background: var(--indeed-logout-hover-bg);
-    color: var(--indeed-logout-hover-text);
-    filter: brightness(1.08);
+    background: #b4233f;
+    color: #ffe6ea;
+    border-color: #b4233f;
+    filter: none;
 }
 
 .notification-mark-read-btn {
