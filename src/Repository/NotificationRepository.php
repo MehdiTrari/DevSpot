@@ -25,10 +25,9 @@ class NotificationRepository extends ServiceEntityRepository
     {
         $qb = $this->createQueryBuilder('n')
             ->andWhere('n.user = :user')
-            ->andWhere('n.type != :excludedType')
             ->setParameter('user', $user)
-            ->setParameter('excludedType', NotificationType::NEW_MESSAGE)
-            ->orderBy('n.createdAt', 'DESC');
+            ->orderBy('n.isRead', 'ASC')
+            ->addOrderBy('n.createdAt', 'DESC');
 
         if (null !== $isRead) {
             $qb
@@ -49,10 +48,9 @@ class NotificationRepository extends ServiceEntityRepository
 
         $qb = $this->createQueryBuilder('n')
             ->andWhere('n.user = :user')
-            ->andWhere('n.type != :excludedType')
             ->setParameter('user', $user)
-            ->setParameter('excludedType', NotificationType::NEW_MESSAGE)
-            ->orderBy('n.createdAt', 'DESC')
+            ->orderBy('n.isRead', 'ASC')
+            ->addOrderBy('n.createdAt', 'DESC')
             ->setFirstResult(($safePage - 1) * $safePerPage)
             ->setMaxResults($safePerPage);
 
@@ -70,9 +68,7 @@ class NotificationRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('n')
             ->select('COUNT(n.id)')
             ->andWhere('n.user = :user')
-            ->andWhere('n.type != :excludedType')
-            ->setParameter('user', $user)
-            ->setParameter('excludedType', NotificationType::NEW_MESSAGE);
+            ->setParameter('user', $user);
 
         if (null !== $isRead) {
             $qb
@@ -88,10 +84,8 @@ class NotificationRepository extends ServiceEntityRepository
         return (int) $this->createQueryBuilder('n')
             ->select('COUNT(n.id)')
             ->andWhere('n.user = :user')
-            ->andWhere('n.type != :excludedType')
             ->andWhere('n.isRead = :isRead')
             ->setParameter('user', $user)
-            ->setParameter('excludedType', NotificationType::NEW_MESSAGE)
             ->setParameter('isRead', false)
             ->getQuery()
             ->getSingleScalarResult();
@@ -103,11 +97,9 @@ class NotificationRepository extends ServiceEntityRepository
             ->update()
             ->set('n.isRead', ':isRead')
             ->andWhere('n.user = :user')
-            ->andWhere('n.type != :excludedType')
             ->andWhere('n.isRead = :currentReadState')
             ->setParameter('isRead', true)
             ->setParameter('user', $user)
-            ->setParameter('excludedType', NotificationType::NEW_MESSAGE)
             ->setParameter('currentReadState', false)
             ->getQuery()
             ->execute();
@@ -123,6 +115,23 @@ class NotificationRepository extends ServiceEntityRepository
             ->setParameter('user', $user)
             ->setParameter('type', $type)
             ->setParameter('link', $link)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function existsUnreadForUserTypeAndLink(User $user, NotificationType $type, ?string $link): bool
+    {
+        return null !== $this->createQueryBuilder('n')
+            ->select('n.id')
+            ->andWhere('n.user = :user')
+            ->andWhere('n.type = :type')
+            ->andWhere('n.link = :link')
+            ->andWhere('n.isRead = :isRead')
+            ->setParameter('user', $user)
+            ->setParameter('type', $type)
+            ->setParameter('link', $link)
+            ->setParameter('isRead', false)
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();

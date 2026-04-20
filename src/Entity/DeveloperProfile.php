@@ -83,6 +83,12 @@ class DeveloperProfile
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $portfolioGeneratedAt = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $moderatedAt = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $moderationReason = null;
+
     #[ORM\OneToOne(inversedBy: 'developerProfile', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
@@ -360,6 +366,30 @@ class DeveloperProfile
     public function setPortfolioGeneratedAt(?\DateTimeImmutable $portfolioGeneratedAt): static
     {
         $this->portfolioGeneratedAt = $portfolioGeneratedAt;
+
+        return $this;
+    }
+
+    public function getModeratedAt(): ?\DateTimeImmutable
+    {
+        return $this->moderatedAt;
+    }
+
+    public function setModeratedAt(?\DateTimeImmutable $moderatedAt): static
+    {
+        $this->moderatedAt = $moderatedAt;
+
+        return $this;
+    }
+
+    public function getModerationReason(): ?string
+    {
+        return $this->moderationReason;
+    }
+
+    public function setModerationReason(?string $moderationReason): static
+    {
+        $this->moderationReason = $moderationReason;
 
         return $this;
     }

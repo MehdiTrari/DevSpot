@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\JobOffer;
+use App\Enum\OfferStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -25,6 +26,22 @@ class JobOfferRepository extends ServiceEntityRepository
             ->andWhere('j.isActive = :active')
             ->setParameter('active', true)
             ->orderBy('j.updatedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return JobOffer[]
+     */
+    public function findPublishedExpiredOffers(\DateTimeImmutable $today): array
+    {
+        return $this->createQueryBuilder('j')
+            ->andWhere('j.status = :status')
+            ->andWhere('j.applicationDeadline IS NOT NULL')
+            ->andWhere('j.applicationDeadline < :today')
+            ->setParameter('status', OfferStatus::PUBLISHED)
+            ->setParameter('today', $today->setTime(0, 0))
+            ->orderBy('j.applicationDeadline', 'ASC')
             ->getQuery()
             ->getResult();
     }

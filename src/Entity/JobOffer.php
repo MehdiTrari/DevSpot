@@ -53,6 +53,9 @@ class JobOffer
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
 
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $applicationDeadline = null;
+
     #[ORM\ManyToOne(inversedBy: 'jobOffers')]
     #[ORM\JoinColumn(nullable: false)]
     private ?RecruiterProfile $recruiterProfile = null;
@@ -217,6 +220,18 @@ class JobOffer
     public function setRecruiterProfile(?RecruiterProfile $recruiterProfile): static
     {
         $this->recruiterProfile = $recruiterProfile;
+
+        return $this;
+    }
+
+    public function getApplicationDeadline(): ?\DateTimeImmutable
+    {
+        return $this->applicationDeadline;
+    }
+
+    public function setApplicationDeadline(?\DateTimeImmutable $applicationDeadline): static
+    {
+        $this->applicationDeadline = $applicationDeadline;
 
         return $this;
     }

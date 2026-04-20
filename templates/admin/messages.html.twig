@@ -275,7 +275,7 @@
                         <a href="{{ path('app_admin_messages') }}" class="favorite-showcase-toolbar-pill inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/12 hover:text-white">
                             Réinitialiser
                         </a>
-                        <span class="favorite-showcase-toolbar-count inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-bold">{{ messages|length }}</span>
+                        <span class="favorite-showcase-toolbar-count inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-bold">{{ totalMessages }}</span>
                     </div>
                 </div>
 
@@ -371,6 +371,20 @@
                     </table>
                     </div>
                 </div>
+
+                {% if totalPages > 1 %}
+                    <div class="flex items-center justify-between rounded-[1.5rem] border border-white/10 bg-slate-950/30 px-5 py-4">
+                        <p class="text-sm text-slate-400">Page {{ currentPage }} / {{ totalPages }}</p>
+                        <div class="flex items-center gap-2">
+                            {% if currentPage > 1 %}
+                                <a href="{{ path('app_admin_messages', {page: currentPage - 1}) }}" class="rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10">Précédent</a>
+                            {% endif %}
+                            {% if currentPage < totalPages %}
+                                <a href="{{ path('app_admin_messages', {page: currentPage + 1}) }}" class="rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10">Suivant</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
             {% else %}
                 <div class="favorite-showcase-empty rounded-[2.2rem] px-6 py-10 text-center sm:px-8">
                     <p class="ui-title text-xl font-semibold">Aucun message trouvé</p>

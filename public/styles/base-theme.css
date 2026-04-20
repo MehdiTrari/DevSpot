@@ -1063,6 +1063,21 @@ details[open] > .site-header-account-button {
     background: var(--ui-success-bg);
 }
 
+.ui-panel-info {
+    border: 1px solid var(--ui-info-border);
+    background: var(--ui-info-bg);
+}
+
+.ui-panel-warning {
+    border: 1px solid var(--ui-warning-border);
+    background: var(--ui-warning-bg);
+}
+
+.ui-panel-danger {
+    border: 1px solid var(--ui-danger-border);
+    background: var(--ui-danger-bg);
+}
+
 .ui-panel-accent-hover {
     transition: border-color 0.2s ease, background-color 0.2s ease;
 }
@@ -1198,6 +1213,16 @@ details[open] > .site-header-account-button {
 
 .ui-button-primary:hover {
     background: var(--ui-button-primary-hover);
+}
+
+.ui-button-info {
+    border: 1px solid var(--ui-info-border);
+    background: var(--ui-info-bg);
+    color: var(--ui-info-text);
+}
+
+.ui-button-info:hover {
+    filter: brightness(0.95);
 }
 
 .ui-button-secondary {

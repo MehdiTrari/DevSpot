@@ -37,14 +37,19 @@ final class ApplicantController extends AbstractController
 {
     #[Route('/applicant', name: 'app_applicant_home')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function home(): Response
+    public function home(NotificationManager $notificationManager, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getApplicantUser();
         $profile = $user->getDeveloperProfile();
+        $checklist = $this->buildChecklist($profile);
+
+        if ($notificationManager->notifyApplicantIncompleteProfileReminder($user, $checklist)) {
+            $entityManager->flush();
+        }
 
         return $this->render('applicant/dashboard.html.twig', [
             'profile' => $profile,
-            'checklist' => $this->buildChecklist($profile),
+            'checklist' => $checklist,
             'portfolioGenerated' => $profile instanceof DeveloperProfile && null !== $profile->getPortfolioGeneratedAt(),
         ]);
     }

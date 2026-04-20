@@ -104,6 +104,9 @@ class RegistrationController extends AbstractController
             $entityManager->persist($user);
             $entityManager->flush();
 
+            if (isset($company)) {
+                $notificationManager->notifyAdminsCompanyCreated($user, $company);
+            }
             $notificationManager->notifyAdminsNewPendingAccount($user);
 
             // generate a signed url and email it to the user

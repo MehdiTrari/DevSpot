@@ -274,6 +274,60 @@ final class ProfileController extends AbstractController
         return $response;
     }
 
+    #[Route('/profil/{slug}/report', name: 'app_public_profile_report', methods: ['POST'])]
+    public function report(
+        string $slug,
+        Request $request,
+        DeveloperProfileRepository $developerProfileRepository,
+        NotificationManager $notificationManager,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $profile = $developerProfileRepository->findPublicPortfolioBySlugWithDetails($slug);
+
+        if (!$profile instanceof DeveloperProfile) {
+            throw $this->createNotFoundException('Aucun profil ne correspond à cette URL.');
+        }
+
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException('Vous devez être connecté pour signaler un profil.');
+        }
+
+        if ($this->isOwner($profile)) {
+            throw $this->createAccessDeniedException('Vous ne pouvez pas signaler votre propre profil.');
+        }
+
+        if (!$this->isCsrfTokenValid('report_profile_' . $profile->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_public_profile_show', ['slug' => $profile->getSlug()]);
+        }
+
+        $category = (string) $request->request->get('category', 'profile');
+        $reason = trim((string) $request->request->get('reason', ''));
+        if (mb_strlen($reason) < 10) {
+            $this->addFlash('error', 'Merci de préciser un motif d\'au moins 10 caractères.');
+
+            return $this->redirectToRoute('app_public_profile_show', ['slug' => $profile->getSlug()]);
+        }
+
+        $created = $notificationManager->notifyAdminsProfileReported(
+            $user,
+            $profile,
+            $reason,
+            'abusive_content' === $category
+        );
+
+        if ($created) {
+            $entityManager->flush();
+            $this->addFlash('success', 'Votre signalement a été transmis aux administrateurs.');
+        } else {
+            $this->addFlash('info', 'Un signalement identique est déjà en attente de traitement.');
+        }
+
+        return $this->redirectToRoute('app_public_profile_show', ['slug' => $profile->getSlug()]);
+    }
+
     private function isOwner(DeveloperProfile $profile): bool
     {
         $user = $this->getUser();
