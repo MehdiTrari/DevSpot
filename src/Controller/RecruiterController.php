@@ -41,12 +41,18 @@ final class RecruiterController extends AbstractController
     #[IsGranted('ROLE_RECRUITER')]
     public function home(
         FavoriteProfileRepository $favoriteProfileRepository,
+        NotificationManager $notificationManager,
+        EntityManagerInterface $entityManager,
         #[Autowire(service: 'cache.app')] CacheItemPoolInterface $cache,
     ): Response {
         $recruiterProfile = $this->getRecruiterProfile();
 
         if (!$recruiterProfile instanceof RecruiterProfile) {
             throw $this->createNotFoundException('Profil recruteur introuvable.');
+        }
+
+        if ($notificationManager->notifyRecruiterIncompleteProfileReminder($recruiterProfile->getUser())) {
+            $entityManager->flush();
         }
 
         [$offerRows, $favoriteRows, $offersCount, $activeOffersCount, $closedOffersCount] = $this->buildRecruiterDashboardRows(

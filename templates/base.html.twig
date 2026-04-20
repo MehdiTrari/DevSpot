@@ -831,10 +831,12 @@
                 </div>
             </header>
 
+            {% set flashAutoDismiss = app.environment != 'test' %}
+            {% set flashDuration = flashAutoDismiss ? '4000' : null %}
             <div class="pointer-events-none fixed right-3 top-16 z-[60] w-[calc(100%-1.5rem)] max-w-sm sm:right-4 sm:top-20 sm:w-[calc(100%-2rem)] lg:right-6">
                     <div data-notification-stack="true" class="flex w-full flex-col gap-3">
                         {% for message in app.flashes('success') %}
-                            <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-3.5 text-[15px] font-medium text-emerald-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
+                            <div{% if flashAutoDismiss %} data-notification-autodismiss="true" data-notification-duration="{{ flashDuration }}"{% endif %} class="pointer-events-auto rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-3.5 text-[15px] font-medium text-emerald-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
                                 <div class="flex items-start justify-between gap-4">
                                     <p class="leading-relaxed">{{ message }}</p>
                                     <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 text-emerald-200/90 transition hover:text-emerald-100">×</button>
@@ -843,7 +845,7 @@
                         {% endfor %}
 
                         {% for message in app.flashes('info') %}
-                            <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-5 py-3.5 text-[15px] font-medium text-yellow-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
+                            <div{% if flashAutoDismiss %} data-notification-autodismiss="true" data-notification-duration="{{ flashDuration }}"{% endif %} class="pointer-events-auto rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-5 py-3.5 text-[15px] font-medium text-yellow-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
                                 <div class="flex items-start justify-between gap-4">
                                     <p class="leading-relaxed">{{ message }}</p>
                                     <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 text-yellow-200/90 transition hover:text-yellow-100">×</button>
@@ -852,7 +854,7 @@
                         {% endfor %}
 
                         {% for message in app.flashes('verify_email_error') %}
-                            <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3.5 text-[15px] font-medium text-red-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
+                            <div{% if flashAutoDismiss %} data-notification-autodismiss="true" data-notification-duration="{{ flashDuration }}"{% endif %} class="pointer-events-auto rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3.5 text-[15px] font-medium text-red-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
                                 <div class="flex items-start justify-between gap-4">
                                     <p class="leading-relaxed">{{ message }}</p>
                                     <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 text-red-200/90 transition hover:text-red-100">×</button>
@@ -861,7 +863,7 @@
                         {% endfor %}
 
                         {% for message in app.flashes('error') %}
-                            <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3.5 text-[15px] font-medium text-red-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
+                            <div{% if flashAutoDismiss %} data-notification-autodismiss="true" data-notification-duration="{{ flashDuration }}"{% endif %} class="pointer-events-auto rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3.5 text-[15px] font-medium text-red-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
                                 <div class="flex items-start justify-between gap-4">
                                     <p class="leading-relaxed">{{ message }}</p>
                                     <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 text-red-200/90 transition hover:text-red-100">×</button>

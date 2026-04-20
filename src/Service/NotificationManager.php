@@ -336,6 +336,53 @@ final class NotificationManager
         return true;
     }
 
+    public function notifyRecruiterIncompleteProfileReminder(User $user): bool
+    {
+        if (!in_array('ROLE_RECRUITER', $user->getRoles(), true)) {
+            return false;
+        }
+
+        $recruiterProfile = $user->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile) {
+            return false;
+        }
+
+        $missingFields = [];
+        if ('' === trim((string) $recruiterProfile->getJobTitle())) {
+            $missingFields[] = 'votre poste';
+        }
+
+        if ('' === trim((string) ($recruiterProfile->getWorkEmail() ?? ''))) {
+            $missingFields[] = 'votre email professionnel';
+        }
+
+        if ('' === trim((string) ($recruiterProfile->getCompany()?->getName() ?? ''))) {
+            $missingFields[] = 'votre entreprise';
+        }
+
+        if ([] === $missingFields) {
+            return false;
+        }
+
+        $link = $this->urlGenerator->generate('app_recruiter_home');
+        if ($this->notificationRepository->existsUnreadForUserTypeAndLink($user, NotificationType::PROFILE_INCOMPLETE, $link)) {
+            return false;
+        }
+
+        $this->createNotification(
+            $user,
+            NotificationType::PROFILE_INCOMPLETE,
+            'Complétez votre profil recruteur',
+            sprintf(
+                'Votre profil recruteur est incomplet : renseignez %s pour fiabiliser votre compte et vos échanges avec les applicants.',
+                $this->formatHumanReadableList($missingFields)
+            ),
+            $link
+        );
+
+        return true;
+    }
+
     public function notifyRecruitersFollowingProfileUpdated(DeveloperProfile $profile): void
     {
         $this->notifyRecruitersFollowingProfileEvent(
@@ -569,6 +616,25 @@ final class NotificationManager
         }
 
         return $recruiterProfile->getUser()?->getEmail() ?? 'un recruteur';
+    }
+
+    /**
+     * @param list<string> $items
+     */
+    private function formatHumanReadableList(array $items): string
+    {
+        $count = count($items);
+        if (0 === $count) {
+            return '';
+        }
+
+        if (1 === $count) {
+            return $items[0];
+        }
+
+        $lastItem = array_pop($items);
+
+        return sprintf('%s et %s', implode(', ', $items), $lastItem);
     }
 
     private function toReadableRole(string $role): string
