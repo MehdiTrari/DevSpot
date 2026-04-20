@@ -371,7 +371,7 @@ final class AiMatchingClient implements AiMatchingClientInterface
         }
 
         try {
-            $response = $this->httpClient->request($method, rtrim($this->baseUrl, '/').$path, $options);
+            $response = $this->httpClient->request($method, rtrim($this->baseUrl, '/') . $path, $options);
             $statusCode = $response->getStatusCode();
             $payload = $response->toArray(false);
         } catch (ExceptionInterface $exception) {

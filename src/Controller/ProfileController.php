@@ -45,8 +45,7 @@ final class ProfileController extends AbstractController
         MailerInterface $mailer,
         LoggerInterface $logger,
         EntityManagerInterface $entityManager,
-    ): Response
-    {
+    ): Response {
         $profile = $developerProfileRepository->findPublicPortfolioBySlugWithDetails($slug);
 
         if (!$profile instanceof DeveloperProfile) {
