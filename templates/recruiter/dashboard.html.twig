@@ -107,28 +107,16 @@
         </div>
 
         <div class="theme-settings-card rounded-[2.35rem] p-8">
-            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                    <h2 class="ui-title text-2xl font-semibold tracking-tight">Informations du compte recruteur</h2>
-                    <p class="ui-text-muted mt-3 max-w-3xl text-[15px] leading-relaxed">
-                        Cet espace te permet de centraliser tes recherches, préparer tes prises de contact et suivre les profils qui t'intéressent.
-                    </p>
-                </div>
-            </div>
+            <div class="grid gap-6 xl:grid-cols-2">
 
-                <div class="mt-6 rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
+                <div class="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
                     <h3 class="text-lg font-semibold text-white">Demande de changement de rôle</h3>
-                    <p class="mt-2 text-sm text-slate-400">Besoin de repasser sur un compte candidat ? Les administrateurs seront notifiés automatiquement.</p>
-                    <form method="post" action="{{ path('app_account_request_role') }}" class="mt-4">
-                        <input type="hidden" name="_token" value="{{ csrf_token('request_role') }}">
-                        <input type="hidden" name="role" value="ROLE_APPLICANT">
-                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition-all duration-300 hover:bg-white/10 active:scale-95">
-                            Demander le rôle candidat
-                        </button>
-                    </form>
+                    <p class="mt-2 text-sm text-slate-400">Besoin de repasser sur un compte candidat ? Utilise la page paramètres dédiée.</p>
+                    <a href="{{ path('app_settings_role') }}" class="ui-button-secondary mt-4 inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold">
+                        Ouvrir le changement de rôle
+                    </a>
                 </div>
 
-            <div class="mt-6">
                 <article class="premium-card rounded-[1.9rem] p-6">
                     <div class="flex items-center justify-between gap-3">
                         <div>
@@ -138,7 +126,7 @@
                         <a href="{{ path('app_recruiter_offers') }}" class="ui-pill ui-pill-success inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">Voir mes offres</a>
                     </div>
 
-                    <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="mt-5 space-y-3">
                         {% for job in offerRows %}
                             <a href="{{ path('app_recruiter_offer_detail', { id: job.id }) }}" class="premium-list-row block rounded-[1.4rem] px-4 py-4 transition duration-300 hover:scale-[1.01]">
                                 <p class="ui-title text-sm font-semibold">{{ job.title }}</p>
@@ -153,7 +141,7 @@
                                 <span class="ui-pill {% if job.statusValue == 'published' %}ui-pill-success{% elseif job.statusValue == 'closed' %}ui-pill-danger{% else %}ui-pill-warning{% endif %} mt-3 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold">{{ job.status }}</span>
                             </a>
                         {% else %}
-                            <div class="premium-list-row ui-text-muted rounded-[1.4rem] px-4 py-5 text-sm sm:col-span-2 lg:col-span-3">
+                            <div class="premium-list-row ui-text-muted rounded-[1.4rem] px-4 py-5 text-sm">
                                 Aucune offre recruteur pour le moment.
                             </div>
                         {% endfor %}

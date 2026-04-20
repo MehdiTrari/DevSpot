@@ -18,6 +18,27 @@ final class SettingsController extends AbstractController
         return $this->render('settings/index.html.twig');
     }
 
+    #[Route('/preferences', name: 'app_settings_preferences', methods: ['GET'])]
+    public function preferences(): Response
+    {
+        return $this->render('settings/preferences.html.twig');
+    }
+
+    #[Route('/role', name: 'app_settings_role', methods: ['GET'])]
+    public function role(): Response
+    {
+        return $this->render('settings/role.html.twig');
+    }
+
+    #[Route('/slug', name: 'app_settings_slug', methods: ['GET'])]
+    #[IsGranted('ROLE_APPLICANT')]
+    public function slug(): Response
+    {
+        return $this->render('settings/slug.html.twig', [
+            'profile' => $this->getUser()?->getDeveloperProfile(),
+        ]);
+    }
+
     #[Route('/admin/colors', name: 'app_settings_admin_colors', methods: ['GET'])]
     #[IsGranted('ROLE_ADMIN')]
     public function adminColors(KernelInterface $kernel): Response

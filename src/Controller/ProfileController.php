@@ -54,21 +54,22 @@ final class ProfileController extends AbstractController
         }
 
         $isOwner = $this->isOwner($profile);
+        $isAdmin = $this->isGranted('ROLE_ADMIN');
         $profileStatus = $profile->getUser()?->getStatus();
 
-        if (!$isOwner && UserStatus::ACTIVE !== $profileStatus) {
+        if (!$isOwner && !$isAdmin && UserStatus::ACTIVE !== $profileStatus) {
             throw $this->createNotFoundException('Aucun profil ne correspond à cette URL.');
         }
 
-        if (null === $profile->getPortfolioGeneratedAt()) {
+        if (null === $profile->getPortfolioGeneratedAt() && !$isAdmin) {
             throw $this->createAccessDeniedException('Ce portfolio n\'a pas encore été généré.');
         }
 
-        if (!$profile->isPublic() && !$isOwner) {
+        if (!$profile->isPublic() && !$isOwner && !$isAdmin) {
             throw $this->createAccessDeniedException('Ce profil est privé.');
         }
 
-        if (!$profile->isPublic() && $request->isMethod('POST')) {
+        if (!$profile->isPublic() && !$isAdmin && $request->isMethod('POST')) {
             throw $this->createAccessDeniedException('Impossible d\'envoyer un message à un profil privé.');
         }
 
@@ -112,7 +113,7 @@ final class ProfileController extends AbstractController
             }
         }
 
-        if (($contactRequiresLogin || $contactRequiresRecruiterRole) && $request->isMethod('POST')) {
+        if (($contactRequiresLogin || $contactRequiresRecruiterRole) && !$isAdmin && $request->isMethod('POST')) {
             throw $this->createAccessDeniedException('Seuls les recruteurs peuvent contacter ce développeur.');
         }
 
