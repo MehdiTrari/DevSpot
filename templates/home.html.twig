@@ -97,18 +97,18 @@
 
                             <div class="mt-3 flex flex-wrap gap-2">
                                 {% if portfolio.experienceLevel %}
-                                    <span class="ui-pill ui-pill-info rounded-full px-2.5 py-1 text-[10px] font-semibold">
+                                    <span class="ui-pill u-border-pale-orange u-bg-pale-orange u-text-pale-orange rounded-full px-2.5 py-1 text-[10px] font-semibold">
                                         {{ experienceLevelLabels[portfolio.experienceLevel.value] ?? portfolio.experienceLevel.value }}
                                     </span>
                                 {% endif %}
                                 {% for skillName in skillNames %}
-                                    <span class="ui-pill ui-pill-warning rounded-full px-2.5 py-1 text-[10px] font-semibold">{{ skillName }}</span>
+                                    <span class="ui-pill u-border-pale-pink u-bg-pale-pink u-text-pale-pink rounded-full px-2.5 py-1 text-[10px] font-semibold">{{ skillName }}</span>
                                 {% endfor %}
                             </div>
 
                             <div class="premium-divider mt-4 flex flex-wrap items-center gap-3 border-t pt-4">
-                                <a href="{{ path('app_public_profile_show', { slug: portfolio.slug }) }}" class="ui-link-accent inline-flex items-center text-xs font-semibold">
-                                    Voir profil →
+                                <a href="{{ path('app_public_profile_show', { slug: portfolio.slug }) }}" class="ui-pill ui-pill-info inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold">
+                                    Voir profil
                                 </a>
 
                                 {% if is_granted('ROLE_RECRUITER') %}
@@ -159,7 +159,7 @@
                         <h2 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Top matchs</h2>
                         <p class="ui-title mt-2 text-2xl font-semibold tracking-tight">Top matchs selon vos offres</p>
                     </div>
-                    <span class="premium-kicker rounded-full px-3 py-1 text-xs font-semibold">
+                    <span class="ui-pill ui-pill-info rounded-full px-3 py-1 text-xs font-semibold">
                         {{ topMatches|length }}
                     </span>
                 </div>
@@ -182,14 +182,14 @@
                                 </div>
                             </div>
 
-                            <div class="premium-card-soft mt-4 flex items-center justify-between rounded-[1.25rem] px-3 py-2">
+                            <div class="mt-4 flex items-center justify-between rounded-[1.25rem] border px-3 py-2" style="border-color: var(--premium-icon-violet-border); background: var(--premium-icon-violet-bg); color: var(--premium-icon-violet-text);">
                                 <span class="text-xs font-semibold uppercase tracking-wider">Score match</span>
                                 <span class="text-lg font-semibold">{{ topMatchScore }}%</span>
                             </div>
 
                             <div class="premium-divider mt-4 flex flex-wrap items-center gap-3 border-t pt-4">
-                                <a href="{{ path('app_public_profile_show', { slug: portfolio.slug }) }}" class="ui-link-accent inline-flex items-center text-xs font-semibold">
-                                    Voir profil →
+                                <a href="{{ path('app_public_profile_show', { slug: portfolio.slug }) }}" class="ui-pill ui-pill-info inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold">
+                                    Voir profil
                                 </a>
 
                                 {% if is_granted('ROLE_RECRUITER') %}

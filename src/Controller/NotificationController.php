@@ -62,7 +62,7 @@ final class NotificationController extends AbstractController
         $filter = $this->normalizeFilter($request->query->get('filter'));
         $page = max(1, $request->query->getInt('page', 1));
 
-        if ($notification->getUser()?->getId() !== $user->getId()) {
+        if ($notification->getUser()?->getId() !== $user->getId() && !$this->isGranted('ROLE_ADMIN')) {
             throw $this->createAccessDeniedException('Accès interdit à cette notification.');
         }
 
@@ -98,7 +98,7 @@ final class NotificationController extends AbstractController
         $filter = $this->normalizeFilter($request->query->get('filter'));
         $page = max(1, $request->query->getInt('page', 1));
 
-        if ($notification->getUser()?->getId() !== $user->getId()) {
+        if ($notification->getUser()?->getId() !== $user->getId() && !$this->isGranted('ROLE_ADMIN')) {
             throw $this->createAccessDeniedException('Accès interdit à cette notification.');
         }
 

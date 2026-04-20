@@ -114,14 +114,14 @@
                             <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Compétences correspondantes</p>
                             <div class="mt-3 flex flex-wrap gap-2">
                                 ${renderTags(hardSkills,'border-emerald-500/20 bg-emerald-500/10 text-emerald-200')}
-                                ${renderTags(softSkills,'border-sky-500/20 bg-sky-500/10 text-sky-200')}
+                                ${renderTags(softSkills,'u-border-pale-pink u-bg-pale-pink u-text-pale-pink')}
                                 ${hardSkills.length===0&&softSkills.length===0?'<span class="text-sm text-slate-500">Aucune correspondance directe détectée.</span>':''}
                             </div>
                         </div>
                         <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
                             <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Compétences inférées</p>
                             <div class="mt-3 flex flex-wrap gap-2">
-                                ${renderTags(inferredSoft,'border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-200')}
+                                ${renderTags(inferredSoft,'u-border-pale-pink u-bg-pale-pink u-text-pale-pink')}
                                 ${renderTags(inferredTransf,'border-amber-500/20 bg-amber-500/10 text-amber-200')}
                                 ${renderTechTags(inferredTech)}
                                 ${inferredSoft.length===0&&inferredTransf.length===0&&inferredTech.length===0?'<span class="text-sm text-slate-500">Aucune compétence implicite détectée.</span>':''}
@@ -386,7 +386,7 @@
                         {% if offer.locationType %}
                             <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-slate-300">{{ offer.locationType.value|capitalize }}</span>
                         {% endif %}
-                        <span class="inline-flex items-center rounded-full border {{ offer.isActive ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300' : 'border-yellow-400/20 bg-yellow-400/10 text-yellow-300' }} px-3 py-1 font-semibold">{{ offer.isActive ? 'Publiée' : 'Brouillon' }}</span>
+                        <span class="ui-pill inline-flex items-center rounded-full px-3 py-1 font-semibold {{ offer.isActive ? 'ui-pill-success' : 'ui-pill-warning' }}">{{ offer.isActive ? 'Publiée' : 'Brouillon' }}</span>
                     </div>
                 </div>
                 <a href="{{ path('app_recruiter_offers') }}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10">← Mes offres</a>

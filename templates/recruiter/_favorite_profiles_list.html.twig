@@ -115,11 +115,11 @@
                     </div>
 
                     {% if canOpenProfile %}
-                        <a href="{{ path('app_public_profile_show', {slug: profile.slug}) }}" class="favorite-showcase-primary-link mt-7 text-sm">
+                        <a href="{{ path('app_public_profile_show', {slug: profile.slug}) }}" class="mt-7 inline-flex w-full items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-500/20">
                             Voir le profil
                         </a>
                     {% else %}
-                        <span class="favorite-showcase-disabled-link mt-7 text-sm">
+                        <span class="mt-7 inline-flex w-full items-center justify-center rounded-full border border-slate-500/30 bg-slate-500/10 px-4 py-2.5 text-sm font-semibold text-slate-300">
                             Profil indisponible
                         </span>
                     {% endif %}

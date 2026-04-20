@@ -119,6 +119,52 @@ class DeveloperProfileRepository extends ServiceEntityRepository
     /**
      * @return DeveloperProfile[]
      */
+    public function findAdminProfilesPaginated(int $page, int $perPage): array
+    {
+        $safePage = max(1, $page);
+        $safePerPage = max(1, $perPage);
+
+        $ids = $this->createQueryBuilder('d')
+            ->select('d.id')
+            ->orderBy('d.createdAt', 'DESC')
+            ->addOrderBy('d.id', 'DESC')
+            ->setFirstResult(($safePage - 1) * $safePerPage)
+            ->setMaxResults($safePerPage)
+            ->getQuery()
+            ->getScalarResult();
+
+        $orderedIds = array_map(static fn (array $row): int => (int) $row['id'], $ids);
+
+        if ([] === $orderedIds) {
+            return [];
+        }
+
+        $profiles = $this->createQueryBuilder('d')
+            ->leftJoin('d.user', 'u')->addSelect('u')
+            ->leftJoin('d.profileSkills', 'profileSkills')->addSelect('profileSkills')
+            ->andWhere('d.id IN (:ids)')
+            ->setParameter('ids', $orderedIds)
+            ->getQuery()
+            ->getResult();
+
+        $profilesById = [];
+        foreach ($profiles as $profile) {
+            $profilesById[$profile->getId()] = $profile;
+        }
+
+        $orderedProfiles = [];
+        foreach ($orderedIds as $id) {
+            if (isset($profilesById[$id])) {
+                $orderedProfiles[] = $profilesById[$id];
+            }
+        }
+
+        return $orderedProfiles;
+    }
+
+    /**
+     * @return DeveloperProfile[]
+     */
     public function findAllForMatching(): array
     {
         return $this->createQueryBuilder('d')

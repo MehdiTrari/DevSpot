@@ -26,20 +26,20 @@ final class AccountRequestController extends AbstractController
         if (!$this->isCsrfTokenValid('request_role', (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
-            return $this->redirectToRoute($this->resolveDashboardRoute($user));
+            return $this->redirectToRoute($this->resolveRedirectRoute($request, $this->resolveDashboardRoute($user)));
         }
 
         $requestedRole = (string) $request->request->get('role');
         if (!in_array($requestedRole, ['ROLE_APPLICANT', 'ROLE_RECRUITER'], true)) {
             $this->addFlash('error', 'Rôle demandé invalide.');
 
-            return $this->redirectToRoute($this->resolveDashboardRoute($user));
+            return $this->redirectToRoute($this->resolveRedirectRoute($request, $this->resolveDashboardRoute($user)));
         }
 
         if (in_array($requestedRole, $user->getRoles(), true)) {
             $this->addFlash('info', 'Votre compte possède déjà ce rôle.');
 
-            return $this->redirectToRoute($this->resolveDashboardRoute($user));
+            return $this->redirectToRoute($this->resolveRedirectRoute($request, $this->resolveDashboardRoute($user)));
         }
 
         $created = $notificationManager->notifyAdminsRoleRequest($user, $requestedRole);
@@ -50,7 +50,7 @@ final class AccountRequestController extends AbstractController
             $this->addFlash('info', 'Une demande identique est déjà en attente côté administrateur.');
         }
 
-        return $this->redirectToRoute($this->resolveDashboardRoute($user));
+        return $this->redirectToRoute($this->resolveRedirectRoute($request, $this->resolveDashboardRoute($user)));
     }
 
     #[Route('/account/request-slug', name: 'app_account_request_slug', methods: ['POST'])]
@@ -69,34 +69,34 @@ final class AccountRequestController extends AbstractController
         if (!$this->isCsrfTokenValid('request_slug', (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
-            return $this->redirectToRoute('app_applicant_home');
+            return $this->redirectToRoute($this->resolveRedirectRoute($request, 'app_applicant_home'));
         }
 
         $profile = $user->getDeveloperProfile();
         if (null === $profile) {
             $this->addFlash('error', 'Aucun profil développeur associé à ce compte.');
 
-            return $this->redirectToRoute('app_applicant_home');
+            return $this->redirectToRoute($this->resolveRedirectRoute($request, 'app_applicant_home'));
         }
 
         $desiredSlug = $this->sanitizeSlug((string) $request->request->get('desired_slug'));
         if ('' === $desiredSlug || !preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $desiredSlug)) {
             $this->addFlash('error', 'Le slug demandé est invalide. Utilisez uniquement des lettres minuscules, chiffres et tirets.');
 
-            return $this->redirectToRoute('app_applicant_home');
+            return $this->redirectToRoute($this->resolveRedirectRoute($request, 'app_applicant_home'));
         }
 
         if ($desiredSlug === $profile->getSlug()) {
             $this->addFlash('info', 'Le slug demandé est déjà celui de votre portfolio.');
 
-            return $this->redirectToRoute('app_applicant_home');
+            return $this->redirectToRoute($this->resolveRedirectRoute($request, 'app_applicant_home'));
         }
 
         $existingProfile = $developerProfileRepository->findOneBy(['slug' => $desiredSlug]);
         if (null !== $existingProfile && $existingProfile->getId() !== $profile->getId()) {
             $this->addFlash('error', 'Ce slug est déjà utilisé par un autre portfolio.');
 
-            return $this->redirectToRoute('app_applicant_home');
+            return $this->redirectToRoute($this->resolveRedirectRoute($request, 'app_applicant_home'));
         }
 
         $created = $notificationManager->notifyAdminsSlugChangeRequest($user, $profile, $desiredSlug);
@@ -107,7 +107,7 @@ final class AccountRequestController extends AbstractController
             $this->addFlash('info', 'Une demande identique existe déjà.');
         }
 
-        return $this->redirectToRoute('app_applicant_home');
+        return $this->redirectToRoute($this->resolveRedirectRoute($request, 'app_applicant_home'));
     }
 
     private function resolveDashboardRoute(User $user): string
@@ -129,5 +129,23 @@ final class AccountRequestController extends AbstractController
         $slug = preg_replace('/[^a-z0-9-]+/', '-', $slug) ?? '';
 
         return trim($slug, '-');
+    }
+
+    private function resolveRedirectRoute(Request $request, string $fallbackRoute): string
+    {
+        $requestedRoute = (string) $request->request->get('_redirect_route', '');
+        $allowedRoutes = [
+            'app_settings_role',
+            'app_settings_slug',
+            'app_applicant_home',
+            'app_recruiter_home',
+            'app_home',
+        ];
+
+        if (in_array($requestedRoute, $allowedRoutes, true)) {
+            return $requestedRoute;
+        }
+
+        return $fallbackRoute;
     }
 }

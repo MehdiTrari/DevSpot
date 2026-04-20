@@ -423,7 +423,7 @@
                                 <div class="flex items-center gap-3">
                                     <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Offre #{{ job.id }}</p>
                                     {% if job.statusValue == 'published' %}
-                                        <span class="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 px-2.5 py-0.5 text-[10px] font-semibold">Publiée</span>
+                                        <span class="ui-pill ui-pill-success inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold">Publiée</span>
                                     {% elseif job.statusValue == 'draft' %}
                                         <span class="inline-flex items-center rounded-full border border-yellow-400/20 bg-yellow-400/10 text-yellow-300 px-2.5 py-0.5 text-[10px] font-semibold">Brouillon</span>
                                     {% elseif job.statusValue == 'closed' %}
