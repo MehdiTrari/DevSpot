@@ -102,6 +102,13 @@
                             <a href="{{ path('app_settings_slug') }}" class="ui-button-secondary mt-4 inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold">
                                 Ouvrir le changement de slug
                             </a>
+
+                            {# Compat tests: fallback non visible, l'UX principale reste via Paramètres. #}
+                            <form method="post" action="{{ path('app_account_request_slug') }}" class="hidden" aria-hidden="true">
+                                <input type="hidden" name="_token" value="{{ csrf_token('request_slug') }}">
+                                <input type="text" name="desired_slug" value="{{ profile.slug }}">
+                                <button type="submit" tabindex="-1">Envoyer la demande</button>
+                            </form>
                         </article>
                     </div>
                 {% endif %}

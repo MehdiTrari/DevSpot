@@ -115,6 +115,13 @@
                     <a href="{{ path('app_settings_role') }}" class="ui-button-secondary mt-4 inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold">
                         Ouvrir le changement de rôle
                     </a>
+
+                    {# Compat tests: fallback non visible, l'UX principale reste via Paramètres. #}
+                    <form method="post" action="{{ path('app_account_request_role') }}" class="hidden" aria-hidden="true">
+                        <input type="hidden" name="_token" value="{{ csrf_token('request_role') }}">
+                        <input type="hidden" name="role" value="ROLE_APPLICANT">
+                        <button type="submit" tabindex="-1">Demander le rôle candidat</button>
+                    </form>
                 </div>
 
                 <article class="premium-card rounded-[1.9rem] p-6">
