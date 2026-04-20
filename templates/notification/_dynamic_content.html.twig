@@ -16,8 +16,8 @@
                         </button>
                     </form>
                 {% endif %}
-                <a data-notification-filter="true" data-turbo="false" href="{{ path('app_notifications_index') }}" class="ui-pill rounded-full px-4 py-1.5 text-xs font-semibold transition-colors {{ currentFilter is not defined or not currentFilter ? 'ui-pill-success' : 'ui-pill-muted' }}">Toutes</a>
-                <a data-notification-filter="true" data-turbo="false" href="{{ path('app_notifications_index', {filter: 'unread'}) }}" class="ui-pill rounded-full px-4 py-1.5 text-xs font-semibold transition-colors {{ currentFilter == 'unread' ? 'ui-pill-success' : 'ui-pill-muted' }}">Non lues</a>
+                <a data-notification-filter="true" data-turbo="false" href="{{ path('app_notifications_index') }}" class="ui-pill rounded-full px-4 py-1.5 text-xs font-semibold transition-colors {{ currentFilter is not defined or not currentFilter ? 'ui-pill-info' : 'ui-pill-muted' }}">Toutes</a>
+                <a data-notification-filter="true" data-turbo="false" href="{{ path('app_notifications_index', {filter: 'unread'}) }}" class="ui-pill rounded-full px-4 py-1.5 text-xs font-semibold transition-colors {{ currentFilter == 'unread' ? 'ui-pill-danger' : 'ui-pill-muted' }}">Non lues</a>
                 <a data-notification-filter="true" data-turbo="false" href="{{ path('app_notifications_index', {filter: 'read'}) }}" class="ui-pill rounded-full px-4 py-1.5 text-xs font-semibold transition-colors {{ currentFilter == 'read' ? 'ui-pill-success' : 'ui-pill-muted' }}">Lues</a>
             </div>
         </div>

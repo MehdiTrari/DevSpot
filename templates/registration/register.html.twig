@@ -2,6 +2,20 @@
 
 {% block title %}Inscription | DevSpot{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .register-terms-input:checked + .register-terms-icon {
+            border-color: var(--premium-icon-success-border);
+            background: var(--premium-icon-success-bg);
+        }
+
+        .register-terms-input:checked + .register-terms-icon svg {
+            opacity: 1;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
     <section class="ui-shell ui-shell-hover w-full max-w-xl rounded-[2.5rem] p-8 backdrop-blur-2xl sm:p-10">
         <div class="mb-8 text-center">
@@ -130,14 +144,14 @@
                 </div>
 
                 <div class="pt-2">
-                    <label class="group flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 transition-all duration-200" style="border-color: var(--ui-panel-border); background: var(--ui-panel-subtle-bg);">
-                        {{ form_widget(registrationForm.agreeTerms, {attr: {class: 'peer sr-only'}}) }}
-                        <span class="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-md border transition-all duration-200" style="border-color: var(--premium-icon-success-border); background: transparent;">
-                            <svg class="h-3.5 w-3.5 opacity-0 transition-opacity duration-200 peer-checked:opacity-100" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--premium-icon-success-text);">
+                    <label class="register-terms-label flex cursor-pointer items-start gap-3 rounded-2xl border px-4 py-3 transition-all duration-200" style="border-color: var(--ui-panel-border); background: var(--ui-panel-subtle-bg);">
+                        {{ form_widget(registrationForm.agreeTerms, {attr: {class: 'register-terms-input sr-only'}}) }}
+                        <span class="register-terms-icon mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-md border transition-all duration-200" style="border-color: var(--premium-icon-success-border); background: transparent;">
+                            <svg class="h-3.5 w-3.5 opacity-0 transition-opacity duration-200" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--premium-icon-success-text);">
                                 <path d="M3 8.5 6.2 11.5 13 4.5" stroke-linecap="round" stroke-linejoin="round"></path>
                             </svg>
                         </span>
-                        <span class="ui-text-secondary ui-hover-heading text-[15px] font-medium transition-colors">J'accepte les conditions d'utilisation</span>
+                        <span class="register-terms-text ui-text-secondary ui-hover-heading text-[15px] font-medium transition-colors">J'accepte les conditions d'utilisation</span>
                     </label>
                     {% if registrationForm.agreeTerms.vars.errors|length > 0 %}
                         <div class="pl-1 mt-1.5 text-sm font-medium text-red-400">{{ form_errors(registrationForm.agreeTerms) }}</div>

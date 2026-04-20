@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\AdminActionLog;
+use App\Entity\ContactMessage;
 use App\Entity\User;
 use App\Enum\UserStatus;
 use App\Repository\AdminActionLogRepository;
@@ -326,6 +327,31 @@ final class AdminController extends AbstractController
         return $this->render('admin/messages.html.twig', [
             'messages' => $contactMessageRepository->findBy([], ['createdAt' => 'DESC']),
         ]);
+    }
+
+    #[Route('/messages/{id}/delete', name: 'app_admin_messages_delete', methods: ['POST'])]
+    public function deleteMessage(ContactMessage $contactMessage, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('admin_message_delete_' . $contactMessage->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRoute('app_admin_messages');
+        }
+
+        $this->logAdminAction($entityManager, 'contact_message.deleted', null, [
+            'messageId' => $contactMessage->getId(),
+            'recruiterEmail' => $contactMessage->getRecruiterEmail(),
+            'recruiterName' => $contactMessage->getRecruiterName(),
+            'subject' => $contactMessage->getSubject(),
+            'developerProfileId' => $contactMessage->getDeveloperProfile()?->getId(),
+        ]);
+
+        $entityManager->remove($contactMessage);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Le message de contact a ete supprime.');
+
+        return $this->redirectToRoute('app_admin_messages');
     }
 
     private function countUsersByRole(UserRepository $userRepository, string $role): int

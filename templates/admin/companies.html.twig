@@ -3,62 +3,132 @@
 {% block title %}Gérer les entreprises | DevSpot Admin{% endblock %}
 
 {% block body %}
-<section class="w-full self-start space-y-8 font-sans">
-    
-    {# HEADER #}
-    <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-10">
-        <div class="flex items-start justify-between gap-4">
-            <div>
-                <h1 class="text-2xl font-semibold tracking-tight text-white">Gérer les entreprises</h1>
-                <p class="mt-2 text-[15px] text-slate-400">Garde un suivi clair des organisations et vérifie rapidement leurs informations.</p>
-            </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ path('app_admin_companies') }}" class="favorite-showcase-toolbar-pill inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/12 hover:text-white">
-                    Réinitialiser
-                </a>
-                <button type="button" class="favorite-showcase-toolbar-pill inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/12 hover:text-white">
-                    Filtres
-                </button>
-                <span class="favorite-showcase-toolbar-count inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-bold">{{ companies|length }}</span>
-            </div>
-        </div>
+<section class="favorites-showcase-page relative z-[1] w-full max-w-[86rem] self-start px-5 pb-8 pt-2 font-sans sm:px-8 sm:pb-10 sm:pt-3 lg:px-10 lg:pb-12 lg:pt-4">
+    <div class="favorite-showcase-hero mx-auto max-w-3xl text-center">
+        <p class="favorite-showcase-kicker">Administration</p>
+        <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Entreprises partenaires.</h1>
+        <p class="ui-text-secondary mx-auto mt-4 max-w-2xl text-[13px] leading-relaxed sm:text-[15px]">
+            Garde un suivi clair des organisations et vérifie rapidement les informations essentielles.
+        </p>
     </div>
 
-    {# GRILLE DES ENTREPRISES #}
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {% for company in companies %}
-            <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl hover:border-purple-500/30 transition-all">
-                <div class="mb-4">
-                    {% if company.logoPath %}
-                        <img src="{{ asset(company.logoPath) }}" alt="{{ company.name }}" class="h-12 w-12 rounded-lg mb-3 object-cover">
-                    {% else %}
-                        <div class="h-12 w-12 rounded-lg bg-purple-500/20 flex items-center justify-center mb-3">
-                            <svg class="h-6 w-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.217m0 0a5.98 5.98 0 00-.978-1.024 6.002 6.002 0 10-6.804 0m15.802 0A5.98 5.98 0 0019 21"></path>
-                            </svg>
+    <div class="mt-10 lg:mt-12">
+        <div class="rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
+            <div class="space-y-6">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div class="min-w-[260px] w-full lg:w-1/2 lg:flex-none">
+                        <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition focus-within:border-emerald-400/40 focus-within:ring-2 focus-within:ring-emerald-500/20">
+                            <svg class="h-5 w-5 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
+                            <input
+                                id="admin-companies-search"
+                                type="text"
+                                placeholder="Rechercher par nom, secteur, localisation..."
+                                class="w-full bg-transparent text-sm text-white placeholder-slate-500 outline-none"
+                            >
                         </div>
-                    {% endif %}
-                    <h3 class="text-lg font-semibold text-white">{{ company.name }}</h3>
-                    <p class="text-sm text-slate-400 mt-1">{{ company.industry ?: 'Secteur non renseigne' }}</p>
-                </div>
-                
-                <div class="space-y-2 text-sm">
-                    {% set mainRecruiter = company.recruiterProfiles|first %}
-                    <p class="text-slate-500">Responsable: <span class="text-white">{{ mainRecruiter and mainRecruiter.user ? mainRecruiter.user.email : 'Non assigne' }}</span></p>
-                    <p class="text-slate-500">Localisation: <span class="text-white">{{ company.location ?: 'Non renseignee' }}</span></p>
+                        <p id="admin-companies-search-count" class="mt-2 hidden text-xs text-slate-400"></p>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <button type="button" class="favorite-showcase-toolbar-pill inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/12 hover:text-white">
+                            Filtres
+                        </button>
+                        <a href="{{ path('app_admin_companies') }}" class="favorite-showcase-toolbar-pill inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/12 hover:text-white">
+                            Réinitialiser
+                        </a>
+                        <span class="favorite-showcase-toolbar-count inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-bold">{{ companies|length }}</span>
+                    </div>
                 </div>
 
-                <button class="mt-4 w-full py-2 px-4 rounded-lg bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-colors text-sm font-medium" onclick="alert('Détails à implémenter')">
-                    Voir les détails
-                </button>
+                {% if companies|length == 0 %}
+                    <div class="favorite-showcase-empty rounded-[2.2rem] px-6 py-10 text-center sm:px-8">
+                        <p class="ui-title text-xl font-semibold">Aucune entreprise trouvée</p>
+                        <p class="ui-text-secondary mx-auto mt-3 max-w-2xl text-sm leading-relaxed sm:text-[15px]">
+                            Les entreprises apparaîtront ici dès qu'elles seront ajoutées à la plateforme.
+                        </p>
+                    </div>
+                {% else %}
+                    <div data-admin-company-empty-state="true" class="favorite-showcase-empty hidden rounded-[2.2rem] px-6 py-10 text-center sm:px-8">
+                        <p class="ui-title text-xl font-semibold">Aucun résultat</p>
+                        <p class="ui-text-secondary mx-auto mt-3 max-w-2xl text-sm leading-relaxed sm:text-[15px]">
+                            Aucune entreprise ne correspond à ta recherche.
+                        </p>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        {% for company in companies %}
+                            <article data-admin-company-entry="true" class="rounded-2xl border border-white/10 bg-slate-900/50 p-6 shadow-xl shadow-black/40 backdrop-blur-xl transition-all hover:border-emerald-500/30 hover:bg-slate-900/65">
+                                <div class="mb-4">
+                                    {% if company.logoPath %}
+                                        <img src="{{ asset(company.logoPath) }}" alt="{{ company.name }}" class="mb-3 h-12 w-12 rounded-lg object-cover">
+                                    {% else %}
+                                        <div class="mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-500/20">
+                                            <svg class="h-6 w-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5.217m0 0a5.98 5.98 0 00-.978-1.024 6.002 6.002 0 10-6.804 0m15.802 0A5.98 5.98 0 0019 21"></path>
+                                            </svg>
+                                        </div>
+                                    {% endif %}
+                                    <h3 class="text-lg font-semibold text-white">{{ company.name }}</h3>
+                                    <p class="mt-1 text-sm text-slate-400">{{ company.industry ?: 'Secteur non renseigne' }}</p>
+                                </div>
+
+                                <div class="space-y-2 text-sm">
+                                    {% set mainRecruiter = company.recruiterProfiles|first %}
+                                    <p class="text-slate-500">Responsable: <span class="text-white">{{ mainRecruiter and mainRecruiter.user ? mainRecruiter.user.email : 'Non assigne' }}</span></p>
+                                    <p class="text-slate-500">Localisation: <span class="text-white">{{ company.location ?: 'Non renseignee' }}</span></p>
+                                </div>
+
+                                <button class="mt-4 w-full rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-500/20" onclick="alert('Détails à implémenter')">
+                                    Voir les détails
+                                </button>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% endif %}
             </div>
-        {% endfor %}
-    </div>
-
-    {% if companies|length == 0 %}
-        <div class="rounded-2xl border border-white/10 bg-slate-900/50 p-12 text-center shadow-xl shadow-black/40 backdrop-blur-xl">
-            <p class="text-slate-400">Aucune entreprise trouvée</p>
         </div>
-    {% endif %}
+    </div>
 </section>
+
+<script>
+(() => {
+    const init = () => {
+        const input = document.getElementById('admin-companies-search');
+        const countEl = document.getElementById('admin-companies-search-count');
+        if (!input || !countEl) return;
+        if (input.dataset.init === '1') return;
+        input.dataset.init = '1';
+
+        const cards = Array.from(document.querySelectorAll('[data-admin-company-entry="true"]'));
+        const emptyState = document.querySelector('[data-admin-company-empty-state="true"]');
+        if (!cards.length) return;
+
+        input.addEventListener('input', () => {
+            const q = input.value.trim().toLowerCase();
+            let visible = 0;
+
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                const match = !q || text.includes(q);
+                card.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+
+            if (q) {
+                countEl.textContent = `${visible} résultat${visible !== 1 ? 's' : ''} sur ${cards.length}`;
+                countEl.classList.remove('hidden');
+            } else {
+                countEl.classList.add('hidden');
+            }
+
+            if (emptyState) {
+                emptyState.classList.toggle('hidden', visible !== 0 || !q);
+            }
+        });
+    };
+
+    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('turbo:load', init);
+})();
+</script>
 {% endblock %}

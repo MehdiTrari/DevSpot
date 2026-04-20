@@ -9,7 +9,7 @@
         <div class="favorite-showcase-hero mx-auto w-full max-w-5xl px-1 py-2 text-center sm:px-2 sm:py-3">
             <div class="mx-auto max-w-3xl">
                     <p class="favorite-showcase-kicker">
-                        Espace admin
+                        Administration
                     </p>
                     <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Tableau de bord administrateur</h1>
                     <p class="ui-text-secondary mt-4 text-[15px]">Bienvenue sur votre espace d'administration.</p>
@@ -39,7 +39,7 @@
                         <p class="ui-text-muted text-sm font-medium">Candidats</p>
                         <p class="ui-title mt-2 text-3xl font-bold">{{ stats.totalApplicants }}</p>
                     </div>
-                    <svg class="h-9 w-9 shrink-0 rounded-xl border border-emerald-400/30 bg-emerald-500/15 p-2 text-emerald-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="admin-dashboard-icon premium-icon premium-icon-info h-9 w-9 shrink-0 rounded-xl p-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m13 2-8 12h6l-1 8 9-13h-6z"></path>
                     </svg>
                 </div>
@@ -89,18 +89,18 @@
 
                     <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <a href="{{ path('app_admin_users') }}" class="premium-action-card group rounded-[1.75rem] p-6">
-                            <svg class="h-9 w-9 shrink-0 rounded-xl border p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" style="border-color: var(--premium-icon-success-border); background: var(--premium-icon-success-bg); color: var(--premium-icon-success-text);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="admin-dashboard-icon premium-icon premium-icon-success h-9 w-9 shrink-0 rounded-xl p-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                             </svg>
-                            <h3 class="ui-title mt-4 font-semibold" style="color: #111827;">Gérer les utilisateurs</h3>
+                            <h3 class="ui-title mt-4 font-semibold">Gérer les utilisateurs</h3>
                             <p class="ui-text-muted mt-2 text-sm">{{ stats.totalUsers }} utilisateurs enregistrés.</p>
                         </a>
 
                         <a href="{{ path('app_admin_profiles') }}" class="premium-action-card group rounded-[1.75rem] p-6">
-                            <svg class="h-9 w-9 shrink-0 rounded-xl border border-emerald-400/30 bg-emerald-500/15 p-2 text-emerald-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="admin-dashboard-icon premium-icon premium-icon-info h-9 w-9 shrink-0 rounded-xl p-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 5h18v14H3z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 9h8"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 13h5"></path>
@@ -153,8 +153,8 @@
                 <div class="theme-settings-card rounded-[2.35rem] p-6">
                     <h3 class="ui-title text-lg font-semibold">Actions rapides</h3>
                     <div class="mt-4 space-y-3">
-                        <button onclick="alert('Fonctionnalité à implémenter')" class="premium-action-card flex w-full items-center gap-3 rounded-[1.4rem] p-4 text-left">
-                            <svg class="h-9 w-9 shrink-0 rounded-xl border border-emerald-400/30 bg-emerald-500/15 p-2 text-emerald-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <a href="{{ path('app_settings_admin_colors') }}" class="premium-action-card flex w-full items-center gap-3 rounded-[1.4rem] p-4 text-left">
+                            <svg class="admin-dashboard-icon premium-icon premium-icon-success h-9 w-9 shrink-0 rounded-xl p-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 19h16"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 15h12"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 11h8"></path>
@@ -185,9 +185,9 @@
                             </svg>
                             <span>
                                 <span class="ui-title block text-sm font-semibold">Paramètres</span>
-                                <span class="ui-text-muted block text-xs">Ajuster les préférences globales.</span>
+                                <span class="ui-text-muted block text-xs">Accéder au tableau admin des couleurs.</span>
                             </span>
-                        </button>
+                        </a>
                     </div>
                 </div>
             </aside>

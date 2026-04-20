@@ -132,14 +132,14 @@
 
                     const buildNotificationElement = (message, type = 'info') => {
                         const styles = {
-                            success: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300',
-                            info: 'border-yellow-400/20 bg-yellow-400/10 text-yellow-300',
+                            success: 'ui-notification-success u-border-success u-bg-success u-text-success',
+                            info: 'ui-notification-info u-border-info u-bg-info u-text-info',
                             error: 'border-red-500/20 bg-red-500/10 text-red-300',
                         };
 
                         const closeStyles = {
-                            success: 'text-emerald-200/90 hover:text-emerald-100',
-                            info: 'text-yellow-200/90 hover:text-yellow-100',
+                            success: 'u-text-success-muted',
+                            info: 'u-text-info-muted',
                             error: 'text-red-200/90 hover:text-red-100',
                         };
 
@@ -457,11 +457,11 @@
 
                                 const isPublic = payload.isPublic === true;
                                 badge.textContent = isPublic ? 'Public' : 'Privé';
-                                badge.classList.remove('border-emerald-200', 'bg-emerald-100', 'text-emerald-800', 'border-rose-200', 'bg-rose-100', 'text-rose-800');
+                                badge.classList.remove('u-border-pale-green', 'u-bg-pale-green', 'u-text-pale-green', 'u-border-pale-red', 'u-bg-pale-red', 'u-text-pale-red');
                                 if (isPublic) {
-                                    badge.classList.add('border-emerald-200', 'bg-emerald-100', 'text-emerald-800');
+                                    badge.classList.add('u-border-pale-green', 'u-bg-pale-green', 'u-text-pale-green');
                                 } else {
-                                    badge.classList.add('border-rose-200', 'bg-rose-100', 'text-rose-800');
+                                    badge.classList.add('u-border-pale-red', 'u-bg-pale-red', 'u-text-pale-red');
                                 }
 
                                 hiddenVisibilityInput.value = isPublic ? '0' : '1';
@@ -609,6 +609,7 @@
             {% set isNotificationsRoute = currentRoute starts with 'app_notifications' %}
             {% set isFavoritesRoute = currentRoute == 'app_recruiter_favorites' or currentRoute starts with 'app_recruiter_favorite_' %}
             {% set isRecruiterOffersRoute = currentRoute == 'app_recruiter_offers' or currentRoute starts with 'app_recruiter_offer_' %}
+            {% set isAdminWideRoute = currentRoute in ['app_admin_profiles', 'app_admin_companies', 'app_admin_users', 'app_admin_messages'] %}
             {% set isMessagesRoute = currentRoute in ['app_applicant_messages', 'app_applicant_message_show', 'app_recruiter_messages', 'app_recruiter_message_show'] %}
             {% set isHelpRoute = currentRoute == 'app_help' %}
             {% set helpPath = path('app_help') %}
@@ -630,9 +631,11 @@
                             </a>
 
                             <div class="site-header-nav site-header-nav-desktop" aria-label="Navigation principale">
-                                <a href="{{ path('app_home') }}" class="site-header-link {{ isHomeRoute ? 'site-header-link-active' : '' }}" {% if isHomeRoute %}aria-current="page"{% endif %}>
-                                    Accueil
-                                </a>
+                                {% if app.user and not is_granted('ROLE_ADMIN') and (is_granted('ROLE_RECRUITER') or is_granted('ROLE_APPLICANT')) %}
+                                    <a href="{{ path('app_home') }}" class="site-header-link {{ isHomeRoute ? 'site-header-link-active' : '' }}" {% if isHomeRoute %}aria-current="page"{% endif %}>
+                                        Accueil
+                                    </a>
+                                {% endif %}
                                 {% if dashboardPath %}
                                     <a href="{{ dashboardPath }}" class="site-header-link {{ isDashboardRoute ? 'site-header-link-active' : '' }}" {% if isDashboardRoute %}aria-current="page"{% endif %}>
                                         Dashboard
@@ -640,7 +643,7 @@
                                 {% endif %}
                                 {% if app.user and not is_granted('ROLE_ADMIN') and (is_granted('ROLE_RECRUITER') or is_granted('ROLE_APPLICANT')) %}
                                     <a href="{{ helpPath }}" class="site-header-link {{ isHelpRoute ? 'site-header-link-active' : '' }}" {% if isHelpRoute %}aria-current="page"{% endif %}>
-                                        Help
+                                        Aide
                                     </a>
                                 {% endif %}
                             </div>
@@ -775,6 +778,15 @@
                                             </span>
                                             Créer un compte
                                         </a>
+                                        <a href="{{ helpPath }}" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.09 9a3 3 0 1 1 5.82 1c0 2-3 2-3 4"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 17h.01"/>
+                                                </svg>
+                                            </span>
+                                            Aide
+                                        </a>
                                     </div>
                                 </div>
                             </details>
@@ -789,12 +801,15 @@
                             </summary>
                             <div class="site-mobile-menu-panel">
                                 <div class="site-mobile-menu-links">
-                                    <a href="{{ path('app_home') }}" class="site-mobile-menu-link {{ isHomeRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isHomeRoute %}aria-current="page"{% endif %}>Accueil</a>
+                                    {% if app.user and not is_granted('ROLE_ADMIN') and (is_granted('ROLE_RECRUITER') or is_granted('ROLE_APPLICANT')) %}
+                                        <a href="{{ path('app_home') }}" class="site-mobile-menu-link {{ isHomeRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isHomeRoute %}aria-current="page"{% endif %}>Accueil</a>
+                                    {% endif %}
                                     {% if dashboardPath %}
                                         <a href="{{ dashboardPath }}" class="site-mobile-menu-link {{ isDashboardRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isDashboardRoute %}aria-current="page"{% endif %}>Dashboard</a>
                                     {% endif %}
-                                    <a href="{{ helpPath }}" class="site-mobile-menu-link {{ isHelpRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isHelpRoute %}aria-current="page"{% endif %}>Help</a>
-
+                                    {% if app.user and not is_granted('ROLE_ADMIN') and (is_granted('ROLE_RECRUITER') or is_granted('ROLE_APPLICANT')) %}
+                                        <a href="{{ helpPath }}" class="site-mobile-menu-link {{ isHelpRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isHelpRoute %}aria-current="page"{% endif %}>Aide</a>
+                                    {% endif %}
                                     {% if app.user %}
                                         <a href="{{ path('app_notifications_index') }}" class="site-mobile-menu-link {{ isNotificationsRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isNotificationsRoute %}aria-current="page"{% endif %}>
                                             Notifications
@@ -802,8 +817,7 @@
                                                 <span class="header-count-badge header-count-badge-notification">{{ unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount }}</span>
                                             {% endif %}
                                         </a>
-
-                                        {% if is_granted('ROLE_RECRUITER') %}
+                                        {% if is_granted('ROLE_RECRUITER') and not is_granted('ROLE_ADMIN') %}
                                             <a href="{{ path('app_recruiter_favorites') }}" class="site-mobile-menu-link {{ isFavoritesRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isFavoritesRoute %}aria-current="page"{% endif %}>Favoris</a>
                                         {% endif %}
 
@@ -818,7 +832,6 @@
 
                                         {# <a href="#" onclick="return false;" class="site-mobile-menu-link">Ma démographie</a> #}
                                         <a href="{{ path('app_settings_index') }}" class="site-mobile-menu-link">Paramètres</a>
-                                        <a href="#" onclick="return false;" class="site-mobile-menu-link">Aide</a>
                                         <a href="#" onclick="return false;" class="site-mobile-menu-link">Centre de confidentialité</a>
                                         <a href="{{ logout_path() }}" class="site-mobile-menu-link site-mobile-menu-link-logout">Déconnexion</a>
                                     {% else %}
@@ -836,7 +849,7 @@
             <div class="pointer-events-none fixed right-3 top-16 z-[60] w-[calc(100%-1.5rem)] max-w-sm sm:right-4 sm:top-20 sm:w-[calc(100%-2rem)] lg:right-6">
                     <div data-notification-stack="true" class="flex w-full flex-col gap-3">
                         {% for message in app.flashes('success') %}
-                            <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-3.5 text-[15px] font-medium text-emerald-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
+                            <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border px-5 py-3.5 text-[15px] font-medium shadow-xl backdrop-blur-md transition-all duration-300 ease-out ui-notification-success u-border-success u-bg-success u-text-success">
                                 <div class="flex items-start justify-between gap-4">
                                     <p class="leading-relaxed">{{ message }}</p>
                                     <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 text-emerald-200/90 transition hover:text-emerald-100">×</button>
@@ -845,10 +858,10 @@
                         {% endfor %}
 
                         {% for message in app.flashes('info') %}
-                            <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-5 py-3.5 text-[15px] font-medium text-yellow-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
+                            <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border px-5 py-3.5 text-[15px] font-medium shadow-xl backdrop-blur-md transition-all duration-300 ease-out ui-notification-info u-border-info u-bg-info u-text-info">
                                 <div class="flex items-start justify-between gap-4">
                                     <p class="leading-relaxed">{{ message }}</p>
-                                    <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 text-yellow-200/90 transition hover:text-yellow-100">×</button>
+                                    <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 text-emerald-200/90 transition hover:text-emerald-100">×</button>
                                 </div>
                             </div>
                         {% endfor %}
@@ -874,7 +887,7 @@
             </div>
 
             {# MAIN avec apple-slide-up-delay-1 #}
-            <main class="apple-slide-up-delay-1 relative z-0 mx-auto flex {{ isMessagesRoute ? 'h-[calc(100vh-84px)]' : 'min-h-[calc(100vh-84px)]' }} w-full {{ isMessagesRoute ? 'max-w-none' : ((isFavoritesRoute or isRecruiterOffersRoute) ? 'max-w-[88rem]' : 'max-w-6xl') }} {{ isMessagesRoute ? 'items-stretch justify-stretch px-3 pb-3 pt-3 sm:px-4 sm:pb-4 sm:pt-4 lg:px-5' : 'items-center justify-center px-3 pb-12 pt-8 sm:px-4 sm:pt-10 lg:px-5' }}">
+            <main class="apple-slide-up-delay-1 relative z-0 mx-auto flex {{ isMessagesRoute ? 'h-[calc(100vh-84px)]' : 'min-h-[calc(100vh-84px)]' }} w-full {{ isMessagesRoute ? 'max-w-none' : ((isFavoritesRoute or isRecruiterOffersRoute or isAdminWideRoute) ? 'max-w-[88rem]' : 'max-w-6xl') }} {{ isMessagesRoute ? 'items-stretch justify-stretch px-3 pb-3 pt-3 sm:px-4 sm:pb-4 sm:pt-4 lg:px-5' : 'items-center justify-center px-3 pb-12 pt-8 sm:px-4 sm:pt-10 lg:px-5' }}">
                 {% block body %}{% endblock %}
             </main>
             

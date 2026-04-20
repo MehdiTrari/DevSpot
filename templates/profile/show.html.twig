@@ -40,7 +40,7 @@
 
                             <div>
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-300">
+                                    <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider {{ profile.public ? 'ui-pill ui-pill-success' : 'u-border-pale-slate u-bg-pale-slate u-text-pale-slate' }}">
                                         {{ profile.public ? 'Public' : 'Privé' }}
                                     </span>
                                     {% if isOwner and not profile.public %}
@@ -56,16 +56,16 @@
                                     {% endif %}
                                 </p>
                                 <div class="mt-5 flex flex-wrap gap-2">
-                                    <span class="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300">
+                                    <span class="u-border-pale-orange u-bg-pale-orange u-text-pale-orange inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold">
                                         {{ experienceLevelLabels[profile.experienceLevel.value|default('')] ?? 'Niveau non renseigné' }}
                                     </span>
                                     {% if profile.yearsExperience is not null %}
-                                        <span class="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300">
+                                        <span class="ui-pill ui-pill-info inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold">
                                             {{ profile.yearsExperience }} année{{ profile.yearsExperience > 1 ? 's' : '' }} d'expérience
                                         </span>
                                     {% endif %}
                                     {% if technologyNames is not empty %}
-                                        <span class="inline-flex items-center rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-300">
+                                        <span class="u-border-pale-pink u-bg-pale-pink u-text-pale-pink inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold">
                                             {{ technologyNames|slice(0, 3)|join(' · ') }}
                                         </span>
                                     {% endif %}
@@ -153,7 +153,7 @@
                                     {% if experience.technologies|length > 0 %}
                                         <div class="mt-3 flex flex-wrap gap-2">
                                             {% for technology in experience.technologies %}
-                                                <span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300">{{ technology.name }}</span>
+                                                <span class="u-border-pale-pink u-bg-pale-pink u-text-pale-pink rounded-full border px-2.5 py-1 text-xs font-semibold">{{ technology.name }}</span>
                                             {% endfor %}
                                         </div>
                                     {% endif %}
@@ -229,7 +229,7 @@
                     {% if technologyNames is not empty %}
                         <div class="mt-5 flex flex-wrap gap-2">
                             {% for name in technologyNames %}
-                                <span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-300">{{ name }}</span>
+                                <span class="u-border-pale-pink u-bg-pale-pink u-text-pale-pink rounded-full border px-2.5 py-1 text-xs font-semibold">{{ name }}</span>
                             {% endfor %}
                         </div>
                     {% else %}
@@ -245,7 +245,7 @@
                     {% if profile.desiredPositions|length > 0 %}
                         <div class="mt-5 flex flex-wrap gap-2">
                             {% for position in profile.desiredPositions %}
-                                <span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-semibold text-slate-200">{{ position.name }}</span>
+                                <span class="u-border-pale-green u-bg-pale-green u-text-pale-green rounded-full border px-2.5 py-1 text-xs font-semibold">{{ position.name }}</span>
                             {% endfor %}
                         </div>
                     {% else %}
@@ -290,9 +290,9 @@
                 </a>
             </article>
         {% elseif profile.public and contactRequiresRecruiterRole|default(false) %}
-            <article class="rounded-2xl border border-blue-400/20 bg-blue-400/10 px-5 py-3.5 text-[15px] font-medium text-blue-300 shadow-xl backdrop-blur-md">
-                <h2 class="font-semibold uppercase tracking-wider text-blue-300">Accès recruteur uniquement</h2>
-                <p class="mt-2 text-sm text-blue-300">Le formulaire de contact est disponible uniquement pour les comptes recruteurs.</p>
+            <article class="u-border-pale-slate u-bg-pale-slate u-text-pale-slate rounded-2xl border px-5 py-3.5 text-[15px] font-medium shadow-xl backdrop-blur-md">
+                <h2 class="font-semibold uppercase tracking-wider">Accès recruteur uniquement</h2>
+                <p class="mt-2 text-sm">Le formulaire de contact est disponible uniquement pour les comptes recruteurs.</p>
             </article>
         {% elseif profile.public and is_granted('ROLE_RECRUITER') and contactForm is not null %}
             <article id="contact-form" class="scroll-mt-28 overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/60 shadow-2xl shadow-black/40 backdrop-blur-xl">

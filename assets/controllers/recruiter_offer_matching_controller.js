@@ -135,14 +135,14 @@ export default class extends Controller {
                         <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Compétences correspondantes</p>
                         <div class="mt-3 flex flex-wrap gap-2">
                             ${this.renderTags(hardSkills, 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200')}
-                            ${this.renderTags(softSkills, 'border-sky-500/20 bg-sky-500/10 text-sky-200')}
+                            ${this.renderTags(softSkills, 'u-border-pale-pink u-bg-pale-pink u-text-pale-pink')}
                             ${hardSkills.length === 0 && softSkills.length === 0 ? '<span class="text-sm text-slate-500">Aucune correspondance directe détectée.</span>' : ''}
                         </div>
                     </div>
                     <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
                         <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Compétences inférées</p>
                         <div class="mt-3 flex flex-wrap gap-2">
-                            ${this.renderTags(inferredSoft, 'border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-200')}
+                            ${this.renderTags(inferredSoft, 'u-border-pale-pink u-bg-pale-pink u-text-pale-pink')}
                             ${this.renderTags(inferredTransferable, 'border-amber-500/20 bg-amber-500/10 text-amber-200')}
                             ${this.renderTechnicalTags(inferredTechnical)}
                             ${inferredSoft.length === 0 && inferredTransferable.length === 0 && inferredTechnical.length === 0 ? '<span class="text-sm text-slate-500">Aucune compétence implicite détectée.</span>' : ''}

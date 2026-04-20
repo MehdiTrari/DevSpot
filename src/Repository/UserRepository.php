@@ -53,7 +53,15 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
 
         if (null !== $search && '' !== $search) {
             $queryBuilder
-                ->andWhere('LOWER(u.email) LIKE :search')
+                ->leftJoin('u.developerProfile', 'developerProfile')
+                ->leftJoin('u.recruiterProfile', 'recruiterProfile')
+                ->andWhere($queryBuilder->expr()->orX(
+                    'LOWER(u.email) LIKE :search',
+                    'LOWER(developerProfile.firstName) LIKE :search',
+                    'LOWER(developerProfile.lastName) LIKE :search',
+                    'LOWER(recruiterProfile.firstName) LIKE :search',
+                    'LOWER(recruiterProfile.lastName) LIKE :search'
+                ))
                 ->setParameter('search', '%' . mb_strtolower($search) . '%');
         }
 
