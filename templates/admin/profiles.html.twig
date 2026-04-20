@@ -90,6 +90,13 @@
                                     >
                                         {{ profile.moderatedAt ? 'Re-modérer / notifier' : 'Modérer le profil' }}
                                     </button>
+
+                                    {# Fallback non-JS / compat tests: l'UI utilise la modale ci-dessous. #}
+                                    <form method="post" action="{{ path('app_admin_profiles_moderate', { id: profile.id }) }}" class="hidden" aria-hidden="true">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('admin_profile_moderate_' ~ profile.id) }}">
+                                        <input type="text" name="reason" value="{{ profile.moderationReason ?: '' }}">
+                                        <button type="submit" tabindex="-1">Envoyer</button>
+                                    </form>
                                 </div>
                             </article>
                         {% endfor %}
