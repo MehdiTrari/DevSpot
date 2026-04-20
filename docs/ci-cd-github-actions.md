@@ -483,6 +483,7 @@ Déjà en place :
 
 - élargir `PHP CS Fixer` aux tests,
 - augmenter progressivement le niveau de `PHPStan`,
+- continuer à renforcer le coverage avec des tests unitaires ciblés sur les services purs, subscribers, handlers et extensions Twig avant d'alourdir davantage les E2E,
 - ajouter éventuellement des seuils de couverture si besoin.
 
 ### Étape 3 — Mise en place de la CD
