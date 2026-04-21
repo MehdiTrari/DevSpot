@@ -189,6 +189,23 @@ class ContactMessageRepository extends ServiceEntityRepository
         return null !== $result;
     }
 
+    /**
+     * @return list<ContactMessage>
+     */
+    public function findAdminMessagesPaginated(int $page, int $perPage): array
+    {
+        $safePage = max(1, $page);
+        $safePerPage = max(1, $perPage);
+
+        return $this->createQueryBuilder('contact_message')
+            ->orderBy('contact_message.createdAt', 'DESC')
+            ->addOrderBy('contact_message.id', 'DESC')
+            ->setFirstResult(($safePage - 1) * $safePerPage)
+            ->setMaxResults($safePerPage)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function markConversationAsReadByApplicant(DeveloperProfile $developerProfile, string $recruiterEmail): void
     {
         $normalizedEmail = mb_strtolower(trim($recruiterEmail));

@@ -185,25 +185,9 @@
     --pale-yellow-text: #854d0e;
     --pale-yellow-border: #fde047;
 
-    --pale-lime-bg: #ecfccb;
-    --pale-lime-text: #3f6212;
-    --pale-lime-border: #bef264;
-
     --pale-green-bg: #dcfce7;
     --pale-green-text: #166534;
     --pale-green-border: #86efac;
-
-    --pale-emerald-bg: #d1fae5;
-    --pale-emerald-text: #065f46;
-    --pale-emerald-border: #6ee7b7;
-
-    --pale-teal-bg: #ccfbf1;
-    --pale-teal-text: #115e59;
-    --pale-teal-border: #5eead4;
-
-    --pale-cyan-bg: #cffafe;
-    --pale-cyan-text: #155e75;
-    --pale-cyan-border: #67e8f9;
 }
 
 :root[data-theme="dark"] {
@@ -307,6 +291,36 @@
     --ui-danger-bg: rgba(244, 63, 94, 0.18);
     --ui-danger-border: rgba(251, 113, 133, 0.26);
     --ui-danger-text: #fecdd3;
+    --pale-slate-bg: rgba(71, 85, 105, 0.18);
+    --pale-slate-text: #e2e8f0;
+    --pale-slate-border: rgba(148, 163, 184, 0.28);
+    --pale-blue-bg: rgba(29, 78, 216, 0.18);
+    --pale-blue-text: #bfdbfe;
+    --pale-blue-border: rgba(96, 165, 250, 0.3);
+    --pale-indigo-bg: rgba(67, 56, 202, 0.18);
+    --pale-indigo-text: #c7d2fe;
+    --pale-indigo-border: rgba(129, 140, 248, 0.3);
+    --pale-purple-bg: rgba(126, 34, 206, 0.18);
+    --pale-purple-text: #e9d5ff;
+    --pale-purple-border: rgba(192, 132, 252, 0.3);
+    --pale-pink-bg: rgba(190, 24, 93, 0.18);
+    --pale-pink-text: #fbcfe8;
+    --pale-pink-border: rgba(244, 114, 182, 0.28);
+    --pale-red-bg: rgba(220, 38, 38, 0.18);
+    --pale-red-text: #fecaca;
+    --pale-red-border: rgba(248, 113, 113, 0.28);
+    --pale-orange-bg: rgba(194, 65, 12, 0.18);
+    --pale-orange-text: #fed7aa;
+    --pale-orange-border: rgba(251, 146, 60, 0.3);
+    --pale-amber-bg: rgba(180, 83, 9, 0.18);
+    --pale-amber-text: #fde68a;
+    --pale-amber-border: rgba(251, 191, 36, 0.28);
+    --pale-yellow-bg: rgba(161, 98, 7, 0.18);
+    --pale-yellow-text: #fef08a;
+    --pale-yellow-border: rgba(250, 204, 21, 0.28);
+    --pale-green-bg: rgba(22, 163, 74, 0.18);
+    --pale-green-text: #bbf7d0;
+    --pale-green-border: rgba(74, 222, 128, 0.3);
     --ui-progress-track: rgba(141, 180, 255, 0.16);
     --ui-progress-fill: linear-gradient(90deg, #8db4ff 0%, #4f83ff 100%);
     --ui-progress-glow: 0 0 14px rgba(141, 180, 255, 0.22);
@@ -391,25 +405,19 @@
 .u-text-pale-yellow { color: var(--pale-yellow-text) !important; }
 .u-border-pale-yellow { border-color: var(--pale-yellow-border) !important; }
 
-.u-bg-pale-lime { background-color: var(--pale-lime-bg) !important; }
-.u-text-pale-lime { color: var(--pale-lime-text) !important; }
-.u-border-pale-lime { border-color: var(--pale-lime-border) !important; }
-
 .u-bg-pale-green { background-color: var(--pale-green-bg) !important; }
 .u-text-pale-green { color: var(--pale-green-text) !important; }
 .u-border-pale-green { border-color: var(--pale-green-border) !important; }
 
-.u-bg-pale-emerald { background-color: var(--pale-emerald-bg) !important; }
-.u-text-pale-emerald { color: var(--pale-emerald-text) !important; }
-.u-border-pale-emerald { border-color: var(--pale-emerald-border) !important; }
+.u-bg-info { background-color: var(--ui-info-bg) !important; }
+.u-text-info { color: var(--ui-info-text) !important; }
+.u-text-info-muted { color: var(--ui-info-text-muted) !important; }
+.u-border-info { border-color: var(--ui-info-border) !important; }
 
-.u-bg-pale-teal { background-color: var(--pale-teal-bg) !important; }
-.u-text-pale-teal { color: var(--pale-teal-text) !important; }
-.u-border-pale-teal { border-color: var(--pale-teal-border) !important; }
-
-.u-bg-pale-cyan { background-color: var(--pale-cyan-bg) !important; }
-.u-text-pale-cyan { color: var(--pale-cyan-text) !important; }
-.u-border-pale-cyan { border-color: var(--pale-cyan-border) !important; }
+.u-bg-success { background-color: var(--ui-success-bg) !important; }
+.u-text-success { color: var(--ui-success-text) !important; }
+.u-text-success-muted { color: var(--ui-success-text-muted) !important; }
+.u-border-success { border-color: var(--ui-success-border) !important; }
 
 /* Refonte globale blanc/bleu appliquee sur les utilitaires existants. */
 .indeed-theme {
@@ -815,8 +823,8 @@ details[open] > .site-header-account-button {
 }
 
 .site-mobile-menu-link-logout:hover {
-    background: var(--indeed-logout-hover-bg);
-    color: var(--indeed-logout-hover-text);
+    background: #b4233f;
+    color: #ffe6ea;
 }
 
 @media (max-width: 960px) {
@@ -902,9 +910,10 @@ details[open] > .site-header-account-button {
     background: var(--indeed-logout-hover-bg);
 }
 .account-menu-logout.account-menu-item-hover:hover {
-    background: var(--indeed-logout-hover-bg);
-    color: var(--indeed-logout-hover-text);
-    filter: brightness(1.08);
+    background: #b4233f;
+    color: #ffe6ea;
+    border-color: #b4233f;
+    filter: none;
 }
 
 .notification-mark-read-btn {
@@ -1165,6 +1174,22 @@ details[open] > .site-header-account-button {
     color: var(--ui-text-secondary);
 }
 
+.ui-notification-success [data-notification-close="true"] {
+    color: var(--ui-success-text-muted) !important;
+}
+
+.ui-notification-success [data-notification-close="true"]:hover {
+    color: var(--ui-success-text) !important;
+}
+
+.ui-notification-info [data-notification-close="true"] {
+    color: var(--ui-info-text-muted) !important;
+}
+
+.ui-notification-info [data-notification-close="true"]:hover {
+    color: var(--ui-info-text) !important;
+}
+
 .ui-button-primary,
 .ui-button-secondary,
 .ui-button-danger,
@@ -1421,23 +1446,23 @@ details[open] > .site-header-account-button {
 }
 
 .ui-chat-bubble-me {
-    border: 1px solid var(--ui-success-border);
-    background: var(--ui-success-bg);
-    color: var(--ui-success-text);
+    border: 1px solid var(--ui-info-border);
+    background: var(--ui-info-bg);
+    color: var(--ui-info-text);
 }
 
 .ui-chat-bubble-other {
-    border: 1px solid var(--ui-info-border);
-    background: var(--ui-info-bg);
-    color: var(--ui-text-primary);
+    border: 1px solid var(--pale-slate-border);
+    background: var(--pale-slate-bg);
+    color: var(--pale-slate-text);
 }
 
 .ui-chat-meta-me {
-    color: var(--ui-success-text-muted);
+    color: var(--ui-info-text);
 }
 
 .ui-chat-meta-other {
-    color: var(--ui-text-muted);
+    color: var(--pale-slate-text);
 }
 
 .premium-hero,
@@ -1594,6 +1619,10 @@ details[open] > .site-header-account-button {
     background: var(--premium-icon-danger-bg);
     border-color: var(--premium-icon-danger-border);
     color: var(--premium-icon-danger-text);
+}
+
+:root[data-theme="dark"] .admin-dashboard-icon {
+    box-shadow: none;
 }
 
 :root[data-theme="dark"] .site-header-shell,

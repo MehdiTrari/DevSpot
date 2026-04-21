@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Changement de rôle | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-4xl self-start space-y-6">
+        <div class="theme-settings-card rounded-[2rem] p-6 sm:p-8">
+            <div class="max-w-2xl">
+                <span class="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">
+                    Compte
+                </span>
+                <h1 class="ui-title mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Changement de rôle</h1>
+                <p class="ui-text-secondary mt-3 text-[15px] leading-relaxed">
+                    Choisis le rôle que tu souhaites demander. La demande sera transmise aux administrateurs.
+                </p>
+            </div>
+
+            <div class="mt-6">
+                {% include 'settings/_menu.html.twig' with { current: 'role' } %}
+            </div>
+
+            <div class="mt-8 grid gap-4 sm:grid-cols-2">
+                {% if not is_granted('ROLE_APPLICANT') %}
+                    <article class="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
+                        <h2 class="ui-title text-lg font-semibold">Passer candidat</h2>
+                        <p class="ui-text-muted mt-2 text-sm">Accéder à la création de portfolio développeur.</p>
+                        <form method="post" action="{{ path('app_account_request_role') }}" class="mt-4">
+                            <input type="hidden" name="_token" value="{{ csrf_token('request_role') }}">
+                            <input type="hidden" name="_redirect_route" value="app_settings_role">
+                            <input type="hidden" name="role" value="ROLE_APPLICANT">
+                            <button type="submit" class="ui-button-secondary inline-flex w-full items-center justify-center rounded-full px-5 py-3 text-sm font-semibold">
+                                Demander le rôle candidat
+                            </button>
+                        </form>
+                    </article>
+                {% endif %}
+
+                {% if not is_granted('ROLE_RECRUITER') %}
+                    <article class="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
+                        <h2 class="ui-title text-lg font-semibold">Passer recruteur</h2>
+                        <p class="ui-text-muted mt-2 text-sm">Publier des offres et gérer des favoris candidats.</p>
+                        <form method="post" action="{{ path('app_account_request_role') }}" class="mt-4">
+                            <input type="hidden" name="_token" value="{{ csrf_token('request_role') }}">
+                            <input type="hidden" name="_redirect_route" value="app_settings_role">
+                            <input type="hidden" name="role" value="ROLE_RECRUITER">
+                            <button type="submit" class="ui-button-secondary inline-flex w-full items-center justify-center rounded-full px-5 py-3 text-sm font-semibold">
+                                Demander le rôle recruteur
+                            </button>
+                        </form>
+                    </article>
+                {% endif %}
+
+                {% if is_granted('ROLE_APPLICANT') and is_granted('ROLE_RECRUITER') %}
+                    <div class="sm:col-span-2 rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
+                        <p class="ui-text-secondary text-sm">Ton compte possède déjà les rôles candidat et recruteur.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+{% endblock %}

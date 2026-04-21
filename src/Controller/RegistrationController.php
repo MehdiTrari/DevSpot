@@ -110,7 +110,9 @@ class RegistrationController extends AbstractController
             $notificationManager->notifyAdminsNewPendingAccount($user);
 
             // generate a signed url and email it to the user
-            $this->emailVerifier->sendEmailConfirmation('app_verify_email', $user,
+            $this->emailVerifier->sendEmailConfirmation(
+                'app_verify_email',
+                $user,
                 (new TemplatedEmail())
                     ->from(new Address('mailer@devspot.com', 'DevSpot Mail Bot'))
                     ->to((string) $user->getEmail())

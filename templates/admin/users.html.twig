@@ -17,6 +17,225 @@
         summary::marker {
             content: '';
         }
+
+        .admin-users-role-admin {
+            border: 1px solid var(--pale-red-border);
+            background: var(--pale-red-bg);
+            color: var(--pale-red-text);
+        }
+
+        .admin-users-role-recruiter {
+            border: 1px solid var(--pale-purple-border);
+            background: var(--pale-purple-bg);
+            color: var(--pale-purple-text);
+        }
+
+        .admin-users-role-applicant {
+            border: 1px solid var(--pale-pink-border);
+            background: var(--pale-pink-bg);
+            color: var(--pale-pink-text);
+        }
+
+        .admin-users-status-active {
+            border: 1px solid var(--pale-green-border);
+            background: var(--pale-green-bg);
+            color: var(--pale-green-text);
+        }
+
+        .admin-users-action-success {
+            border: 1px solid var(--ui-success-border);
+            background: var(--ui-success-bg);
+            color: var(--ui-success-text);
+        }
+
+        .admin-users-pending-alert {
+            border: 1px solid var(--pale-yellow-border);
+            background: var(--pale-yellow-bg);
+            color: var(--pale-yellow-text);
+        }
+
+        .admin-users-pending-alert-link,
+        .admin-users-pending-badge,
+        .admin-users-status-pending {
+            border: 1px solid var(--ui-warning-border);
+            background: var(--ui-warning-bg);
+            color: var(--ui-warning-text);
+        }
+
+        .admin-users-pending-alert-link,
+        .admin-users-action-success,
+        .admin-users-action-warning,
+        .admin-users-action-slate,
+        .admin-users-action-danger {
+            transition: transform 0.2s ease, filter 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+        }
+
+        .admin-users-pending-alert-link:hover,
+        .admin-users-action-success:hover,
+        .admin-users-action-warning:hover,
+        .admin-users-action-slate:hover,
+        .admin-users-action-danger:hover {
+            transform: translateY(-1px);
+            filter: brightness(0.98);
+        }
+
+        :root[data-theme="dark"] .admin-users-pending-alert-link:hover,
+        :root[data-theme="dark"] .admin-users-action-success:hover,
+        :root[data-theme="dark"] .admin-users-action-warning:hover,
+        :root[data-theme="dark"] .admin-users-action-slate:hover,
+        :root[data-theme="dark"] .admin-users-action-danger:hover {
+            filter: brightness(1.08);
+        }
+
+        .admin-users-pending-row {
+            background: var(--pale-yellow-bg);
+        }
+
+        .admin-users-pending-row:hover {
+            background: var(--pale-yellow-bg);
+        }
+
+        .admin-users-pending-note {
+            color: var(--pale-yellow-text);
+        }
+
+        .admin-users-status-suspended,
+        .admin-users-action-warning {
+            border: 1px solid var(--pale-orange-border);
+            background: var(--pale-orange-bg);
+            color: var(--pale-orange-text);
+        }
+
+        .admin-users-action-danger {
+            border: 1px solid var(--ui-danger-border);
+            background: var(--ui-danger-bg);
+            color: var(--ui-danger-text);
+        }
+
+        .admin-users-action-slate,
+        .admin-users-status-slate,
+        .admin-users-status-banned {
+            border: 1px solid var(--pale-slate-border);
+            background: var(--pale-slate-bg);
+            color: var(--pale-slate-text);
+        }
+
+        .admin-users-filter-input:checked + .admin-users-filter-role-applicant {
+            border-color: var(--pale-pink-border);
+            background: var(--pale-pink-bg);
+            color: var(--pale-pink-text);
+        }
+
+        .admin-users-filter-input:checked + .admin-users-filter-role-recruiter {
+            border-color: var(--pale-purple-border);
+            background: var(--pale-purple-bg);
+            color: var(--pale-purple-text);
+        }
+
+        .admin-users-filter-input:checked + .admin-users-filter-role-admin {
+            border-color: var(--pale-red-border);
+            background: var(--pale-red-bg);
+            color: var(--pale-red-text);
+        }
+
+        .admin-users-filter-input:checked + .admin-users-filter-status-pending {
+            border-color: var(--ui-warning-border);
+            background: var(--ui-warning-bg);
+            color: var(--ui-warning-text);
+        }
+
+        .admin-users-filter-input:checked + .admin-users-filter-status-active {
+            border-color: var(--pale-green-border);
+            background: var(--pale-green-bg);
+            color: var(--pale-green-text);
+        }
+
+        .admin-users-filter-input:checked + .admin-users-filter-status-suspended {
+            border-color: var(--pale-orange-border);
+            background: var(--pale-orange-bg);
+            color: var(--pale-orange-text);
+        }
+
+        .admin-users-filter-input:checked + .admin-users-filter-status-banned {
+            border-color: var(--pale-slate-border);
+            background: var(--pale-slate-bg);
+            color: var(--pale-slate-text);
+        }
+
+        .admin-users-sort-button {
+            display: inline-flex;
+            width: 100%;
+            align-items: center;
+            gap: 0.45rem;
+            color: inherit;
+            font: inherit;
+            background: transparent;
+            border: 0;
+            padding: 0;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .admin-users-sort-indicator {
+            color: #94a3b8;
+            font-size: 0.7rem;
+            line-height: 1;
+        }
+
+        .admin-users-sort-button.is-active .admin-users-sort-indicator {
+            color: #cbd5e1;
+        }
+
+        .admin-users-toolbar-search {
+            display: flex;
+            min-height: 2.75rem;
+            align-items: center;
+            gap: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.25rem 0.35rem 0.25rem 0.9rem;
+            border-radius: 1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+        }
+
+        .admin-users-toolbar-search:focus-within {
+            border-color: var(--ui-input-focus-border);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px var(--ui-input-focus-ring);
+        }
+
+        .admin-users-toolbar-search-input {
+            width: 100%;
+            background: transparent;
+            border: 0;
+            color: #fff;
+            font-size: 0.875rem;
+            outline: none;
+        }
+
+        .admin-users-toolbar-search-input::placeholder {
+            color: #64748b;
+        }
+
+        .admin-users-toolbar-search-submit {
+            display: inline-flex;
+            height: 2rem;
+            width: 2rem;
+            flex-shrink: 0;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.05);
+            color: #cbd5e1;
+            transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .admin-users-toolbar-search-submit:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            transform: translateY(-1px);
+        }
     </style>
 {% endblock %}
 
@@ -158,34 +377,169 @@
                 });
             });
 
+            const submitAsyncForm = (form, { closeModal = false } = {}) => {
+                const url = new URL(form.action, window.location.origin);
+                const formData = new FormData(form);
+                for (const [key, value] of formData.entries()) {
+                    if (String(value).trim() !== '') {
+                        url.searchParams.set(key, String(value));
+                    } else {
+                        url.searchParams.delete(key);
+                    }
+                }
+
+                url.searchParams.delete('page');
+
+                window.history.pushState({ adminUsersAsync: true }, '', url.toString());
+                visitAsync(url.toString());
+
+                if (closeModal) {
+                    closeFilterModal();
+                }
+            };
+
+            const searchForm = root.querySelector('[data-admin-users-search-form="true"]');
+            if (searchForm) {
+                const searchInput = searchForm.querySelector('[data-admin-users-search-input="true"]');
+                let searchTimer = null;
+
+                searchForm.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    submitAsyncForm(searchForm);
+                });
+
+                if (searchInput) {
+                    searchInput.addEventListener('input', () => {
+                        if (searchTimer) {
+                            window.clearTimeout(searchTimer);
+                        }
+
+                        searchTimer = window.setTimeout(() => {
+                            submitAsyncForm(searchForm);
+                        }, 250);
+                    });
+                }
+            }
+
             const filterForm = root.querySelector('[data-admin-users-filters="true"]');
             if (filterForm) {
-                const submitFilterForm = () => {
-                    const url = new URL(filterForm.action, window.location.origin);
-                    const formData = new FormData(filterForm);
-                    for (const [key, value] of formData.entries()) {
-                        if (String(value).trim() !== '') {
-                            url.searchParams.set(key, String(value));
-                        } else {
-                            url.searchParams.delete(key);
-                        }
-                    }
-
-                    url.searchParams.delete('page');
-
-                    window.history.pushState({ adminUsersAsync: true }, '', url.toString());
-                    visitAsync(url.toString());
-                    closeFilterModal();
-                };
-
                 filterForm.addEventListener('submit', (event) => {
                     event.preventDefault();
-                    submitFilterForm();
+                    submitAsyncForm(filterForm, { closeModal: true });
                 });
 
                 filterForm.querySelectorAll('[data-admin-users-autosubmit="true"]').forEach((field) => {
                     field.addEventListener('change', () => {
-                        submitFilterForm();
+                        submitAsyncForm(filterForm, { closeModal: true });
+                    });
+                });
+            }
+
+            const table = root.querySelector('[data-admin-users-table="true"]');
+            const tableBody = table ? table.querySelector('tbody') : null;
+            const sortButtons = root.querySelectorAll('[data-admin-users-sort-button="true"]');
+
+            if (table && tableBody && sortButtons.length) {
+                const parseFrenchDate = (value) => {
+                    const dateMatch = String(value).trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+                    if (!dateMatch) {
+                        return Number.NEGATIVE_INFINITY;
+                    }
+
+                    const [, day, month, year] = dateMatch;
+                    return new Date(Number(year), Number(month) - 1, Number(day)).getTime();
+                };
+
+                const normalizeText = (value) => String(value ?? '')
+                    .trim()
+                    .toLowerCase()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '');
+
+                const getCellComparableValue = (row, columnIndex, dataType) => {
+                    const cell = row.children[columnIndex];
+                    if (!cell) {
+                        return '';
+                    }
+
+                    const rawText = (cell.innerText || cell.textContent || '').trim();
+
+                    if (dataType === 'date') {
+                        return parseFrenchDate(rawText);
+                    }
+
+                    return normalizeText(rawText);
+                };
+
+                const updateSortIndicators = (activeButton, direction) => {
+                    sortButtons.forEach((button) => {
+                        const indicator = button.querySelector('[data-admin-users-sort-indicator="true"]');
+                        button.classList.remove('is-active');
+                        button.setAttribute('aria-pressed', 'false');
+
+                        if (indicator) {
+                            indicator.textContent = '↕';
+                        }
+
+                        const header = button.closest('th');
+                        if (header) {
+                            header.setAttribute('aria-sort', 'none');
+                        }
+                    });
+
+                    activeButton.classList.add('is-active');
+                    activeButton.setAttribute('aria-pressed', 'true');
+
+                    const activeIndicator = activeButton.querySelector('[data-admin-users-sort-indicator="true"]');
+                    if (activeIndicator) {
+                        activeIndicator.textContent = direction === 'asc' ? '↑' : '↓';
+                    }
+
+                    const activeHeader = activeButton.closest('th');
+                    if (activeHeader) {
+                        activeHeader.setAttribute('aria-sort', direction === 'asc' ? 'ascending' : 'descending');
+                    }
+                };
+
+                sortButtons.forEach((button) => {
+                    button.addEventListener('click', () => {
+                        const columnIndex = Number.parseInt(button.dataset.columnIndex ?? '', 10);
+                        const dataType = button.dataset.type || 'text';
+                        if (Number.isNaN(columnIndex)) {
+                            return;
+                        }
+
+                        const nextDirection = button.dataset.direction === 'asc' ? 'desc' : 'asc';
+                        button.dataset.direction = nextDirection;
+
+                        sortButtons.forEach((otherButton) => {
+                            if (otherButton !== button) {
+                                otherButton.dataset.direction = '';
+                            }
+                        });
+
+                        const dataRows = Array.from(tableBody.querySelectorAll('tr[data-admin-users-row="true"]'));
+                        if (!dataRows.length) {
+                            return;
+                        }
+
+                        dataRows.sort((rowA, rowB) => {
+                            const valueA = getCellComparableValue(rowA, columnIndex, dataType);
+                            const valueB = getCellComparableValue(rowB, columnIndex, dataType);
+
+                            if (valueA === valueB) {
+                                return 0;
+                            }
+
+                            if (nextDirection === 'asc') {
+                                return valueA > valueB ? 1 : -1;
+                            }
+
+                            return valueA < valueB ? 1 : -1;
+                        });
+
+                        dataRows.forEach((row) => tableBody.appendChild(row));
+                        updateSortIndicators(button, nextDirection);
                     });
                 });
             }
@@ -226,24 +580,14 @@
 {% endblock %}
 
 {% block body %}
-<section class="w-full space-y-8 font-sans transition-opacity duration-200" data-admin-users-root="true">
-    
-    {# HEADER #}
-    <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-10">
-        <div class="flex items-start justify-between gap-4">
-            <div>
-                <h1 class="text-4xl font-semibold tracking-tight text-white">Gérer les utilisateurs</h1>
-                <p class="mt-2 text-[15px] text-slate-400">{{ totalUsersFiltered }} utilisateur(s) trouvé(s)</p>
-            </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ path('app_admin_users') }}" class="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-200 transition-all hover:bg-white/10" data-admin-users-pagination="true">
-                    Réinitialiser
-                </a>
-                <button type="button" data-admin-users-open-filters="true" onclick="window.AdminUsersFilters && window.AdminUsersFilters.open(); return false;" class="relative z-20 inline-flex items-center justify-center rounded-xl border border-emerald-300/20 bg-emerald-500/20 px-6 py-3 text-base font-bold tracking-tight text-emerald-200 shadow-lg shadow-emerald-900/20 transition-all hover:scale-[1.01] hover:bg-emerald-500/30">
-                    Filtres
-                </button>
-            </div>
-        </div>
+<section class="favorites-showcase-page relative z-[1] w-full max-w-[86rem] self-start px-5 pb-8 pt-2 font-sans sm:px-8 sm:pb-10 sm:pt-3 lg:px-10 lg:pb-12 lg:pt-4" data-admin-users-root="true">
+
+    <div class="favorite-showcase-hero mx-auto max-w-3xl text-center">
+        <p class="favorite-showcase-kicker">Administration</p>
+        <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Utilisateurs de la plateforme.</h1>
+        <p class="ui-text-secondary mx-auto mt-4 max-w-2xl text-[13px] leading-relaxed sm:text-[15px]">
+            Gère les comptes utilisateurs et leurs permissions depuis un espace d'administration dédié.
+        </p>
     </div>
 
     <div class="fixed inset-0 z-[80] hidden items-center justify-center bg-slate-950/55 p-4 backdrop-blur-[2px]" data-admin-users-filter-modal="true" onclick="window.AdminUsersFilters && window.AdminUsersFilters.close();">
@@ -254,26 +598,26 @@
             </div>
 
             <form method="get" action="{{ path('app_admin_users') }}" class="grid grid-cols-1 gap-3 md:grid-cols-2" data-admin-users-filters="true">
-                <input type="text" name="q" value="{{ filters.q }}" placeholder="Rechercher par email" class="rounded-xl border border-white/10 bg-slate-900/80 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 md:col-span-2">
+                <input type="text" name="q" value="{{ filters.q }}" placeholder="Rechercher par email, prénom ou nom" class="rounded-xl border border-white/10 bg-slate-900/80 px-4 py-2.5 text-sm text-white placeholder:text-slate-500 md:col-span-2">
 
                 <fieldset class="rounded-xl border border-white/10 bg-slate-900/50 p-3">
                     <legend class="px-1 text-xs font-semibold uppercase tracking-wider text-slate-400">Rôle</legend>
                     <div class="mt-2 flex flex-wrap gap-2">
                         <label class="inline-flex cursor-pointer items-center">
-                            <input type="radio" name="role" value="" class="peer sr-only" {% if not filters.role %}checked{% endif %}>
+                            <input type="radio" name="role" value="" class="admin-users-filter-input peer sr-only" {% if not filters.role %}checked{% endif %}>
                             <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 peer-checked:border-emerald-400/40 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-200">Tous</span>
                         </label>
                         <label class="inline-flex cursor-pointer items-center">
-                            <input type="radio" name="role" value="ROLE_APPLICANT" class="peer sr-only" {% if filters.role == 'ROLE_APPLICANT' %}checked{% endif %}>
-                            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 peer-checked:border-emerald-400/40 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-200">Candidat</span>
+                            <input type="radio" name="role" value="ROLE_APPLICANT" class="admin-users-filter-input peer sr-only" {% if filters.role == 'ROLE_APPLICANT' %}checked{% endif %}>
+                            <span class="admin-users-filter-role-applicant rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10">Candidat</span>
                         </label>
                         <label class="inline-flex cursor-pointer items-center">
-                            <input type="radio" name="role" value="ROLE_RECRUITER" class="peer sr-only" {% if filters.role == 'ROLE_RECRUITER' %}checked{% endif %}>
-                            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 peer-checked:border-emerald-400/40 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-200">Recruteur</span>
+                            <input type="radio" name="role" value="ROLE_RECRUITER" class="admin-users-filter-input peer sr-only" {% if filters.role == 'ROLE_RECRUITER' %}checked{% endif %}>
+                            <span class="admin-users-filter-role-recruiter rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10">Recruteur</span>
                         </label>
                         <label class="inline-flex cursor-pointer items-center">
-                            <input type="radio" name="role" value="ROLE_ADMIN" class="peer sr-only" {% if filters.role == 'ROLE_ADMIN' %}checked{% endif %}>
-                            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 peer-checked:border-emerald-400/40 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-200">Admin</span>
+                            <input type="radio" name="role" value="ROLE_ADMIN" class="admin-users-filter-input peer sr-only" {% if filters.role == 'ROLE_ADMIN' %}checked{% endif %}>
+                            <span class="admin-users-filter-role-admin rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10">Admin</span>
                         </label>
                     </div>
                 </fieldset>
@@ -282,24 +626,24 @@
                     <legend class="px-1 text-xs font-semibold uppercase tracking-wider text-slate-400">Statut</legend>
                     <div class="mt-2 flex flex-wrap gap-2">
                         <label class="inline-flex cursor-pointer items-center">
-                            <input type="radio" name="status" value="" class="peer sr-only" {% if not filters.status %}checked{% endif %}>
+                            <input type="radio" name="status" value="" class="admin-users-filter-input peer sr-only" {% if not filters.status %}checked{% endif %}>
                             <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 peer-checked:border-emerald-400/40 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-200">Tous</span>
                         </label>
                         <label class="inline-flex cursor-pointer items-center">
-                            <input type="radio" name="status" value="pending" class="peer sr-only" {% if filters.status == 'pending' %}checked{% endif %}>
-                            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 peer-checked:border-yellow-400/40 peer-checked:bg-yellow-500/20 peer-checked:text-yellow-200">PENDING</span>
+                            <input type="radio" name="status" value="pending" class="admin-users-filter-input peer sr-only" {% if filters.status == 'pending' %}checked{% endif %}>
+                            <span class="admin-users-filter-status-pending rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10">PENDING</span>
                         </label>
                         <label class="inline-flex cursor-pointer items-center">
-                            <input type="radio" name="status" value="active" class="peer sr-only" {% if filters.status == 'active' %}checked{% endif %}>
-                            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 peer-checked:border-emerald-400/40 peer-checked:bg-emerald-500/20 peer-checked:text-emerald-200">ACTIVE</span>
+                            <input type="radio" name="status" value="active" class="admin-users-filter-input peer sr-only" {% if filters.status == 'active' %}checked{% endif %}>
+                            <span class="admin-users-filter-status-active rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10">ACTIVE</span>
                         </label>
                         <label class="inline-flex cursor-pointer items-center">
-                            <input type="radio" name="status" value="suspended" class="peer sr-only" {% if filters.status == 'suspended' %}checked{% endif %}>
-                            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 peer-checked:border-orange-400/40 peer-checked:bg-orange-500/20 peer-checked:text-orange-200">SUSPENDED</span>
+                            <input type="radio" name="status" value="suspended" class="admin-users-filter-input peer sr-only" {% if filters.status == 'suspended' %}checked{% endif %}>
+                            <span class="admin-users-filter-status-suspended rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10">SUSPENDED</span>
                         </label>
                         <label class="inline-flex cursor-pointer items-center">
-                            <input type="radio" name="status" value="banned" class="peer sr-only" {% if filters.status == 'banned' %}checked{% endif %}>
-                            <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10 peer-checked:border-red-400/40 peer-checked:bg-red-500/20 peer-checked:text-red-200">BANNED</span>
+                            <input type="radio" name="status" value="banned" class="admin-users-filter-input peer sr-only" {% if filters.status == 'banned' %}checked{% endif %}>
+                            <span class="admin-users-filter-status-banned rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-slate-300 transition-colors hover:bg-white/10">BANNED</span>
                         </label>
                     </div>
                 </fieldset>
@@ -311,13 +655,14 @@
         </div>
     </div>
 
+    <div class="mt-10 lg:mt-12 space-y-6">
     {% if pendingUsersCount > 0 %}
-        <div class="rounded-2xl border border-yellow-400/30 bg-yellow-500/10 p-4 text-yellow-200 shadow-xl backdrop-blur-xl">
+        <div class="admin-users-pending-alert rounded-2xl p-4 shadow-xl backdrop-blur-xl">
             <div class="flex min-h-10 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <p class="m-0 text-sm font-medium leading-none sm:flex sm:h-9 sm:items-center">
                     Alerte modération : {{ pendingUsersCount }} compte(s) en attente.
                 </p>
-                <a href="{{ path('app_admin_users', {status: 'pending'}) }}" data-admin-users-pagination="true" class="inline-flex items-center justify-center rounded-lg bg-yellow-400/20 px-3 py-2 text-xs font-semibold text-yellow-100 hover:bg-yellow-400/30">
+                <a href="{{ path('app_admin_users', {status: 'pending'}) }}" data-admin-users-pagination="true" class="admin-users-pending-alert-link inline-flex items-center justify-center rounded-lg px-3 py-2 text-xs font-semibold transition-colors">
                     Voir uniquement les pending
                 </a>
             </div>
@@ -325,17 +670,82 @@
     {% endif %}
 
     {# TABLEAU DES UTILISATEURS #}
-    <div class="rounded-2xl border border-white/10 bg-slate-900/50 overflow-hidden shadow-2xl shadow-black/40 backdrop-blur-xl">
+    <div class="overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/50 shadow-2xl shadow-black/40 backdrop-blur-xl">
+        <div class="border-b border-white/10 px-6 py-5 sm:px-8">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <form method="get" action="{{ path('app_admin_users') }}" class="min-w-[260px] w-full lg:w-1/2 lg:flex-none" data-admin-users-search-form="true">
+                    {% if filters.role %}
+                        <input type="hidden" name="role" value="{{ filters.role }}">
+                    {% endif %}
+                    {% if filters.status %}
+                        <input type="hidden" name="status" value="{{ filters.status }}">
+                    {% endif %}
+                    <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 transition focus-within:border-emerald-400/40 focus-within:ring-2 focus-within:ring-emerald-500/20">
+                        <svg class="h-5 w-5 shrink-0 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path stroke-linecap="round" d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <input
+                            type="text"
+                            name="q"
+                            value="{{ filters.q }}"
+                            placeholder="Rechercher par email, prénom ou nom"
+                            class="w-full bg-transparent text-sm text-white placeholder-slate-500 outline-none"
+                            data-admin-users-search-input="true"
+                            aria-label="Rechercher un utilisateur"
+                            spellcheck="false"
+                        >
+                    </div>
+                </form>
+
+                <div class="flex flex-wrap items-center gap-2">
+                <button type="button" data-admin-users-open-filters="true" onclick="window.AdminUsersFilters && window.AdminUsersFilters.open(); return false;" class="favorite-showcase-toolbar-pill relative z-20 inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/12 hover:text-white">
+                    Filtres
+                </button>
+                <a href="{{ path('app_admin_users') }}" class="favorite-showcase-toolbar-pill inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/12 hover:text-white" data-admin-users-pagination="true">
+                    Réinitialiser
+                </a>
+                <span class="favorite-showcase-toolbar-count inline-flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm font-bold">
+                    {{ totalUsersFiltered }}
+                </span>
+                </div>
+            </div>
+        </div>
+
         <div class="overflow-x-auto">
-            <table class="w-full">
+            <table class="w-full" data-admin-users-table="true">
                 <thead>
-                    <tr class="border-b border-white/10 bg-slate-950/50">
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300">Prénom</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300">Nom</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300">Email</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300">Rôle</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300">Statut</th>
-                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300">Inscrit le</th>
+                    <tr class="border-b border-white/15 bg-slate-950/65">
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300" aria-sort="none">
+                            <button type="button" class="admin-users-sort-button" data-admin-users-sort-button="true" data-column-index="0" data-type="text" data-direction="" aria-pressed="false">
+                                <span>Prénom</span><span class="admin-users-sort-indicator" data-admin-users-sort-indicator="true">↕</span>
+                            </button>
+                        </th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300" aria-sort="none">
+                            <button type="button" class="admin-users-sort-button" data-admin-users-sort-button="true" data-column-index="1" data-type="text" data-direction="" aria-pressed="false">
+                                <span>Nom</span><span class="admin-users-sort-indicator" data-admin-users-sort-indicator="true">↕</span>
+                            </button>
+                        </th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300" aria-sort="none">
+                            <button type="button" class="admin-users-sort-button" data-admin-users-sort-button="true" data-column-index="2" data-type="text" data-direction="" aria-pressed="false">
+                                <span>Email</span><span class="admin-users-sort-indicator" data-admin-users-sort-indicator="true">↕</span>
+                            </button>
+                        </th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300" aria-sort="none">
+                            <button type="button" class="admin-users-sort-button" data-admin-users-sort-button="true" data-column-index="3" data-type="text" data-direction="" aria-pressed="false">
+                                <span>Rôle</span><span class="admin-users-sort-indicator" data-admin-users-sort-indicator="true">↕</span>
+                            </button>
+                        </th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300" aria-sort="none">
+                            <button type="button" class="admin-users-sort-button" data-admin-users-sort-button="true" data-column-index="4" data-type="text" data-direction="" aria-pressed="false">
+                                <span>Statut</span><span class="admin-users-sort-indicator" data-admin-users-sort-indicator="true">↕</span>
+                            </button>
+                        </th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300" aria-sort="none">
+                            <button type="button" class="admin-users-sort-button" data-admin-users-sort-button="true" data-column-index="5" data-type="date" data-direction="" aria-pressed="false">
+                                <span>Inscrit le</span><span class="admin-users-sort-indicator" data-admin-users-sort-indicator="true">↕</span>
+                            </button>
+                        </th>
                         <th class="px-6 py-4 text-center text-sm font-semibold text-slate-300">Actions</th>
                     </tr>
                 </thead>
@@ -345,60 +755,72 @@
                         {% set lastName = user.developerProfile ? user.developerProfile.lastName : (user.recruiterProfile ? user.recruiterProfile.lastName : '-') %}
                         {% set isCurrentAdmin = app.user and app.user.id == user.id %}
                         {% set isPending = user.status and user.status.value == 'pending' %}
-                        <tr class="transition-colors {{ isPending ? 'bg-yellow-500/5 hover:bg-yellow-500/10' : 'hover:bg-white/5' }}">
-                            <td class="px-6 py-4 text-slate-200 text-sm">{{ firstName ?: '-' }}</td>
-                            <td class="px-6 py-4 text-slate-200 text-sm">{{ lastName ?: '-' }}</td>
-                            <td class="px-6 py-4 text-white">{{ user.email }}</td>
+                        <tr
+                            data-admin-users-row="true"
+                            class="transition-colors duration-200 {{ not loop.first ? 'border-t border-white/10' : '' }} {{ isPending ? 'admin-users-pending-row' : (loop.index is odd ? 'bg-white/[0.04] hover:bg-white/[0.08]' : 'bg-white/[0.02] hover:bg-white/[0.06]') }}"
+                        >
+                            <td class="px-6 py-4.5 text-sm font-medium text-slate-200">{{ firstName ?: '-' }}</td>
+                            <td class="px-6 py-4.5 text-sm font-medium text-slate-200">{{ lastName ?: '-' }}</td>
+                            <td class="px-6 py-4.5 font-medium text-slate-100">{{ user.email }}</td>
                             <td class="px-6 py-4">
                                 {% if 'ROLE_ADMIN' in user.roles %}
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-400">Admin</span>
+                                    <span class="admin-users-role-admin inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">Admin</span>
                                 {% elseif 'ROLE_RECRUITER' in user.roles %}
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-400">Recruteur</span>
+                                    <span class="admin-users-role-recruiter inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">Recruteur</span>
                                 {% else %}
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400">Candidat</span>
+                                    <span class="admin-users-role-applicant inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">Candidat</span>
                                 {% endif %}
                             </td>
                             <td class="px-6 py-4">
                                 {% if user.status %}
                                     {% set statusValue = user.status.value %}
                                     {% if statusValue == 'active' %}
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400">ACTIVE</span>
+                                        <span class="admin-users-status-active inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">ACTIVE</span>
                                     {% elseif statusValue == 'pending' %}
                                         <div class="space-y-2">
-                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-500/20 text-yellow-300">PENDING</span>
-                                            <p class="text-xs text-yellow-200/90">En attente de validation whitelist.</p>
+                                            <span class="admin-users-pending-badge inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">PENDING</span>
+                                            <p class="admin-users-pending-note text-xs">En attente de validation whitelist.</p>
                                             <div class="flex flex-wrap gap-2">
                                                 <form method="post" action="{{ path('app_admin_users_validate', {id: user.id}) }}">
                                                     <input type="hidden" name="_token" value="{{ csrf_token('admin_user_validate_' ~ user.id) }}">
-                                                    <button type="submit" class="rounded-lg bg-emerald-500/20 px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/30">Accepter</button>
+                                                    <button type="submit" class="admin-users-action-success inline-flex h-8 w-8 items-center justify-center rounded-lg" aria-label="Accepter le compte pending" title="Accepter">
+                                                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="m4 10 4 4 8-8"></path>
+                                                        </svg>
+                                                    </button>
                                                 </form>
                                                 <form method="post" action="{{ path('app_admin_users_reject', {id: user.id}) }}">
                                                     <input type="hidden" name="_token" value="{{ csrf_token('admin_user_reject_' ~ user.id) }}">
-                                                    <button type="submit" class="rounded-lg bg-red-500/20 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-500/30">Refuser</button>
+                                                    <button type="submit" class="admin-users-action-danger inline-flex h-8 w-8 items-center justify-center rounded-lg" aria-label="Refuser le compte pending" title="Refuser">
+                                                        <svg class="h-4 w-4" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="m5 5 10 10"></path>
+                                                            <path stroke-linecap="round" stroke-linejoin="round" d="m15 5-10 10"></path>
+                                                        </svg>
+                                                    </button>
                                                 </form>
                                             </div>
                                         </div>
                                     {% elseif statusValue == 'suspended' %}
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-orange-500/20 text-orange-400">SUSPENDED</span>
+                                        <span class="admin-users-status-suspended inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">SUSPENDED</span>
                                     {% elseif statusValue == 'banned' %}
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-500/20 text-red-400">BANNED</span>
+                                        <span class="admin-users-status-banned inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">BANNED</span>
                                     {% else %}
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-500/20 text-slate-300">{{ statusValue|upper }}</span>
+                                        <span class="admin-users-status-slate inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">{{ statusValue|upper }}</span>
                                     {% endif %}
                                 {% else %}
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-500/20 text-slate-300">N/A</span>
+                                    <span class="admin-users-status-slate inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">N/A</span>
                                 {% endif %}
                             </td>
-                            <td class="px-6 py-4 text-slate-400 text-sm">{{ user.createdAt ? user.createdAt|date('d/m/Y') : '-' }}</td>
+                            <td class="px-6 py-4.5 text-sm font-medium text-slate-300">{{ user.createdAt ? user.createdAt|date('d/m/Y') : '-' }}</td>
                             <td class="px-6 py-4">
-                                <details class="group">
+                                <details class="group relative inline-block text-left">
                                     <summary class="flex cursor-pointer list-none items-center justify-center gap-2 rounded-lg bg-white/5 px-3 py-2 text-xs font-semibold text-slate-200 hover:bg-white/10">
                                         <span>Gérer</span>
                                         <svg class="h-3.5 w-3.5 text-slate-300 transition-transform duration-200 group-open:rotate-180" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m5 7 5 6 5-6"></path>
                                         </svg>
                                     </summary>
-                                    <div class="mt-2 min-w-[240px] space-y-2 rounded-xl border border-white/10 bg-slate-950/90 p-3 shadow-xl">
+                                    <div class="absolute right-0 top-full z-40 mt-2 min-w-[240px] space-y-2 rounded-xl border border-white/10 bg-slate-950/95 p-3 shadow-2xl shadow-black/50">
                                         {% if not user.status or user.status.value not in ['banned', 'deleted'] %}
                                             <form method="post" action="{{ path('app_admin_users_update_role', {id: user.id}) }}" class="flex items-center gap-2">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('admin_user_role_' ~ user.id) }}">
@@ -414,27 +836,27 @@
                                         {% if user.status and user.status.value == 'suspended' %}
                                             <form method="post" action="{{ path('app_admin_users_validate', {id: user.id}) }}">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('admin_user_validate_' ~ user.id) }}">
-                                                <button type="submit" class="w-full rounded-lg bg-emerald-500/20 px-3 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-500/30" {% if isCurrentAdmin %}disabled{% endif %}>Réactiver</button>
+                                                <button type="submit" class="admin-users-action-success w-full rounded-lg px-3 py-2 text-xs font-semibold" {% if isCurrentAdmin %}disabled{% endif %}>Réactiver</button>
                                             </form>
                                         {% endif %}
 
                                         {% if user.status and user.status.value in ['active', 'pending'] %}
                                             <form method="post" action="{{ path('app_admin_users_suspend', {id: user.id}) }}">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('admin_user_suspend_' ~ user.id) }}">
-                                                <button type="submit" class="w-full rounded-lg bg-orange-500/20 px-3 py-2 text-xs font-semibold text-orange-300 hover:bg-orange-500/30" {% if isCurrentAdmin %}disabled{% endif %}>Suspendre</button>
+                                                <button type="submit" class="admin-users-action-warning w-full rounded-lg px-3 py-2 text-xs font-semibold" {% if isCurrentAdmin %}disabled{% endif %}>Suspendre</button>
                                             </form>
                                         {% endif %}
 
                                         {% if user.status and user.status.value in ['active', 'suspended', 'pending'] %}
                                             <form method="post" action="{{ path('app_admin_users_ban', {id: user.id}) }}">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('admin_user_ban_' ~ user.id) }}">
-                                                <button type="submit" class="w-full rounded-lg bg-red-500/20 px-3 py-2 text-xs font-semibold text-red-300 hover:bg-red-500/30" {% if isCurrentAdmin %}disabled{% endif %}>Bannir</button>
+                                                <button type="submit" class="admin-users-action-slate w-full rounded-lg px-3 py-2 text-xs font-semibold" {% if isCurrentAdmin %}disabled{% endif %}>Bannir</button>
                                             </form>
                                         {% endif %}
 
                                         <form method="post" action="{{ path('app_admin_users_delete', {id: user.id}) }}" onsubmit="return confirm('Supprimer définitivement ce compte et TOUTES ses données associées ?');">
                                             <input type="hidden" name="_token" value="{{ csrf_token('admin_user_delete_' ~ user.id) }}">
-                                            <button type="submit" class="w-full rounded-lg bg-rose-500/20 px-3 py-2 text-xs font-semibold text-rose-300 hover:bg-rose-500/30" {% if isCurrentAdmin %}disabled{% endif %}>Supprimer</button>
+                                            <button type="submit" class="admin-users-action-danger w-full rounded-lg px-3 py-2 text-xs font-semibold" {% if isCurrentAdmin %}disabled{% endif %}>Supprimer</button>
                                         </form>
                                     </div>
                                 </details>
@@ -451,7 +873,7 @@
     </div>
 
     {% if totalPages > 1 %}
-        <div class="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-900/50 px-5 py-4 shadow-xl shadow-black/40 backdrop-blur-xl">
+        <div class="flex items-center justify-between rounded-[1.5rem] border border-white/10 bg-slate-950/30 px-5 py-4">
             <p class="text-sm text-slate-400">Page {{ currentPage }} / {{ totalPages }}</p>
             <div class="flex items-center gap-2">
                 {% if currentPage > 1 %}
@@ -463,7 +885,9 @@
             </div>
         </div>
     {% endif %}
+    </div>
 
-    <p class="text-xs text-slate-500">Les actions d'administration sont journalisées. Les admins ne peuvent pas bannir ou supprimer leur propre compte.</p>
+    <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">Les actions d'administration sont journalisées. Les admins ne peuvent pas bannir ou supprimer leur propre compte.</p>
+
 </section>
 {% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Préférences | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-4xl self-start space-y-6">
+        <div class="theme-settings-card rounded-[2rem] p-6 sm:p-8">
+            <div class="max-w-2xl">
+                <span class="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">
+                    Préférences
+                </span>
+                <h1 class="ui-title mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Paramètres d'affichage</h1>
+                <p class="ui-text-secondary mt-3 text-[15px] leading-relaxed">
+                    Le thème est enregistré dans ce navigateur. Tu peux garder le mode jour actuel ou basculer vers un mode nuit plus reposant.
+                </p>
+            </div>
+
+            <div class="mt-6">
+                {% include 'settings/_menu.html.twig' with { current: 'preferences' } %}
+            </div>
+
+            <div class="theme-settings-grid mt-8">
+                <div class="ui-panel rounded-[1.75rem] p-5 sm:p-6">
+                    <p class="ui-text-muted text-sm font-semibold uppercase tracking-[0.2em]">Mode actuel</p>
+                    <p data-theme-label="true" class="ui-title mt-3 text-2xl font-semibold">Mode jour</p>
+                    <p class="ui-text-secondary mt-2 text-sm leading-relaxed">
+                        Le changement est immédiat sur toute l'interface et reste actif au prochain chargement de page.
+                    </p>
+
+                    <div class="mt-6 flex flex-wrap gap-3">
+                        <button
+                            type="button"
+                            data-theme-choice="light"
+                            aria-pressed="true"
+                            class="theme-option-button rounded-full px-4 py-2.5 text-sm font-semibold"
+                        >
+                            Mode jour
+                        </button>
+                        <button
+                            type="button"
+                            data-theme-choice="dark"
+                            aria-pressed="false"
+                            class="theme-option-button rounded-full px-4 py-2.5 text-sm font-semibold"
+                        >
+                            Mode nuit
+                        </button>
+                    </div>
+                </div>
+
+                <aside class="theme-preview rounded-[1.75rem] p-5 sm:p-6" aria-hidden="true">
+                    <div class="flex items-center justify-between">
+                        <span class="ui-title text-sm font-semibold">Aperçu rapide</span>
+                        <span class="theme-preview-chip rounded-full px-3 py-1 text-xs font-semibold">UI DevSpot</span>
+                    </div>
+
+                    <div class="theme-preview-window mt-5 rounded-[1.5rem] p-4">
+                        <div class="flex items-center gap-2">
+                            <span class="h-2.5 w-2.5 rounded-full bg-red-400/80"></span>
+                            <span class="h-2.5 w-2.5 rounded-full bg-amber-400/80"></span>
+                            <span class="h-2.5 w-2.5 rounded-full bg-emerald-400/80"></span>
+                        </div>
+
+                        <div class="theme-preview-accent mt-5 h-28 rounded-[1.2rem] opacity-90"></div>
+
+                        <div class="mt-5 grid gap-3">
+                            <div class="theme-preview-window rounded-[1rem] p-4">
+                                <div class="h-3 w-20 rounded-full bg-white/20"></div>
+                                <div class="mt-3 h-2.5 w-full rounded-full bg-white/10"></div>
+                                <div class="mt-2 h-2.5 w-3/4 rounded-full bg-white/10"></div>
+                            </div>
+                            <div class="flex gap-3">
+                                <div class="theme-preview-window h-20 flex-1 rounded-[1rem]"></div>
+                                <div class="theme-preview-window h-20 flex-1 rounded-[1rem]"></div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </section>
+{% endblock %}

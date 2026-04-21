@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\AdminActionLog;
+use App\Entity\ContactMessage;
 use App\Entity\DeveloperProfile;
 use App\Entity\User;
 use App\Enum\UserStatus;
@@ -73,7 +74,7 @@ final class AdminController extends AbstractController
         $requestedStatus = (string) $request->query->get('status', '');
         $search = trim((string) $request->query->get('q', ''));
         $page = max(1, $request->query->getInt('page', 1));
-        $perPage = 12;
+        $perPage = 10;
 
         $allowedStatuses = array_map(static fn (UserStatus $status): string => $status->value, UserStatus::cases());
         $role = in_array($requestedRole, self::ALLOWED_ROLES, true) ? $requestedRole : null;
@@ -108,21 +109,21 @@ final class AdminController extends AbstractController
         if (!$this->isCsrfTokenValid('admin_user_role_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
-            return $this->redirectToRoute('app_admin_users');
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
 
         $requestedRole = (string) $request->request->get('role');
         if (!in_array($requestedRole, self::ALLOWED_ROLES, true)) {
             $this->addFlash('error', 'Role invalide.');
 
-            return $this->redirectToRoute('app_admin_users');
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
 
         $currentUser = $this->getUser();
         if ($currentUser instanceof User && $currentUser->getId() === $user->getId() && 'ROLE_ADMIN' !== $requestedRole) {
             $this->addFlash('error', 'Impossible de retirer votre propre rôle administrateur.');
 
-            return $this->redirectToRoute('app_admin_users');
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
 
         $currentRole = $this->extractPrimaryRole($user);
@@ -145,7 +146,7 @@ final class AdminController extends AbstractController
         $entityManager->flush();
         $this->addFlash('success', 'Le rôle de l\'utilisateur a été mis à jour.');
 
-        return $this->redirectToRoute('app_admin_users');
+        return $this->redirectToRefererOrRoute($request, 'app_admin_users');
     }
 
     #[Route('/users/{id}/status', name: 'app_admin_users_update_status', methods: ['POST'])]
@@ -154,21 +155,21 @@ final class AdminController extends AbstractController
         if (!$this->isCsrfTokenValid('admin_user_status_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
-            return $this->redirectToRoute('app_admin_users');
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
 
         $status = UserStatus::tryFrom((string) $request->request->get('status'));
         if (!$status instanceof UserStatus) {
             $this->addFlash('error', 'Statut invalide.');
 
-            return $this->redirectToRoute('app_admin_users');
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
 
         $currentUser = $this->getUser();
         if ($currentUser instanceof User && $currentUser->getId() === $user->getId() && in_array($status, [UserStatus::BANNED, UserStatus::DELETED], true)) {
             $this->addFlash('error', 'Impossible de bannir ou supprimer votre propre compte.');
 
-            return $this->redirectToRoute('app_admin_users');
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
 
         $previousStatus = $user->getStatus()?->value;
@@ -191,7 +192,7 @@ final class AdminController extends AbstractController
         $entityManager->flush();
         $this->addFlash('success', 'Le statut de l\'utilisateur a été mis à jour.');
 
-        return $this->redirectToRoute('app_admin_users');
+        return $this->redirectToRefererOrRoute($request, 'app_admin_users');
     }
 
     #[Route('/users/{id}/suspend', name: 'app_admin_users_suspend', methods: ['POST'])]
@@ -218,14 +219,14 @@ final class AdminController extends AbstractController
         if (!$this->isCsrfTokenValid('admin_user_reject_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
-            return $this->redirectToRoute('app_admin_users');
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
 
         $currentUser = $this->getUser();
         if ($currentUser instanceof User && $currentUser->getId() === $user->getId()) {
             $this->addFlash('error', 'Impossible de supprimer votre propre compte.');
 
-            return $this->redirectToRoute('app_admin_users');
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
 
         $previousStatus = $user->getStatus()?->value;
@@ -251,10 +252,10 @@ final class AdminController extends AbstractController
             ]);
             $this->addFlash('error', 'Erreur lors du refus du compte. Merci de reessayer.');
 
-            return $this->redirectToRoute('app_admin_users');
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
 
-        return $this->redirectToRoute('app_admin_users');
+        return $this->redirectToRefererOrRoute($request, 'app_admin_users');
     }
 
     #[Route('/users/{id}/delete', name: 'app_admin_users_delete', methods: ['POST'])]
@@ -263,14 +264,14 @@ final class AdminController extends AbstractController
         if (!$this->isCsrfTokenValid('admin_user_delete_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
-            return $this->redirectToRoute('app_admin_users');
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
 
         $currentUser = $this->getUser();
         if ($currentUser instanceof User && $currentUser->getId() === $user->getId()) {
             $this->addFlash('error', 'Impossible de supprimer votre propre compte.');
 
-            return $this->redirectToRoute('app_admin_users');
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
 
         $previousStatus = $user->getStatus()?->value;
@@ -296,17 +297,26 @@ final class AdminController extends AbstractController
             ]);
             $this->addFlash('error', 'Erreur lors de la suppression du compte. Merci de reessayer.');
 
-            return $this->redirectToRoute('app_admin_users');
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
 
-        return $this->redirectToRoute('app_admin_users');
+        return $this->redirectToRefererOrRoute($request, 'app_admin_users');
     }
 
     #[Route('/profiles', name: 'app_admin_profiles')]
-    public function profiles(DeveloperProfileRepository $profileRepository): Response
+    public function profiles(DeveloperProfileRepository $profileRepository, Request $request): Response
     {
+        $page = max(1, $request->query->getInt('page', 1));
+        $perPage = 9;
+        $totalProfiles = $profileRepository->count([]);
+        $totalPages = max(1, (int) ceil($totalProfiles / $perPage));
+        $currentPage = min($page, $totalPages);
+
         return $this->render('admin/profiles.html.twig', [
-            'profiles' => $profileRepository->findAll(),
+            'profiles' => $profileRepository->findAdminProfilesPaginated($currentPage, $perPage),
+            'totalProfiles' => $totalProfiles,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
         ]);
     }
 
@@ -316,12 +326,14 @@ final class AdminController extends AbstractController
         if (!$this->isCsrfTokenValid('admin_profile_moderate_' . $profile->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
-            return $this->redirectToRoute('app_admin_profiles');
+            return $this->redirectToRefererOrRoute($request, 'app_admin_profiles');
         }
 
         $reason = trim((string) $request->request->get('reason', ''));
         if ('' === $reason) {
-            $reason = 'Votre profil nécessite une revue administrateur.';
+            $this->addFlash('error', 'Merci de renseigner un message de moderation.');
+
+            return $this->redirectToRefererOrRoute($request, 'app_admin_profiles');
         }
 
         $profile->setIsPublic(false);
@@ -338,23 +350,66 @@ final class AdminController extends AbstractController
         $entityManager->flush();
         $this->addFlash('success', 'Le profil a été modéré et l\'utilisateur a été notifié.');
 
-        return $this->redirectToRoute('app_admin_profiles');
+        return $this->redirectToRefererOrRoute($request, 'app_admin_profiles');
     }
 
     #[Route('/companies', name: 'app_admin_companies')]
-    public function companies(CompanyRepository $companyRepository): Response
+    public function companies(CompanyRepository $companyRepository, Request $request): Response
     {
+        $page = max(1, $request->query->getInt('page', 1));
+        $perPage = 9;
+        $totalCompanies = $companyRepository->count([]);
+        $totalPages = max(1, (int) ceil($totalCompanies / $perPage));
+        $currentPage = min($page, $totalPages);
+
         return $this->render('admin/companies.html.twig', [
-            'companies' => $companyRepository->findAll(),
+            'companies' => $companyRepository->findAdminCompaniesPaginated($currentPage, $perPage),
+            'totalCompanies' => $totalCompanies,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
         ]);
     }
 
     #[Route('/messages', name: 'app_admin_messages')]
-    public function messages(ContactMessageRepository $contactMessageRepository): Response
+    public function messages(ContactMessageRepository $contactMessageRepository, Request $request): Response
     {
+        $page = max(1, $request->query->getInt('page', 1));
+        $perPage = 10;
+        $totalMessages = $contactMessageRepository->count([]);
+        $totalPages = max(1, (int) ceil($totalMessages / $perPage));
+        $currentPage = min($page, $totalPages);
+
         return $this->render('admin/messages.html.twig', [
-            'messages' => $contactMessageRepository->findBy([], ['createdAt' => 'DESC']),
+            'messages' => $contactMessageRepository->findAdminMessagesPaginated($currentPage, $perPage),
+            'totalMessages' => $totalMessages,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
         ]);
+    }
+
+    #[Route('/messages/{id}/delete', name: 'app_admin_messages_delete', methods: ['POST'])]
+    public function deleteMessage(ContactMessage $contactMessage, Request $request, EntityManagerInterface $entityManager): Response
+    {
+        if (!$this->isCsrfTokenValid('admin_message_delete_' . $contactMessage->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Jeton CSRF invalide.');
+
+            return $this->redirectToRefererOrRoute($request, 'app_admin_messages');
+        }
+
+        $this->logAdminAction($entityManager, 'contact_message.deleted', null, [
+            'messageId' => $contactMessage->getId(),
+            'recruiterEmail' => $contactMessage->getRecruiterEmail(),
+            'recruiterName' => $contactMessage->getRecruiterName(),
+            'subject' => $contactMessage->getSubject(),
+            'developerProfileId' => $contactMessage->getDeveloperProfile()?->getId(),
+        ]);
+
+        $entityManager->remove($contactMessage);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Le message de contact a ete supprime.');
+
+        return $this->redirectToRefererOrRoute($request, 'app_admin_messages');
     }
 
     private function countUsersByRole(UserRepository $userRepository, string $role): int
@@ -375,14 +430,14 @@ final class AdminController extends AbstractController
         if (!$this->isCsrfTokenValid($csrfPrefix . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
-            return $this->redirectToRoute('app_admin_users');
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
 
         $currentUser = $this->getUser();
         if ($currentUser instanceof User && $currentUser->getId() === $user->getId() && in_array($newStatus, [UserStatus::BANNED, UserStatus::DELETED], true)) {
             $this->addFlash('error', 'Action interdite sur votre propre compte.');
 
-            return $this->redirectToRoute('app_admin_users');
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
 
         $previousStatus = $user->getStatus()?->value;
@@ -405,7 +460,7 @@ final class AdminController extends AbstractController
         $entityManager->flush();
         $this->addFlash('success', $successMessage);
 
-        return $this->redirectToRoute('app_admin_users');
+        return $this->redirectToRefererOrRoute($request, 'app_admin_users');
     }
 
     private function extractPrimaryRole(User $user): string
@@ -423,6 +478,18 @@ final class AdminController extends AbstractController
     private function isApplicantUser(User $user): bool
     {
         return in_array('ROLE_APPLICANT', $user->getRoles(), true);
+    }
+
+    private function redirectToRefererOrRoute(Request $request, string $route, array $parameters = []): Response
+    {
+        $referer = $request->headers->get('referer');
+        $origin = $request->getSchemeAndHttpHost();
+
+        if (is_string($referer) && '' !== $referer && (str_starts_with($referer, '/') || str_starts_with($referer, $origin))) {
+            return $this->redirect($referer);
+        }
+
+        return $this->redirectToRoute($route, $parameters);
     }
 
     private function logAdminAction(
