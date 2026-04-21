@@ -1,0 +1,9 @@
+.git
+.github
+.venv
+.venv-docs
+vendor
+var
+site
+public/assets
+node_modules
