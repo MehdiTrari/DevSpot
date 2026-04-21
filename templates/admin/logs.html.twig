@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Logs admin | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-6xl space-y-8 font-sans">
+        <div class="favorite-showcase-hero mx-auto w-full max-w-5xl px-1 py-2 text-center sm:px-2 sm:py-3">
+            <div class="mx-auto max-w-3xl">
+                <p class="favorite-showcase-kicker">
+                    Administration
+                </p>
+                <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Logs d'administration</h1>
+                <p class="ui-text-secondary mt-4 text-[15px]">
+                    Consulte les 100 dernieres actions journalisees sur la plateforme.
+                </p>
+            </div>
+        </div>
+
+        <div class="theme-settings-card rounded-[2.35rem] p-6 sm:p-8">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h2 class="ui-title text-2xl font-semibold tracking-tight">Historique récent</h2>
+                    <p class="ui-text-muted mt-2 text-sm">Action, auteur, cible, motif et métadonnées utiles.</p>
+                </div>
+            </div>
+
+            <div class="mt-6 space-y-4">
+                {% for log in logs %}
+                    <article class="premium-list-row rounded-[1.6rem] p-5">
+                        <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                            <div class="space-y-3">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="ui-pill ui-pill-warning rounded-full px-2.5 py-1 text-xs font-semibold">
+                                        {{ log.action }}
+                                    </span>
+                                    <span class="ui-text-muted text-xs">
+                                        {{ log.createdAt ? log.createdAt|date('d/m/Y H:i') : '-' }}
+                                    </span>
+                                </div>
+
+                                <div class="grid gap-2 text-sm sm:grid-cols-2">
+                                    <p class="ui-text-secondary">
+                                        <span class="ui-text-muted">Admin :</span>
+                                        {{ log.adminUser ? log.adminUser.email : 'Compte supprimé' }}
+                                    </p>
+                                    <p class="ui-text-secondary">
+                                        <span class="ui-text-muted">Cible :</span>
+                                        {{ log.targetUser ? log.targetUser.email : 'Aucune' }}
+                                    </p>
+                                </div>
+
+                                {% if log.reason %}
+                                    <p class="ui-text-secondary text-sm">
+                                        <span class="ui-text-muted">Motif :</span>
+                                        {{ log.reason }}
+                                    </p>
+                                {% endif %}
+
+                                {% if log.metadata %}
+                                    <div class="rounded-[1.2rem] border border-white/10 bg-black/10 p-4">
+                                        <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Métadonnées</p>
+                                        <pre class="mt-3 overflow-x-auto whitespace-pre-wrap break-words text-xs leading-6 text-slate-300">{{ log.metadata|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
+                {% else %}
+                    <div class="premium-list-row rounded-[1.6rem] px-5 py-8 text-center">
+                        <p class="ui-text-muted text-sm">Aucune action admin journalisée pour le moment.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+{% endblock %}

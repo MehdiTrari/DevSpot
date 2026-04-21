@@ -51,7 +51,7 @@ final class AdminUsersDeletionTest extends WebTestCase
 
         self::assertNotNull($deleteToken);
 
-        $client->request('POST', '/admin/users/' . $target->getId() . '/delete', [
+        $client->request('POST', '/admin/users/'.$target->getId().'/delete', [
             '_token' => $deleteToken,
         ]);
 
@@ -106,7 +106,7 @@ final class AdminUsersDeletionTest extends WebTestCase
 
         self::assertNotNull($deleteToken);
 
-        $client->request('POST', '/admin/users/' . $adminToDelete->getId() . '/delete', [
+        $client->request('POST', '/admin/users/'.$adminToDelete->getId().'/delete', [
             '_token' => $deleteToken,
         ]);
 
@@ -153,7 +153,7 @@ final class AdminUsersDeletionTest extends WebTestCase
 
         self::assertNotNull($rejectToken);
 
-        $client->request('POST', '/admin/users/' . $target->getId() . '/reject', [
+        $client->request('POST', '/admin/users/'.$target->getId().'/reject', [
             '_token' => $rejectToken,
         ]);
 
@@ -197,7 +197,7 @@ final class AdminUsersDeletionTest extends WebTestCase
 
         self::assertNotNull($rejectToken);
 
-        $client->request('POST', '/admin/users/' . $target->getId() . '/reject', [
+        $client->request('POST', '/admin/users/'.$target->getId().'/reject', [
             '_token' => $rejectToken,
         ]);
         self::assertResponseRedirects('/admin/users');

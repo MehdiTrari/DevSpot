@@ -69,8 +69,6 @@ final class MatchingPreviewController extends AbstractController
     }
 
     /**
-     * @param mixed $value
-     *
      * @return list<string>
      */
     private function asStringList(mixed $value): array

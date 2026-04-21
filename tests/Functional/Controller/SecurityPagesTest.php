@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Tests\Functional\Controller;
 
 use App\Entity\User;
@@ -69,6 +70,24 @@ final class SecurityPagesTest extends WebTestCase
         $crawler = $client->followRedirect();
         self::assertSelectorTextContains('h1', 'Mon dashboard.');
         self::assertSelectorExists('a[href="/applicant"]');
+    }
+
+    public function testAdminCannotSeeOrAccessRoleSettings(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('admin_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $admin = $this->createUserWithStatus($email, $password, UserStatus::ACTIVE, ['ROLE_ADMIN']);
+
+        $client->loginUser($admin);
+        $client->request('GET', '/settings');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorNotExists('a[href="/settings/role"]');
+
+        $client->request('GET', '/settings/role');
+
+        self::assertResponseRedirects('/403');
     }
 
     public function testLoginFormShowsErrorWithWrongPassword(): void

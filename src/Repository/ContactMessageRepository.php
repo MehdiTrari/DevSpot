@@ -87,7 +87,7 @@ class ContactMessageRepository extends ServiceEntityRepository
             }
 
             if (!$message->isRead()) {
-                $conversations[$key]['unreadCount']++;
+                ++$conversations[$key]['unreadCount'];
             }
         }
 
@@ -133,7 +133,7 @@ class ContactMessageRepository extends ServiceEntityRepository
             }
 
             if (!$message->isRead()) {
-                $conversations[$key]['unreadCount']++;
+                ++$conversations[$key]['unreadCount'];
             }
         }
 

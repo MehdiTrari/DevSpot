@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -27,6 +28,11 @@ final class SettingsController extends AbstractController
     #[Route('/role', name: 'app_settings_role', methods: ['GET'])]
     public function role(): Response
     {
+        $user = $this->getUser();
+        if (!$user instanceof User || !$user->canRequestRoleChange()) {
+            throw $this->createAccessDeniedException();
+        }
+
         return $this->render('settings/role.html.twig');
     }
 
@@ -34,8 +40,13 @@ final class SettingsController extends AbstractController
     #[IsGranted('ROLE_APPLICANT')]
     public function slug(): Response
     {
+        $user = $this->getUser();
+        if (!$user instanceof User || !$user->isApplicantOnly()) {
+            throw $this->createAccessDeniedException();
+        }
+
         return $this->render('settings/slug.html.twig', [
-            'profile' => $this->getUser()?->getDeveloperProfile(),
+            'profile' => $user->getDeveloperProfile(),
         ]);
     }
 
@@ -46,7 +57,7 @@ final class SettingsController extends AbstractController
         $cssPath = $kernel->getProjectDir() . '/public/styles/base-theme.css';
         $cssContent = @file_get_contents($cssPath);
 
-        if ($cssContent === false) {
+        if (false === $cssContent) {
             throw $this->createNotFoundException('Impossible de lire le fichier base-theme.css');
         }
 
@@ -110,7 +121,7 @@ final class SettingsController extends AbstractController
             $dayText = $lightMap[$textToken] ?? '-';
             $dayBorder = $lightMap[$borderToken] ?? '-';
 
-            if ($dayBg === '-' || $dayText === '-' || $dayBorder === '-') {
+            if ('-' === $dayBg || '-' === $dayText || '-' === $dayBorder) {
                 continue;
             }
 
@@ -176,7 +187,7 @@ final class SettingsController extends AbstractController
             $deduplicationKey = $this->buildColorTripletDeduplicationKey($family);
             $existing = $catalog[$bucket][$deduplicationKey] ?? null;
 
-            if ($existing !== null && $this->getColorTripletFamilyPriority($existing['family']) <= $this->getColorTripletFamilyPriority($family)) {
+            if (null !== $existing && $this->getColorTripletFamilyPriority($existing['family']) <= $this->getColorTripletFamilyPriority($family)) {
                 continue;
             }
 
@@ -243,7 +254,7 @@ final class SettingsController extends AbstractController
 
         $label = ucwords(str_replace('-', ' ', $previewFamily));
 
-        return $label !== '' ? $label : 'Apercu';
+        return '' !== $label ? $label : 'Apercu';
     }
 
     private function buildColorTripletDeduplicationKey(string $family): string
@@ -285,7 +296,7 @@ final class SettingsController extends AbstractController
         }
 
         $blockContent = $matches[1] ?? '';
-        if ($blockContent === '') {
+        if ('' === $blockContent) {
             return [];
         }
 
@@ -296,7 +307,7 @@ final class SettingsController extends AbstractController
             $tokenName = '--' . trim((string) ($declaration[1] ?? ''));
             $tokenValue = trim((string) ($declaration[2] ?? ''));
 
-            if ($tokenName === '--' || $tokenValue === '' || !$this->isColorLikeValue($tokenValue)) {
+            if ('--' === $tokenName || '' === $tokenValue || !$this->isColorLikeValue($tokenValue)) {
                 continue;
             }
 
@@ -432,7 +443,7 @@ final class SettingsController extends AbstractController
             $selectorBlock = trim((string) ($rule[1] ?? ''));
             $declarationBlock = (string) ($rule[2] ?? '');
 
-            if ($selectorBlock === '' || $declarationBlock === '') {
+            if ('' === $selectorBlock || '' === $declarationBlock) {
                 continue;
             }
 
@@ -442,7 +453,7 @@ final class SettingsController extends AbstractController
 
             preg_match_all('/\.([a-zA-Z0-9_-]+)/', $selectorBlock, $classMatches);
             $classes = array_values(array_unique($classMatches[1] ?? []));
-            if ($classes === []) {
+            if ([] === $classes) {
                 continue;
             }
 
@@ -452,7 +463,7 @@ final class SettingsController extends AbstractController
                 $property = strtolower(trim((string) ($declaration[1] ?? '')));
                 $value = trim((string) ($declaration[2] ?? ''));
 
-                if ($property === '' || $value === '' || !$this->isColorLikeValue($value)) {
+                if ('' === $property || '' === $value || !$this->isColorLikeValue($value)) {
                     continue;
                 }
 

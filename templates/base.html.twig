@@ -561,6 +561,313 @@
                 document.addEventListener('DOMContentLoaded', initUiBehaviors);
                 document.addEventListener('turbo:load', initUiBehaviors);
             </script>
+            <script>
+                (() => {
+                    if (window.DevSpotMultiSelect) {
+                        return;
+                    }
+
+                    const accentThemes = {
+                        emerald: {
+                            control: ['focus-within:border-emerald-500/45', 'focus-within:bg-white/10', 'focus-within:ring-4', 'focus-within:ring-emerald-500/20'],
+                            searchShell: ['focus-within:border-emerald-400/35'],
+                            count: ['u-border-success', 'u-bg-success', 'u-text-success'],
+                            chip: ['u-border-success', 'u-bg-success', 'u-text-success'],
+                            selectedOption: ['border-emerald-400/35', 'bg-emerald-500/15', 'shadow-lg', 'shadow-emerald-950/20'],
+                            indicator: ['u-border-success', 'u-bg-success', 'u-text-success'],
+                            searchIcon: 'u-text-success',
+                            badge: 'u-border-success u-bg-success u-text-success',
+                        },
+                        blue: {
+                            control: ['focus-within:border-blue-500/45', 'focus-within:bg-white/10', 'focus-within:ring-4', 'focus-within:ring-blue-500/20'],
+                            searchShell: ['focus-within:border-blue-400/35'],
+                            count: ['u-border-info', 'u-bg-info', 'u-text-info'],
+                            chip: ['u-border-info', 'u-bg-info', 'u-text-info'],
+                            selectedOption: ['border-blue-400/35', 'bg-blue-500/15', 'shadow-lg', 'shadow-blue-950/20'],
+                            indicator: ['u-border-info', 'u-bg-info', 'u-text-info'],
+                            searchIcon: 'u-text-info',
+                            badge: 'u-border-info u-bg-info u-text-info',
+                        },
+                    };
+
+                    const badgeThemes = {
+                        admin: 'u-border-pale-red u-bg-pale-red u-text-pale-red',
+                        recruiter: 'u-border-pale-purple u-bg-pale-purple u-text-pale-purple',
+                        applicant: 'u-border-pale-pink u-bg-pale-pink u-text-pale-pink',
+                        rose: 'u-border-pale-red u-bg-pale-red u-text-pale-red',
+                        violet: 'u-border-pale-purple u-bg-pale-purple u-text-pale-purple',
+                        blue: 'u-border-info u-bg-info u-text-info',
+                        emerald: 'u-border-success u-bg-success u-text-success',
+                    };
+
+                    const escapeHtml = (value) => String(value)
+                        .replaceAll('&', '&amp;')
+                        .replaceAll('<', '&lt;')
+                        .replaceAll('>', '&gt;')
+                        .replaceAll('"', '&quot;')
+                        .replaceAll("'", '&#039;');
+
+                    const resolveRoots = (scope) => {
+                        if (!(scope instanceof Document) && !(scope instanceof Element)) {
+                            return [];
+                        }
+
+                        const roots = [];
+                        if (scope instanceof Element && scope.matches('[data-ui-multiselect="true"]')) {
+                            roots.push(scope);
+                        }
+
+                        roots.push(...scope.querySelectorAll('[data-ui-multiselect="true"]'));
+
+                        return roots;
+                    };
+
+                    const resolveTheme = (accent) => accentThemes[accent] ?? accentThemes.emerald;
+
+                    const resolveBadgeTheme = (tone, theme) => badgeThemes[tone] ?? theme.badge;
+
+                    const formatSelectedCount = (select, count) => {
+                        const singular = select.dataset.multiselectSelectedSingular || 'élément';
+                        const plural = select.dataset.multiselectSelectedPlural || 'éléments';
+
+                        return `${count} ${count === 1 ? singular : plural}`;
+                    };
+
+                    const dispatchChange = (select) => {
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                    };
+
+                    const init = (scope = document) => {
+                        resolveRoots(scope).forEach((root) => {
+                            if (root.dataset.multiselectInitialized === 'true') {
+                                return;
+                            }
+
+                            const nativeWrapper = root.querySelector('[data-ui-multiselect-native="true"]');
+                            const enhancedWrapper = root.querySelector('[data-ui-multiselect-enhanced="true"]');
+                            const select = nativeWrapper?.querySelector('select[multiple]');
+                            const control = root.querySelector('[data-ui-multiselect-control="true"]');
+                            const tagsContainer = root.querySelector('[data-ui-multiselect-tags="true"]');
+                            const searchShell = root.querySelector('[data-ui-multiselect-search-shell="true"]');
+                            const searchIcon = root.querySelector('[data-ui-multiselect-search-icon="true"]');
+                            const searchInput = root.querySelector('[data-ui-multiselect-search="true"]');
+                            const countBadge = root.querySelector('[data-ui-multiselect-count="true"]');
+                            const optionsContainer = root.querySelector('[data-ui-multiselect-options="true"]');
+                            const emptyState = root.querySelector('[data-ui-multiselect-empty-state="true"]');
+                            const placeholderElement = root.querySelector('[data-ui-multiselect-selection-placeholder="true"]');
+
+                            if (!nativeWrapper || !enhancedWrapper || !select || !control || !tagsContainer || !searchShell || !searchInput || !countBadge || !optionsContainer || !emptyState || !placeholderElement) {
+                                return;
+                            }
+
+                            root.dataset.multiselectInitialized = 'true';
+
+                            const theme = resolveTheme(select.dataset.multiselectAccent);
+                            const selectableOptions = Array.from(select.options).filter((option) => !option.disabled && option.value !== '');
+                            const selectionPlaceholder = placeholderElement.textContent?.trim() || select.dataset.multiselectSelectionPlaceholder || 'Sélectionner une ou plusieurs options';
+                            const hideEmptySelection = select.dataset.multiselectHideEmptySelection === 'true';
+
+                            control.classList.add(...theme.control);
+                            searchShell.classList.add(...theme.searchShell);
+                            countBadge.classList.add(...theme.count);
+                            if (searchIcon) {
+                                searchIcon.classList.add(theme.searchIcon);
+                            }
+
+                            const renderTags = () => {
+                                const selectedOptions = selectableOptions.filter((option) => option.selected);
+                                tagsContainer.innerHTML = '';
+
+                                if (selectedOptions.length === 0) {
+                                    if (hideEmptySelection) {
+                                        tagsContainer.classList.add('hidden');
+                                        searchShell.classList.remove('mt-3');
+
+                                        return;
+                                    }
+
+                                    tagsContainer.classList.remove('hidden');
+                                    searchShell.classList.add('mt-3');
+
+                                    const placeholder = document.createElement('span');
+                                    placeholder.className = 'py-1 text-sm text-slate-500';
+                                    placeholder.textContent = selectionPlaceholder;
+                                    tagsContainer.appendChild(placeholder);
+
+                                    return;
+                                }
+
+                                tagsContainer.classList.remove('hidden');
+                                searchShell.classList.add('mt-3');
+
+                                selectedOptions.forEach((option) => {
+                                    const label = option.dataset.optionTagLabel || option.dataset.optionTitle || option.textContent?.trim() || 'Option';
+                                    const tag = document.createElement('button');
+                                    tag.type = 'button';
+                                    tag.className = `inline-flex max-w-full items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition ${theme.chip.join(' ')}`;
+                                    tag.innerHTML = `
+                                        <span class="truncate max-w-[15rem]">${escapeHtml(label)}</span>
+                                        <span aria-hidden="true" class="text-base leading-none opacity-70">×</span>
+                                    `;
+                                    tag.setAttribute('aria-label', `Retirer ${label}`);
+                                    tag.addEventListener('click', () => {
+                                        option.selected = false;
+                                        render();
+                                        dispatchChange(select);
+                                        searchInput.focus();
+                                    });
+                                    tagsContainer.appendChild(tag);
+                                });
+                            };
+
+                            const renderOptions = () => {
+                                const query = searchInput.value.trim().toLowerCase();
+                                optionsContainer.innerHTML = '';
+
+                                let visibleCount = 0;
+
+                                selectableOptions.forEach((option) => {
+                                    const title = option.dataset.optionTitle || option.textContent?.trim() || 'Option';
+                                    const description = option.dataset.optionDescription || '';
+                                    const badge = option.dataset.optionBadge || '';
+                                    const badgeTone = option.dataset.optionBadgeTone || '';
+                                    const searchText = [
+                                        option.dataset.optionSearch || '',
+                                        option.textContent || '',
+                                        title,
+                                        description,
+                                        badge,
+                                    ].join(' ').toLowerCase();
+
+                                    if (query && !searchText.includes(query)) {
+                                        return;
+                                    }
+
+                                    visibleCount += 1;
+
+                                    const optionButton = document.createElement('button');
+                                    optionButton.type = 'button';
+                                    optionButton.className = [
+                                        'w-full',
+                                        'rounded-[1.25rem]',
+                                        'border',
+                                        'px-3.5',
+                                        'py-3',
+                                        'text-left',
+                                        'transition-all',
+                                        'duration-200',
+                                        option.selected
+                                            ? ['text-white', ...theme.selectedOption].join(' ')
+                                            : 'border-white/5 bg-transparent text-slate-200 hover:border-white/10 hover:bg-white/5',
+                                    ].join(' ');
+                                    optionButton.setAttribute('aria-pressed', option.selected ? 'true' : 'false');
+
+                                    const indicator = option.selected ? '✓' : '+';
+                                    const badgeMarkup = badge !== ''
+                                        ? `<span class="inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${resolveBadgeTheme(badgeTone, theme)}">${escapeHtml(badge)}</span>`
+                                        : '';
+                                    const descriptionMarkup = description !== ''
+                                        ? `<span class="mt-1 block text-xs text-slate-400">${escapeHtml(description)}</span>`
+                                        : '';
+
+                                    optionButton.innerHTML = `
+                                        <span class="flex items-start justify-between gap-3">
+                                            <span class="min-w-0">
+                                                <span class="block truncate text-sm font-semibold">${escapeHtml(title)}</span>
+                                                ${descriptionMarkup}
+                                            </span>
+                                            <span class="flex shrink-0 items-center gap-2">
+                                                ${badgeMarkup}
+                                                <span class="inline-flex h-7 w-7 items-center justify-center rounded-full border text-sm font-semibold ${theme.indicator.join(' ')}">${indicator}</span>
+                                            </span>
+                                        </span>
+                                    `;
+
+                                    optionButton.addEventListener('click', () => {
+                                        option.selected = !option.selected;
+                                        render();
+                                        dispatchChange(select);
+                                        searchInput.focus();
+                                    });
+
+                                    optionsContainer.appendChild(optionButton);
+                                });
+
+                                emptyState.classList.toggle('hidden', visibleCount > 0);
+                            };
+
+                            const render = () => {
+                                countBadge.textContent = formatSelectedCount(select, selectableOptions.filter((option) => option.selected).length);
+                                renderTags();
+                                renderOptions();
+                            };
+
+                            searchInput.setAttribute('aria-label', select.labels?.[0]?.textContent?.trim() || select.name || 'Recherche');
+                            searchInput.addEventListener('input', renderOptions);
+                            searchInput.addEventListener('keydown', (event) => {
+                                if (event.key !== 'Backspace' || searchInput.value !== '') {
+                                    return;
+                                }
+
+                                const lastSelectedOption = [...selectableOptions].reverse().find((option) => option.selected);
+                                if (!lastSelectedOption) {
+                                    return;
+                                }
+
+                                lastSelectedOption.selected = false;
+                                render();
+                                dispatchChange(select);
+                                event.preventDefault();
+                            });
+
+                            select.addEventListener('change', render);
+
+                            nativeWrapper.classList.add('hidden');
+                            enhancedWrapper.classList.remove('hidden');
+                            render();
+                        });
+                    };
+
+                    let observerStarted = false;
+
+                    const startObserver = () => {
+                        if (observerStarted || !document.body) {
+                            return;
+                        }
+
+                        observerStarted = true;
+
+                        const observer = new MutationObserver((mutations) => {
+                            mutations.forEach((mutation) => {
+                                mutation.addedNodes.forEach((node) => {
+                                    if (node instanceof Element) {
+                                        init(node);
+                                    }
+                                });
+                            });
+                        });
+
+                        observer.observe(document.body, {
+                            childList: true,
+                            subtree: true,
+                        });
+                    };
+
+                    document.addEventListener('DOMContentLoaded', () => {
+                        init();
+                        startObserver();
+                    });
+                    document.addEventListener('turbo:load', () => {
+                        init();
+                        startObserver();
+                    });
+
+                    window.DevSpotMultiSelect = {
+                        init,
+                        refresh: init,
+                    };
+                })();
+            </script>
         {% endblock %}
     </head>
     
@@ -609,7 +916,7 @@
             {% set isNotificationsRoute = currentRoute starts with 'app_notifications' %}
             {% set isFavoritesRoute = currentRoute == 'app_recruiter_favorites' or currentRoute starts with 'app_recruiter_favorite_' %}
             {% set isRecruiterOffersRoute = currentRoute == 'app_recruiter_offers' or currentRoute starts with 'app_recruiter_offer_' %}
-            {% set isAdminWideRoute = currentRoute in ['app_admin_profiles', 'app_admin_companies', 'app_admin_users', 'app_admin_messages'] %}
+            {% set isAdminWideRoute = currentRoute in ['app_admin_profiles', 'app_admin_companies', 'app_admin_users', 'app_admin_messages', 'app_admin_user_messages_compose'] %}
             {% set isMessagesRoute = currentRoute in ['app_applicant_messages', 'app_applicant_message_show', 'app_recruiter_messages', 'app_recruiter_message_show'] %}
             {% set isHelpRoute = currentRoute == 'app_help' %}
             {% set helpPath = path('app_help') %}

@@ -754,7 +754,7 @@ final class RecruiterController extends AbstractController
     }
 
     /**
-    * @return list<array{id: int, title: string, contract: string, status: string, statusValue: string, isActive: bool, location: ?string, updatedAt: mixed, applicationDeadline: mixed, detailUrl: string, topMatchPercentage: ?float, cachedAt: ?string, matchesCount: int}>
+     * @return list<array{id: int, title: string, contract: string, status: string, statusValue: string, isActive: bool, location: ?string, updatedAt: mixed, applicationDeadline: mixed, detailUrl: string, topMatchPercentage: ?float, cachedAt: ?string, matchesCount: int}>
      */
     private function buildRecruiterOfferRows(RecruiterProfile $recruiterProfile): array
     {
@@ -791,7 +791,7 @@ final class RecruiterController extends AbstractController
                 'contract' => $contractLabel,
                 'status' => $statusLabel,
                 'statusValue' => $status->value,
-                'isActive' => $status === OfferStatus::PUBLISHED,
+                'isActive' => OfferStatus::PUBLISHED === $status,
                 'location' => $offer->getLocation(),
                 'updatedAt' => $offer->getUpdatedAt(),
                 'applicationDeadline' => $offer->getApplicationDeadline(),
@@ -888,6 +888,7 @@ final class RecruiterController extends AbstractController
 
     /**
      * @param array<string, mixed> $cachedData
+     *
      * @return array{topMatchPercentage: ?float, topMatchName: ?string, matchesCount: int, cachedAt: ?string}
      */
     private function extractMatchingSummary(array $cachedData): array

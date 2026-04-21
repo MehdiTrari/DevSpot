@@ -144,6 +144,12 @@ final class ApplicantNotificationsTest extends WebTestCase
         $notification = $this->findNotificationFor($applicant, NotificationType::PROFILE_MODERATED);
         self::assertNotNull($notification);
         self::assertStringContainsString('revu avant republication', (string) $notification->getContent());
+
+        $client->loginUser($applicant);
+        $client->request('GET', '/notifications');
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('body', 'Ouvrir le message');
+        self::assertSelectorExists('[data-notification-message-modal="true"]');
     }
 
     private function createApplicantWithProfile(string $firstName, string $lastName, bool $isPublic): User
