@@ -43,6 +43,7 @@ enum NotificationType: string
     case ROLE_REQUEST = 'role_request';
     case SLUG_CHANGE_REQUEST = 'slug_change_request';
     case CONTENT_REPORTED = 'content_reported';
+    case SUPPORT_REQUEST = 'support_request';
     case ADMIN_MESSAGE = 'admin_message';
 
     // =========================

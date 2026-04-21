@@ -1,0 +1,23 @@
+<div style="font-family: Arial, sans-serif; color: #0f172a; line-height: 1.6;">
+    <h1 style="margin: 0 0 16px; font-size: 24px;">Nouvelle demande de support</h1>
+
+    <p style="margin: 0 0 12px;">
+        Un utilisateur a soumis une nouvelle demande de support sur DevSpot.
+    </p>
+
+    <ul style="margin: 0 0 20px; padding-left: 20px;">
+        <li><strong>Utilisateur :</strong> {{ requesterDisplayName }}</li>
+        <li><strong>Email :</strong> {{ requesterEmail }}</li>
+        <li><strong>Objet :</strong> {{ supportSubject }}</li>
+        <li><strong>Date :</strong> {{ submittedAt ? submittedAt|date('d/m/Y H:i') : '-' }}</li>
+    </ul>
+
+    <div style="margin: 0 0 20px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 12px; background: #f8fafc;">
+        <p style="margin: 0 0 8px; font-weight: 700;">Message</p>
+        <p style="margin: 0; white-space: pre-line;">{{ supportMessage }}</p>
+    </div>
+
+    <p style="margin: 0;">
+        <a href="{{ adminUrl }}" style="color: #0f766e; font-weight: 700; text-decoration: none;">Ouvrir la boite support admin</a>
+    </p>
+</div>

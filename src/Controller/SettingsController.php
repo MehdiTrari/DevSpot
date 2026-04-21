@@ -2,12 +2,21 @@
 
 namespace App\Controller;
 
+use App\Entity\SupportRequest;
 use App\Entity\User;
+use App\Form\SupportRequestType;
+use App\Service\SupportRequestManager;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 #[Route('/settings')]
 #[IsGranted('ROLE_USER')]
@@ -48,6 +57,67 @@ final class SettingsController extends AbstractController
         return $this->render('settings/slug.html.twig', [
             'profile' => $user->getDeveloperProfile(),
         ]);
+    }
+
+    #[Route('/support', name: 'app_settings_support', methods: ['GET', 'POST'])]
+    public function support(
+        Request $request,
+        SupportRequestManager $supportRequestManager,
+        #[\Symfony\Component\DependencyInjection\Attribute\Autowire(service: 'html_sanitizer.sanitizer.contact_message')]
+        HtmlSanitizerInterface $contactMessageSanitizer,
+        LoggerInterface $logger,
+    ): Response {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $supportRequest = new SupportRequest();
+        $supportRequest->setUser($user);
+        $supportRequest->setRequesterDisplayName($supportRequestManager->resolveRequesterDisplayName($user));
+        $supportRequest->setRequesterEmail((string) ($user->getEmail() ?? ''));
+
+        $form = $this->createForm(SupportRequestType::class, $supportRequest);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $sanitizedSubject = trim($contactMessageSanitizer->sanitize((string) ($supportRequest->getSubject() ?? '')));
+            $sanitizedMessage = trim($contactMessageSanitizer->sanitize((string) ($supportRequest->getMessage() ?? '')));
+
+            $supportRequest->setSubject($sanitizedSubject);
+            $supportRequest->setMessage($sanitizedMessage);
+
+            if ('' === $sanitizedSubject) {
+                $form->get('subject')->addError(new FormError('L objet contient trop de contenu HTML non autorise.'));
+            }
+
+            if (mb_strlen($sanitizedMessage) < 10) {
+                $form->get('message')->addError(new FormError('Le message contient trop de contenu HTML non autorise.'));
+            }
+
+            if ($form->isValid()) {
+                try {
+                    $allEmailsSent = $supportRequestManager->submit($supportRequest);
+
+                    if ($allEmailsSent) {
+                        $this->addFlash('success', 'Votre demande de support a bien ete envoyee a l equipe administratrice.');
+                    } else {
+                        $this->addFlash('error', 'Votre demande de support a ete enregistree, mais l email d alerte aux administrateurs n a pas pu etre envoye.');
+                    }
+
+                    return $this->redirectToRoute('app_settings_support');
+                } catch (\Throwable $exception) {
+                    $logger->error('Soumission de demande de support echouee.', [
+                        'userId' => $user->getId(),
+                        'error' => $exception->getMessage(),
+                    ]);
+
+                    $form->addError(new FormError('Erreur technique lors de l envoi de votre demande. Merci de reessayer.'));
+                }
+            }
+        }
+
+        return $this->renderSupportPage($form, $user, $supportRequestManager);
     }
 
     #[Route('/admin/colors', name: 'app_settings_admin_colors', methods: ['GET'])]
@@ -521,5 +591,17 @@ final class SettingsController extends AbstractController
         }
 
         return $rows;
+    }
+
+    private function renderSupportPage(FormInterface $form, User $user, SupportRequestManager $supportRequestManager): Response
+    {
+        $statusCode = $form->isSubmitted() && !$form->isValid() ? 422 : 200;
+
+        return $this->render('settings/support.html.twig', [
+            'supportForm' => $form->createView(),
+            'requesterDisplayName' => $supportRequestManager->resolveRequesterDisplayName($user),
+            'requesterEmail' => $user->getEmail(),
+            'helpFaqUrl' => $this->generateUrl('app_faq', [], UrlGeneratorInterface::ABSOLUTE_URL) . '#support-centre',
+        ], new Response('', $statusCode));
     }
 }

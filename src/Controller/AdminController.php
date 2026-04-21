@@ -13,6 +13,7 @@ use App\Repository\AdminActionLogRepository;
 use App\Repository\CompanyRepository;
 use App\Repository\ContactMessageRepository;
 use App\Repository\DeveloperProfileRepository;
+use App\Repository\SupportRequestRepository;
 use App\Repository\UserRepository;
 use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
@@ -41,6 +42,7 @@ final class AdminController extends AbstractController
         DeveloperProfileRepository $profileRepository,
         CompanyRepository $companyRepository,
         ContactMessageRepository $contactMessageRepository,
+        SupportRequestRepository $supportRequestRepository,
         AdminActionLogRepository $adminActionLogRepository,
         NotificationManager $notificationManager,
     ): Response {
@@ -54,6 +56,7 @@ final class AdminController extends AbstractController
             'totalCompanies' => $companyRepository->count([]),
             'totalMessages' => $contactMessageRepository->count([]),
             'unreadMessages' => $contactMessageRepository->count(['isRead' => false]),
+            'totalSupportRequests' => $supportRequestRepository->count([]),
         ];
 
         $recentActions = $adminActionLogRepository->findBy([], ['createdAt' => 'DESC'], 5);
@@ -129,6 +132,16 @@ final class AdminController extends AbstractController
         $messageData = new AdminUserMessageData();
         if (!$request->isMethod('POST')) {
             $messageData->setRecipients($this->resolveRequestedRecipients($request, $userRepository, $adminUser));
+            $prefilledTitle = trim((string) $request->query->get('title', ''));
+            $prefilledContent = (string) $request->query->get('content', '');
+
+            if ('' !== $prefilledTitle) {
+                $messageData->setTitle($prefilledTitle);
+            }
+
+            if ('' !== trim($prefilledContent)) {
+                $messageData->setContent($prefilledContent);
+            }
         }
 
         $form = $this->createForm(AdminUserMessageType::class, $messageData, [
@@ -458,6 +471,23 @@ final class AdminController extends AbstractController
         return $this->render('admin/messages.html.twig', [
             'messages' => $contactMessageRepository->findAdminMessagesPaginated($currentPage, $perPage),
             'totalMessages' => $totalMessages,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+        ]);
+    }
+
+    #[Route('/support', name: 'app_admin_support_requests')]
+    public function supportRequests(SupportRequestRepository $supportRequestRepository, Request $request): Response
+    {
+        $page = max(1, $request->query->getInt('page', 1));
+        $perPage = 10;
+        $totalSupportRequests = $supportRequestRepository->count([]);
+        $totalPages = max(1, (int) ceil($totalSupportRequests / $perPage));
+        $currentPage = min($page, $totalPages);
+
+        return $this->render('admin/support_requests.html.twig', [
+            'supportRequests' => $supportRequestRepository->findAdminSupportRequestsPaginated($currentPage, $perPage),
+            'totalSupportRequests' => $totalSupportRequests,
             'currentPage' => $currentPage,
             'totalPages' => $totalPages,
         ]);
