@@ -31,7 +31,7 @@ final class MatchingDemoController extends AbstractController
             $jobOfferRepository->findActiveForMatching(),
             static fn ($offer): bool => str_ends_with((string) $offer->getRecruiterProfile()?->getUser()?->getEmail(), '@demo.devspot.local'),
         ));
-        $datasetPath = $projectDir.'/docs/matching-demo-dataset.json';
+        $datasetPath = $projectDir . '/docs/matching-demo-dataset.json';
         $perPage = 1;
         $totalPages = max(1, (int) ceil(count($offers) / $perPage));
         $currentPage = min(max(1, $request->query->getInt('page', 1)), $totalPages);

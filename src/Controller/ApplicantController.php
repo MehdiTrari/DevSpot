@@ -60,8 +60,7 @@ final class ApplicantController extends AbstractController
         ConversationRepository $conversationRepository,
         MessageRepository $messageRepository,
         ChatMercure $chatMercure,
-    ): Response
-    {
+    ): Response {
         $user = $this->getApplicantUser();
         $profile = $user->getDeveloperProfile();
 
@@ -99,8 +98,7 @@ final class ApplicantController extends AbstractController
         HtmlSanitizerInterface $contactMessageSanitizer,
         NotificationManager $notificationManager,
         ChatMercure $chatMercure,
-    ): Response
-    {
+    ): Response {
         $applicantUser = $this->getApplicantUser();
         $profile = $applicantUser->getDeveloperProfile();
 
@@ -552,17 +550,17 @@ final class ApplicantController extends AbstractController
         $dompdf->render();
         $pdf = $dompdf->output();
 
-        $uploadDirectory = $this->getParameter('kernel.project_dir').'/public/uploads/cv';
+        $uploadDirectory = $this->getParameter('kernel.project_dir') . '/public/uploads/cv';
         if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0777, true) && !is_dir($uploadDirectory)) {
             throw new \RuntimeException('Le dossier de génération des CV est introuvable.');
         }
 
         $safeSlug = $profile->getSlug() ?: 'profil';
         $fileName = sprintf('%s-cv.pdf', $safeSlug);
-        $filePath = $uploadDirectory.'/'.$fileName;
+        $filePath = $uploadDirectory . '/' . $fileName;
         file_put_contents($filePath, $pdf);
 
-        $profile->setCvPdfPath('uploads/cv/'.$fileName);
+        $profile->setCvPdfPath('uploads/cv/' . $fileName);
         $entityManager->flush();
 
         $response = new Response($pdf);
@@ -779,7 +777,7 @@ final class ApplicantController extends AbstractController
     {
         $firstName = $this->slugifyPart((string) $profile->getFirstName());
         $lastName = $this->slugifyPart((string) $profile->getLastName());
-        $base = $firstName.$lastName;
+        $base = $firstName . $lastName;
 
         if ('' === $base) {
             $base = 'profil';
@@ -789,7 +787,7 @@ final class ApplicantController extends AbstractController
         $i = 2;
 
         while (null !== $developerProfileRepository->findOneBy(['slug' => $slug])) {
-            $slug = $base.$i;
+            $slug = $base . $i;
             ++$i;
         }
 
@@ -812,7 +810,7 @@ final class ApplicantController extends AbstractController
             return;
         }
 
-        $uploadDirectory = $this->getParameter('kernel.project_dir').'/public/uploads/avatars';
+        $uploadDirectory = $this->getParameter('kernel.project_dir') . '/public/uploads/avatars';
         if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0777, true) && !is_dir($uploadDirectory)) {
             throw new \RuntimeException('Le dossier de téléversement des avatars est introuvable.');
         }
@@ -836,7 +834,7 @@ final class ApplicantController extends AbstractController
             throw new \RuntimeException('Impossible d\'enregistrer la photo de profil.', 0, $exception);
         }
 
-        $profile->setAvatarPath('uploads/avatars/'.$fileName);
+        $profile->setAvatarPath('uploads/avatars/' . $fileName);
     }
 
     private function removePreviousAvatar(DeveloperProfile $profile, string $uploadDirectory): void
@@ -846,7 +844,7 @@ final class ApplicantController extends AbstractController
             return;
         }
 
-        $currentFilePath = $this->getParameter('kernel.project_dir').'/public/'.$currentAvatarPath;
+        $currentFilePath = $this->getParameter('kernel.project_dir') . '/public/' . $currentAvatarPath;
         if (is_file($currentFilePath) && str_starts_with(dirname($currentFilePath), $uploadDirectory)) {
             @unlink($currentFilePath);
         }

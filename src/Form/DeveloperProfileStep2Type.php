@@ -55,4 +55,3 @@ class DeveloperProfileStep2Type extends AbstractType
         return 'developer_profile';
     }
 }
-

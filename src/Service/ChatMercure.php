@@ -128,7 +128,7 @@ final class ChatMercure
             'messagePartial' => sprintf('%s/_chat_message.html.twig', $viewNamespace),
         ]);
 
-        return $payload.$this->renderConversationMetaStreams($user, $conversation, $message, $viewNamespace);
+        return $payload . $this->renderConversationMetaStreams($user, $conversation, $message, $viewNamespace);
     }
 
     private function renderConversationMetaStreams(User $user, Conversation $conversation, Message $lastMessage, string $viewNamespace): string
@@ -136,7 +136,7 @@ final class ChatMercure
         return $this->twig->render('broadcast/conversation_row.stream.html.twig', [
             'row' => $this->buildConversationRow($user, $conversation, $lastMessage),
             'rowPartial' => sprintf('%s/_conversation_row.html.twig', $viewNamespace),
-        ]).$this->twig->render('broadcast/chat_entry_point.stream.html.twig', [
+        ]) . $this->twig->render('broadcast/chat_entry_point.stream.html.twig', [
             'user' => $user,
             'unreadCount' => $this->messageRepository->countUnreadForUser($user),
         ]);
