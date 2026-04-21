@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new ORM\UniqueConstraint(
             name: 'profile_skill_unique',
             columns: ['developer_profile_id', 'skill_id']
-        )
+        ),
     ]
 )]
 class ProfileSkill
@@ -60,6 +60,7 @@ class ProfileSkill
     public function setDeveloperProfile(?DeveloperProfile $developerProfile): static
     {
         $this->developerProfile = $developerProfile;
+
         return $this;
     }
 
@@ -71,6 +72,7 @@ class ProfileSkill
     public function setSkill(?Skill $skill): static
     {
         $this->skill = $skill;
+
         return $this;
     }
 
@@ -82,6 +84,7 @@ class ProfileSkill
     public function setLevel(?SkillLevel $level): static
     {
         $this->level = $level;
+
         return $this;
     }
 
@@ -93,6 +96,7 @@ class ProfileSkill
     public function setYears(?int $years): static
     {
         $this->years = $years;
+
         return $this;
     }
 

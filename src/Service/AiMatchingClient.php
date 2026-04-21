@@ -106,10 +106,10 @@ final class AiMatchingClient implements AiMatchingClientInterface
     }
 
     /**
-     * @param list<string> $texts
-     * @param callable(list<string>): ?array<string, mixed> $batchFetcher
+     * @param list<string>                                                      $texts
+     * @param callable(list<string>): ?array<string, mixed>                     $batchFetcher
      * @param callable(array<string, mixed>): ?array<int, array<string, mixed>> $batchNormalizer
-     * @param callable(string): ?array<string, mixed> $singleFetcher
+     * @param callable(string): ?array<string, mixed>                           $singleFetcher
      *
      * @return list<array<string, mixed>>|null
      */

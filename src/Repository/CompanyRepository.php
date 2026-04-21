@@ -63,8 +63,8 @@ class CompanyRepository extends ServiceEntityRepository
     }
 
     //    /**
-     //     * @return Company[] Returns an array of Company objects
-     //     */
+    //     * @return Company[] Returns an array of Company objects
+    //     */
     //    public function findByExampleField($value): array
     //    {
     //        return $this->createQueryBuilder('c')

@@ -135,7 +135,7 @@ final class SemanticMatchingService
     }
 
     /**
-     * @param list<string> $texts
+     * @param list<string>                                                                              $texts
      * @param array<string, array{embedding: list<float>, dimension: int, normalizedText: string}|null> $cache
      */
     private function primeEmbeddings(array $texts, array &$cache): void

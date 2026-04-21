@@ -13,8 +13,7 @@ class MessageExtension extends AbstractExtension
     public function __construct(
         private readonly MessageRepository $messageRepository,
         private readonly ChatMercure $chatMercure,
-    )
-    {
+    ) {
     }
 
     public function getFunctions(): array

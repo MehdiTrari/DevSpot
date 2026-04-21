@@ -63,13 +63,13 @@ final class AdminNotificationRequestsTest extends WebTestCase
         self::assertNotNull($profile);
 
         $client->loginUser($reporter);
-        $crawler = $client->request('GET', '/profil/' . $profile->getSlug());
+        $crawler = $client->request('GET', '/profil/'.$profile->getSlug());
         $client->submit($crawler->selectButton('Envoyer le signalement')->form([
             'category' => 'abusive_content',
             'reason' => 'Le contenu affiché semble non conforme et mérite une revue.',
         ]));
 
-        self::assertResponseRedirects('/profil/' . $profile->getSlug());
+        self::assertResponseRedirects('/profil/'.$profile->getSlug());
 
         $notification = $this->findNotificationFor($admin, NotificationType::CONTENT_REPORTED);
         self::assertNotNull($notification);
@@ -129,7 +129,7 @@ final class AdminNotificationRequestsTest extends WebTestCase
         $profile->setFirstName('Alice');
         $profile->setLastName('Martin');
         $profile->setHeadline('Développeuse Symfony');
-        $profile->setSlug('alice-' . bin2hex(random_bytes(4)));
+        $profile->setSlug('alice-'.bin2hex(random_bytes(4)));
         $profile->setBio('Profil de test pour les notifications admin.');
         $profile->setCity('Lyon');
         $profile->setCountry('France');
@@ -151,7 +151,7 @@ final class AdminNotificationRequestsTest extends WebTestCase
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
 
         $company = new Company();
-        $company->setName('Recruiter Test ' . bin2hex(random_bytes(3)));
+        $company->setName('Recruiter Test '.bin2hex(random_bytes(3)));
         $entityManager->persist($company);
 
         $profile = new RecruiterProfile();
@@ -178,7 +178,7 @@ final class AdminNotificationRequestsTest extends WebTestCase
         $developerProfile->setFirstName('Alice');
         $developerProfile->setLastName('Martin');
         $developerProfile->setHeadline('Developpeuse Symfony');
-        $developerProfile->setSlug('dual-' . bin2hex(random_bytes(4)));
+        $developerProfile->setSlug('dual-'.bin2hex(random_bytes(4)));
         $developerProfile->setBio('Profil multi-role de test.');
         $developerProfile->setCity('Lyon');
         $developerProfile->setCountry('France');
@@ -189,7 +189,7 @@ final class AdminNotificationRequestsTest extends WebTestCase
         $entityManager->persist($developerProfile);
 
         $company = new Company();
-        $company->setName('Dual Role Company ' . bin2hex(random_bytes(3)));
+        $company->setName('Dual Role Company '.bin2hex(random_bytes(3)));
         $entityManager->persist($company);
 
         $recruiterProfile = new RecruiterProfile();

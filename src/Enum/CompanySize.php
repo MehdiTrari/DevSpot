@@ -12,6 +12,6 @@ enum CompanySize: string
 
     public function label(): string
     {
-        return 'company_size.' . $this->value;
+        return 'company_size.'.$this->value;
     }
 }

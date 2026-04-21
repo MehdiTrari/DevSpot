@@ -66,7 +66,7 @@ final class NotificationController extends AbstractController
             throw $this->createAccessDeniedException('Accès interdit à cette notification.');
         }
 
-        if (!$this->isCsrfTokenValid('notification_read_' . $notification->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('notification_read_'.$notification->getId(), (string) $request->request->get('_token'))) {
             if ($request->isXmlHttpRequest()) {
                 return new Response('CSRF invalid', Response::HTTP_FORBIDDEN);
             }
@@ -102,7 +102,7 @@ final class NotificationController extends AbstractController
             throw $this->createAccessDeniedException('Accès interdit à cette notification.');
         }
 
-        if (!$this->isCsrfTokenValid('notification_delete_' . $notification->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('notification_delete_'.$notification->getId(), (string) $request->request->get('_token'))) {
             if ($request->isXmlHttpRequest()) {
                 return new Response('CSRF invalid', Response::HTTP_FORBIDDEN);
             }

@@ -303,7 +303,7 @@ final class RecruiterOffersTest extends WebTestCase
         $crawler = $client->request('GET', '/recruiter/offers/new');
         $form = $crawler->selectButton('Créer l\'offre')->form([
             'job_offer[title]' => $title,
-            'job_offer[description]' => 'Description de test pour ' . $title,
+            'job_offer[description]' => 'Description de test pour '.$title,
             'job_offer[applicationDeadline]' => (new \DateTimeImmutable('+14 days'))->format('Y-m-d'),
             'job_offer[status]' => $status,
         ]);

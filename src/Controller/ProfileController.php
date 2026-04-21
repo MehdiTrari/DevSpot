@@ -3,12 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\ContactMessage;
-use App\Entity\DeveloperProfile;
 use App\Entity\Conversation;
+use App\Entity\DeveloperProfile;
 use App\Entity\Message;
 use App\Entity\User;
-use App\Enum\UserStatus;
 use App\Enum\ConversationStatus;
+use App\Enum\UserStatus;
 use App\Form\ContactMessageType;
 use App\Repository\ConversationRepository;
 use App\Repository\DeveloperProfileRepository;
@@ -18,12 +18,12 @@ use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Routing\Attribute\Route;
@@ -45,8 +45,7 @@ final class ProfileController extends AbstractController
         MailerInterface $mailer,
         LoggerInterface $logger,
         EntityManagerInterface $entityManager,
-    ): Response
-    {
+    ): Response {
         $profile = $developerProfileRepository->findPublicPortfolioBySlugWithDetails($slug);
 
         if (!$profile instanceof DeveloperProfile) {
@@ -298,7 +297,7 @@ final class ProfileController extends AbstractController
             throw $this->createAccessDeniedException('Vous ne pouvez pas signaler votre propre profil.');
         }
 
-        if (!$this->isCsrfTokenValid('report_profile_' . $profile->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('report_profile_'.$profile->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
             return $this->redirectToRoute('app_public_profile_show', ['slug' => $profile->getSlug()]);

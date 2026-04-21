@@ -558,8 +558,7 @@ final class NotificationManager
         ?string $link = null,
         ?User $senderUser = null,
         ?string $senderLabel = null,
-    ): void
-    {
+    ): void {
         if (null === $senderLabel && $senderUser instanceof User) {
             $senderLabel = $this->resolveUserDisplayName($senderUser);
         }

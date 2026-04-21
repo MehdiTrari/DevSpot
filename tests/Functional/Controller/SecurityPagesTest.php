@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Tests\Functional\Controller;
 
 use App\Entity\User;

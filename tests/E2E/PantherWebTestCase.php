@@ -3,8 +3,8 @@
 namespace App\Tests\E2E;
 
 use App\Entity\DeveloperProfile;
-use App\Entity\Position;
 use App\Entity\JobOffer;
+use App\Entity\Position;
 use App\Entity\RecruiterProfile;
 use App\Entity\Skill;
 use App\Entity\Technology;
@@ -147,7 +147,7 @@ abstract class PantherWebTestCase extends PantherTestCase
         ];
     }
 
-    protected function createPublicProfile(EntityManagerInterface $entityManager, string $email = null, string $password = 'password123'): DeveloperProfile
+    protected function createPublicProfile(EntityManagerInterface $entityManager, ?string $email = null, string $password = 'password123'): DeveloperProfile
     {
         $email ??= sprintf('public_%s@example.com', bin2hex(random_bytes(6)));
         $user = $this->createApplicant($entityManager, $email, $password);
@@ -171,7 +171,7 @@ abstract class PantherWebTestCase extends PantherTestCase
         return $profile;
     }
 
-    protected function createPrivateGeneratedProfile(EntityManagerInterface $entityManager, string $email = null, string $password = 'password123'): DeveloperProfile
+    protected function createPrivateGeneratedProfile(EntityManagerInterface $entityManager, ?string $email = null, string $password = 'password123'): DeveloperProfile
     {
         $email ??= sprintf('private_%s@example.com', bin2hex(random_bytes(6)));
         $user = $this->createApplicant($entityManager, $email, $password);

@@ -62,7 +62,7 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
                     'LOWER(recruiterProfile.firstName) LIKE :search',
                     'LOWER(recruiterProfile.lastName) LIKE :search'
                 ))
-                ->setParameter('search', '%' . mb_strtolower($search) . '%');
+                ->setParameter('search', '%'.mb_strtolower($search).'%');
         }
 
         /** @var User[] $users */

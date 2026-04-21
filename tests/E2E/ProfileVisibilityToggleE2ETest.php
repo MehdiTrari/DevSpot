@@ -22,20 +22,20 @@ final class ProfileVisibilityToggleE2ETest extends PantherWebTestCase
 
         $this->visit($client, '/applicant/profile/create');
         $this->completeStep1($client);
-    $client->waitFor('#profile-step2-form');
+        $client->waitFor('#profile-step2-form');
         $this->completeStep2($client, $catalog);
-    $client->waitFor('#profile-step3-form');
+        $client->waitFor('#profile-step3-form');
         $this->completeStep3($client);
-    $client->waitFor('#profile-step4-form');
+        $client->waitFor('#profile-step4-form');
         $this->completeStep4($client, $catalog);
 
         $client->waitFor('[data-visibility-toggle="true"]');
-    self::assertStringContainsString('Privé', $this->getTextContent($client, '[data-visibility-badge="true"]'));
+        self::assertStringContainsString('Privé', $this->getTextContent($client, '[data-visibility-badge="true"]'));
 
         $this->click($client, '[data-visibility-button="true"]');
         $client->waitFor('[data-notification-stack="true"]');
-    self::assertStringContainsString('Génère d\'abord ton portfolio avant de le rendre public.', $this->waitForTextContent($client, '[data-notification-stack="true"]', 'Génère d\'abord ton portfolio avant de le rendre public.'));
-    self::assertStringContainsString('Privé', $this->getTextContent($client, '[data-visibility-badge="true"]'));
+        self::assertStringContainsString('Génère d\'abord ton portfolio avant de le rendre public.', $this->waitForTextContent($client, '[data-notification-stack="true"]', 'Génère d\'abord ton portfolio avant de le rendre public.'));
+        self::assertStringContainsString('Privé', $this->getTextContent($client, '[data-visibility-badge="true"]'));
 
         $client->clickLink('Générer mon portfolio');
         $client->waitFor('#profil');

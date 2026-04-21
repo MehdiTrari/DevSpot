@@ -55,8 +55,7 @@ final class EnrichedMatchingService
     }
 
     /**
-     * @param list<CandidateProfile> $candidates
-     *
+     * @param list<CandidateProfile>                                                        $candidates
      * @param array<string, array{score: ?float, percentage: ?float, dimension: ?int}>|null $rawSemanticScores
      *
      * @return array{available: bool, scores: array<string, array{score: ?float, percentage: ?float, dimension: ?int, inferredSoftSkills: list<string>, inferredTransferableSkills: list<string>, inferredTechnicalSkills: list<array{skill: string, level: string, confidence: float}>, confidence: array<string, float>, enrichedText: string}>}
@@ -122,8 +121,8 @@ final class EnrichedMatchingService
 
     /**
      * @param array{inferredSoftSkills: list<string>, inferredTransferableSkills: list<string>, inferredTechnicalSkills: list<array{skill: string, level: string, confidence: float}>} $inference
-     * @param list<string> $normalizedOfferHardSkills
-     * @param list<string> $normalizedOfferSoftSkills
+     * @param list<string>                                                                                                                                                             $normalizedOfferHardSkills
+     * @param list<string>                                                                                                                                                             $normalizedOfferSoftSkills
      */
     private function computeInferenceBonus(CandidateProfile $candidate, array $inference, array $normalizedOfferHardSkills, array $normalizedOfferSoftSkills): float
     {

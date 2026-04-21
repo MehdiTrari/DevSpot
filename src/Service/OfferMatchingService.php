@@ -7,7 +7,6 @@ namespace App\Service;
 use App\Entity\DeveloperProfile;
 use App\Entity\JobOffer;
 use App\Entity\Position;
-use App\Entity\ProfileSkill;
 use App\Entity\Skill;
 use App\Entity\Technology;
 use App\Matching\Model\CandidateProfile;
@@ -44,14 +43,15 @@ final class OfferMatchingService
     }
 
     /**
-     * @param list<JobOffer> $offers
+     * @param list<JobOffer>         $offers
      * @param list<DeveloperProfile> $developers
+     *
      * @return list<array{
      *     offer: array{id: int|null, title: string, location: ?string, locationType: ?string, contractType: ?string, experienceLevel: ?int},
      *     extractedRequirements: array{hardSkills: list<string>, softSkills: list<string>},
      *     fairness: array{junior_avg_score: float, non_junior_avg_score: float, disparate_impact_ratio: float},
-    *     semantic: array{available: bool, fairness: array{junior_avg_score: float, non_junior_avg_score: float, disparate_impact_ratio: float}},
-    *     enriched: array{available: bool, fairness: array{junior_avg_score: float, non_junior_avg_score: float, disparate_impact_ratio: float}},
+     *     semantic: array{available: bool, fairness: array{junior_avg_score: float, non_junior_avg_score: float, disparate_impact_ratio: float}},
+     *     enriched: array{available: bool, fairness: array{junior_avg_score: float, non_junior_avg_score: float, disparate_impact_ratio: float}},
      *     matches: list<array{
      *         developerId: int|null,
      *         slug: ?string,
@@ -60,17 +60,17 @@ final class OfferMatchingService
      *         yearsExperience: int,
      *         percentage: float,
      *         score: float,
-    *         semanticPercentage: ?float,
-    *         semanticScore: ?float,
-    *         semanticDimension: ?int,
-    *         semanticEnrichedPercentage: ?float,
-    *         semanticEnrichedScore: ?float,
-    *         semanticEnrichedDimension: ?int,
+     *         semanticPercentage: ?float,
+     *         semanticScore: ?float,
+     *         semanticDimension: ?int,
+     *         semanticEnrichedPercentage: ?float,
+     *         semanticEnrichedScore: ?float,
+     *         semanticEnrichedDimension: ?int,
      *         scoreBreakdown: array<string, float>,
      *         matchedHardSkills: list<string>,
      *         matchedSoftSkills: list<string>,
-    *         inferredSoftSkills: list<string>,
-    *         inferredTransferableSkills: list<string>,
+     *         inferredSoftSkills: list<string>,
+     *         inferredTransferableSkills: list<string>,
      *         anonymizedCv: string
      *     }>
      * }>
@@ -88,6 +88,7 @@ final class OfferMatchingService
 
     /**
      * @param list<DeveloperProfile> $developers
+     *
      * @return array{
      *     offer: array{id: int|null, title: string, location: ?string, locationType: ?string, contractType: ?string, experienceLevel: ?int},
      *     extractedRequirements: array{hardSkills: list<string>, softSkills: list<string>},
@@ -362,6 +363,7 @@ final class OfferMatchingService
 
     /**
      * @param list<string> $values
+     *
      * @return list<string>
      */
     private function uniqueValues(array $values): array
