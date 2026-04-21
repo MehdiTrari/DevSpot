@@ -48,11 +48,11 @@ final class RecruiterFavoritesTest extends WebTestCase
 
         $client->loginUser($recruiter);
 
-        $crawler = $client->request('GET', '/profil/' . $profile->getSlug());
+        $crawler = $client->request('GET', '/profil/'.$profile->getSlug());
         $form = $crawler->filter(sprintf('form[action="/recruiter/favorites/%d/add"]', $profile->getId()))->first()->form();
         $client->submit($form);
 
-        self::assertResponseRedirects('/profil/' . $profile->getSlug());
+        self::assertResponseRedirects('/profil/'.$profile->getSlug());
         $crawler = $client->followRedirect();
         self::assertSelectorTextContains('body', 'Profil ajouté aux favoris.');
         self::assertGreaterThan(
@@ -72,20 +72,20 @@ final class RecruiterFavoritesTest extends WebTestCase
 
         $client->loginUser($recruiter);
 
-        $crawler = $client->request('GET', '/profil/' . $profile->getSlug());
+        $crawler = $client->request('GET', '/profil/'.$profile->getSlug());
         $form = $crawler->filter(sprintf('form[action="/recruiter/favorites/%d/add"]', $profile->getId()))->first()->form();
         $token = $form->get('_token')->getValue();
 
         $client->submit($form);
-        self::assertResponseRedirects('/profil/' . $profile->getSlug());
+        self::assertResponseRedirects('/profil/'.$profile->getSlug());
         $client->followRedirect();
 
-        $client->request('POST', '/recruiter/favorites/' . $profile->getId() . '/add', [
+        $client->request('POST', '/recruiter/favorites/'.$profile->getId().'/add', [
             '_token' => $token,
-            '_redirect' => '/profil/' . $profile->getSlug(),
+            '_redirect' => '/profil/'.$profile->getSlug(),
         ]);
 
-        self::assertResponseRedirects('/profil/' . $profile->getSlug());
+        self::assertResponseRedirects('/profil/'.$profile->getSlug());
         $client->followRedirect();
         self::assertSelectorTextContains('body', 'Ce profil est déjà dans vos favoris.');
         self::assertCount(1, $this->findFavoritesForRecruiter($recruiter));
@@ -160,7 +160,7 @@ final class RecruiterFavoritesTest extends WebTestCase
         $profile->setFirstName($firstName);
         $profile->setLastName($lastName);
         $profile->setHeadline('Développeur Symfony');
-        $profile->setSlug(strtolower($firstName . '-' . $lastName . '-' . bin2hex(random_bytes(4))));
+        $profile->setSlug(strtolower($firstName.'-'.$lastName.'-'.bin2hex(random_bytes(4))));
         $profile->setIsPublic($isPublic);
         $profile->setPortfolioGeneratedAt(new \DateTimeImmutable());
         $profile->setUser($user);

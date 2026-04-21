@@ -7,6 +7,8 @@ use App\Entity\ContactMessage;
 use App\Entity\DeveloperProfile;
 use App\Entity\User;
 use App\Enum\UserStatus;
+use App\Form\AdminUserMessageType;
+use App\Form\Model\AdminUserMessageData;
 use App\Repository\AdminActionLogRepository;
 use App\Repository\CompanyRepository;
 use App\Repository\ContactMessageRepository;
@@ -16,6 +18,7 @@ use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -65,6 +68,14 @@ final class AdminController extends AbstractController
         ]);
     }
 
+    #[Route('/logs', name: 'app_admin_logs', methods: ['GET'])]
+    public function logs(AdminActionLogRepository $adminActionLogRepository): Response
+    {
+        return $this->render('admin/logs.html.twig', [
+            'logs' => $adminActionLogRepository->findBy([], ['createdAt' => 'DESC'], 100),
+        ]);
+    }
+
     #[Route('/users', name: 'app_admin_users', methods: ['GET'])]
     public function users(UserRepository $userRepository, Request $request, NotificationManager $notificationManager): Response
     {
@@ -100,6 +111,71 @@ final class AdminController extends AbstractController
                 'status' => $status,
                 'q' => $search,
             ],
+        ]);
+    }
+
+    #[Route('/users/messages/compose', name: 'app_admin_user_messages_compose', methods: ['GET', 'POST'])]
+    public function composeUserMessage(
+        Request $request,
+        UserRepository $userRepository,
+        EntityManagerInterface $entityManager,
+        NotificationManager $notificationManager,
+    ): Response {
+        $adminUser = $this->getUser();
+        if (!$adminUser instanceof User) {
+            throw $this->createAccessDeniedException('Vous devez être authentifié.');
+        }
+
+        $messageData = new AdminUserMessageData();
+        if (!$request->isMethod('POST')) {
+            $messageData->setRecipients($this->resolveRequestedRecipients($request, $userRepository, $adminUser));
+        }
+
+        $form = $this->createForm(AdminUserMessageType::class, $messageData, [
+            'sender_user' => $adminUser,
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $recipientIds = array_values(array_filter(array_map(
+                static fn (User $recipient): ?int => $recipient->getId(),
+                $messageData->getRecipients()
+            )));
+
+            try {
+                $sentCount = $notificationManager->sendAdminMessage(
+                    $adminUser,
+                    $messageData->getRecipients(),
+                    $messageData->getTitle(),
+                    $messageData->getContent()
+                );
+
+                if ($sentCount < 1) {
+                    $form->addError(new FormError('Aucun destinataire valide n’a été sélectionné.'));
+                } else {
+                    $this->logAdminAction($entityManager, 'user.message_sent', null, [
+                        'recipientIds' => $recipientIds,
+                        'recipientCount' => $sentCount,
+                        'title' => $messageData->getTitle(),
+                    ]);
+
+                    $entityManager->flush();
+                    $this->addFlash('success', sprintf('Message envoyé à %d utilisateur(s).', $sentCount));
+
+                    return $this->redirectToRoute('app_admin_dashboard');
+                }
+            } catch (\Throwable $exception) {
+                $this->logger->error('L\'envoi d\'un message administrateur a échoué.', [
+                    'adminUserId' => $adminUser->getId(),
+                    'recipientIds' => $recipientIds,
+                    'error' => $exception->getMessage(),
+                ]);
+                $form->addError(new FormError('Erreur technique lors de l’envoi du message. Merci de réessayer.'));
+            }
+        }
+
+        return $this->render('admin/user_messages_compose.html.twig', [
+            'messageForm' => $form,
         ]);
     }
 
@@ -331,7 +407,7 @@ final class AdminController extends AbstractController
 
         $reason = trim((string) $request->request->get('reason', ''));
         if ('' === $reason) {
-            $this->addFlash('error', 'Merci de renseigner un message de moderation.');
+            $this->addFlash('error', 'Merci de renseigner un Message de modération.');
 
             return $this->redirectToRefererOrRoute($request, 'app_admin_profiles');
         }
@@ -589,5 +665,38 @@ final class AdminController extends AbstractController
         }
 
         $entityManager->remove($user);
+    }
+
+    /**
+     * @return list<User>
+     */
+    private function resolveRequestedRecipients(Request $request, UserRepository $userRepository, User $currentAdmin): array
+    {
+        $requestedRecipientIds = [];
+
+        $singleRecipient = $request->query->getInt('recipient', 0);
+        if ($singleRecipient > 0) {
+            $requestedRecipientIds[] = $singleRecipient;
+        }
+
+        $multipleRecipients = $request->query->all('recipients');
+        foreach ($multipleRecipients as $recipientId) {
+            $normalizedId = (int) $recipientId;
+            if ($normalizedId > 0) {
+                $requestedRecipientIds[] = $normalizedId;
+            }
+        }
+
+        $requestedRecipientIds = array_values(array_unique($requestedRecipientIds));
+        if ([] === $requestedRecipientIds) {
+            return [];
+        }
+
+        $recipients = $userRepository->findBy(['id' => $requestedRecipientIds]);
+
+        return array_values(array_filter(
+            $recipients,
+            static fn (User $recipient): bool => $recipient->getId() !== $currentAdmin->getId()
+        ));
     }
 }

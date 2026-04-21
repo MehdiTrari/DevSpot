@@ -96,20 +96,22 @@
                             </a>
                         </article>
 
-                        <article class="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
-                            <h3 class="text-lg font-semibold text-white">Demande de changement de slug</h3>
-                            <p class="mt-2 text-sm text-slate-400">Propose un nouveau slug pour ton portfolio depuis la section paramètres dédiée.</p>
-                            <a href="{{ path('app_settings_slug') }}" class="ui-button-secondary mt-4 inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold">
-                                Ouvrir le changement de slug
-                            </a>
+                        {% if app.user and app.user.applicantOnly %}
+                            <article class="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
+                                <h3 class="text-lg font-semibold text-white">Demande de changement de slug</h3>
+                                <p class="mt-2 text-sm text-slate-400">Propose un nouveau slug pour ton portfolio depuis la section paramètres dédiée.</p>
+                                <a href="{{ path('app_settings_slug') }}" class="ui-button-secondary mt-4 inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold">
+                                    Ouvrir le changement de slug
+                                </a>
 
-                            {# Compat tests: fallback non visible, l'UX principale reste via Paramètres. #}
-                            <form method="post" action="{{ path('app_account_request_slug') }}" class="hidden" aria-hidden="true">
-                                <input type="hidden" name="_token" value="{{ csrf_token('request_slug') }}">
-                                <input type="text" name="desired_slug" value="{{ profile.slug }}">
-                                <button type="submit" tabindex="-1">Envoyer la demande</button>
-                            </form>
-                        </article>
+                                {# Compat tests: fallback non visible, l'UX principale reste via Paramètres. #}
+                                <form method="post" action="{{ path('app_account_request_slug') }}" class="hidden" aria-hidden="true">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('request_slug') }}">
+                                    <input type="text" name="desired_slug" value="{{ profile.slug }}">
+                                    <button type="submit" tabindex="-1">Envoyer la demande</button>
+                                </form>
+                            </article>
+                        {% endif %}
                     </div>
                 {% endif %}
             </div>

@@ -143,7 +143,7 @@ final class ProfileEditTest extends WebTestCase
         $profile->setPortfolioGeneratedAt(new \DateTimeImmutable());
         $em->flush();
 
-        $client->request('GET', '/profil/' . $profile->getSlug());
+        $client->request('GET', '/profil/'.$profile->getSlug());
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'Clara');
         self::assertSelectorTextContains('body', 'Développeuse React');
@@ -163,7 +163,7 @@ final class ProfileEditTest extends WebTestCase
 
         $slug = $profile->getSlug();
 
-        $client->request('GET', '/profil/' . $slug);
+        $client->request('GET', '/profil/'.$slug);
         self::assertResponseRedirects('/403');
         $client->followRedirect();
         self::assertResponseStatusCodeSame(403);
@@ -184,7 +184,7 @@ final class ProfileEditTest extends WebTestCase
 
         $this->login($client, $email, $password);
 
-        $client->request('GET', '/profil/' . $profile->getSlug());
+        $client->request('GET', '/profil/'.$profile->getSlug());
         self::assertResponseIsSuccessful();
     }
 
@@ -220,7 +220,7 @@ final class ProfileEditTest extends WebTestCase
         ]));
         self::assertResponseRedirects();
 
-        $client->request('GET', '/profil/' . $slug);
+        $client->request('GET', '/profil/'.$slug);
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'Lead Architect Cloud');
     }
@@ -346,7 +346,7 @@ final class ProfileEditTest extends WebTestCase
         $profile->setFirstName($firstName);
         $profile->setLastName($lastName);
         $profile->setHeadline($headline);
-        $profile->setSlug(strtolower($firstName . $lastName) . bin2hex(random_bytes(3)));
+        $profile->setSlug(strtolower($firstName.$lastName).bin2hex(random_bytes(3)));
         $profile->setIsPublic(false);
         $profile->setUser($user);
         $user->setDeveloperProfile($profile);

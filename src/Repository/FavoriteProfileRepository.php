@@ -2,8 +2,8 @@
 
 namespace App\Repository;
 
-use App\Entity\FavoriteProfile;
 use App\Entity\DeveloperProfile;
+use App\Entity\FavoriteProfile;
 use App\Entity\RecruiterProfile;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;

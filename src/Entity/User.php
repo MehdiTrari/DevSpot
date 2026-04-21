@@ -80,6 +80,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $notifications;
 
     /**
+     * @var Collection<int, Notification>
+     */
+    #[ORM\OneToMany(targetEntity: Notification::class, mappedBy: 'senderUser')]
+    private Collection $sentNotifications;
+
+    /**
      * @var Collection<int, Conversation>
      */
     #[ORM\OneToMany(targetEntity: Conversation::class, mappedBy: 'applicantUser')]
@@ -105,6 +111,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->adminActionLogs = new ArrayCollection();
         $this->targetedAdminActionLogs = new ArrayCollection();
         $this->notifications = new ArrayCollection();
+        $this->sentNotifications = new ArrayCollection();
         $this->conversations = new ArrayCollection();
         $this->conversationsRecruiter = new ArrayCollection();
         $this->messages = new ArrayCollection();
@@ -157,6 +164,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->roles = $roles;
 
         return $this;
+    }
+
+    public function hasRole(string $role): bool
+    {
+        return in_array($role, $this->getRoles(), true);
+    }
+
+    public function isApplicantOnly(): bool
+    {
+        return $this->hasRole('ROLE_APPLICANT')
+            && !$this->hasRole('ROLE_RECRUITER')
+            && !$this->hasRole('ROLE_ADMIN');
+    }
+
+    public function canRequestRoleChange(): bool
+    {
+        return !$this->hasRole('ROLE_ADMIN')
+            && ($this->hasRole('ROLE_APPLICANT') || $this->hasRole('ROLE_RECRUITER'));
     }
 
     /**
@@ -380,6 +405,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             // set the owning side to null (unless already changed)
             if ($notification->getUserTarget() === $this) {
                 $notification->setUserTarget(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Notification>
+     */
+    public function getSentNotifications(): Collection
+    {
+        return $this->sentNotifications;
+    }
+
+    public function addSentNotification(Notification $notification): static
+    {
+        if (!$this->sentNotifications->contains($notification)) {
+            $this->sentNotifications->add($notification);
+            $notification->setSenderUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSentNotification(Notification $notification): static
+    {
+        if ($this->sentNotifications->removeElement($notification)) {
+            if ($notification->getSenderUser() === $this) {
+                $notification->setSenderUser(null);
             }
         }
 

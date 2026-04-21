@@ -16,22 +16,22 @@ use App\Repository\DeveloperProfileRepository;
 use App\Repository\MessageRepository;
 use App\Service\ChatMercure;
 use App\Service\NotificationManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Dompdf\Dompdf;
 use Dompdf\Options;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 
 final class ApplicantController extends AbstractController
 {
@@ -727,24 +727,24 @@ final class ApplicantController extends AbstractController
 
         if ($profile instanceof DeveloperProfile) {
             $step1Done =
-                '' !== trim((string) ($profile->getFirstName() ?? '')) &&
-                '' !== trim((string) ($profile->getLastName() ?? '')) &&
-                '' !== trim((string) ($profile->getHeadline() ?? '')) &&
-                '' !== trim((string) ($profile->getCity() ?? '')) &&
-                '' !== trim((string) ($profile->getCountry() ?? '')) &&
-                null !== $profile->getLocationType() &&
-                null !== $profile->getExperienceLevel() &&
-                null !== $profile->getYearsExperience() &&
-                '' !== trim((string) ($profile->getBio() ?? ''));
+                '' !== trim((string) ($profile->getFirstName() ?? ''))
+                && '' !== trim((string) ($profile->getLastName() ?? ''))
+                && '' !== trim((string) ($profile->getHeadline() ?? ''))
+                && '' !== trim((string) ($profile->getCity() ?? ''))
+                && '' !== trim((string) ($profile->getCountry() ?? ''))
+                && null !== $profile->getLocationType()
+                && null !== $profile->getExperienceLevel()
+                && null !== $profile->getYearsExperience()
+                && '' !== trim((string) ($profile->getBio() ?? ''));
 
             $step2Done =
-                $profile->getEducation()->count() > 0 &&
-                $profile->getProfileSkills()->count() > 0;
+                $profile->getEducation()->count() > 0
+                && $profile->getProfileSkills()->count() > 0;
 
             $step3Done =
-                '' !== trim((string) ($profile->getGithubUrl() ?? '')) ||
-                '' !== trim((string) ($profile->getLinkedinUrl() ?? '')) ||
-                '' !== trim((string) ($profile->getPortfolioUrl() ?? ''));
+                '' !== trim((string) ($profile->getGithubUrl() ?? ''))
+                || '' !== trim((string) ($profile->getLinkedinUrl() ?? ''))
+                || '' !== trim((string) ($profile->getPortfolioUrl() ?? ''));
 
             $step4Done = $profile->getDesiredPositions()->count() > 0;
         }

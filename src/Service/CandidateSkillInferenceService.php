@@ -89,8 +89,8 @@ final class CandidateSkillInferenceService
     }
 
     /**
-     * @param list<string> $inferredSoftSkills
-     * @param list<string> $inferredTransferableSkills
+     * @param list<string>                                                 $inferredSoftSkills
+     * @param list<string>                                                 $inferredTransferableSkills
      * @param list<array{skill: string, level: string, confidence: float}> $inferredTechnicalSkills
      */
     private function buildEnrichedText(string $text, array $inferredSoftSkills, array $inferredTransferableSkills, array $inferredTechnicalSkills): string

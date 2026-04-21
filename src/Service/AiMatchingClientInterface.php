@@ -18,6 +18,7 @@ interface AiMatchingClientInterface
 
     /**
      * @param list<string> $texts
+     *
      * @return list<array{embedding: list<float>, dimension: int, normalizedText: string}>|null
      */
     public function embedBatch(array $texts): ?array;
@@ -34,6 +35,7 @@ interface AiMatchingClientInterface
 
     /**
      * @param list<string> $texts
+     *
      * @return list<array{inferredSoftSkills: list<string>, inferredTransferableSkills: list<string>, inferredTechnicalSkills: list<array{skill: string, level: string, confidence: float}>, confidence: array<string, float>, normalizedText: string}>|null
      */
     public function inferSkillsBatch(array $texts): ?array;

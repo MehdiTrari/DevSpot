@@ -37,6 +37,13 @@ class Notification
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
+    #[ORM\ManyToOne(inversedBy: 'sentNotifications')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?User $senderUser = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $senderLabel = null;
+
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -137,6 +144,40 @@ class Notification
     public function markAsRead(): static
     {
         $this->isRead = true;
+
         return $this;
+    }
+
+    public function getSenderUser(): ?User
+    {
+        return $this->senderUser;
+    }
+
+    public function setSenderUser(?User $senderUser): static
+    {
+        $this->senderUser = $senderUser;
+
+        return $this;
+    }
+
+    public function getSenderLabel(): ?string
+    {
+        return $this->senderLabel;
+    }
+
+    public function setSenderLabel(?string $senderLabel): static
+    {
+        $this->senderLabel = $senderLabel;
+
+        return $this;
+    }
+
+    public function getSenderDisplayName(): ?string
+    {
+        if (null !== $this->senderLabel && '' !== trim($this->senderLabel)) {
+            return $this->senderLabel;
+        }
+
+        return $this->senderUser?->getEmail();
     }
 }

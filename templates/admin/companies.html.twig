@@ -69,13 +69,13 @@
                                         </div>
                                     {% endif %}
                                     <h3 class="text-lg font-semibold text-white">{{ company.name }}</h3>
-                                    <p class="mt-1 text-sm text-slate-400">{{ company.industry ?: 'Secteur non renseigne' }}</p>
+                                    <p class="mt-1 text-sm text-slate-400">{{ company.industry ?: 'Secteur non renseigné' }}</p>
                                 </div>
 
                                 <div class="space-y-2 text-sm">
                                     {% set mainRecruiter = company.recruiterProfiles|first %}
                                     <p class="text-slate-500">Responsable: <span class="text-white">{{ mainRecruiter and mainRecruiter.user ? mainRecruiter.user.email : 'Non assigne' }}</span></p>
-                                    <p class="text-slate-500">Localisation: <span class="text-white">{{ company.location ?: 'Non renseignee' }}</span></p>
+                                    <p class="text-slate-500">Localisation: <span class="text-white">{{ company.location ?: 'Non renseignée' }}</span></p>
                                 </div>
 
                                 <button class="mt-4 w-full rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-500/20" onclick="alert('Détails à implémenter')">
