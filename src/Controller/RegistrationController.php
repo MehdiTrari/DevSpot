@@ -89,8 +89,8 @@ class RegistrationController extends AbstractController
             } else {
                 $user->setRoles(['ROLE_APPLICANT']);
 
-                $baseSlug = strtolower((string) $slugger->slug($firstName.' '.$lastName));
-                $slug = $baseSlug.'-'.bin2hex(random_bytes(4));
+                $baseSlug = strtolower((string) $slugger->slug($firstName . ' ' . $lastName));
+                $slug = $baseSlug . '-' . bin2hex(random_bytes(4));
 
                 $developerProfile = new DeveloperProfile();
                 $developerProfile->setFirstName($firstName);

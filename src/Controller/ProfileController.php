@@ -297,7 +297,7 @@ final class ProfileController extends AbstractController
             throw $this->createAccessDeniedException('Vous ne pouvez pas signaler votre propre profil.');
         }
 
-        if (!$this->isCsrfTokenValid('report_profile_'.$profile->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('report_profile_' . $profile->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
             return $this->redirectToRoute('app_public_profile_show', ['slug' => $profile->getSlug()]);

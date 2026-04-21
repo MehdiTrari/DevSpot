@@ -182,7 +182,7 @@ final class AdminController extends AbstractController
     #[Route('/users/{id}/role', name: 'app_admin_users_update_role', methods: ['POST'])]
     public function updateUserRole(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
-        if (!$this->isCsrfTokenValid('admin_user_role_'.$user->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('admin_user_role_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
             return $this->redirectToRefererOrRoute($request, 'app_admin_users');
@@ -228,7 +228,7 @@ final class AdminController extends AbstractController
     #[Route('/users/{id}/status', name: 'app_admin_users_update_status', methods: ['POST'])]
     public function updateUserStatus(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
-        if (!$this->isCsrfTokenValid('admin_user_status_'.$user->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('admin_user_status_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
             return $this->redirectToRefererOrRoute($request, 'app_admin_users');
@@ -292,7 +292,7 @@ final class AdminController extends AbstractController
     #[Route('/users/{id}/reject', name: 'app_admin_users_reject', methods: ['POST'])]
     public function rejectPendingUser(User $user, Request $request, EntityManagerInterface $entityManager): Response
     {
-        if (!$this->isCsrfTokenValid('admin_user_reject_'.$user->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('admin_user_reject_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
             return $this->redirectToRefererOrRoute($request, 'app_admin_users');
@@ -337,7 +337,7 @@ final class AdminController extends AbstractController
     #[Route('/users/{id}/delete', name: 'app_admin_users_delete', methods: ['POST'])]
     public function deleteUser(User $user, Request $request, EntityManagerInterface $entityManager): Response
     {
-        if (!$this->isCsrfTokenValid('admin_user_delete_'.$user->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('admin_user_delete_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
             return $this->redirectToRefererOrRoute($request, 'app_admin_users');
@@ -399,7 +399,7 @@ final class AdminController extends AbstractController
     #[Route('/profiles/{id}/moderate', name: 'app_admin_profiles_moderate', requirements: ['id' => '\\d+'], methods: ['POST'])]
     public function moderateProfile(DeveloperProfile $profile, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
-        if (!$this->isCsrfTokenValid('admin_profile_moderate_'.$profile->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('admin_profile_moderate_' . $profile->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
             return $this->redirectToRefererOrRoute($request, 'app_admin_profiles');
@@ -466,7 +466,7 @@ final class AdminController extends AbstractController
     #[Route('/messages/{id}/delete', name: 'app_admin_messages_delete', methods: ['POST'])]
     public function deleteMessage(ContactMessage $contactMessage, Request $request, EntityManagerInterface $entityManager): Response
     {
-        if (!$this->isCsrfTokenValid('admin_message_delete_'.$contactMessage->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('admin_message_delete_' . $contactMessage->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
             return $this->redirectToRefererOrRoute($request, 'app_admin_messages');
@@ -503,7 +503,7 @@ final class AdminController extends AbstractController
         string $logAction,
         string $successMessage,
     ): Response {
-        if (!$this->isCsrfTokenValid($csrfPrefix.$user->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid($csrfPrefix . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
             return $this->redirectToRefererOrRoute($request, 'app_admin_users');

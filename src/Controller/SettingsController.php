@@ -54,7 +54,7 @@ final class SettingsController extends AbstractController
     #[IsGranted('ROLE_ADMIN')]
     public function adminColors(KernelInterface $kernel): Response
     {
-        $cssPath = $kernel->getProjectDir().'/public/styles/base-theme.css';
+        $cssPath = $kernel->getProjectDir() . '/public/styles/base-theme.css';
         $cssContent = @file_get_contents($cssPath);
 
         if (false === $cssContent) {
@@ -113,9 +113,9 @@ final class SettingsController extends AbstractController
                 continue;
             }
 
-            $bgToken = '--'.$base.'-bg';
-            $textToken = '--'.$base.'-text';
-            $borderToken = '--'.$base.'-border';
+            $bgToken = '--' . $base . '-bg';
+            $textToken = '--' . $base . '-text';
+            $borderToken = '--' . $base . '-border';
 
             $dayBg = $lightMap[$bgToken] ?? '-';
             $dayText = $lightMap[$textToken] ?? '-';
@@ -137,8 +137,8 @@ final class SettingsController extends AbstractController
                 'nightBg' => $nightBg,
                 'nightText' => $nightText,
                 'nightBorder' => $nightBorder,
-                'dayTokens' => $bgToken.' / '.$textToken.' / '.$borderToken,
-                'nightTokens' => $bgToken.' / '.$textToken.' / '.$borderToken,
+                'dayTokens' => $bgToken . ' / ' . $textToken . ' / ' . $borderToken,
+                'nightTokens' => $bgToken . ' / ' . $textToken . ' / ' . $borderToken,
             ];
         }
 
@@ -166,9 +166,9 @@ final class SettingsController extends AbstractController
 
         foreach ($triplets as $row) {
             $family = $row['name'];
-            $bgToken = '--'.$family.'-bg';
-            $textToken = '--'.$family.'-text';
-            $borderToken = '--'.$family.'-border';
+            $bgToken = '--' . $family . '-bg';
+            $textToken = '--' . $family . '-text';
+            $borderToken = '--' . $family . '-border';
             $hasDarkEquivalent = isset($darkMap[$bgToken], $darkMap[$textToken], $darkMap[$borderToken]);
             $bucket = $hasDarkEquivalent ? 'paired' : 'shared';
             $entry = [
@@ -304,7 +304,7 @@ final class SettingsController extends AbstractController
 
         $tokens = [];
         foreach ($declarations as $declaration) {
-            $tokenName = '--'.trim((string) ($declaration[1] ?? ''));
+            $tokenName = '--' . trim((string) ($declaration[1] ?? ''));
             $tokenValue = trim((string) ($declaration[2] ?? ''));
 
             if ('--' === $tokenName || '' === $tokenValue || !$this->isColorLikeValue($tokenValue)) {
@@ -350,7 +350,7 @@ final class SettingsController extends AbstractController
         foreach ($paleTokenMap as $name => $kinds) {
             if (isset($kinds['bg'])) {
                 $rows[] = [
-                    'class' => '.u-bg-pale-'.$name,
+                    'class' => '.u-bg-pale-' . $name,
                     'value' => $kinds['bg'],
                     'kind' => 'background',
                 ];
@@ -358,7 +358,7 @@ final class SettingsController extends AbstractController
 
             if (isset($kinds['text'])) {
                 $rows[] = [
-                    'class' => '.u-text-pale-'.$name,
+                    'class' => '.u-text-pale-' . $name,
                     'value' => $kinds['text'],
                     'kind' => 'text',
                 ];
@@ -366,7 +366,7 @@ final class SettingsController extends AbstractController
 
             if (isset($kinds['border'])) {
                 $rows[] = [
-                    'class' => '.u-border-pale-'.$name,
+                    'class' => '.u-border-pale-' . $name,
                     'value' => $kinds['border'],
                     'kind' => 'border',
                 ];
@@ -406,15 +406,15 @@ final class SettingsController extends AbstractController
 
         $rows = [];
         foreach ($familyNames as $family) {
-            $bgToken = '--pale-'.$family.'-bg';
-            $textToken = '--pale-'.$family.'-text';
-            $borderToken = '--pale-'.$family.'-border';
+            $bgToken = '--pale-' . $family . '-bg';
+            $textToken = '--pale-' . $family . '-text';
+            $borderToken = '--pale-' . $family . '-border';
 
             $rows[] = [
                 'family' => $family,
-                'bgClass' => '.u-bg-pale-'.$family,
-                'textClass' => '.u-text-pale-'.$family,
-                'borderClass' => '.u-border-pale-'.$family,
+                'bgClass' => '.u-bg-pale-' . $family,
+                'textClass' => '.u-text-pale-' . $family,
+                'borderClass' => '.u-border-pale-' . $family,
                 'dayBg' => $lightMap[$bgToken] ?? '-',
                 'dayText' => $lightMap[$textToken] ?? '-',
                 'dayBorder' => $lightMap[$borderToken] ?? '-',
@@ -468,14 +468,14 @@ final class SettingsController extends AbstractController
                 }
 
                 foreach ($classes as $className) {
-                    $rowKey = $className.'|'.$property.'|'.$value;
+                    $rowKey = $className . '|' . $property . '|' . $value;
                     if (isset($seen[$rowKey])) {
                         continue;
                     }
 
                     $seen[$rowKey] = true;
                     $rows[] = [
-                        'class' => '.'.$className,
+                        'class' => '.' . $className,
                         'property' => $property,
                         'value' => $value,
                     ];

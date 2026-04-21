@@ -236,7 +236,7 @@ final class ApplicantController extends AbstractController
             return new JsonResponse(['ok' => false], Response::HTTP_NOT_FOUND);
         }
 
-        if (!$this->isCsrfTokenValid('chat_read_'.$conversationId, (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('chat_read_' . $conversationId, (string) $request->request->get('_token'))) {
             return new JsonResponse(['ok' => false], Response::HTTP_FORBIDDEN);
         }
 
@@ -336,7 +336,7 @@ final class ApplicantController extends AbstractController
             return new JsonResponse(['success' => false], Response::HTTP_FORBIDDEN);
         }
 
-        $this->removePreviousAvatar($profile, $this->getParameter('kernel.project_dir').'/public/uploads/avatars');
+        $this->removePreviousAvatar($profile, $this->getParameter('kernel.project_dir') . '/public/uploads/avatars');
         $profile->setAvatarPath(null);
         $entityManager->flush();
 

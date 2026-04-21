@@ -12,6 +12,6 @@ enum ExperienceLevel: string
 
     public function label(): string
     {
-        return 'experience_level.'.$this->value;
+        return 'experience_level.' . $this->value;
     }
 }

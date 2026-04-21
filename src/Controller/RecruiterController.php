@@ -122,7 +122,7 @@ final class RecruiterController extends AbstractController
             $this->generateUrl('app_public_profile_show', ['slug' => (string) $profile->getSlug()]),
         );
 
-        if (!$this->isCsrfTokenValid('favorite_add_'.$profile->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('favorite_add_' . $profile->getId(), (string) $request->request->get('_token'))) {
             return $this->favoriteFailureResponse($request, $redirectPath, 'Action refusée, merci de réessayer.', 'error', Response::HTTP_FORBIDDEN);
         }
 
@@ -161,7 +161,7 @@ final class RecruiterController extends AbstractController
     ): Response {
         $redirectPath = $this->resolveFavoriteRedirectPath($request, $this->generateUrl('app_recruiter_home'));
 
-        if (!$this->isCsrfTokenValid('favorite_remove_'.$profile->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('favorite_remove_' . $profile->getId(), (string) $request->request->get('_token'))) {
             return $this->favoriteFailureResponse($request, $redirectPath, 'Action refusée, merci de réessayer.', 'error', Response::HTTP_FORBIDDEN);
         }
 
@@ -272,8 +272,8 @@ final class RecruiterController extends AbstractController
                 if (null !== $developerId) {
                     $match['favoriteAddUrl'] = $this->generateUrl('app_recruiter_favorite_add', ['id' => $developerId]);
                     $match['favoriteRemoveUrl'] = $this->generateUrl('app_recruiter_favorite_remove', ['id' => $developerId]);
-                    $match['favoriteAddToken'] = $csrfTokenManager->getToken('favorite_add_'.$developerId)->getValue();
-                    $match['favoriteRemoveToken'] = $csrfTokenManager->getToken('favorite_remove_'.$developerId)->getValue();
+                    $match['favoriteAddToken'] = $csrfTokenManager->getToken('favorite_add_' . $developerId)->getValue();
+                    $match['favoriteRemoveToken'] = $csrfTokenManager->getToken('favorite_remove_' . $developerId)->getValue();
                 }
 
                 return $match;
@@ -402,8 +402,8 @@ final class RecruiterController extends AbstractController
             if (null !== $developerId) {
                 $match['favoriteAddUrl'] = $this->generateUrl('app_recruiter_favorite_add', ['id' => $developerId]);
                 $match['favoriteRemoveUrl'] = $this->generateUrl('app_recruiter_favorite_remove', ['id' => $developerId]);
-                $match['favoriteAddToken'] = $csrfTokenManager->getToken('favorite_add_'.$developerId)->getValue();
-                $match['favoriteRemoveToken'] = $csrfTokenManager->getToken('favorite_remove_'.$developerId)->getValue();
+                $match['favoriteAddToken'] = $csrfTokenManager->getToken('favorite_add_' . $developerId)->getValue();
+                $match['favoriteRemoveToken'] = $csrfTokenManager->getToken('favorite_remove_' . $developerId)->getValue();
             }
 
             return $match;
@@ -437,7 +437,7 @@ final class RecruiterController extends AbstractController
             throw $this->createNotFoundException('Offre introuvable.');
         }
 
-        if (!$this->isCsrfTokenValid('offer_toggle_'.$offer->getId(), (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('offer_toggle_' . $offer->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Token CSRF invalide.');
 
             return $this->redirectToRoute('app_recruiter_offers');
@@ -625,7 +625,7 @@ final class RecruiterController extends AbstractController
             return new JsonResponse(['ok' => false], Response::HTTP_NOT_FOUND);
         }
 
-        if (!$this->isCsrfTokenValid('chat_read_'.$conversationId, (string) $request->request->get('_token'))) {
+        if (!$this->isCsrfTokenValid('chat_read_' . $conversationId, (string) $request->request->get('_token'))) {
             return new JsonResponse(['ok' => false], Response::HTTP_FORBIDDEN);
         }
 
@@ -878,12 +878,12 @@ final class RecruiterController extends AbstractController
 
     private function buildMatchingCacheKey(int $offerId): string
     {
-        return 'matching_offer_'.$offerId;
+        return 'matching_offer_' . $offerId;
     }
 
     private function buildMatchingSummaryCacheKey(int $offerId): string
     {
-        return 'matching_offer_summary_'.$offerId;
+        return 'matching_offer_summary_' . $offerId;
     }
 
     /**

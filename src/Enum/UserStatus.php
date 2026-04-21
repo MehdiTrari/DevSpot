@@ -12,6 +12,6 @@ enum UserStatus: string
 
     public function label(): string
     {
-        return 'user_status.'.$this->value;
+        return 'user_status.' . $this->value;
     }
 }
