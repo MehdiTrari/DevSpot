@@ -84,6 +84,9 @@
             "assets:install %PUBLIC_DIR%": "symfony-cmd",
             "importmap:install": "symfony-cmd"
         },
+        "lint:cs": "php-cs-fixer fix --dry-run --diff --verbose",
+        "lint:cs:fix": "php-cs-fixer fix --verbose",
+        "lint:stan": "phpstan analyse --configuration=phpstan.neon.dist --memory-limit=1G",
         "reset:front": "php bin/console app:frontend:reset",
         "test": "php bin/phpunit --testsuite=app",
         "test:coverage": "php -d xdebug.mode=coverage bin/phpunit --testsuite=app --coverage-clover=var/coverage/clover.xml --coverage-html=var/coverage/html",
@@ -110,6 +113,7 @@
         "brianium/paratest": "^7.8",
         "dbrekelmans/bdi": "^1.4",
         "friendsofphp/php-cs-fixer": "^3.95",
+        "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^12.5",
         "symfony/browser-kit": "7.4.*",
         "symfony/css-selector": "7.4.*",

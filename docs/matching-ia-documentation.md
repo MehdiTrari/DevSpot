@@ -57,7 +57,7 @@ Le système de matching IA de DevSpot met en relation des **offres d'emploi** de
 │  • Convertit les entités en modèles de matching (DTOs)              │
 │  • Extrait les compétences depuis les textes (dictionnaire BDD)     │
 │  • Construit le texte CV anonymisé de chaque candidat               │
-│  • Orchestre les 3 stratégies de scoring en parallèle               │
+│  • Orchestre les 3 stratégies de scoring                            │
 └──────┬──────────────────┬───────────────────┬──────────────────────┘
        │                  │                   │
        ▼                  ▼                   ▼
@@ -392,7 +392,7 @@ Le client `AiMatchingClient` met en cache les embeddings CamemBERT dans le files
 |-----------|--------|
 | Backend | `cache.app` (filesystem Symfony) |
 | TTL | 604 800 secondes (7 jours) |
-| Clé | Préfixe (`embed_` ou `infer_`) + hash SHA-256 du texte |
+| Clé | `ai_matching.{embed|infer}.{sha256_du_texte}` |
 | Optimisation batch | Les textes non-cachés sont envoyés en batch au service ML |
 
 ### Cache des résultats de matching (30 min)
@@ -415,14 +415,14 @@ Les résultats complets du matching sont cachés côté contrôleur :
 
 ## 9. Infrastructure et déploiement
 
-### Services Docker
+### Services et exécution
 
-```yaml
-services:
-  database:        # PostgreSQL 16
-  ml-service:      # Python 3.11 + CamemBERT + FastAPI
-  app:             # Symfony (PHP 8.x)
-```
+Le pipeline de matching dépend de deux briques d'exécution :
+
+- l'application Symfony,
+- un service ML FastAPI accessible via `ML_SERVICE_URL`.
+
+Dans l'état actuel du repo, les fichiers Compose visibles documentent surtout l'infrastructure locale annexe (`database`, `mercure`, `adminer`, `mailer`). Le service ML est bien attendu par le code, mais il n'est pas décrit explicitement dans ces fichiers Compose.
 
 ### Service ML Python
 
@@ -439,10 +439,10 @@ services:
 
 | Variable | Défaut | Description |
 |----------|--------|-------------|
-| `ML_SERVICE_URL` | `http://127.0.0.1:8001` | URL du service Python ML |
-| `ML_SERVICE_TIMEOUT` | `20` secondes | Timeout des appels HTTP |
+| `ML_SERVICE_URL` | `http://localhost:8001` | URL du service Python ML |
+| `ML_SERVICE_TIMEOUT` | `10` secondes | Timeout des appels HTTP |
 | `CAMEMBERT_MODEL` | `camembert-base` | Modèle HuggingFace à charger |
-| `CAMEMBERT_DEVICE` | auto | Device PyTorch (cpu/cuda) |
+| `CAMEMBERT_DEVICE` | `cpu` | Device PyTorch (cpu/cuda) |
 | `CAMEMBERT_PROJECTION_PATH` | — | Chemin vers la matrice de projection entraînée |
 
 ---
@@ -456,7 +456,7 @@ services:
 | `/health` | GET | Vérification de santé du service |
 | `/embed` | POST | Texte → vecteur embedding (768 dims) |
 | `/embed-batch` | POST | Textes → vecteurs batch |
-| `/similarity` | POST | Offre + candidat → score de similarité |
+| `/match` | POST | Offre + candidat → score de similarité sémantique |
 | `/infer-skills` | POST | Texte → compétences inférées |
 | `/infer-skills-batch` | POST | Textes → compétences inférées batch |
 

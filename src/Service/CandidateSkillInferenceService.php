@@ -107,7 +107,7 @@ final class CandidateSkillInferenceService
 
         return trim(implode("\n\n", array_filter([
             trim($text),
-            '' !== $skillContext ? 'Inferred skills: '.$skillContext : null,
+            '' !== $skillContext ? 'Inferred skills: ' . $skillContext : null,
         ])));
     }
 }
