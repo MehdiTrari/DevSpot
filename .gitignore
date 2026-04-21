@@ -21,3 +21,11 @@
 
 # Secrets
 config/secrets/*/decrypt.private.php
+
+###> friendsofphp/php-cs-fixer ###
+/.php-cs-fixer.php
+/.php-cs-fixer.cache
+###< friendsofphp/php-cs-fixer ###
+
+.venv-docs/
+/site/

@@ -1,10 +1,36 @@
 
 services:
+  reverse-proxy:
+    ports:
+      - "80:80"
+      - "8000:8000"
+      - "3000:3000"
+
+  app:
+    volumes:
+      - .:/app
+
 ###> doctrine/doctrine-bundle ###
   database:
     ports:
       - "5433:5432"
 ###< doctrine/doctrine-bundle ###
+
+  ml:
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./ml:/app
+      - huggingface_cache:/root/.cache/huggingface
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+
+  docs:
+    image: squidfunk/mkdocs-material
+    ports:
+      - "8002:8000"
+    volumes:
+      - .:/docs
+    command: serve --dev-addr=0.0.0.0:8000
 
   adminer:
     image: adminer
@@ -17,17 +43,10 @@ services:
 
 ###> symfony/mailer ###
   mailer:
-    image: axllent/mailpit
     ports:
-      - "1025"
-      - "8025"
-    environment:
-      MP_SMTP_AUTH_ACCEPT_ANY: 1
-      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+      - "1025:1025"
+      - "8025:8025"
 ###< symfony/mailer ###
 
-###> symfony/mercure-bundle ###
-  mercure:
-    ports:
-      - "3000:80"
-###< symfony/mercure-bundle ###
+volumes:
+  huggingface_cache:

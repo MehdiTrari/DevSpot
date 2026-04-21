@@ -1,0 +1,45 @@
+FROM php:8.3-apache
+
+ENV COMPOSER_ALLOW_SUPERUSER=1 \
+    APACHE_DOCUMENT_ROOT=/var/www/html/public
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        curl \
+        git \
+        libicu-dev \
+        libonig-dev \
+        libpq-dev \
+        libxml2-dev \
+        libzip-dev \
+        postgresql-client \
+        unzip \
+    && docker-php-ext-install \
+        dom \
+        intl \
+        mbstring \
+        opcache \
+        pdo_pgsql \
+        zip \
+    && a2enmod rewrite headers expires \
+    && sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+COPY composer.json composer.lock symfony.lock ./
+RUN composer install --prefer-dist --no-dev --optimize-autoloader --classmap-authoritative --no-interaction --no-scripts
+
+COPY . .
+COPY docker/symfony/entrypoint-prod.sh /usr/local/bin/devspot-entrypoint-prod
+
+RUN chmod +x /usr/local/bin/devspot-entrypoint-prod \
+    && mkdir -p var/cache var/log public/uploads var/share \
+    && chown -R www-data:www-data var public/uploads
+
+EXPOSE 80
+
+ENTRYPOINT ["devspot-entrypoint-prod"]
+CMD ["apache2-foreground"]
