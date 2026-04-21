@@ -149,6 +149,10 @@
                 
                 item.innerHTML = deleteBtn + '<div>' + prototype + '</div>';
                 list.appendChild(item);
+
+                if (window.DevSpotMultiSelect && typeof window.DevSpotMultiSelect.refresh === 'function') {
+                    window.DevSpotMultiSelect.refresh(item);
+                }
                 
                 if (typeof flatpickr !== 'undefined') {
                     flatpickr(item.querySelectorAll('.js-datepicker'), {

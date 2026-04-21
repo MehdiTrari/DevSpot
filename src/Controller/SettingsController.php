@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -27,6 +28,11 @@ final class SettingsController extends AbstractController
     #[Route('/role', name: 'app_settings_role', methods: ['GET'])]
     public function role(): Response
     {
+        $user = $this->getUser();
+        if (!$user instanceof User || !$user->canRequestRoleChange()) {
+            throw $this->createAccessDeniedException();
+        }
+
         return $this->render('settings/role.html.twig');
     }
 
@@ -34,8 +40,13 @@ final class SettingsController extends AbstractController
     #[IsGranted('ROLE_APPLICANT')]
     public function slug(): Response
     {
+        $user = $this->getUser();
+        if (!$user instanceof User || !$user->isApplicantOnly()) {
+            throw $this->createAccessDeniedException();
+        }
+
         return $this->render('settings/slug.html.twig', [
-            'profile' => $this->getUser()?->getDeveloperProfile(),
+            'profile' => $user->getDeveloperProfile(),
         ]);
     }
 

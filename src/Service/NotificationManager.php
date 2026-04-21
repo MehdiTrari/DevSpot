@@ -427,6 +427,44 @@ final class NotificationManager
         );
     }
 
+    /**
+     * @param iterable<User> $targetUsers
+     */
+    public function sendAdminMessage(User $adminUser, iterable $targetUsers, string $title, string $content, ?string $link = null): int
+    {
+        $senderLabel = $this->resolveUserDisplayName($adminUser);
+        $sentCount = 0;
+        $seenUserIds = [];
+
+        foreach ($targetUsers as $targetUser) {
+            if (!$targetUser instanceof User) {
+                continue;
+            }
+
+            $targetUserId = $targetUser->getId();
+            if (null !== $targetUserId && isset($seenUserIds[$targetUserId])) {
+                continue;
+            }
+
+            if (null !== $targetUserId) {
+                $seenUserIds[$targetUserId] = true;
+            }
+
+            $this->createNotification(
+                $targetUser,
+                NotificationType::ADMIN_MESSAGE,
+                $title,
+                $content,
+                $link,
+                $adminUser,
+                $senderLabel
+            );
+            ++$sentCount;
+        }
+
+        return $sentCount;
+    }
+
     public function notifyAdminsRoleRequest(User $requester, string $requestedRole): bool
     {
         $link = $this->urlGenerator->generate('app_admin_users', [
@@ -512,8 +550,20 @@ final class NotificationManager
         );
     }
 
-    private function createNotification(User $targetUser, NotificationType $type, string $title, string $content, ?string $link = null): void
+    private function createNotification(
+        User $targetUser,
+        NotificationType $type,
+        string $title,
+        string $content,
+        ?string $link = null,
+        ?User $senderUser = null,
+        ?string $senderLabel = null,
+    ): void
     {
+        if (null === $senderLabel && $senderUser instanceof User) {
+            $senderLabel = $this->resolveUserDisplayName($senderUser);
+        }
+
         $notification = new Notification();
         $notification->setUser($targetUser);
         $notification->setType($type);
@@ -521,6 +571,8 @@ final class NotificationManager
         $notification->setContent($content);
         $notification->setLink($link);
         $notification->setIsRead(false);
+        $notification->setSenderUser($senderUser);
+        $notification->setSenderLabel($senderLabel);
 
         $this->entityManager->persist($notification);
     }

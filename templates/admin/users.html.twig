@@ -304,6 +304,75 @@
                 });
             }
 
+            const moderationModal = root.querySelector('[data-admin-users-moderation-modal="true"]');
+            const moderationForm = root.querySelector('[data-admin-users-moderation-form="true"]');
+            const moderationTokenInput = root.querySelector('[data-admin-users-moderation-token="true"]');
+            const moderationReasonInput = root.querySelector('[data-admin-users-moderation-reason="true"]');
+            const moderationTarget = root.querySelector('[data-admin-users-moderation-target="true"]');
+
+            const closeModerationModal = () => {
+                if (!moderationModal || !moderationForm || !moderationTokenInput || !moderationReasonInput || !moderationTarget) {
+                    return;
+                }
+
+                moderationModal.classList.add('hidden');
+                moderationModal.classList.remove('flex');
+                moderationModal.setAttribute('aria-hidden', 'true');
+                moderationForm.removeAttribute('action');
+                moderationTokenInput.value = '';
+                moderationReasonInput.value = '';
+                moderationTarget.textContent = '';
+                pageBody.classList.remove('overflow-hidden');
+                pageBody.classList.remove('admin-users-modal-open');
+            };
+
+            const openModerationModal = (button) => {
+                if (!moderationModal || !moderationForm || !moderationTokenInput || !moderationReasonInput || !moderationTarget) {
+                    return;
+                }
+
+                const action = button.dataset.moderationAction;
+                const token = button.dataset.moderationToken;
+                if (!action || !token) {
+                    return;
+                }
+
+                moderationForm.action = action;
+                moderationTokenInput.value = token;
+                moderationReasonInput.value = button.dataset.moderationReason ?? '';
+                moderationTarget.textContent = button.dataset.moderationEmail ? `Compte: ${button.dataset.moderationEmail}` : '';
+
+                moderationModal.classList.remove('hidden');
+                moderationModal.classList.add('flex');
+                moderationModal.setAttribute('aria-hidden', 'false');
+                pageBody.classList.add('overflow-hidden');
+                pageBody.classList.add('admin-users-modal-open');
+                moderationReasonInput.focus();
+                moderationReasonInput.setSelectionRange(moderationReasonInput.value.length, moderationReasonInput.value.length);
+            };
+
+            root.querySelectorAll('[data-admin-users-open-moderation="true"]').forEach((button) => {
+                button.addEventListener('click', () => openModerationModal(button));
+            });
+
+            if (moderationModal) {
+                moderationModal.querySelectorAll('[data-admin-users-close-moderation="true"]').forEach((button) => {
+                    button.addEventListener('click', closeModerationModal);
+                });
+
+                moderationModal.addEventListener('click', (event) => {
+                    if (event.target === moderationModal) {
+                        closeModerationModal();
+                    }
+                });
+
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape' && moderationModal.getAttribute('aria-hidden') === 'false') {
+                        closeModerationModal();
+                    }
+                });
+            }
+
             let activeRequest = null;
 
             const setLoading = (isLoading) => {
@@ -699,6 +768,9 @@
                 </form>
 
                 <div class="flex flex-wrap items-center gap-2">
+                <a href="{{ path('app_admin_user_messages_compose') }}" class="favorite-showcase-toolbar-pill inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/12 hover:text-white">
+                    Envoyer un message
+                </a>
                 <button type="button" data-admin-users-open-filters="true" onclick="window.AdminUsersFilters && window.AdminUsersFilters.open(); return false;" class="favorite-showcase-toolbar-pill relative z-20 inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/12 hover:text-white">
                     Filtres
                 </button>
@@ -821,6 +893,32 @@
                                         </svg>
                                     </summary>
                                     <div class="absolute right-0 top-full z-40 mt-2 min-w-[240px] space-y-2 rounded-xl border border-white/10 bg-slate-950/95 p-3 shadow-2xl shadow-black/50">
+                                        {% if not isCurrentAdmin %}
+                                            <a href="{{ path('app_admin_user_messages_compose', {recipient: user.id}) }}" class="u-border-pale-blue u-bg-pale-blue u-text-pale-blue inline-flex w-full items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition-opacity hover:opacity-90">
+                                                Envoyer un message
+                                            </a>
+                                        {% endif %}
+
+                                        {% if user.developerProfile %}
+                                            <button
+                                                type="button"
+                                                data-admin-users-open-moderation="true"
+                                                data-moderation-action="{{ path('app_admin_profiles_moderate', { id: user.developerProfile.id }) }}"
+                                                data-moderation-token="{{ csrf_token('admin_profile_moderate_' ~ user.developerProfile.id) }}"
+                                                data-moderation-reason="{{ user.developerProfile.moderationReason ?: '' }}"
+                                                data-moderation-email="{{ user.email }}"
+                                                class="u-border-pale-yellow u-bg-pale-yellow u-text-pale-yellow inline-flex w-full items-center justify-center rounded-lg border px-3 py-2 text-xs font-semibold transition-opacity hover:opacity-90"
+                                            >
+                                                Modérer le profil
+                                            </button>
+
+                                            <form method="post" action="{{ path('app_admin_profiles_moderate', { id: user.developerProfile.id }) }}" class="hidden" aria-hidden="true">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('admin_profile_moderate_' ~ user.developerProfile.id) }}">
+                                                <input type="text" name="reason" value="{{ user.developerProfile.moderationReason ?: '' }}">
+                                                <button type="submit" tabindex="-1">Envoyer</button>
+                                            </form>
+                                        {% endif %}
+
                                         {% if not user.status or user.status.value not in ['banned', 'deleted'] %}
                                             <form method="post" action="{{ path('app_admin_users_update_role', {id: user.id}) }}" class="flex items-center gap-2">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('admin_user_role_' ~ user.id) }}">
@@ -885,6 +983,52 @@
             </div>
         </div>
     {% endif %}
+    </div>
+
+    <div class="fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/55 p-4 backdrop-blur-[2px]" data-admin-users-moderation-modal="true" aria-hidden="true">
+        <div class="w-full max-w-lg rounded-[2rem] border border-white/10 bg-slate-900/95 p-6 shadow-2xl shadow-black/50 backdrop-blur-xl" onclick="event.stopPropagation();">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <span class="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">Moderation</span>
+                    <h2 class="ui-title mt-4 text-2xl font-semibold tracking-tight">Notifier l'utilisateur</h2>
+                    <p class="ui-text-secondary mt-2 text-sm" data-admin-users-moderation-target="true"></p>
+                </div>
+                <button type="button" data-admin-users-close-moderation="true" class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-slate-300 transition hover:bg-white/10 hover:text-white" aria-label="Fermer la modale">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m5 5 10 10"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m15 5-10 10"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <form method="post" class="mt-5 space-y-4" data-admin-users-moderation-form="true">
+                <input type="hidden" name="_token" value="" data-admin-users-moderation-token="true">
+
+                <div class="space-y-3">
+                    <label for="admin-users-moderation-reason" class="ui-title block text-sm font-semibold">Message de modération</label>
+                    <textarea
+                        id="admin-users-moderation-reason"
+                        name="reason"
+                        required
+                        minlength="6"
+                        rows="4"
+                        placeholder="Expliquez pourquoi ce profil doit etre revu..."
+                        class="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-amber-400/50 focus:ring-2 focus:ring-amber-500/20"
+                        data-admin-users-moderation-reason="true"
+                    ></textarea>
+                    <p class="ui-text-soft text-xs">Ce message sera envoye au candidat.</p>
+                </div>
+
+                <div class="flex items-center justify-end gap-2">
+                    <button type="button" data-admin-users-close-moderation="true" class="u-border-pale-slate u-bg-pale-slate u-text-pale-slate inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90">
+                        Annuler
+                    </button>
+                    <button type="submit" class="u-border-success u-bg-success u-text-success inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90">
+                        Envoyer
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">Les actions d'administration sont journalisées. Les admins ne peuvent pas bannir ou supprimer leur propre compte.</p>

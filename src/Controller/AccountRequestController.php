@@ -23,6 +23,10 @@ final class AccountRequestController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
+        if (!$user->canRequestRoleChange()) {
+            throw $this->createAccessDeniedException();
+        }
+
         if (!$this->isCsrfTokenValid('request_role', (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
 
@@ -63,6 +67,10 @@ final class AccountRequestController extends AbstractController
     ): Response {
         $user = $this->getUser();
         if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if (!$user->isApplicantOnly()) {
             throw $this->createAccessDeniedException();
         }
 

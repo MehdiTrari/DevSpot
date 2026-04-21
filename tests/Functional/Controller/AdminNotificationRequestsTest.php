@@ -100,6 +100,22 @@ final class AdminNotificationRequestsTest extends WebTestCase
         self::assertStringContainsString('Company Notify', (string) $notification->getContent());
     }
 
+    public function testSlugSettingsAreHiddenAndDeniedForDualRoleUser(): void
+    {
+        $client = static::createClient();
+        $user = $this->createDualRoleUser();
+
+        $client->loginUser($user);
+        $client->request('GET', '/settings');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorNotExists('a[href="/settings/slug"]');
+
+        $client->request('GET', '/settings/slug');
+
+        self::assertResponseRedirects('/403');
+    }
+
     private function createAdmin(): User
     {
         return $this->createUser(sprintf('admin_%s@example.com', bin2hex(random_bytes(6))), ['ROLE_ADMIN']);
@@ -148,6 +164,44 @@ final class AdminNotificationRequestsTest extends WebTestCase
         $user->setRecruiterProfile($profile);
 
         $entityManager->persist($profile);
+        $entityManager->flush();
+
+        return $user;
+    }
+
+    private function createDualRoleUser(): User
+    {
+        $user = $this->createUser(sprintf('dual_%s@example.com', bin2hex(random_bytes(6))), ['ROLE_APPLICANT', 'ROLE_RECRUITER']);
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+
+        $developerProfile = new DeveloperProfile();
+        $developerProfile->setFirstName('Alice');
+        $developerProfile->setLastName('Martin');
+        $developerProfile->setHeadline('Developpeuse Symfony');
+        $developerProfile->setSlug('dual-' . bin2hex(random_bytes(4)));
+        $developerProfile->setBio('Profil multi-role de test.');
+        $developerProfile->setCity('Lyon');
+        $developerProfile->setCountry('France');
+        $developerProfile->setIsPublic(true);
+        $developerProfile->setPortfolioGeneratedAt(new \DateTimeImmutable());
+        $developerProfile->setUser($user);
+        $user->setDeveloperProfile($developerProfile);
+        $entityManager->persist($developerProfile);
+
+        $company = new Company();
+        $company->setName('Dual Role Company ' . bin2hex(random_bytes(3)));
+        $entityManager->persist($company);
+
+        $recruiterProfile = new RecruiterProfile();
+        $recruiterProfile->setFirstName('Nora');
+        $recruiterProfile->setLastName('Recruiter');
+        $recruiterProfile->setJobTitle('Talent Acquisition');
+        $recruiterProfile->setWorkEmail($user->getEmail());
+        $recruiterProfile->setCompany($company);
+        $recruiterProfile->setUser($user);
+        $user->setRecruiterProfile($recruiterProfile);
+        $entityManager->persist($recruiterProfile);
+
         $entityManager->flush();
 
         return $user;

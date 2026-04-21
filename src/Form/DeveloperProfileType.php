@@ -7,13 +7,13 @@ use App\Entity\Position;
 use App\Enum\ExperienceLevel;
 use App\Enum\LocationType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
-use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
@@ -77,6 +77,14 @@ class DeveloperProfileType extends AbstractType
                 'required' => false,
                 'multiple' => true,
                 'expanded' => false,
+                'attr' => [
+                    'data-multiselect-accent' => 'emerald',
+                    'data-multiselect-search-placeholder' => 'Rechercher un poste',
+                    'data-multiselect-selection-placeholder' => 'Choisir un ou plusieurs postes',
+                    'data-multiselect-empty' => 'Aucun poste ne correspond à cette recherche.',
+                    'data-multiselect-selected-singular' => 'poste',
+                    'data-multiselect-selected-plural' => 'postes',
+                ],
             ])
             ->add('profileSkills', CollectionType::class, [
                 'entry_type' => ProfileSkillType::class,
