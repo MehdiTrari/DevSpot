@@ -88,11 +88,11 @@ final class SettingsController extends AbstractController
             $supportRequest->setMessage($sanitizedMessage);
 
             if ('' === $sanitizedSubject) {
-                $form->get('subject')->addError(new FormError('L objet contient trop de contenu HTML non autorise.'));
+                $form->get('subject')->addError(new FormError('L\'objet contient trop de contenu HTML non autorisé.'));
             }
 
             if (mb_strlen($sanitizedMessage) < 10) {
-                $form->get('message')->addError(new FormError('Le message contient trop de contenu HTML non autorise.'));
+                $form->get('message')->addError(new FormError('Le message contient trop de contenu HTML non autorisé.'));
             }
 
             if ($form->isValid()) {
@@ -100,9 +100,9 @@ final class SettingsController extends AbstractController
                     $allEmailsSent = $supportRequestManager->submit($supportRequest);
 
                     if ($allEmailsSent) {
-                        $this->addFlash('success', 'Votre demande de support a bien ete envoyee a l equipe administratrice.');
+                        $this->addFlash('success', 'Votre demande de support a bien été envoyée à l’équipe administratrice.');
                     } else {
-                        $this->addFlash('error', 'Votre demande de support a ete enregistree, mais l email d alerte aux administrateurs n a pas pu etre envoye.');
+                        $this->addFlash('error', 'Votre demande de support a été enregistrée, mais l’email d’alerte aux administrateurs n’a pas pu être envoyé.');
                     }
 
                     return $this->redirectToRoute('app_settings_support');
@@ -112,7 +112,7 @@ final class SettingsController extends AbstractController
                         'error' => $exception->getMessage(),
                     ]);
 
-                    $form->addError(new FormError('Erreur technique lors de l envoi de votre demande. Merci de reessayer.'));
+                    $form->addError(new FormError('Erreur technique lors de l’envoi de votre demande. Merci de réessayer.'));
                 }
             }
         }

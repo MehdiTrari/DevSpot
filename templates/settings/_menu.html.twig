@@ -1,6 +1,6 @@
 {% set settingsMenuKey = current|default('index') %}
 
-<nav class="flex flex-wrap items-center gap-2" aria-label="Navigation des parametres">
+<nav class="flex flex-wrap items-center gap-2" aria-label="Navigation des paramètres">
     <a href="{{ path('app_settings_index') }}" class="ui-pill rounded-full px-4 py-2 text-xs font-semibold {{ settingsMenuKey == 'index' ? 'ui-pill-success' : 'ui-pill-muted' }}">
         Vue d'ensemble
     </a>

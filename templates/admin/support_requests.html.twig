@@ -8,7 +8,7 @@
             <p class="favorite-showcase-kicker">Administration</p>
             <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Demandes de support.</h1>
             <p class="ui-text-secondary mx-auto mt-4 max-w-2xl text-[13px] leading-relaxed sm:text-[15px]">
-                Retrouvez les demandes des utilisateurs, ouvrez une reponse par email ou contactez-les directement dans l application.
+                Retrouvez les demandes des utilisateurs, ouvrez une réponse par email ou contactez-les directement dans l'application.
             </p>
         </div>
 
@@ -16,11 +16,11 @@
             <div class="w-full rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <p class="text-sm text-slate-400">Boite de reception support</p>
-                        <p class="ui-title mt-1 text-xl font-semibold">{{ totalSupportRequests }} demande(s) enregistree(s)</p>
+                        <p class="text-sm text-slate-400">Boîte de réception support</p>
+                        <p class="ui-title mt-1 text-xl font-semibold">{{ totalSupportRequests }} demande(s) enregistrée(s)</p>
                     </div>
                     <a href="{{ path('app_admin_support_requests') }}" class="favorite-showcase-toolbar-pill inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/12 hover:text-white">
-                        Rafraichir
+                        Rafraîchir
                     </a>
                 </div>
 
@@ -45,7 +45,7 @@
 
                                     <div class="flex flex-wrap gap-2 lg:justify-end">
                                         <a href="mailto:{{ supportRequest.requesterEmail }}?subject={{ replySubject|url_encode }}&body={{ replyBody|url_encode }}" class="u-border-pale-blue u-bg-pale-blue u-text-pale-blue inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90">
-                                            Repondre par email
+                                            Répondre par email
                                         </a>
                                         {% if supportRequest.user %}
                                             <a href="{{ path('app_admin_user_messages_compose', {
@@ -53,7 +53,7 @@
                                                 title: replySubject,
                                                 content: replyBody
                                             }) }}" class="u-border-info u-bg-info u-text-info inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90">
-                                                Repondre dans l application
+                                                Répondre dans l'application
                                             </a>
                                         {% else %}
                                             <span class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-400">
@@ -76,7 +76,7 @@
                             <p class="text-sm text-slate-400">Page {{ currentPage }} / {{ totalPages }}</p>
                             <div class="flex items-center gap-2">
                                 {% if currentPage > 1 %}
-                                    <a href="{{ path('app_admin_support_requests', { page: currentPage - 1 }) }}" class="rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10">Precedent</a>
+                                    <a href="{{ path('app_admin_support_requests', { page: currentPage - 1 }) }}" class="rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10">Précédent</a>
                                 {% endif %}
                                 {% if currentPage < totalPages %}
                                     <a href="{{ path('app_admin_support_requests', { page: currentPage + 1 }) }}" class="rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10">Suivant</a>
@@ -88,7 +88,7 @@
                     <div class="favorite-showcase-empty mt-6 rounded-[2.2rem] px-6 py-10 text-center sm:px-8">
                         <p class="ui-title text-xl font-semibold">Aucune demande de support</p>
                         <p class="ui-text-secondary mx-auto mt-3 max-w-2xl text-sm leading-relaxed sm:text-[15px]">
-                            Les demandes creees depuis le formulaire utilisateur apparaitront ici.
+                            Les demandes créées depuis le formulaire utilisateur apparaîtront ici.
                         </p>
                     </div>
                 {% endif %}
@@ -96,7 +96,7 @@
         </div>
 
         <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
-            Priorisez les demandes, repondez depuis le bon canal et gardez une vue claire sur les sollicitations support.
+            Priorisez les demandes, répondez depuis le bon canal et gardez une vue claire sur les sollicitations support.
         </p>
     </section>
 {% endblock %}

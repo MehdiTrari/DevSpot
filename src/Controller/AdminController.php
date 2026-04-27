@@ -333,13 +333,13 @@ final class AdminController extends AbstractController
 
             $entityManager->flush();
 
-            $this->addFlash('success', 'Compte refuse et supprime definitiement avec toutes ses donnees.');
+            $this->addFlash('success', 'Compte refusé et supprimé définitivement avec toutes ses données.');
         } catch (\Throwable $exception) {
             $this->logger->error('Le refus d\'un compte utilisateur a echoue.', [
                 'userId' => $userId,
                 'error' => $exception->getMessage(),
             ]);
-            $this->addFlash('error', 'Erreur lors du refus du compte. Merci de reessayer.');
+            $this->addFlash('error', 'Erreur lors du refus du compte. Merci de réessayer.');
 
             return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
@@ -378,13 +378,13 @@ final class AdminController extends AbstractController
 
             $entityManager->flush();
 
-            $this->addFlash('success', 'Compte utilisateur supprime definitiement avec toutes ses donnees.');
+            $this->addFlash('success', 'Compte utilisateur supprimé définitivement avec toutes ses données.');
         } catch (\Throwable $exception) {
             $this->logger->error('La suppression d\'un compte utilisateur a echoue.', [
                 'userId' => $userId,
                 'error' => $exception->getMessage(),
             ]);
-            $this->addFlash('error', 'Erreur lors de la suppression du compte. Merci de reessayer.');
+            $this->addFlash('error', 'Erreur lors de la suppression du compte. Merci de réessayer.');
 
             return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }

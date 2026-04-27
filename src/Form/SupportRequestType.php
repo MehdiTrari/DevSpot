@@ -22,11 +22,11 @@ final class SupportRequestType extends AbstractType
                     new NotBlank(message: 'Merci de renseigner un objet.'),
                     new Length(
                         max: 255,
-                        maxMessage: 'L objet ne peut pas depasser {{ limit }} caracteres.'
+                        maxMessage: 'L\'objet ne peut pas dépasser {{ limit }} caractères.'
                     ),
                 ],
                 'attr' => [
-                    'placeholder' => 'Ex : Probleme d acces a mon espace',
+                    'placeholder' => 'Ex. : Problème d\'accès à mon espace',
                 ],
             ])
             ->add('message', TextareaType::class, [
@@ -36,14 +36,14 @@ final class SupportRequestType extends AbstractType
                     new Length(
                         min: 10,
                         max: 5000,
-                        minMessage: 'Le message doit contenir au moins {{ limit }} caracteres.',
-                        maxMessage: 'Le message ne peut pas depasser {{ limit }} caracteres.'
+                        minMessage: 'Le message doit contenir au moins {{ limit }} caractères.',
+                        maxMessage: 'Le message ne peut pas dépasser {{ limit }} caractères.'
                     ),
                 ],
                 'attr' => [
                     'rows' => 8,
                     'maxlength' => 5000,
-                    'placeholder' => 'Expliquez votre probleme ou votre demande avec le plus de contexte possible.',
+                    'placeholder' => 'Expliquez votre problème ou votre demande avec le plus de contexte possible.',
                 ],
             ]);
     }

@@ -61,7 +61,7 @@ final class SupportRequestControllerTest extends WebTestCase
 
         $client->followRedirect();
 
-        self::assertSelectorTextContains('body', 'Votre demande de support a bien ete envoyee a l equipe administratrice.');
+        self::assertSelectorTextContains('body', 'Votre demande de support a bien été envoyée à l’équipe administratrice.');
 
         $entityManager = static::getContainer()->get(EntityManagerInterface::class);
         $savedRequest = $entityManager->getRepository(SupportRequest::class)->findOneBy([
