@@ -21,6 +21,9 @@ use Symfony\Component\String\UnicodeString;
 
 final class OfferMatchingService
 {
+    private const DEFAULT_SEMANTIC_RERANK_LIMIT = 50;
+    private const DEFAULT_VECTOR_RETRIEVAL_LIMIT = 100;
+
     /** @var list<Skill>|null */
     private ?array $skills = null;
 
@@ -34,11 +37,14 @@ final class OfferMatchingService
         private readonly SkillMatcher $skillMatcher,
         private readonly FairnessAuditor $fairnessAuditor,
         private readonly CvAnonymizer $cvAnonymizer,
+        private readonly CandidateTextPreprocessor $candidateTextPreprocessor,
+        private readonly CandidateProfileEmbeddingService $candidateProfileEmbeddingService,
         private readonly SemanticMatchingService $semanticMatchingService,
         private readonly EnrichedMatchingService $enrichedMatchingService,
         private readonly SkillRepository $skillRepository,
         private readonly TechnologyRepository $technologyRepository,
         private readonly PositionRepository $positionRepository,
+        private readonly int $semanticRerankLimit = self::DEFAULT_SEMANTIC_RERANK_LIMIT,
     ) {
     }
 
@@ -102,14 +108,17 @@ final class OfferMatchingService
     {
         $matchingOffer = $this->toMatchingOffer($offer);
         $candidates = array_map(fn (DeveloperProfile $developer): CandidateProfile => $this->toCandidateProfile($developer), $developers);
-        $results = $this->skillMatcher->rankCandidates($matchingOffer, $candidates);
-        $semanticMatches = $this->semanticMatchingService->scoreCandidates($matchingOffer, $candidates);
-        $enrichedMatches = $this->enrichedMatchingService->scoreCandidates($matchingOffer, $candidates, $semanticMatches['scores']);
-
         $developerById = [];
         foreach ($developers as $developer) {
             $developerById[(string) $developer->getId()] = $developer;
         }
+
+        $results = $this->skillMatcher->rankCandidates($matchingOffer, $candidates);
+        $retrievalCandidateIds = $this->vectorRetrievalCandidateIds($matchingOffer, $developers);
+        $semanticRerankCandidates = $this->semanticRerankCandidates($results, $retrievalCandidateIds);
+        $semanticRerankDevelopers = $this->semanticRerankDevelopers($semanticRerankCandidates, $developerById);
+        $semanticMatches = $this->semanticScoresForAllCandidates($matchingOffer, $candidates, $semanticRerankCandidates, $semanticRerankDevelopers);
+        $enrichedMatches = $this->enrichedScoresForAllCandidates($matchingOffer, $candidates, $semanticRerankCandidates, $semanticMatches['scores']);
 
         $semanticFairness = $this->fairnessAuditor->auditCandidateScores(array_map(
             static fn ($result): array => [
@@ -240,6 +249,239 @@ final class OfferMatchingService
         });
     }
 
+    /**
+     * @param list<\App\Matching\Model\MatchResult> $results
+     * @param list<string>                          $retrievalCandidateIds
+     *
+     * @return list<CandidateProfile>
+     */
+    private function semanticRerankCandidates(array $results, array $retrievalCandidateIds = []): array
+    {
+        if ([] === $results) {
+            return [];
+        }
+
+        $limit = $this->semanticRerankLimit > 0 ? $this->semanticRerankLimit : self::DEFAULT_SEMANTIC_RERANK_LIMIT;
+
+        if ([] === $retrievalCandidateIds) {
+            return array_map(
+                static fn ($result): CandidateProfile => $result->candidate,
+                array_slice($results, 0, min($limit, count($results))),
+            );
+        }
+
+        $resultsById = [];
+        foreach ($results as $result) {
+            $resultsById[$result->candidate->id] = $result;
+        }
+
+        $selected = [];
+        foreach ($retrievalCandidateIds as $candidateId) {
+            if (isset($resultsById[$candidateId])) {
+                $selected[] = $resultsById[$candidateId]->candidate;
+            }
+
+            if (count($selected) >= $limit) {
+                break;
+            }
+        }
+
+        if (count($selected) < $limit) {
+            $selectedIds = array_fill_keys(array_map(static fn (CandidateProfile $candidate): string => $candidate->id, $selected), true);
+            foreach ($results as $result) {
+                if (isset($selectedIds[$result->candidate->id])) {
+                    continue;
+                }
+
+                $selected[] = $result->candidate;
+                if (count($selected) >= $limit) {
+                    break;
+                }
+            }
+        }
+
+        return $selected;
+    }
+
+    /**
+     * @param list<CandidateProfile>                 $rerankCandidates
+     * @param array<string, DeveloperProfile> $developerById
+     *
+     * @return list<DeveloperProfile>
+     */
+    private function semanticRerankDevelopers(array $rerankCandidates, array $developerById): array
+    {
+        $developers = [];
+
+        foreach ($rerankCandidates as $candidate) {
+            $developer = $developerById[$candidate->id] ?? null;
+            if ($developer instanceof DeveloperProfile) {
+                $developers[] = $developer;
+            }
+        }
+
+        return $developers;
+    }
+
+    /**
+     * @param list<DeveloperProfile> $developers
+     *
+     * @return list<string>
+     */
+    private function vectorRetrievalCandidateIds(MatchingJobOffer $offer, array $developers): array
+    {
+        if ([] === $developers) {
+            return [];
+        }
+
+        $storedEmbeddings = $this->candidateProfileEmbeddingService->storedEmbeddingsForProfiles($developers);
+        if ([] === $storedEmbeddings) {
+            return [];
+        }
+
+        $retrievalMatches = $this->semanticMatchingService->scoreEmbeddingMap(
+            trim(sprintf('%s %s', $offer->title, $offer->description)),
+            $storedEmbeddings,
+        );
+
+        if (!$retrievalMatches['available'] || [] === $retrievalMatches['scores']) {
+            return [];
+        }
+
+        $scores = $retrievalMatches['scores'];
+        uasort($scores, static function (array $left, array $right): int {
+            $leftScore = $left['score'] ?? -1.0;
+            $rightScore = $right['score'] ?? -1.0;
+
+            if ($leftScore !== $rightScore) {
+                return $rightScore <=> $leftScore;
+            }
+
+            return ($left['dimension'] ?? 0) <=> ($right['dimension'] ?? 0);
+        });
+
+        $limit = $this->semanticRerankLimit > 0
+            ? max($this->semanticRerankLimit, self::DEFAULT_VECTOR_RETRIEVAL_LIMIT)
+            : self::DEFAULT_VECTOR_RETRIEVAL_LIMIT;
+
+        return array_slice(array_keys($scores), 0, min($limit, count($scores)));
+    }
+
+    /**
+     * @param list<CandidateProfile> $allCandidates
+     * @param list<CandidateProfile> $rerankCandidates
+     * @param list<DeveloperProfile> $rerankDevelopers
+     *
+     * @return array{available: bool, scores: array<string, array{score: ?float, percentage: ?float, dimension: ?int}>}
+     */
+    private function semanticScoresForAllCandidates(MatchingJobOffer $offer, array $allCandidates, array $rerankCandidates, array $rerankDevelopers): array
+    {
+        $scores = [];
+        foreach ($allCandidates as $candidate) {
+            $scores[$candidate->id] = [
+                'score' => null,
+                'percentage' => null,
+                'dimension' => null,
+            ];
+        }
+
+        if ([] === $rerankCandidates) {
+            return [
+                'available' => false,
+                'scores' => $scores,
+            ];
+        }
+
+        $this->candidateProfileEmbeddingService->refreshEmbeddings($rerankDevelopers);
+        $storedEmbeddings = $this->candidateProfileEmbeddingService->storedEmbeddingsForProfiles($rerankDevelopers);
+
+        $semanticMatches = [
+            'available' => false,
+            'scores' => [],
+        ];
+        if ([] !== $storedEmbeddings) {
+            $semanticMatches = $this->semanticMatchingService->scoreEmbeddingMap(
+                trim(sprintf('%s %s', $offer->title, $offer->description)),
+                $storedEmbeddings,
+            );
+        }
+
+        $fallbackCandidates = array_values(array_filter(
+            $rerankCandidates,
+            static fn (CandidateProfile $candidate): bool => !array_key_exists($candidate->id, $storedEmbeddings),
+        ));
+        $fallbackMatches = [
+            'available' => false,
+            'scores' => [],
+        ];
+        if ([] !== $fallbackCandidates) {
+            $fallbackMatches = $this->semanticMatchingService->scoreCandidates($offer, $fallbackCandidates);
+        }
+
+        foreach ($semanticMatches['scores'] as $candidateId => $candidateScore) {
+            $scores[$candidateId] = $candidateScore;
+        }
+        foreach ($fallbackMatches['scores'] as $candidateId => $candidateScore) {
+            $scores[$candidateId] = $candidateScore;
+        }
+
+        return [
+            'available' => $semanticMatches['available'] || $fallbackMatches['available'],
+            'scores' => $scores,
+        ];
+    }
+
+    /**
+     * @param list<CandidateProfile> $allCandidates
+     * @param list<CandidateProfile> $rerankCandidates
+     * @param array<string, array{score: ?float, percentage: ?float, dimension: ?int}> $semanticScores
+     *
+     * @return array{available: bool, scores: array<string, array{score: ?float, percentage: ?float, dimension: ?int, inferredSoftSkills: list<string>, inferredTransferableSkills: list<string>, inferredTechnicalSkills: list<array{skill: string, level: string, confidence: float}>, confidence: array<string, float>, enrichedText: string}>}
+     */
+    private function enrichedScoresForAllCandidates(MatchingJobOffer $offer, array $allCandidates, array $rerankCandidates, array $semanticScores): array
+    {
+        $scores = [];
+        foreach ($allCandidates as $candidate) {
+            $scores[$candidate->id] = [
+                'score' => null,
+                'percentage' => null,
+                'dimension' => null,
+                'inferredSoftSkills' => [],
+                'inferredTransferableSkills' => [],
+                'inferredTechnicalSkills' => [],
+                'confidence' => [],
+                'enrichedText' => $candidate->rawCv,
+            ];
+        }
+
+        if ([] === $rerankCandidates) {
+            return [
+                'available' => false,
+                'scores' => $scores,
+            ];
+        }
+
+        $semanticScoresForRerank = [];
+        foreach ($rerankCandidates as $candidate) {
+            $semanticScoresForRerank[$candidate->id] = $semanticScores[$candidate->id] ?? [
+                'score' => null,
+                'percentage' => null,
+                'dimension' => null,
+            ];
+        }
+
+        $enrichedMatches = $this->enrichedMatchingService->scoreCandidates($offer, $rerankCandidates, $semanticScoresForRerank);
+
+        foreach ($enrichedMatches['scores'] as $candidateId => $candidateScore) {
+            $scores[$candidateId] = $candidateScore;
+        }
+
+        return [
+            'available' => $enrichedMatches['available'],
+            'scores' => $scores,
+        ];
+    }
+
     private function toCandidateProfile(DeveloperProfile $developer): CandidateProfile
     {
         $hardSkills = [];
@@ -273,11 +515,9 @@ final class OfferMatchingService
             }
         }
 
-        $headlineAndBio = trim(sprintf('%s %s', (string) $developer->getHeadline(), (string) $developer->getBio()));
-        $hardSkills = [...$hardSkills, ...$this->extractHardSkills($headlineAndBio)];
-        $softSkills = [...$softSkills, ...$this->extractSoftSkills($headlineAndBio)];
-
-        $cv = $this->buildCvText($developer);
+        $cv = $this->candidateTextPreprocessor->buildCandidateText($developer);
+        $hardSkills = [...$hardSkills, ...$this->extractHardSkills($cv)];
+        $softSkills = [...$softSkills, ...$this->extractSoftSkills($cv)];
         $termsToMask = array_values(array_filter([
             (string) $developer->getFirstName(),
             (string) $developer->getLastName(),
@@ -395,25 +635,6 @@ final class OfferMatchingService
         }
 
         return $unique;
-    }
-
-    private function buildCvText(DeveloperProfile $developer): string
-    {
-        $segments = [
-            (string) $developer->getHeadline(),
-            (string) $developer->getBio(),
-        ];
-
-        foreach ($developer->getExperiences() as $experience) {
-            $segments[] = trim(sprintf(
-                '%s %s %s',
-                (string) $experience->getCompanyName(),
-                (string) $experience->getTitle(),
-                (string) $experience->getDescription(),
-            ));
-        }
-
-        return trim(implode(' ', array_filter($segments, static fn (string $segment): bool => '' !== trim($segment))));
     }
 
     /**

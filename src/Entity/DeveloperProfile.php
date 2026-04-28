@@ -89,6 +89,18 @@ class DeveloperProfile
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $moderationReason = null;
 
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $matchingEmbedding = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $matchingEmbeddingDimension = null;
+
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $matchingEmbeddingTextHash = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $matchingEmbeddingUpdatedAt = null;
+
     #[ORM\OneToOne(inversedBy: 'developerProfile', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
@@ -390,6 +402,54 @@ class DeveloperProfile
     public function setModerationReason(?string $moderationReason): static
     {
         $this->moderationReason = $moderationReason;
+
+        return $this;
+    }
+
+    public function getMatchingEmbedding(): ?array
+    {
+        return $this->matchingEmbedding;
+    }
+
+    public function setMatchingEmbedding(?array $matchingEmbedding): static
+    {
+        $this->matchingEmbedding = $matchingEmbedding;
+
+        return $this;
+    }
+
+    public function getMatchingEmbeddingDimension(): ?int
+    {
+        return $this->matchingEmbeddingDimension;
+    }
+
+    public function setMatchingEmbeddingDimension(?int $matchingEmbeddingDimension): static
+    {
+        $this->matchingEmbeddingDimension = $matchingEmbeddingDimension;
+
+        return $this;
+    }
+
+    public function getMatchingEmbeddingTextHash(): ?string
+    {
+        return $this->matchingEmbeddingTextHash;
+    }
+
+    public function setMatchingEmbeddingTextHash(?string $matchingEmbeddingTextHash): static
+    {
+        $this->matchingEmbeddingTextHash = $matchingEmbeddingTextHash;
+
+        return $this;
+    }
+
+    public function getMatchingEmbeddingUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->matchingEmbeddingUpdatedAt;
+    }
+
+    public function setMatchingEmbeddingUpdatedAt(?\DateTimeImmutable $matchingEmbeddingUpdatedAt): static
+    {
+        $this->matchingEmbeddingUpdatedAt = $matchingEmbeddingUpdatedAt;
 
         return $this;
     }

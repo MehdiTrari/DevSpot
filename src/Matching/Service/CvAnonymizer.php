@@ -14,7 +14,7 @@ final class CvAnonymizer
         $patterns = [
             '/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i' => '[EMAIL]',
             '/\b\d{1,3}\s+[^,\n]+(?:rue|avenue|av\.|boulevard|bd\.|road|street)\b/i' => '[ADDRESS]',
-            '/\+?[0-9][0-9\s().-]{7,}/' => '[PHONE]',
+            '/\+?[0-9][0-9 \t().-]{7,}/' => '[PHONE]',
             '~https?://[^\s<>"\']+|www\.[^\s<>"\']+~i' => '[URL]',
         ];
 

@@ -177,6 +177,33 @@ class DeveloperProfileRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * @return DeveloperProfile[]
+     */
+    public function findPublicProfilesForMatchingEmbeddings(?int $limit = null): array
+    {
+        $queryBuilder = $this->createQueryBuilder('d')
+            ->innerJoin('d.user', 'u')->addSelect('u')
+            ->leftJoin('d.profileSkills', 'profileSkills')->addSelect('profileSkills')
+            ->leftJoin('profileSkills.skill', 'skill')->addSelect('skill')
+            ->leftJoin('d.experiences', 'experiences')->addSelect('experiences')
+            ->leftJoin('experiences.technologies', 'technologies')->addSelect('technologies')
+            ->leftJoin('d.education', 'education')->addSelect('education')
+            ->leftJoin('d.desiredPositions', 'desiredPositions')->addSelect('desiredPositions')
+            ->andWhere('d.isPublic = :isPublic')
+            ->andWhere('u.status = :activeStatus')
+            ->setParameter('isPublic', true)
+            ->setParameter('activeStatus', UserStatus::ACTIVE)
+            ->orderBy('d.updatedAt', 'DESC')
+            ->addOrderBy('d.id', 'DESC');
+
+        if (null !== $limit) {
+            $queryBuilder->setMaxResults(max(1, $limit));
+        }
+
+        return $queryBuilder->getQuery()->getResult();
+    }
+
     //    /**
     //     * @return DeveloperProfile[] Returns an array of DeveloperProfile objects
     //     */

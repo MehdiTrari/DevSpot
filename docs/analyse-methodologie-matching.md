@@ -218,13 +218,44 @@ Il faut distinguer **runtime** et **offline**.
 
 #### Runtime applicatif
 
-En production, le nettoyage est leger :
+La phase 1 de nettoyage runtime est maintenant terminee au sens du critere retenu dans la roadmap.
 
-- normalisation Unicode ;
-- normalisation des espaces ;
-- quelques normalisations metier sur les competences.
+Le matching live ne part plus d'un simple texte concatene "headline + bio + experiences brutes".
 
-Ce n'est pas un pipeline de nettoyage riche au moment du matching live.
+Il passe par un composant dedie de type `CandidateTextPreprocessor` qui :
+
+- construit un texte candidat **structure** ;
+- normalise les espaces et le bruit de surface ;
+- harmonise plusieurs variantes frequentes de technologies et de postes ;
+- dedoublonne des fragments repetes ;
+- retire une partie du bruit identitaire inutile avant anonymisation ;
+- omet les noms d'entreprise et d'ecole du texte envoye au matching.
+
+Le texte runtime utilise maintenant des sections stables du type :
+
+- `Headline`
+- `Summary`
+- `Target roles`
+- `Core skills`
+- `Soft skills`
+- `Experience`
+- `Education`
+
+On a donc depasse la simple "normalisation legere".
+
+Le point important est que le **texte candidat de matching offline** suit maintenant le meme contrat fonctionnel :
+
+- memes sections ;
+- memes omissions d'identite indirecte ;
+- meme logique de debruitage ;
+- meme ordre de construction ;
+- memes cas de non-regression sur un fixture bruite partage.
+
+Il reste des limites, mais elles ne bloquent plus la cloture de la phase 1 :
+
+- la table de canonicalisation reste partielle ;
+- le nettoyage dataset global contient encore des heuristiques propres a l'offline ;
+- il n'existe pas encore de journal explicite des transformations appliquees.
 
 #### Offline / preparation dataset
 
@@ -239,12 +270,13 @@ En revanche, il existe un vrai pipeline de nettoyage pour le dataset experimenta
 
 ### Ce qui a change
 
-La logique de nettoyage a ete deplacee vers les scripts de preparation de donnees, pas vers le coeur runtime.
+La logique de nettoyage n'est donc plus uniquement deplacee vers les scripts offline.
+Elle a ete recentralisee autour d'un contrat runtime devenu la reference du texte candidat de matching.
 
 Autrement dit :
 
 - le **dataset de recherche** est nettoye ;
-- le **matching live** n'execute pas un nettoyage complet comparable.
+- le **matching live** et le **texte candidat offline de matching** sont maintenant alignes sur une meme logique utile de construction.
 
 ### Consequence methodologique
 
@@ -252,16 +284,92 @@ On peut dire :
 
 - "nous avons un dataset synthetique nettoye pour l'experimentation",
 
-mais pas :
+mais pas encore :
 
-- "chaque profil utilisateur passe en production dans une chaine de nettoyage riche avant anonymisation".
+- "l'ensemble du pipeline offline et runtime est parfaitement factorise, exhaustif et trace".
 
 ### Ce qu'on peut encore changer
 
-1. introduire un `CandidateTextPreprocessor` cote runtime ;
-2. centraliser les normalisations texte dans un composant unique ;
+1. etendre la canonicalisation a d'autres variantes visibles dans le dataset ;
+2. factoriser davantage les regles communes entre PHP runtime et scripts Python ;
 3. journaliser les transformations appliquees ;
-4. aligner le runtime et les scripts offline pour eviter les derives entre environnement d'evaluation et environnement reel.
+4. mesurer l'impact concret de ce nettoyage sur le top 5 et sur les embeddings.
+
+### Nettoyage runtime recommande
+
+Si l'objectif est de faire disparaitre l'ecart moyen sur le nettoyage, il faut ajouter une vraie etape runtime explicite, en amont de l'anonymisation et de l'embedding.
+
+La chaine recommande serait :
+
+1. **normalisation de base**
+   - Unicode NFKC ;
+   - normalisation des espaces ;
+   - suppression des artefacts HTML ou ponctuations parasites.
+
+2. **normalisation metier**
+   - harmonisation des technologies :
+     - `react.js` -> `react`,
+     - `node` -> `node.js`,
+     - `postgres` -> `postgresql`,
+     - `ts` -> `typescript` ;
+   - harmonisation des variantes de postes :
+     - `dev backend` -> `developpeur backend`,
+     - `full-stack` -> `full stack`.
+
+3. **dedoublonnage**
+   - suppression des repetitions entre :
+     - skills declares,
+     - technologies d'experience,
+     - bio,
+     - headline ;
+   - dedoublonnage insensible a la casse.
+
+4. **construction d'un texte stable**
+   - ordre fixe des blocs :
+     - headline,
+     - bio,
+     - experiences,
+     - education,
+     - skills ;
+   - labels textuels homogenes ;
+   - texte deterministe pour stabiliser le cache.
+
+5. **post-traitement avant IA**
+   - passage dans l'anonymiseur ;
+   - emission d'un `candidate_matching_text` unique et propre.
+
+### Pourquoi ce nettoyage est important
+
+Sans cette etape runtime, trois problemes persistent :
+
+1. deux profils semantiquement proches peuvent produire des textes de qualite tres differente ;
+2. le cache d'embeddings est moins stable car de petites variations textuelles changent le hash ;
+3. l'evaluation offline et le matching live ne reposent pas sur exactement la meme qualite de donnees.
+
+### Etat d'avancement
+
+La phase 1 est maintenant cloturee dans son perimetre initial :
+
+1. un preprocesseur runtime dedie existe ;
+2. il est branche dans `OfferMatchingService` ;
+3. le texte offline de matching suit maintenant le meme contrat fonctionnel ;
+4. des tests PHP et Python couvrent la canonicalisation, le dedoublonnage, les omissions d'identite indirecte et la stabilite du texte.
+
+Les ameliorations restantes relevent plutot du raffinement :
+
+1. enrichir la table de normalisation ;
+2. mieux factoriser les regles communes ;
+3. mesurer l'effet sur le ranking ;
+4. preparer la phase 2 sur l'optimisation du matching.
+
+### Ce qui a ete mis en oeuvre
+
+Le choix pragmatique finalement retenu a ete :
+
+1. creer un service `CandidateTextPreprocessor` ;
+2. lui faire produire un texte candidat structure avant anonymisation ;
+3. aligner `build_candidate_text()` cote scripts offline sur cette meme logique ;
+4. couvrir ce contrat par des tests de non-regression PHP et Python.
 
 ---
 
@@ -419,6 +527,153 @@ si par la on entend :
    - reranking enrichi sur le top N.
 
 Cette architecture serait beaucoup plus propre si le nombre de profils monte.
+
+### Optimisation recommandee a court terme
+
+Il faut bien distinguer deux idees :
+
+1. **ne plus reranker tous les profils** ;
+2. **ne pas couper arbitrairement a 30 ou 50 sans etape de retrieval**.
+
+Dire "on ne calcule le matching que sur les 30 meilleurs profils" n'est valide que si l'on dispose d'une premiere phase qui produit deja un **pool candidat raisonnable**.
+
+La bonne architecture cible est donc :
+
+1. **preselection**
+   - filtrage par profils publics ;
+   - filtrage metier minimal :
+     - role,
+     - experience,
+     - localisation si necessaire ;
+   - eventuellement score baseline rapide.
+
+2. **retrieval**
+   - embeddings candidats pre-calcules ;
+   - similarite cosinus offre -> candidats ;
+   - recuperation d'un top-k initial, par exemple :
+     - top 50,
+     - top 100.
+
+3. **reranking enrichi**
+   - calcul complet seulement sur ce sous-ensemble ;
+   - bonus d'inference ;
+   - explications et tri final.
+
+### Pourquoi cette strategie est meilleure
+
+Elle permet de :
+
+1. reduire fortement le temps de calcul du premier matching ;
+2. garder la qualite du score final sur les profils les plus prometteurs ;
+3. separer proprement :
+   - le **retrieval rapide**,
+   - le **reranking metier plus cher**.
+
+### Version realiste pour DevSpot
+
+Sans introduire tout de suite une vraie base vectorielle, la trajectoire la plus raisonnable serait :
+
+1. pre-calculer les embeddings des profils publics ;
+2. les recalculer uniquement quand le profil change ;
+3. lancer un retrieval sur tous les embeddings disponibles ;
+4. ne faire le score enrichi complet que sur un top 50 ou top 100 ;
+5. garder le score junior-aware actuel dans la phase de reranking enrichi.
+
+### Etat actuel apres le premier increment de phase 2
+
+Une premiere optimisation pragmatique a deja ete mise en place :
+
+1. le **score baseline** continue d'etre calcule sur l'ensemble des profils publics ;
+2. le **score semantique** et le **score enrichi** ne sont plus calcules que sur un **top-k baseline** ;
+3. la valeur par defaut du top-k est actuellement **50** ;
+4. les profils hors top-k restent visibles dans les resultats, mais sans score semantique ni enrichi.
+
+Cette etape est utile car elle reduit deja le cout du reranking le plus cher, tout en gardant le comportement produit actuel.
+
+En revanche, il ne faut pas la confondre avec l'architecture cible :
+
+1. il n'existe pas encore de **stock d'embeddings candidats pre-calcules** ;
+2. il n'y a pas encore de **retrieval vectoriel dedie** avant reranking ;
+3. la phase 2 reste donc **en cours**, pas terminee.
+
+### Etat actuel apres le deuxieme increment de phase 2
+
+Le pipeline a ensuite ete renforce avec un stockage persistant des embeddings candidats :
+
+1. les profils developpeur peuvent maintenant conserver un **embedding de matching** en base ;
+2. cet embedding est associe a un **hash du texte candidat nettoye** ;
+3. si le texte de matching change, l'embedding est considere comme obsolete et recalcule ;
+4. une commande de backfill permet de reconstruire ce stock hors ligne ;
+5. le scoring semantique du reranking reutilise desormais ce stock quand il est disponible.
+
+Ce point reduit deja une partie du cout recurrent lie au matching semantique, mais il ne clot pas encore la phase 2, car :
+
+1. la **preselection initiale** repose toujours sur la baseline ;
+2. le **retrieval vectoriel** exploitant directement les embeddings stockes n'est pas encore en place ;
+3. la comparaison formelle des valeurs de top-k et des gains de performance reste a faire.
+
+### Etat actuel apres le troisieme increment de phase 2
+
+Le retrieval vectoriel est maintenant actif dans la preselection du reranking :
+
+1. les embeddings candidats stockes sont compares a l'embedding de l'offre ;
+2. la selection du sous-ensemble reranke ne depend plus uniquement de la baseline ;
+3. un complement baseline reste possible pour ne pas exclure brutalement les profils sans embedding frais ;
+4. le refresh des embeddings a ete borne en petits batchs afin de limiter les timeouts du service IA.
+
+On peut donc dire que la cible technique principale de la phase 2 est maintenant atteinte :
+
+1. stock d'embeddings candidats ;
+2. preselection vectorielle ;
+3. reranking enrichi sur sous-ensemble.
+
+Il reste toutefois un petit lot de cloture avant de passer proprement a la phase 3 :
+
+1. fixer ou comparer une ou deux valeurs de `k` ;
+2. mesurer sommairement le gain de temps ;
+3. consigner ces chiffres dans la documentation.
+
+### Mesure locale de cloture de phase 2
+
+Une mesure locale a ensuite ete realisee pour fermer la phase 2 de maniere raisonnable, sans pretendre a un benchmark de production complet.
+
+Configuration mesuree :
+
+1. date de mesure : **28 avril 2026** ;
+2. jeu local : `1` offre demo active ;
+3. pool candidat : `192` profils publics demo ;
+4. embeddings deja stockes : `101` profils demo ;
+5. comparaison : `k = 30`, `50`, `100` ;
+6. `1` iteration par configuration.
+
+Resultats observes :
+
+1. `k = 30` : `2321.1 ms/offre`, overlap top 5 de `20.0%` vs `k = 100` ;
+2. `k = 50` : `7878.6 ms/offre`, overlap top 5 de `60.0%` vs `k = 100` ;
+3. `k = 100` : `36354.0 ms/offre`, configuration de reference.
+
+Lecture de ces chiffres :
+
+1. la reduction de `k` diminue tres fortement le temps de calcul ;
+2. un `k` trop bas degrade sensiblement le top 5 ;
+3. `k = 50` apparait comme un compromis local plausible ;
+4. la mesure reste **indicative**, car elle porte sur un echantillon local restreint et un stock d'embeddings encore partiel.
+
+Malgre cette limite, l'objectif de phase 2 peut etre considere comme atteint :
+
+1. embeddings candidats stockes ;
+2. retrieval vectoriel actif ;
+3. reranking enrichi borne ;
+4. premiere mesure locale documentee.
+
+### Impact sur la suite
+
+Cette optimisation est importante non seulement pour la performance, mais aussi pour la suite du projet :
+
+1. elle rend le pipeline plus propre scientifiquement ;
+2. elle prepare un protocole plus solide pour evaluer la pertinence ;
+3. elle n'oblige pas a supprimer l'indication ou le traitement des juniors ;
+4. elle prepare mieux une future etape fairness / pertinence.
 
 ---
 
@@ -739,10 +994,10 @@ mais il faut preciser :
 
 | Sujet | Cible initiale | Etat actuel | Ecart principal |
 |---|---|---|---|
-| Anonymisation | Forte, neutre, NER, identite cachee | Regex minimale, identite encore visible | Ecart fort |
-| Noms / prenoms dans l'IA | Supprimes | Encore presents dans le texte candidat | Ecart fort |
-| Affichage identite | Revelee apres intention de contact | Deja affichee dans le matching | Ecart fort |
-| Nettoyage runtime | Pipeline riche | Normalisation legere | Ecart moyen |
+| Anonymisation | Forte, neutre, NER, identite cachee | De-identification regex elargie + identite cachee au premier niveau | Ecart moyen |
+| Noms / prenoms dans l'IA | Supprimes | Retires du texte de matching | Ecart largement reduit |
+| Affichage identite | Revelee apres intention de contact | Cachee par defaut, revelee apres contact ou conversation existante | Ecart largement reduit |
+| Nettoyage runtime | Pipeline riche | Texte candidat runtime/offline aligne + preprocesseur structure + tests croises | Ecart faible |
 | Nettoyage dataset | Attendu | Bien present offline | Conforme partiellement |
 | Embeddings | 1536 dims envisagees | CamemBERT 768 dims | Ecart formel mais pas forcement negatif |
 | Matching | Vectoriel pur + cosinus | Hybride baseline + semantique + enrichi | Ecart structurel |
@@ -781,13 +1036,21 @@ Mais elle doit etre decrite honnetement.
 
 ## 7.1 Priorite 1 - Corrections indispensables si vous voulez aligner le discours et le produit
 
-1. retirer nom et prenom du texte passe au matching ;
-2. masquer l'identite dans l'ecran de matching initial ;
-3. reveler l'identite seulement apres action explicite de contact ;
-4. renommer la documentation pour parler d'**anonymisation partielle** si vous ne faites pas mieux ;
-5. reformuler la fairness comme **audit junior / non-junior**, pas comme preuve generale d'absence de biais.
+1. documenter clairement que l'etat actuel est une **de-identification applicative** et non une anonymisation forte NER ;
+2. etendre le masquage a des signaux indirects restants :
+   - ecoles,
+   - certaines entreprises,
+   - localisations,
+   - marqueurs sociaux trop identifiants ;
+3. formaliser une mesure "avant anonymisation / apres anonymisation" pour quantifier l'effet reel de la de-identification ;
+4. reformuler la fairness comme **audit junior / non-junior**, pas comme preuve generale d'absence de biais ;
+5. expliciter dans la doc que l'interface recruteur est anonyme par defaut, mais que le texte reste seulement partiellement neutralise.
 
-Ces changements sont les plus urgents car ce sont eux qui creent aujourd'hui l'ecart le plus visible entre le discours et la realite.
+Les changements les plus visibles cote anonymisation ont deja ete faits.
+L'urgence s'est donc deplacee :
+
+- du **correctif produit evident** vers la **consolidation methodologique** ;
+- de la fuite directe d'identite vers la reduction des indices residuels et la preuve experimentale.
 
 ## 7.2 Priorite 2 - Corrections methodologiques pour un memoire solide
 

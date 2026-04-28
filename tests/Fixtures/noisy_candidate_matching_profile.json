@@ -1,0 +1,85 @@
+{
+  "profile": {
+    "firstName": "Alicia",
+    "lastName": "Martin",
+    "headline": "Developpeuse qa engineer full-stack nodejs / vue",
+    "bio": "Contact: alicia@example.com - Portfolio https://portfolio.example.com - Stack reactjs, api rest, gitlab ci, prometheus, postgrela base de donnees, devops",
+    "experienceLevel": "junior",
+    "yearsExperience": 2,
+    "desiredPositions": [
+      "Developpeur React",
+      "Developpeur React",
+      "Developpeur full-stack"
+    ],
+    "profileSkills": [
+      {
+        "skill": "reactjs",
+        "category": "Frontend",
+        "level": "advanced",
+        "years": 2
+      },
+      {
+        "skill": "Communication",
+        "category": "Soft Skills",
+        "level": "intermediate",
+        "years": 0
+      },
+      {
+        "skill": "Problem Solving",
+        "category": "Soft Skills",
+        "level": "advanced",
+        "years": 2
+      },
+      {
+        "skill": "gitlab ci",
+        "category": "DevOps",
+        "level": "beginner",
+        "years": 1
+      },
+      {
+        "skill": "qa engineer",
+        "category": "QA",
+        "level": "intermediate",
+        "years": 1
+      }
+    ],
+    "experiences": [
+      {
+        "companyName": "Secret Company",
+        "title": "Frontend Engineer",
+        "startDate": "2024-01-01",
+        "endDate": "2025-01-01",
+        "isCurrent": false,
+        "description": "Build reactjs dashboards with api rest, prometheus and postgrela base de donnees.",
+        "technologies": [
+          "react.js",
+          "Postgres",
+          "gitlab ci",
+          "prometheus"
+        ]
+      },
+      {
+        "companyName": "Another Company",
+        "title": "DevOps Engineer",
+        "startDate": "2025-02-01",
+        "endDate": null,
+        "isCurrent": true,
+        "description": "Handle nodejs services and full-stack delivery.",
+        "technologies": [
+          "nodejs",
+          "vue",
+          "docker"
+        ]
+      }
+    ],
+    "education": [
+      {
+        "schoolName": "Very Famous School",
+        "degree": "Master",
+        "field": "Web engineering",
+        "description": "API Platform and Symfony projects."
+      }
+    ]
+  },
+  "expectedText": "Headline: Developpeuse QA full stack Node.js / Vue.js\n\nSummary: Stack React, REST API, CI/CD, Observability, PostgreSQL, DevOps. Experience level: junior. Years of experience: 2\n\nTarget roles: Developpeur React, Developpeur full stack\n\nCore skills: React (advanced, 2 years), CI/CD (beginner, 1 year), QA (intermediate, 1 year)\n\nSoft skills: Communication (intermediate), Problem Solving (advanced, 2 years)\n\nExperience:\n- Role: DevOps Engineer. Summary: Handle Node.js services and full stack delivery. Technologies: Node.js, Vue.js, Docker. Period: 2025/02 to present\n- Role: Frontend Engineer. Summary: Build React dashboards with REST API, Observability and PostgreSQL. Technologies: React, PostgreSQL, CI/CD, Observability. Period: 2024/01 to 2025/01\n\nEducation:\n- Degree: Master. Field: Web engineering. Summary: API Platform and Symfony projects"
+}

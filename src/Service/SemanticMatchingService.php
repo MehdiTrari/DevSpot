@@ -86,6 +86,48 @@ final class SemanticMatchingService
     }
 
     /**
+     * @param array<string, array{embedding: list<float>, dimension: int}> $candidateEmbeddingsById
+     *
+     * @return array{available: bool, scores: array<string, array{score: ?float, percentage: ?float, dimension: ?int}>}
+     */
+    public function scoreEmbeddingMap(string $offerText, array $candidateEmbeddingsById): array
+    {
+        $cache = [];
+        $this->primeEmbeddings([$offerText], $cache);
+        $offerEmbedding = $this->embeddingForText($offerText, $cache);
+
+        $scores = [];
+        if (null === $offerEmbedding) {
+            foreach ($candidateEmbeddingsById as $candidateId => $_candidateEmbedding) {
+                $scores[$candidateId] = [
+                    'score' => null,
+                    'percentage' => null,
+                    'dimension' => null,
+                ];
+            }
+
+            return [
+                'available' => false,
+                'scores' => $scores,
+            ];
+        }
+
+        foreach ($candidateEmbeddingsById as $candidateId => $candidateEmbedding) {
+            $score = $this->cosineSimilarityScore($offerEmbedding['embedding'], $candidateEmbedding['embedding']);
+            $scores[$candidateId] = [
+                'score' => $score,
+                'percentage' => round($score * 100, 1),
+                'dimension' => $candidateEmbedding['dimension'],
+            ];
+        }
+
+        return [
+            'available' => true,
+            'scores' => $scores,
+        ];
+    }
+
+    /**
      * @return array{available: bool, score: ?float, percentage: ?float, dimension: ?int}
      */
     public function scoreTexts(string $offerText, string $candidateText): array

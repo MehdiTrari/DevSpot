@@ -54,6 +54,31 @@ final class SemanticAndEnrichedMatchingServicesTest extends TestCase
         ], $service->scoreTextMap('offer', ['cand-1' => 'candidate']));
     }
 
+    public function testSemanticMatchingServiceScoresPrecomputedCandidateEmbeddings(): void
+    {
+        $client = $this->createMock(AiMatchingClientInterface::class);
+        $client
+            ->expects(self::once())
+            ->method('embedBatch')
+            ->with(['Offer text'])
+            ->willReturn([
+                ['embedding' => [1.0, 0.0], 'dimension' => 2, 'normalizedText' => 'offer'],
+            ]);
+
+        $service = new SemanticMatchingService($client);
+
+        self::assertSame([
+            'available' => true,
+            'scores' => [
+                'cand-1' => ['score' => 1.0, 'percentage' => 100.0, 'dimension' => 2],
+                'cand-2' => ['score' => 0.0, 'percentage' => 0.0, 'dimension' => 2],
+            ],
+        ], $service->scoreEmbeddingMap('Offer text', [
+            'cand-1' => ['embedding' => [1.0, 0.0], 'dimension' => 2],
+            'cand-2' => ['embedding' => [0.0, 1.0], 'dimension' => 2],
+        ]));
+    }
+
     public function testEnrichedMatchingServiceAppliesInferenceBonusAndCapsFinalScore(): void
     {
         $client = $this->createMock(AiMatchingClientInterface::class);
