@@ -15,6 +15,7 @@ use App\Repository\ContactMessageRepository;
 use App\Repository\DeveloperProfileRepository;
 use App\Repository\SupportRequestRepository;
 use App\Repository\UserRepository;
+use App\Service\AdminModerationLogger;
 use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
@@ -239,7 +240,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/users/{id}/status', name: 'app_admin_users_update_status', methods: ['POST'])]
-    public function updateUserStatus(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function updateUserStatus(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, AdminModerationLogger $moderationLogger): Response
     {
         if (!$this->isCsrfTokenValid('admin_user_status_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
@@ -262,6 +263,13 @@ final class AdminController extends AbstractController
         }
 
         $previousStatus = $user->getStatus()?->value;
+        $reason = $this->resolveStatusActionReason($request, $status, $previousStatus);
+        if (UserStatus::BANNED === $status && '' === $reason) {
+            $this->addFlash('error', 'Merci de renseigner une raison de bannissement.');
+
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
+        }
+
         $user->setStatus($status);
         $user->setUpdatedAt(new \DateTimeImmutable());
         if (UserStatus::ACTIVE === $status) {
@@ -273,10 +281,19 @@ final class AdminController extends AbstractController
             $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $status);
         }
 
-        $this->logAdminAction($entityManager, 'user.status_changed', $user, [
-            'previousStatus' => $previousStatus,
-            'newStatus' => $status->value,
-        ]);
+        if ($currentUser instanceof User) {
+            $moderationLogger->log(
+                $this->resolveModerationAction($status, $previousStatus),
+                $currentUser,
+                $user,
+                $reason,
+                [
+                    'previousStatus' => $previousStatus,
+                    'newStatus' => $status->value,
+                    'source' => 'admin_users_update_status',
+                ],
+            );
+        }
 
         $entityManager->flush();
         $this->addFlash('success', 'Le statut de l\'utilisateur a été mis à jour.');
@@ -285,21 +302,21 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/users/{id}/suspend', name: 'app_admin_users_suspend', methods: ['POST'])]
-    public function suspendUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function suspendUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, AdminModerationLogger $moderationLogger): Response
     {
-        return $this->applyStatusAction($user, $request, $entityManager, $notificationManager, UserStatus::SUSPENDED, 'admin_user_suspend_', 'user.suspended', 'Compte suspendu.');
+        return $this->applyStatusAction($user, $request, $entityManager, $notificationManager, $moderationLogger, UserStatus::SUSPENDED, 'admin_user_suspend_', 'Compte suspendu.');
     }
 
     #[Route('/users/{id}/ban', name: 'app_admin_users_ban', methods: ['POST'])]
-    public function banUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function banUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, AdminModerationLogger $moderationLogger): Response
     {
-        return $this->applyStatusAction($user, $request, $entityManager, $notificationManager, UserStatus::BANNED, 'admin_user_ban_', 'user.banned', 'Compte banni.');
+        return $this->applyStatusAction($user, $request, $entityManager, $notificationManager, $moderationLogger, UserStatus::BANNED, 'admin_user_ban_', 'Compte banni.');
     }
 
     #[Route('/users/{id}/validate', name: 'app_admin_users_validate', methods: ['POST'])]
-    public function validateUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function validateUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, AdminModerationLogger $moderationLogger): Response
     {
-        return $this->applyStatusAction($user, $request, $entityManager, $notificationManager, UserStatus::ACTIVE, 'admin_user_validate_', 'user.validated', 'Compte valide.');
+        return $this->applyStatusAction($user, $request, $entityManager, $notificationManager, $moderationLogger, UserStatus::ACTIVE, 'admin_user_validate_', 'Compte valide.');
     }
 
     #[Route('/users/{id}/reject', name: 'app_admin_users_reject', methods: ['POST'])]
@@ -528,9 +545,9 @@ final class AdminController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         NotificationManager $notificationManager,
+        AdminModerationLogger $moderationLogger,
         UserStatus $newStatus,
         string $csrfPrefix,
-        string $logAction,
         string $successMessage,
     ): Response {
         if (!$this->isCsrfTokenValid($csrfPrefix . $user->getId(), (string) $request->request->get('_token'))) {
@@ -547,6 +564,13 @@ final class AdminController extends AbstractController
         }
 
         $previousStatus = $user->getStatus()?->value;
+        $reason = $this->resolveStatusActionReason($request, $newStatus, $previousStatus);
+        if (UserStatus::BANNED === $newStatus && '' === $reason) {
+            $this->addFlash('error', 'Merci de renseigner une raison de bannissement.');
+
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
+        }
+
         $user->setStatus($newStatus);
         $user->setUpdatedAt(new \DateTimeImmutable());
         if (UserStatus::ACTIVE === $newStatus) {
@@ -558,10 +582,19 @@ final class AdminController extends AbstractController
             $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $newStatus);
         }
 
-        $this->logAdminAction($entityManager, $logAction, $user, [
-            'previousStatus' => $previousStatus,
-            'newStatus' => $newStatus->value,
-        ]);
+        if ($currentUser instanceof User) {
+            $moderationLogger->log(
+                $this->resolveModerationAction($newStatus, $previousStatus),
+                $currentUser,
+                $user,
+                $reason,
+                [
+                    'previousStatus' => $previousStatus,
+                    'newStatus' => $newStatus->value,
+                    'source' => 'admin_users_quick_action',
+                ],
+            );
+        }
 
         $entityManager->flush();
         $this->addFlash('success', $successMessage);
@@ -596,6 +629,49 @@ final class AdminController extends AbstractController
         }
 
         return $this->redirectToRoute($route, $parameters);
+    }
+
+    private function resolveStatusActionReason(Request $request, UserStatus $newStatus, ?string $previousStatus): string
+    {
+        $reason = trim((string) $request->request->get('reason', ''));
+        if ('' !== $reason) {
+            return $reason;
+        }
+
+        if (UserStatus::ACTIVE === $newStatus && UserStatus::PENDING->value === $previousStatus) {
+            return 'Validation du compte en attente.';
+        }
+
+        if (UserStatus::ACTIVE === $newStatus) {
+            return 'Réactivation du compte.';
+        }
+
+        if (UserStatus::SUSPENDED === $newStatus) {
+            return 'Suspension administrative du compte.';
+        }
+
+        return '';
+    }
+
+    private function resolveModerationAction(UserStatus $newStatus, ?string $previousStatus): string
+    {
+        if (UserStatus::BANNED === $newStatus) {
+            return AdminModerationLogger::BAN;
+        }
+
+        if (UserStatus::SUSPENDED === $newStatus) {
+            return AdminModerationLogger::SUSPEND;
+        }
+
+        if (UserStatus::ACTIVE === $newStatus && UserStatus::PENDING->value === $previousStatus) {
+            return AdminModerationLogger::ADD_WHITELIST;
+        }
+
+        if (UserStatus::ACTIVE === $newStatus) {
+            return AdminModerationLogger::UNBAN;
+        }
+
+        return AdminModerationLogger::VALIDATE_PROFILE;
     }
 
     private function logAdminAction(

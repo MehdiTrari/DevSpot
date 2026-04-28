@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\AdminActionLog;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -14,6 +15,34 @@ class AdminActionLogRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, AdminActionLog::class);
+    }
+
+    /**
+     * @return list<AdminActionLog>
+     */
+    public function findByAdmin(User $adminUser, int $limit = 100): array
+    {
+        return $this->createQueryBuilder('log')
+            ->andWhere('log.adminUser = :adminUser')
+            ->setParameter('adminUser', $adminUser)
+            ->orderBy('log.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * @return list<AdminActionLog>
+     */
+    public function findByTarget(User $targetUser, int $limit = 100): array
+    {
+        return $this->createQueryBuilder('log')
+            ->andWhere('log.targetUser = :targetUser')
+            ->setParameter('targetUser', $targetUser)
+            ->orderBy('log.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
     }
 
     //    /**
