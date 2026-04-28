@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}FAQ | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-6xl space-y-8 font-sans">
+        <div class="favorite-showcase-hero mx-auto w-full max-w-5xl px-1 py-2 text-center sm:px-2 sm:py-3">
+            <div class="mx-auto max-w-4xl">
+                <span class="ui-pill ui-pill-info rounded-full px-3 py-1 text-xs font-semibold">FAQ</span>
+                <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Questions fréquentes et nous contacter</h1>
+                <p class="ui-text-secondary mx-auto mt-4 max-w-3xl text-sm leading-relaxed sm:text-[15px]">
+                    Commence par les réponses rapides ci-dessous. Si ton besoin demande une intervention, le formulaire de support dédié reste disponible pour les utilisateurs connectés.
+                </p>
+            </div>
+        </div>
+
+        <section id="support-centre">
+            <div class="theme-settings-card rounded-[2.35rem] px-4 pb-4 pt-4 sm:p-8">
+                <div class="grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
+                    <div class="space-y-3">
+                        <details class="rounded-[1.4rem] border border-white/10 bg-slate-950/30 px-5 py-4">
+                            <summary class="ui-title cursor-pointer text-base font-semibold">Je ne trouve pas mes notifications ou ma réponse admin.</summary>
+                            <p class="ui-text-secondary mt-3 text-sm leading-relaxed">
+                                Ouvre le centre de notifications depuis l'entête. Les messages admin envoyés dans l'application apparaissent directement dans cette boîte.
+                            </p>
+                        </details>
+
+                        <details class="rounded-[1.4rem] border border-white/10 bg-slate-950/30 px-5 py-4">
+                            <summary class="ui-title cursor-pointer text-base font-semibold">Je rencontre un problème de compte ou d'accès.</summary>
+                            <p class="ui-text-secondary mt-3 text-sm leading-relaxed">
+                                Précise le contexte, l'heure approximative, la page concernée et le message d'erreur rencontré. Cela accélère le traitement par l'équipe administratrice.
+                            </p>
+                        </details>
+
+                        <details class="rounded-[1.4rem] border border-white/10 bg-slate-950/30 px-5 py-4">
+                            <summary class="ui-title cursor-pointer text-base font-semibold">Puis-je faire une demande générale sans bug bloquant ?</summary>
+                            <p class="ui-text-secondary mt-3 text-sm leading-relaxed">
+                                Oui. Le support sert aussi pour une question produit, une demande d'accompagnement ou un signalement fonctionnel.
+                            </p>
+                        </details>
+                    </div>
+
+                    <aside class="rounded-[1.7rem] border border-white/10 bg-slate-950/35 p-5 sm:p-6">
+                        <span class="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">
+                            Nous contacter
+                        </span>
+                        <h3 class="ui-title mt-4 text-xl font-semibold">Besoin d'une prise en charge rapide ?</h3>
+                        <p class="ui-text-secondary mt-3 text-sm leading-relaxed">
+                            Envoie ton objet et ton message via le formulaire support. Tous les administrateurs sont avertis immédiatement.
+                        </p>
+                        <div class="mt-6">
+                            {% if app.user %}
+                                <a href="{{ path('app_settings_support') }}" class="ui-button-primary inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold">
+                                    Nous contacter
+                                </a>
+                            {% else %}
+                                <a href="{{ path('app_login') }}" class="ui-button-secondary inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold">
+                                    Se connecter pour contacter le support
+                                </a>
+                            {% endif %}
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </section>
+
+        <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
+            Une FAQ concise avec un point d'entrée simple vers le support.
+        </p>
+    </section>
+{% endblock %}

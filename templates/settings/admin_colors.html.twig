@@ -11,24 +11,24 @@
                 </span>
                 <h1 class="ui-title mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Triplets couleurs jour et nuit</h1>
                 <p class="ui-text-secondary mt-3 text-[15px] leading-relaxed">
-                    Cette page isole uniquement les palettes completes <span class="font-mono">border / bg / text</span> definies dans
+                    Cette page isole uniquement les palettes complètes <span class="font-mono">border / bg / text</span> définies dans
                     <span class="font-mono">{{ cssPath }}</span>.
-                    Le premier tableau regroupe toutes les familles du mode jour qui ont un equivalent explicite en mode nuit.
-                    Le second garde les palettes partagees, sans override sombre, parce qu'elles restent lisibles dans les deux contextes.
+                    Le premier tableau regroupe toutes les familles du mode jour qui ont un équivalent explicite en mode nuit.
+                    Le second garde les palettes partagées, sans override sombre, parce qu'elles restent lisibles dans les deux contextes.
                 </p>
                 <div class="mt-5 flex flex-wrap items-center gap-3 text-sm">
                     <span class="ui-pill ui-pill-success rounded-full px-3 py-1 text-xs font-semibold">{{ pairedColorTriplets|length }} familles jour + nuit</span>
-                    <span class="ui-pill u-border-pale-orange u-bg-pale-orange u-text-pale-orange rounded-full px-3 py-1 text-xs font-semibold">{{ lightTokens|length }} tokens couleur jour analyses</span>
-                    <span class="ui-pill u-border-pale-pink u-bg-pale-pink u-text-pale-pink rounded-full px-3 py-1 text-xs font-semibold">{{ darkTokens|length }} tokens couleur nuit analyses</span>
+                    <span class="ui-pill u-border-pale-orange u-bg-pale-orange u-text-pale-orange rounded-full px-3 py-1 text-xs font-semibold">{{ lightTokens|length }} tokens couleur jour analysés</span>
+                    <span class="ui-pill u-border-pale-pink u-bg-pale-pink u-text-pale-pink rounded-full px-3 py-1 text-xs font-semibold">{{ darkTokens|length }} tokens couleur nuit analysés</span>
                 </div>
             </div>
         </div>
 
         <div class="theme-settings-card rounded-[2rem] p-6 sm:p-8">
             <div class="max-w-4xl">
-                <h2 class="ui-title text-2xl font-semibold">Palettes avec equivalent sombre</h2>
+                <h2 class="ui-title text-2xl font-semibold">Palettes avec équivalent sombre</h2>
                 <p class="ui-text-secondary mt-2 text-sm leading-relaxed">
-                    Chaque ligne montre le meme triplet couleur rendu sur une scene claire puis sur sa scene sombre correspondante.
+                    Chaque ligne montre le même triplet couleur rendu sur une scène claire puis sur sa scène sombre correspondante.
                     Ici, les trois tokens <span class="font-mono">bg</span>, <span class="font-mono">border</span> et <span class="font-mono">text</span> existent en clair et en sombre.
                 </p>
             </div>
@@ -47,8 +47,8 @@
                             <th class="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wide" style="background: {{ nightPreviewStage.background }}; color: {{ nightPreviewStage.text }};">Mode nuit</th>
                         </tr>
                         <tr>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style="color: var(--ui-text-muted);">Apercu</th>
-                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style="color: var(--ui-text-muted);">Apercu</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style="color: var(--ui-text-muted);">Aperçu</th>
+                            <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide" style="color: var(--ui-text-muted);">Aperçu</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -77,7 +77,7 @@
                             </tr>
                         {% else %}
                             <tr>
-                                <td colspan="3" class="px-4 py-6 text-sm" style="color: var(--ui-text-secondary);">Aucune famille claire avec equivalent sombre n'a ete detectee.</td>
+                                <td colspan="3" class="px-4 py-6 text-sm" style="color: var(--ui-text-secondary);">Aucune famille claire avec équivalent sombre n'a été détectée.</td>
                             </tr>
                         {% endfor %}
                     </tbody>

@@ -51,6 +51,7 @@ final class ApplicationEnumsTest extends TestCase
         self::assertContains('new_message', $cases);
         self::assertContains('profile_incomplete', $cases);
         self::assertContains('job_offer_expired', $cases);
+        self::assertContains('support_request', $cases);
         self::assertContains('system_notification', $cases);
     }
 }
