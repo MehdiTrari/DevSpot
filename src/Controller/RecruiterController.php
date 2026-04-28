@@ -18,6 +18,7 @@ use App\Repository\DeveloperProfileRepository;
 use App\Repository\FavoriteProfileRepository;
 use App\Repository\MessageRepository;
 use App\Service\ChatMercure;
+use App\Service\LoggerService;
 use App\Service\NotificationManager;
 use App\Service\OfferMatchingService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -186,6 +187,7 @@ final class RecruiterController extends AbstractController
     public function createOffer(
         Request $request,
         EntityManagerInterface $entityManager,
+        LoggerService $loggerService,
     ): Response {
         $recruiterProfile = $this->getRecruiterProfile();
         if (!$recruiterProfile instanceof RecruiterProfile) {
@@ -202,6 +204,16 @@ final class RecruiterController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($offer);
             $entityManager->flush();
+            $loggerService->log(
+                LoggerService::OFFER_PUBLISHED,
+                $recruiterProfile->getUser(),
+                JobOffer::class,
+                $offer->getId(),
+                [
+                    'status' => $offer->getStatus()->value,
+                    'title' => $offer->getTitle(),
+                ],
+            );
 
             $this->addFlash('success', 'Offre créée avec succès !');
 
@@ -310,6 +322,7 @@ final class RecruiterController extends AbstractController
         DeveloperProfileRepository $developerProfileRepository,
         OfferMatchingService $offerMatchingService,
         FavoriteProfileRepository $favoriteProfileRepository,
+        LoggerService $loggerService,
         CsrfTokenManagerInterface $csrfTokenManager,
         #[Autowire(service: 'cache.app')] CacheItemPoolInterface $cache,
     ): JsonResponse {
@@ -375,6 +388,30 @@ final class RecruiterController extends AbstractController
             $summaryItem->set($this->extractMatchingSummary($cachedData));
             $summaryItem->expiresAfter(self::MATCHING_CACHE_TTL);
             $cache->save($summaryItem);
+            $loggerService->log(
+                LoggerService::MATCHING_CALCULATED,
+                $recruiterProfile->getUser(),
+                JobOffer::class,
+                $offer->getId(),
+                [
+                    'offer' => $cachedData['offer'],
+                    'matchesCount' => $cachedData['matchesCount'],
+                    'topMatchPercentage' => $cachedData['topMatchPercentage'],
+                    'fairness' => $cachedData['fairness'],
+                    'semantic' => $cachedData['semantic'],
+                    'enriched' => $cachedData['enriched'],
+                    'scores' => array_map(
+                        static fn (array $match): array => [
+                            'developerId' => $match['developerId'] ?? null,
+                            'percentage' => $match['percentage'] ?? null,
+                            'semanticPercentage' => $match['semanticPercentage'] ?? null,
+                            'semanticEnrichedPercentage' => $match['semanticEnrichedPercentage'] ?? null,
+                            'scoreBreakdown' => $match['scoreBreakdown'] ?? [],
+                        ],
+                        $normalizedMatches,
+                    ),
+                ],
+            );
         } else {
             $cachedData = $item->get();
 
@@ -431,6 +468,7 @@ final class RecruiterController extends AbstractController
         JobOffer $offer,
         Request $request,
         EntityManagerInterface $entityManager,
+        LoggerService $loggerService,
     ): Response {
         $recruiterProfile = $this->getRecruiterProfile();
         if (!$recruiterProfile instanceof RecruiterProfile || $offer->getRecruiterProfile()?->getId() !== $recruiterProfile->getId()) {
@@ -451,6 +489,7 @@ final class RecruiterController extends AbstractController
         };
 
         if ($newStatus instanceof OfferStatus) {
+            $oldStatus = $offer->getStatus();
             if (OfferStatus::PUBLISHED === $newStatus && null !== $offer->getApplicationDeadline() && $offer->getApplicationDeadline() < new \DateTimeImmutable('today')) {
                 $this->addFlash('error', 'Impossible de republier une offre dont la date limite est dépassée. Mettez à jour sa date avant publication.');
 
@@ -458,6 +497,19 @@ final class RecruiterController extends AbstractController
             }
 
             $offer->setStatus($newStatus);
+            if (OfferStatus::PUBLISHED === $newStatus && $oldStatus !== $newStatus) {
+                $loggerService->log(
+                    LoggerService::OFFER_PUBLISHED,
+                    $recruiterProfile->getUser(),
+                    JobOffer::class,
+                    $offer->getId(),
+                    [
+                        'old_status' => $oldStatus?->value,
+                        'new_status' => $newStatus->value,
+                    ],
+                    flush: false,
+                );
+            }
             $entityManager->flush();
         }
 
