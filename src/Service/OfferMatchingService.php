@@ -278,13 +278,21 @@ final class OfferMatchingService
         $softSkills = [...$softSkills, ...$this->extractSoftSkills($headlineAndBio)];
 
         $cv = $this->buildCvText($developer);
+        $termsToMask = array_values(array_filter([
+            (string) $developer->getFirstName(),
+            (string) $developer->getLastName(),
+            (string) $developer->getSlug(),
+            (string) $developer->getGithubUrl(),
+            (string) $developer->getLinkedinUrl(),
+            (string) $developer->getPortfolioUrl(),
+        ], static fn (string $value): bool => '' !== trim($value)));
 
         return new CandidateProfile(
             (string) ($developer->getId() ?? spl_object_id($developer)),
             (int) ($developer->getYearsExperience() ?? 0),
             $this->uniqueValues($hardSkills),
             $this->uniqueValues($softSkills),
-            $this->cvAnonymizer->anonymize($cv),
+            $this->cvAnonymizer->anonymize($cv, $termsToMask),
         );
     }
 
@@ -392,7 +400,6 @@ final class OfferMatchingService
     private function buildCvText(DeveloperProfile $developer): string
     {
         $segments = [
-            trim(sprintf('%s %s', (string) $developer->getFirstName(), (string) $developer->getLastName())),
             (string) $developer->getHeadline(),
             (string) $developer->getBio(),
         ];

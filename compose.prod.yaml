@@ -19,6 +19,7 @@ services:
         condition: service_healthy
 
   app:
+    image: devspot-app-prod
     build:
       context: .
       dockerfile: docker/symfony/Dockerfile.prod

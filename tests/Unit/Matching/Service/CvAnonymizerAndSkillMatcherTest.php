@@ -24,14 +24,17 @@ alice.dev@example.com
 Disponible pour un poste Symfony.
 TEXT;
 
-        $anonymized = $anonymizer->anonymize($rawCv);
+        $anonymized = $anonymizer->anonymize($rawCv, ['Alice', 'Martin']);
 
         self::assertStringNotContainsString('alice.dev@example.com', $anonymized);
         self::assertStringNotContainsString('+33 6 12 34 56 78', $anonymized);
         self::assertStringNotContainsString('12 rue de la Paix', $anonymized);
+        self::assertStringNotContainsString('Alice', $anonymized);
+        self::assertStringNotContainsString('Martin', $anonymized);
         self::assertStringContainsString('[EMAIL]', $anonymized);
         self::assertStringContainsString('[PHONE]', $anonymized);
         self::assertStringContainsString('[ADDRESS]', $anonymized);
+        self::assertStringContainsString('[IDENTITY]', $anonymized);
         self::assertStringContainsString('Disponible pour un poste Symfony.', $anonymized);
     }
 

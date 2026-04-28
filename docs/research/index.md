@@ -4,6 +4,8 @@ Cette section isole les documents liés à l'expérimentation IA, au matching s�
 
 ## Documents actuels
 
+- [Algorithme CamemBERT détaillé](../camembert-algorithme-technique.md)
+- [Analyse méthodologique du matching](../analyse-methodologie-matching.md)
 - [Inférence de compétences junior-aware](../junior-skill-inference-implementation.md)
 - [Plan de fine-tuning CamemBERT](../plan-finetuning-camembert.md)
 

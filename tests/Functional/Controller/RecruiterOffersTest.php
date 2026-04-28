@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Controller;
 
+use App\Entity\Conversation;
+use App\Entity\DeveloperProfile;
 use App\Entity\JobOffer;
 use App\Entity\RecruiterProfile;
 use App\Entity\User;
 use App\Enum\OfferStatus;
 use App\Enum\UserStatus;
+use App\Service\AiMatchingClientInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -275,6 +278,117 @@ final class RecruiterOffersTest extends WebTestCase
         self::assertStringContainsString('Brouillon', $body);
     }
 
+    public function testMatchingEndpointReturnsAnonymousCandidateUntilContact(): void
+    {
+        $client = static::createClient();
+        $recruiter = $this->createRecruiterUser();
+        $offer = $this->createOfferForRecruiter($recruiter, 'Développeur Symfony matching');
+        $this->createPublicDeveloperProfile();
+        $client->loginUser($recruiter);
+
+        $this->installAiMatchingStub();
+
+        $client->request('GET', sprintf('/recruiter/offers/%d/matching', $offer->getId()));
+        self::assertResponseIsSuccessful();
+
+        $payload = json_decode((string) $client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame(1, $payload['matchesCount']);
+        self::assertCount(1, $payload['matches']);
+
+        $match = $payload['matches'][0];
+        self::assertFalse($match['revealed']);
+        self::assertSame('Candidat #1', $match['candidateLabel']);
+        self::assertTrue($match['canContact']);
+        self::assertArrayHasKey('contactToken', $match);
+        self::assertArrayNotHasKey('fullName', $match);
+        self::assertArrayNotHasKey('profileUrl', $match);
+        self::assertArrayNotHasKey('developerId', $match);
+        self::assertArrayNotHasKey('headline', $match);
+        self::assertArrayNotHasKey('favoriteAddUrl', $match);
+    }
+
+    public function testMatchingContactRevealsCandidateAndPreventsDuplicateConversation(): void
+    {
+        $client = static::createClient();
+        $recruiter = $this->createRecruiterUser();
+        $offer = $this->createOfferForRecruiter($recruiter, 'Développeur Symfony contact');
+        $this->createPublicDeveloperProfile();
+        $client->loginUser($recruiter);
+
+        $this->installAiMatchingStub();
+
+        $client->request('GET', sprintf('/recruiter/offers/%d', $offer->getId()));
+        $detailContent = (string) $client->getResponse()->getContent();
+        preg_match('/const CONTACT_CSRF = "([^"]+)";/', $detailContent, $csrfMatches);
+        self::assertArrayHasKey(1, $csrfMatches);
+        $csrfToken = $csrfMatches[1];
+
+        $client->request('GET', sprintf('/recruiter/offers/%d/matching', $offer->getId()));
+        $matchingPayload = json_decode((string) $client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $contactToken = $matchingPayload['matches'][0]['contactToken'] ?? null;
+
+        self::assertIsString($contactToken);
+
+        $client->request(
+            'POST',
+            sprintf('/recruiter/offers/%d/matching/contact', $offer->getId()),
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_ACCEPT' => 'application/json',
+                'HTTP_X-REQUESTED-WITH' => 'XMLHttpRequest',
+            ],
+            content: json_encode([
+                '_token' => $csrfToken,
+                'contactToken' => $contactToken,
+                'recruiterName' => 'Recruiter Test',
+                'recruiterEmail' => 'recruiter@example.com',
+                'subject' => 'Premier échange',
+                'message' => 'Bonjour, votre profil nous intéresse beaucoup.',
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseIsSuccessful();
+
+        $contactPayload = json_decode((string) $client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertTrue($contactPayload['success']);
+        self::assertTrue($contactPayload['match']['revealed']);
+        self::assertSame('Nadia Front', $contactPayload['match']['fullName']);
+        self::assertIsInt($contactPayload['match']['developerId']);
+        self::assertArrayHasKey('profileUrl', $contactPayload['match']);
+        self::assertArrayHasKey('favoriteAddUrl', $contactPayload['match']);
+
+        $client->request('GET', sprintf('/recruiter/offers/%d/matching', $offer->getId()));
+        self::assertResponseIsSuccessful();
+        $revealedPayload = json_decode((string) $client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertTrue($revealedPayload['matches'][0]['revealed']);
+        self::assertSame('Nadia Front', $revealedPayload['matches'][0]['fullName']);
+        self::assertSame($contactPayload['match']['developerId'], $revealedPayload['matches'][0]['developerId']);
+
+        $client->request(
+            'POST',
+            sprintf('/recruiter/offers/%d/matching/contact', $offer->getId()),
+            server: [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_ACCEPT' => 'application/json',
+                'HTTP_X-REQUESTED-WITH' => 'XMLHttpRequest',
+            ],
+            content: json_encode([
+                '_token' => $csrfToken,
+                'contactToken' => $contactToken,
+                'recruiterName' => 'Recruiter Test',
+                'recruiterEmail' => 'recruiter@example.com',
+                'subject' => 'Relance',
+                'message' => 'Je reviens vers vous pour poursuivre l’échange.',
+            ], JSON_THROW_ON_ERROR),
+        );
+
+        self::assertResponseStatusCodeSame(409);
+
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        self::assertCount(1, $em->getRepository(Conversation::class)->findAll());
+    }
+
     // ── Dashboard stats ──
 
     public function testDashboardShowsOfferStats(): void
@@ -311,6 +425,81 @@ final class RecruiterOffersTest extends WebTestCase
         $client->followRedirect();
     }
 
+    private function installAiMatchingStub(): void
+    {
+        static::getContainer()->set(AiMatchingClientInterface::class, new class implements AiMatchingClientInterface {
+            public function health(): ?array
+            {
+                return ['status' => 'ok', 'model' => 'test-double', 'dimension' => 2];
+            }
+
+            public function embed(string $text): ?array
+            {
+                return $this->embedBatch([$text])[0] ?? null;
+            }
+
+            public function embedBatch(array $texts): ?array
+            {
+                return array_map(
+                    static fn (string $text): array => [
+                        'embedding' => [1.0, 0.0],
+                        'dimension' => 2,
+                        'normalizedText' => $text,
+                    ],
+                    $texts,
+                );
+            }
+
+            public function match(string $offerText, string $candidateText): ?array
+            {
+                return [
+                    'semanticScore' => 1.0,
+                    'offerDimension' => 2,
+                    'candidateDimension' => 2,
+                    'normalizedOfferText' => $offerText,
+                    'normalizedCandidateText' => $candidateText,
+                ];
+            }
+
+            public function inferSkills(string $text): ?array
+            {
+                return $this->inferSkillsBatch([$text])[0] ?? null;
+            }
+
+            public function inferSkillsBatch(array $texts): ?array
+            {
+                return array_map(
+                    static fn (string $text): array => [
+                        'inferredSoftSkills' => [],
+                        'inferredTransferableSkills' => [],
+                        'inferredTechnicalSkills' => [],
+                        'confidence' => [],
+                        'normalizedText' => $text,
+                    ],
+                    $texts,
+                );
+            }
+        });
+    }
+
+    private function createOfferForRecruiter(User $recruiter, string $title): JobOffer
+    {
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+
+        $offer = new JobOffer();
+        $offer->setRecruiterProfile($recruiter->getRecruiterProfile());
+        $offer->setTitle($title);
+        $offer->setDescription('Symfony, API et interfaces web.');
+        $offer->setStatus(OfferStatus::PUBLISHED);
+        $offer->setApplicationDeadline(new \DateTimeImmutable('+14 days'));
+
+        $em->persist($offer);
+        $em->flush();
+
+        return $offer;
+    }
+
     private function createRecruiterUser(): User
     {
         /** @var EntityManagerInterface $em */
@@ -343,9 +532,49 @@ final class RecruiterOffersTest extends WebTestCase
         return $user;
     }
 
+    private function createPublicDeveloperProfile(): DeveloperProfile
+    {
+        /** @var EntityManagerInterface $em */
+        $em = static::getContainer()->get(EntityManagerInterface::class);
+        /** @var UserPasswordHasherInterface $hasher */
+        $hasher = static::getContainer()->get(UserPasswordHasherInterface::class);
+
+        $email = sprintf('applicant_%s@example.com', bin2hex(random_bytes(6)));
+
+        $user = new User();
+        $user->setEmail($email);
+        $user->setRoles(['ROLE_APPLICANT']);
+        $user->setStatus(UserStatus::ACTIVE);
+        $user->setIsVerified(true);
+        $user->setPassword($hasher->hashPassword($user, 'password123'));
+
+        $profile = new DeveloperProfile();
+        $profile->setFirstName('Nadia');
+        $profile->setLastName('Front');
+        $profile->setHeadline('Développeuse full-stack');
+        $profile->setBio('Je développe des APIs Symfony et des interfaces modernes.');
+        $profile->setSlug('matching-'.bin2hex(random_bytes(5)));
+        $profile->setIsPublic(true);
+        $profile->setPortfolioGeneratedAt(new \DateTimeImmutable());
+        $profile->setUser($user);
+        $user->setDeveloperProfile($profile);
+
+        $em->persist($user);
+        $em->persist($profile);
+        $em->flush();
+
+        return $profile;
+    }
+
     private function ensureSchemaExists(EntityManagerInterface $em): void
     {
         if (self::$schemaInitialized) {
+            return;
+        }
+
+        if ($em->getConnection()->createSchemaManager()->tablesExist(['user'])) {
+            self::$schemaInitialized = true;
+
             return;
         }
 

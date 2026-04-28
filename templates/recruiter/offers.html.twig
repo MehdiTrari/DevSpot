@@ -9,6 +9,126 @@
             const pct = (v) => typeof v === 'number' ? `${v.toFixed(1)}%` : '-';
             const esc = (v) => String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
             const nextFrame = () => new Promise(resolve => requestAnimationFrame(() => resolve()));
+            const toList = (v) => Array.isArray(v) ? v : [];
+            const renderTags = (values, cls) => values.map(v => `<span class="rounded-full border px-3 py-1 text-xs font-semibold ${cls}">${esc(v)}</span>`).join('');
+            const renderTechTags = (values) => values.map(i => `<span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-200">${esc(i.skill || '')} · ${esc(i.level || '')}</span>`).join('');
+            const outlinedHeart = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-.32-.17C9.24 18.8 3 15.37 3 9.75A4.5 4.5 0 0 1 7.5 5.25c1.74 0 3.16.81 4.5 2.09 1.34-1.28 2.76-2.09 4.5-2.09A4.5 4.5 0 0 1 21 9.75c0 5.62-6.24 9.05-8.68 10.33L12 20.25Z"/></svg>`;
+            const filledHeart = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5"><path d="M11.645 20.91a.75.75 0 0 0 .71 0c1.055-.518 9.145-4.707 9.145-11.41A5.25 5.25 0 0 0 12 6.084 5.25 5.25 0 0 0 2.5 9.5c0 6.703 8.09 10.892 9.145 11.41Z"/></svg>`;
+
+            const favoriteButtonHtml = (m) => {
+                if (!m.developerId || !m.favoriteAddUrl) return '';
+                const isFav = m.isFavorite === true;
+
+                return `
+                    <button type="button" data-dev-id="${m.developerId}" data-is-fav="${isFav ? '1' : '0'}" data-add-url="${esc(m.favoriteAddUrl)}" data-remove-url="${esc(m.favoriteRemoveUrl)}" data-add-token="${esc(m.favoriteAddToken)}" data-remove-token="${esc(m.favoriteRemoveToken)}" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-300 active:scale-90 ${isFav ? 'border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/15' : 'border-white/15 bg-white/5 text-slate-300 hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-300'}" title="${isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
+                        ${isFav ? filledHeart : outlinedHeart}
+                    </button>
+                `;
+            };
+
+            const previewActionHtml = (m, detailUrl) => {
+                if (m.revealed === true) {
+                    const actions = [];
+
+                    if (m.profileUrl) {
+                        actions.push(`<a href="${esc(m.profileUrl)}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10">Voir le profil</a>`);
+                    }
+
+                    if (m.conversationUrl) {
+                        actions.push(`<a href="${esc(m.conversationUrl)}" class="inline-flex items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400/40 hover:bg-emerald-500/20">Ouvrir la conversation</a>`);
+                    }
+
+                    return actions.join('');
+                }
+
+                if (!detailUrl) return '';
+
+                return `<a href="${esc(detailUrl)}#matching-results" class="inline-flex items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400/40 hover:bg-emerald-500/20">Voir le détail complet</a>`;
+            };
+
+            const previewCardHtml = (m, rank, detailUrl) => {
+                const matchedHardSkills = toList(m.matchedHardSkills);
+                const matchedSoftSkills = toList(m.matchedSoftSkills);
+                const inferredSoftSkills = toList(m.inferredSoftSkills);
+                const inferredTransferableSkills = toList(m.inferredTransferableSkills);
+                const inferredTechnicalSkills = toList(m.inferredTechnicalSkills);
+                const matchedSkillsCount = matchedHardSkills.length + matchedSoftSkills.length;
+                const inferredSkillsCount = inferredSoftSkills.length + inferredTransferableSkills.length + inferredTechnicalSkills.length;
+                const title = m.revealed === true
+                    ? (m.profileUrl ? `<a href="${esc(m.profileUrl)}" class="hover:text-emerald-200 transition">${esc(m.fullName || 'Profil')}</a>` : esc(m.fullName || 'Profil'))
+                    : esc(m.candidateLabel || `Candidat #${rank}`);
+                const subtitle = m.revealed === true
+                    ? esc(m.headline || '')
+                    : 'Identité masquée jusqu’au premier contact.';
+
+                return `
+                    <article class="rounded-[1.6rem] border border-white/10 bg-slate-950/45 p-5 shadow-xl shadow-black/20">
+                        <div class="flex flex-col gap-5">
+                            <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                                <div class="min-w-0">
+                                    <p class="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">#${rank}</p>
+                                    <div class="mt-2 flex items-start gap-3">
+                                        ${m.revealed === true ? favoriteButtonHtml(m) : ''}
+                                        <div class="min-w-0">
+                                            <h3 class="truncate text-2xl font-semibold text-white">${title}</h3>
+                                            <p class="mt-1 text-sm text-slate-300">${subtitle}</p>
+                                            <p class="mt-3 text-sm text-slate-400">${esc(String(m.yearsExperience ?? 0))} an(s) d'expérience</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 flex flex-wrap gap-2">
+                                        ${previewActionHtml(m, detailUrl)}
+                                    </div>
+                                </div>
+                                <div class="grid gap-2 sm:grid-cols-3 xl:min-w-[27rem]">
+                                    <div class="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3 text-right">
+                                        <p class="text-[11px] uppercase tracking-wider text-emerald-200">Matching DevSpot</p>
+                                        <p class="mt-1 text-lg font-bold text-white">${pct(m.semanticEnrichedPercentage)}</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-violet-500/20 bg-violet-500/10 px-4 py-3 text-right">
+                                        <p class="text-[11px] uppercase tracking-wider text-violet-200">CamemBERT</p>
+                                        <p class="mt-1 text-lg font-semibold text-white">${pct(m.semanticPercentage)}</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-500/20 bg-slate-500/10 px-4 py-3 text-right">
+                                        <p class="text-[11px] uppercase tracking-wider text-slate-300">Baseline</p>
+                                        <p class="mt-1 text-lg font-semibold text-slate-200">${pct(m.percentage)}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid gap-4 xl:grid-cols-2">
+                                <section class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Compétences correspondantes</p>
+                                        <span class="text-[11px] font-semibold text-slate-500">${matchedSkillsCount} élément(s)</span>
+                                    </div>
+                                    <div class="mt-3 max-h-44 overflow-y-auto pr-1">
+                                        <div class="flex flex-wrap gap-2">
+                                            ${renderTags(matchedHardSkills, 'border-emerald-500/20 bg-emerald-500/10 text-emerald-200')}
+                                            ${renderTags(matchedSoftSkills, 'border-pink-400/20 bg-pink-400/10 text-pink-200')}
+                                            ${matchedSkillsCount === 0 ? '<span class="text-sm text-slate-500">Aucune correspondance directe détectée.</span>' : ''}
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Compétences inférées</p>
+                                        <span class="text-[11px] font-semibold text-slate-500">${inferredSkillsCount} élément(s)</span>
+                                    </div>
+                                    <div class="mt-3 max-h-44 overflow-y-auto pr-1">
+                                        <div class="flex flex-wrap gap-2">
+                                            ${renderTags(inferredSoftSkills, 'border-pink-400/20 bg-pink-400/10 text-pink-200')}
+                                            ${renderTags(inferredTransferableSkills, 'border-amber-500/20 bg-amber-500/10 text-amber-200')}
+                                            ${renderTechTags(inferredTechnicalSkills)}
+                                            ${inferredSkillsCount === 0 ? '<span class="text-sm text-slate-500">Aucune compétence implicite détectée.</span>' : ''}
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            };
 
             const initCards = () => {
                 document.querySelectorAll('[data-offer-card]').forEach(card => {
@@ -17,6 +137,7 @@
 
                     const endpoint = card.dataset.offerEndpoint;
                     const detailUrl = card.dataset.offerDetailUrl;
+                    const hasCachedMatching = card.dataset.offerHasCache === '1';
                     const btn = card.querySelector('[data-offer-btn]');
                     const dropdown = card.querySelector('[data-offer-dropdown]');
                     const dropdownBody = card.querySelector('[data-offer-dropdown-body]');
@@ -38,6 +159,50 @@
 
                     let loaded = false, open = false, loading = false;
                     let timer = null, prog = 0;
+
+                    const bindFavoriteButtons = (scope) => {
+                        scope.querySelectorAll('[data-dev-id]').forEach(favBtn => {
+                            if (favBtn.dataset.bound === '1') return;
+                            favBtn.dataset.bound = '1';
+
+                            favBtn.addEventListener('click', async (ev) => {
+                                ev.preventDefault();
+                                ev.stopPropagation();
+                                const b = ev.currentTarget;
+                                const isFav = b.dataset.isFav === '1';
+                                const url = isFav ? b.dataset.removeUrl : b.dataset.addUrl;
+                                const token = isFav ? b.dataset.removeToken : b.dataset.addToken;
+
+                                b.disabled = true;
+                                b.classList.add('opacity-50', 'cursor-not-allowed');
+
+                                try {
+                                    const fd = new FormData();
+                                    fd.append('_token', token);
+                                    fd.append('_redirect', window.location.pathname);
+                                    const r = await fetch(url, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }, body: fd, credentials: 'same-origin' });
+                                    const p = await r.json().catch(() => ({}));
+
+                                    if (r.ok && p.success) {
+                                        const nowFav = p.isFavorite === true;
+                                        b.dataset.isFav = nowFav ? '1' : '0';
+                                        b.title = nowFav ? 'Retirer des favoris' : 'Ajouter aux favoris';
+                                        b.className = `inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-300 active:scale-90 ${nowFav ? 'border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/15' : 'border-white/15 bg-white/5 text-slate-300 hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-300'}`;
+                                        b.innerHTML = nowFav ? filledHeart : outlinedHeart;
+
+                                        if (typeof pushNotification === 'function') pushNotification(p.message || 'Favoris mis à jour.', p.type || 'success');
+                                    } else {
+                                        if (typeof pushNotification === 'function') pushNotification(p?.message || 'Action impossible.', 'error');
+                                    }
+                                } catch (_) {
+                                    if (typeof pushNotification === 'function') pushNotification('Erreur réseau.', 'error');
+                                } finally {
+                                    b.disabled = false;
+                                    b.classList.remove('opacity-50', 'cursor-not-allowed');
+                                }
+                            });
+                        });
+                    };
 
                     const setProgress = (v, label) => {
                         prog = v;
@@ -68,7 +233,10 @@
                     const stopTimer = () => { if (timer) { clearInterval(timer); timer = null; } };
 
                     const updateBtn = () => {
-                        if (!loaded) { btn.innerHTML = 'Calculer le matching'; return; }
+                        if (!loaded) {
+                            btn.textContent = hasCachedMatching ? '\u25BC Voir le top 5' : '⚡ Calculer le matching';
+                            return;
+                        }
                         btn.textContent = open ? '\u25B2 Masquer le top 5' : '\u25BC Voir le top 5';
                     };
                     updateBtn();
@@ -108,41 +276,93 @@
                             if (top5.length === 0) {
                                 dropdownBody.innerHTML = '<p class="px-4 py-3 text-sm text-slate-500">Aucun profil correspondant.</p>';
                             } else {
-                                const outlinedHeart = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-.32-.17C9.24 18.8 3 15.37 3 9.75A4.5 4.5 0 0 1 7.5 5.25c1.74 0 3.16.81 4.5 2.09 1.34-1.28 2.76-2.09 4.5-2.09A4.5 4.5 0 0 1 21 9.75c0 5.62-6.24 9.05-8.68 10.33L12 20.25Z"/></svg>`;
-                                const filledHeart = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5"><path d="M11.645 20.91a.75.75 0 0 0 .71 0c1.055-.518 9.145-4.707 9.145-11.41A5.25 5.25 0 0 0 12 6.084 5.25 5.25 0 0 0 2.5 9.5c0 6.703 8.09 10.892 9.145 11.41Z"/></svg>`;
+                                dropdownBody.innerHTML = `
+                                    <div data-top5-list class="space-y-2"></div>
+                                `;
 
-                                top5.forEach((m, i) => {
-                                    const link = m.profileUrl ? `<a href="${esc(m.profileUrl)}" class="text-emerald-300 hover:underline">${esc(m.fullName||'Profil')}</a>` : esc(m.fullName||'Profil');
-                                    const hasFavData = m.developerId && m.favoriteAddUrl;
-                                    const favBtnId = `fav-match-${m.developerId}`;
-                                    const favHtml = hasFavData ? `
-                                        <button type="button" id="${favBtnId}" data-dev-id="${m.developerId}" data-is-fav="${m.isFavorite ? '1' : '0'}" data-add-url="${esc(m.favoriteAddUrl)}" data-remove-url="${esc(m.favoriteRemoveUrl)}" data-add-token="${esc(m.favoriteAddToken)}" data-remove-token="${esc(m.favoriteRemoveToken)}" class="inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-300 active:scale-90 ${m.isFavorite ? 'border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/15' : 'border-white/15 bg-white/5 text-slate-300 hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-300'}" title="${m.isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris'}">
-                                            ${m.isFavorite ? filledHeart : outlinedHeart}
-                                        </button>` : '';
+                                const listEl = dropdownBody.querySelector('[data-top5-list]');
+                                let activeIndex = null;
 
-                                    dropdownBody.insertAdjacentHTML('beforeend', `
-                                        <div class="flex items-center justify-between gap-4 rounded-xl border border-white/5 bg-white/[.02] px-4 py-3 transition hover:bg-white/5">
-                                            <div class="flex items-center gap-3 min-w-0">
-                                                <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-xs font-bold text-emerald-300">${i+1}</span>
-                                                <div class="min-w-0">
-                                                    <p class="truncate text-sm font-semibold text-white">${link}</p>
-                                                    <p class="truncate text-xs text-slate-400">${esc(m.headline||'')}</p>
+                                const animateOpenPanel = async () => {
+                                    if (!listEl) return;
+                                    const panel = listEl.querySelector('[data-inline-preview]');
+                                    if (!panel) return;
+
+                                    panel.style.maxHeight = '0px';
+                                    panel.style.opacity = '0';
+                                    panel.style.transform = 'translateY(-8px)';
+                                    await nextFrame();
+                                    await nextFrame();
+                                    panel.style.maxHeight = `${panel.scrollHeight}px`;
+                                    panel.style.opacity = '1';
+                                    panel.style.transform = 'translateY(0)';
+                                };
+
+                                const renderList = () => {
+                                    if (!listEl) return;
+
+                                    listEl.innerHTML = top5.map((m, i) => {
+                                        const isActive = i === activeIndex;
+                                        const title = m.revealed === true ? esc(m.fullName || 'Profil') : esc(m.candidateLabel || `Candidat #${i + 1}`);
+                                        const subtitle = m.revealed === true ? esc(m.headline || 'Profil révélé') : 'Profil anonyme jusqu’au premier contact';
+                                        const matchedPreview = [...toList(m.matchedHardSkills), ...toList(m.matchedSoftSkills)].slice(0, 3);
+                                        const extraCount = Math.max(0, toList(m.matchedHardSkills).length + toList(m.matchedSoftSkills).length - matchedPreview.length);
+                                        const previewHtml = isActive ? `
+                                            <div data-inline-preview class="overflow-hidden rounded-[1.5rem] border border-white/10 bg-white/[.03] opacity-0 transition-all duration-300 ease-out" style="max-height:0; transform:translateY(-8px);">
+                                                <div class="px-1 pb-1 pt-3">
+                                                    ${previewCardHtml(m, i + 1, detailUrl)}
                                                 </div>
                                             </div>
-                                            <div class="flex items-center gap-3 shrink-0">
-                                                <div class="text-right">
-                                                    <p class="text-[10px] uppercase tracking-wider text-emerald-400/70">DevSpot</p>
-                                                    <p class="text-sm font-bold text-emerald-300">${pct(m.semanticEnrichedPercentage)}</p>
-                                                </div>
-                                                <div class="text-right">
-                                                    <p class="text-[10px] uppercase tracking-wider text-violet-400/70">CamemBERT</p>
-                                                    <p class="text-sm font-semibold text-violet-300">${pct(m.semanticPercentage)}</p>
-                                                </div>
-                                                ${favHtml}
+                                        ` : '';
+
+                                        return `
+                                            <div class="space-y-3">
+                                                <button type="button" data-top5-select="${i}" aria-expanded="${isActive ? 'true' : 'false'}" class="w-full rounded-[1.35rem] border px-4 py-3 text-left transition ${isActive ? 'border-emerald-400/35 bg-emerald-500/10 shadow-lg shadow-emerald-500/10' : 'border-white/10 bg-white/[.03] hover:border-white/15 hover:bg-white/[.06]'}">
+                                                    <div class="flex items-start justify-between gap-4">
+                                                        <div class="min-w-0">
+                                                            <div class="flex items-center gap-3">
+                                                                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${isActive ? 'bg-emerald-500/25 text-emerald-200' : 'bg-white/10 text-slate-300'} text-xs font-bold">${i + 1}</span>
+                                                                <div class="min-w-0">
+                                                                    <p class="truncate text-sm font-semibold ${isActive ? 'text-white' : 'text-slate-100'}">${title}</p>
+                                                                    <p class="truncate text-xs ${isActive ? 'text-emerald-100/80' : 'text-slate-400'}">${subtitle}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div class="mt-3 flex flex-wrap gap-1.5">
+                                                                ${matchedPreview.map(skill => `<span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-slate-300">${esc(skill)}</span>`).join('')}
+                                                                ${extraCount > 0 ? `<span class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-medium text-slate-400">+${extraCount}</span>` : ''}
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex shrink-0 items-start gap-4">
+                                                            <div class="text-right">
+                                                                <p class="text-[10px] uppercase tracking-wider text-emerald-400/70">DevSpot</p>
+                                                                <p class="text-base font-bold text-emerald-300">${pct(m.semanticEnrichedPercentage)}</p>
+                                                            </div>
+                                                            <span class="mt-1 inline-flex h-8 w-8 items-center justify-center rounded-full border ${isActive ? 'border-emerald-400/35 bg-emerald-500/10 text-emerald-200' : 'border-white/10 bg-white/5 text-slate-400'} transition">
+                                                                <svg class="h-4 w-4 transition-transform duration-300 ${isActive ? 'rotate-180' : ''}" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                                ${previewHtml}
                                             </div>
-                                        </div>
-                                    `);
-                                });
+                                        `;
+                                    }).join('');
+
+                                    listEl.querySelectorAll('[data-top5-select]').forEach(button => {
+                                        button.addEventListener('click', async () => {
+                                            const index = Number(button.dataset.top5Select || '0');
+                                            const nextIndex = Number.isNaN(index) ? null : index;
+                                            activeIndex = activeIndex === nextIndex ? null : nextIndex;
+                                            renderList();
+                                            if (activeIndex !== null) {
+                                                bindFavoriteButtons(listEl);
+                                                await animateOpenPanel();
+                                            }
+                                        });
+                                    });
+                                };
+
+                                renderList();
                             }
 
                             const badge = card.querySelector('[data-offer-top-badge]');
@@ -162,53 +382,6 @@
                             loaded = true;
                             open = true;
                             updateBtn();
-
-                            /* Wire up favorite heart buttons */
-                            dropdownBody.querySelectorAll('[data-dev-id]').forEach(favBtn => {
-                                favBtn.addEventListener('click', async (ev) => {
-                                    ev.preventDefault();
-                                    ev.stopPropagation();
-                                    const b = ev.currentTarget;
-                                    const isFav = b.dataset.isFav === '1';
-                                    const url = isFav ? b.dataset.removeUrl : b.dataset.addUrl;
-                                    const token = isFav ? b.dataset.removeToken : b.dataset.addToken;
-
-                                    b.disabled = true;
-                                    b.classList.add('opacity-50', 'cursor-not-allowed');
-
-                                    try {
-                                        const fd = new FormData();
-                                        fd.append('_token', token);
-                                        fd.append('_redirect', window.location.pathname);
-                                        const r = await fetch(url, { method: 'POST', headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }, body: fd, credentials: 'same-origin' });
-                                        const p = await r.json().catch(() => ({}));
-
-                                        if (r.ok && p.success) {
-                                            const nowFav = p.isFavorite === true;
-                                            b.dataset.isFav = nowFav ? '1' : '0';
-                                            b.title = nowFav ? 'Retirer des favoris' : 'Ajouter aux favoris';
-                                            b.className = `inline-flex h-9 w-9 items-center justify-center rounded-full border transition-all duration-300 active:scale-90 ${nowFav ? 'border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/15' : 'border-white/15 bg-white/5 text-slate-300 hover:border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-300'}`;
-                                            const outH = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-.32-.17C9.24 18.8 3 15.37 3 9.75A4.5 4.5 0 0 1 7.5 5.25c1.74 0 3.16.81 4.5 2.09 1.34-1.28 2.76-2.09 4.5-2.09A4.5 4.5 0 0 1 21 9.75c0 5.62-6.24 9.05-8.68 10.33L12 20.25Z"/></svg>`;
-                                            const filH = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5"><path d="M11.645 20.91a.75.75 0 0 0 .71 0c1.055-.518 9.145-4.707 9.145-11.41A5.25 5.25 0 0 0 12 6.084 5.25 5.25 0 0 0 2.5 9.5c0 6.703 8.09 10.892 9.145 11.41Z"/></svg>`;
-                                            b.innerHTML = nowFav ? filH : outH;
-
-                                            /* Update tokens for next toggle */
-                                            if (p.isFavorite) {
-                                                b.dataset.removeToken = b.dataset.removeToken;
-                                            }
-
-                                            if (typeof pushNotification === 'function') pushNotification(p.message || 'Favoris mis à jour.', p.type || 'success');
-                                        } else {
-                                            if (typeof pushNotification === 'function') pushNotification(p?.message || 'Action impossible.', 'error');
-                                        }
-                                    } catch (_) {
-                                        if (typeof pushNotification === 'function') pushNotification('Erreur réseau.', 'error');
-                                    } finally {
-                                        b.disabled = false;
-                                        b.classList.remove('opacity-50', 'cursor-not-allowed');
-                                    }
-                                });
-                            });
 
                             setTimeout(() => { if (progressWrap) { progressWrap.classList.add('opacity-0','transition-opacity','duration-700'); setTimeout(() => progressWrap.classList.add('hidden'), 800); } }, 1200);
 
@@ -412,6 +585,7 @@
                     data-offer-card
                     data-offer-endpoint="{{ path('app_recruiter_offer_matching', { id: job.id }) }}"
                     data-offer-detail-url="{{ job.detailUrl }}"
+                    data-offer-has-cache="{{ job.cachedAt is defined and job.cachedAt ? '1' : '0' }}"
                     data-offer-status="{{ job.statusValue }}"
                     data-offer-searchable="{{ job.title|lower }} {{ job.contract|lower }} {{ job.location|default('')|lower }} {{ job.status|lower }}"
                     class="group rounded-[2rem] border border-white/10 bg-slate-900/50 shadow-2xl shadow-black/40 backdrop-blur-xl transition hover:border-emerald-400/20 hover:shadow-emerald-500/10"

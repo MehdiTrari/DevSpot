@@ -9,15 +9,20 @@ use PHPUnit\Framework\TestCase;
 
 final class CvAnonymizerTest extends TestCase
 {
-    public function testItMasksEmailAndPhone(): void
+    public function testItMasksEmailPhoneUrlsAndProvidedIdentityTerms(): void
     {
         $anonymizer = new CvAnonymizer();
 
-        $content = 'Contact me at john.doe@example.com or +33 6 12 34 56 78.';
-        $anonymized = $anonymizer->anonymize($content);
+        $content = 'John Doe can be reached at john.doe@example.com, +33 6 12 34 56 78, or https://portfolio.example.com/john-doe.';
+        $anonymized = $anonymizer->anonymize($content, ['John', 'Doe']);
 
         self::assertStringNotContainsString('john.doe@example.com', $anonymized);
+        self::assertStringNotContainsString('John', $anonymized);
+        self::assertStringNotContainsString('Doe', $anonymized);
+        self::assertStringNotContainsString('https://portfolio.example.com/john-doe', $anonymized);
+        self::assertStringContainsString('[IDENTITY]', $anonymized);
         self::assertStringContainsString('[EMAIL]', $anonymized);
         self::assertStringContainsString('[PHONE]', $anonymized);
+        self::assertStringContainsString('[URL]', $anonymized);
     }
 }

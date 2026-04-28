@@ -121,6 +121,9 @@ final class OfferMatchingServiceTest extends TestCase
         self::assertSame(['communication'], $payload['matches'][1]['matchedSoftSkills']);
         self::assertSame(['Leadership'], $payload['matches'][1]['inferredTransferableSkills']);
         self::assertStringContainsString('[EMAIL]', $payload['matches'][1]['anonymizedCv']);
+        self::assertStringNotContainsString('Alice', $payload['matches'][1]['anonymizedCv']);
+        self::assertStringNotContainsString('Dupont', $payload['matches'][1]['anonymizedCv']);
+        self::assertStringNotContainsString('alice', $payload['matches'][1]['anonymizedCv']);
         self::assertTrue($payload['semantic']['available']);
         self::assertTrue($payload['enriched']['available']);
     }

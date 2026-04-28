@@ -190,6 +190,8 @@ Cette stack de production expose uniquement le reverse proxy en frontal. Postgre
 Les documents de référence actuellement conservés dans le dépôt sont :
 
 - [docs/matching-ia-documentation.md](docs/matching-ia-documentation.md) — documentation technique du pipeline de matching IA
+- [docs/camembert-algorithme-technique.md](docs/camembert-algorithme-technique.md) — détail de l'algorithme vectoriel CamemBERT, projection, cosinus et scoring
+- [docs/analyse-methodologie-matching.md](docs/analyse-methodologie-matching.md) — comparaison entre la méthodologie cible, l'implémentation réelle et les écarts restants
 - [docs/ci-cd-github-actions.md](docs/ci-cd-github-actions.md) — CI actuelle et cible CD via GitHub Actions
 - [docs/US15-performance.md](docs/US15-performance.md) — optimisation performance réalisée sur l'application
 - [docs/junior-skill-inference-implementation.md](docs/junior-skill-inference-implementation.md) — note de conception détaillée sur l'inférence de compétences juniors
@@ -198,7 +200,9 @@ Les documents de référence actuellement conservés dans le dépôt sont :
 ## Conseils de lecture
 
 - Pour lancer le projet : commencer par ce `README`
-- Pour comprendre le matching IA : lire [docs/matching-ia-documentation.md](docs/matching-ia-documentation.md)
+- Pour comprendre le matching IA côté produit : lire [docs/matching-ia-documentation.md](docs/matching-ia-documentation.md)
+- Pour comprendre l'algorithme CamemBERT en détail : lire [docs/camembert-algorithme-technique.md](docs/camembert-algorithme-technique.md)
+- Pour comprendre l'état réel de l'anonymisation et les écarts méthodologiques : lire [docs/analyse-methodologie-matching.md](docs/analyse-methodologie-matching.md)
 - Pour la chaîne qualité/tests/CD : lire [docs/ci-cd-github-actions.md](docs/ci-cd-github-actions.md)
 
 ## Notes

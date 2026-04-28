@@ -157,66 +157,6 @@
             </div>
         </div>
 
-        <section class="theme-settings-card rounded-[2.35rem] p-8">
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <p class="premium-kicker text-xs font-semibold uppercase tracking-wider">Laboratoire matching</p>
-                    <h2 class="ui-title mt-2 text-2xl font-semibold tracking-tight">Tester le matching directement dans le site</h2>
-                    <p class="ui-text-muted mt-3 max-w-3xl text-[15px] leading-relaxed">
-                        Modifie le JSON, lance le test, puis vérifie le classement, le detail du score, l'anonymisation et l'indicateur de fairness sans passer par curl.
-                    </p>
-                </div>
-                <button type="button" data-action="matching-preview#run" class="premium-action-card mt-2 inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold sm:mt-3 lg:mt-6">
-                    Lancer le matching
-                </button>
-            </div>
-
-            <div class="mt-6 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-                <div class="space-y-3">
-                    <label for="matching-preview-payload" class="ui-text-muted block text-xs font-semibold uppercase tracking-wider">Payload JSON</label>
-                    <textarea id="matching-preview-payload" data-matching-preview-target="payload" class="min-h-[34rem] w-full rounded-[1.5rem] border border-white/10 bg-slate-950/70 px-4 py-4 font-mono text-sm leading-6 text-slate-100 outline-none transition duration-300 placeholder:text-slate-500 focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-500/20" spellcheck="false">{{ matchingPreviewPayload }}</textarea>
-                </div>
-
-                <div class="space-y-4 lg:pt-12">
-                    <div data-matching-preview-target="status" class="premium-list-row ui-text-secondary rounded-[1.5rem] px-4 py-4 text-sm">
-                        Prêt à exécuter le scénario de test.
-                    </div>
-
-                    <div data-matching-preview-target="summary" class="hidden rounded-[1.5rem] border border-emerald-500/20 bg-emerald-500/10 p-5">
-                        <p class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Synthèse</p>
-                        <div class="mt-4 grid gap-3 sm:grid-cols-3">
-                            <div class="premium-list-row rounded-[1.4rem] px-4 py-3">
-                                <p class="ui-text-muted text-xs uppercase tracking-wider">Top candidat</p>
-                                <p data-matching-preview-target="topCandidate" class="ui-title mt-2 text-lg font-semibold">-</p>
-                            </div>
-                            <div class="premium-list-row rounded-[1.4rem] px-4 py-3">
-                                <p class="ui-text-muted text-xs uppercase tracking-wider">Top enrichi</p>
-                                <p data-matching-preview-target="topScore" class="ui-title mt-2 text-lg font-semibold">-</p>
-                            </div>
-                            <div class="premium-list-row rounded-[1.4rem] px-4 py-3">
-                                <p class="ui-text-muted text-xs uppercase tracking-wider">Fairness ratio</p>
-                                <p data-matching-preview-target="fairness" class="ui-title mt-2 text-lg font-semibold">-</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Résultats</h3>
-                        <div data-matching-preview-target="results" class="mt-4 space-y-3">
-                            <div class="premium-list-row ui-text-muted rounded-[1.5rem] px-4 py-6 text-sm">
-                                Aucun resultat affiché pour l'instant.
-                            </div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Réponse brute</h3>
-                        <pre data-matching-preview-target="rawResponse" class="mt-4 max-h-[18rem] overflow-auto rounded-[1.5rem] border border-white/10 bg-slate-950/70 px-4 py-4 font-mono text-xs leading-6 text-slate-300">En attente d'un test.</pre>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
             Pilote tes recherches, garde tes favoris à portée de main et structure ton suivi recruteur au même endroit.
         </p>

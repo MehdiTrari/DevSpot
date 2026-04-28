@@ -6,7 +6,8 @@ Cette section rassemble les documents décrivant la structure technique de DevSp
 
 - [Schema BDD](database-schema.md) : inventaire complet des tables, colonnes, contraintes, enums et relations du schema PostgreSQL / Doctrine
 - [Système & déploiement](system-overview.md) : vue d'ensemble Docker locale, responsabilités des services et cible de production
-- [Matching IA](../matching-ia-documentation.md) : pipeline complet de matching, scoring, fairness, anonymisation, cache, endpoints et intégration ML.
+- [Matching IA](../matching-ia-documentation.md) : pipeline complet de matching, scoring, anonymisation recruteur, cache, endpoints et intégration ML
+- [Algorithme CamemBERT détaillé](../camembert-algorithme-technique.md) : embeddings, projection, similarité cosinus, rescoring et exécution Python / PHP
 
 ## À ajouter ensuite
 
