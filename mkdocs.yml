@@ -46,6 +46,7 @@ nav:
   - Architecture:
       - Vue d'ensemble: architecture/index.md
       - Système & déploiement: architecture/system-overview.md
+      - Schema BDD: architecture/database-schema.md
       - Matching IA: matching-ia-documentation.md
   - Développement:
       - Vue d'ensemble: dev/index.md
