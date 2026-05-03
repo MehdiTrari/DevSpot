@@ -57,7 +57,7 @@ final class SupportRequestManagerTest extends TestCase
             ->method('existsForUserTypeAndLink')
             ->willReturn(false);
 
-        $favoriteProfileRepository = $this->createMock(FavoriteProfileRepository::class);
+        $favoriteProfileRepository = $this->createStub(FavoriteProfileRepository::class);
 
         $userRepository = $this->createMock(UserRepository::class);
         $userRepository->expects(self::exactly(2))
@@ -174,7 +174,7 @@ final class SupportRequestManagerTest extends TestCase
             ->method('existsForUserTypeAndLink')
             ->willReturn(false);
 
-        $favoriteProfileRepository = $this->createMock(FavoriteProfileRepository::class);
+        $favoriteProfileRepository = $this->createStub(FavoriteProfileRepository::class);
 
         $userRepository = $this->createMock(UserRepository::class);
         $userRepository->expects(self::exactly(2))

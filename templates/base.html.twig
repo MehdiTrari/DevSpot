@@ -1051,7 +1051,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 17h.01"/>
                                                 </svg>
                                             </span>
-                                            FAQ
+                                            Support
                                         </a>
                                         <a href="#" onclick="return false;" class="account-menu-item account-menu-item-hover">
                                             <span class="account-menu-icon" aria-hidden="true">
@@ -1112,7 +1112,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 17h.01"/>
                                                 </svg>
                                             </span>
-                                            FAQ
+                                            Support
                                         </a>
                                     </div>
                                 </div>
@@ -1136,7 +1136,7 @@
                                     {% endif %}
                                     {% if app.user and not is_granted('ROLE_ADMIN') and (is_granted('ROLE_RECRUITER') or is_granted('ROLE_APPLICANT')) %}
                                         <a href="{{ helpPath }}" class="site-mobile-menu-link {{ isHelpRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isHelpRoute %}aria-current="page"{% endif %}>Aide</a>
-                                        <a href="{{ faqPath }}" class="site-mobile-menu-link {{ isFaqRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isFaqRoute %}aria-current="page"{% endif %}>FAQ</a>
+                                        <a href="{{ faqPath }}" class="site-mobile-menu-link {{ isFaqRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isFaqRoute %}aria-current="page"{% endif %}>Support</a>
                                     {% endif %}
                                     {% if app.user %}
                                         <a href="{{ path('app_notifications_index') }}" class="site-mobile-menu-link {{ isNotificationsRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isNotificationsRoute %}aria-current="page"{% endif %}>
@@ -1165,7 +1165,7 @@
                                     {% else %}
                                         <a href="{{ path('app_login') }}" class="site-mobile-menu-link">Connexion</a>
                                         <a href="{{ helpPath }}" class="site-mobile-menu-link {{ isHelpRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isHelpRoute %}aria-current="page"{% endif %}>Aide</a>
-                                        <a href="{{ faqPath }}" class="site-mobile-menu-link {{ isFaqRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isFaqRoute %}aria-current="page"{% endif %}>FAQ</a>
+                                        <a href="{{ faqPath }}" class="site-mobile-menu-link {{ isFaqRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isFaqRoute %}aria-current="page"{% endif %}>Support</a>
                                         <a href="{{ path('app_register') }}" class="site-mobile-menu-link">Créer un compte</a>
                                     {% endif %}
                                 </div>
