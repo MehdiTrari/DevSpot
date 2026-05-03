@@ -827,6 +827,37 @@ def build_candidate_text(developer: dict[str, Any]) -> str:
     return "\n\n".join(sections)
 
 
+def legacy_raw_text_fragment(value: Any) -> str:
+    cleaned = html.unescape(str(value or ""))
+    cleaned = re.sub(r"<[^>]+>", " ", cleaned)
+    return collapse_spaces(cleaned)
+
+
+def build_candidate_text_legacy(developer: dict[str, Any]) -> str:
+    profile = developer.get("profile", {})
+    fragments = filter_non_empty([
+        legacy_raw_text_fragment(profile.get("headline", "")),
+        legacy_raw_text_fragment(profile.get("bio", "")),
+    ])
+
+    experiences = sorted(profile.get("experiences", []), key=sort_experiences_key, reverse=True)
+    for experience in experiences:
+        technologies = [
+            legacy_raw_text_fragment(technology)
+            for technology in experience.get("technologies", [])
+        ]
+        parts = filter_non_empty([
+            legacy_raw_text_fragment(experience.get("title", "")),
+            legacy_raw_text_fragment(experience.get("companyName", "")),
+            legacy_raw_text_fragment(experience.get("description", "")),
+            collapse_spaces(" ".join(filter(None, technologies))),
+        ])
+        if parts:
+            fragments.append(". ".join(parts))
+
+    return "\n\n".join(fragments)
+
+
 def build_offer_text(offer: dict[str, Any]) -> str:
     return collapse_spaces(" ".join([
         str(offer.get("title", "")),

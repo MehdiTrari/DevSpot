@@ -16,6 +16,7 @@ Cette base documentaire a pour objectif de présenter le projet de manière stru
 - Pour le détail de l'algorithme CamemBERT : [docs/camembert-algorithme-technique.md](camembert-algorithme-technique.md)
 - Pour l'analyse des écarts méthodologiques et de l'anonymisation : [docs/analyse-methodologie-matching.md](analyse-methodologie-matching.md)
 - Pour la feuille de route d'amélioration du matching : [docs/matching-improvement-roadmap.md](matching-improvement-roadmap.md)
+- Pour la synthèse de revue humaine du matching : [docs/matching-human-review-summary.md](matching-human-review-summary.md)
 - Pour la chaîne qualité / CI : [docs/ci-cd-github-actions.md](ci-cd-github-actions.md)
 - Pour la cible de production : [docs/ops/deployment-production.md](ops/deployment-production.md)
 

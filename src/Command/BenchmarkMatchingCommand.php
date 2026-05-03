@@ -100,6 +100,7 @@ final class BenchmarkMatchingCommand extends Command
         $referenceK = max($kValues);
         $reports = [];
         $topFiveByK = [];
+        $juniorTopFiveStatsByK = [];
 
         foreach ($kValues as $k) {
             $service = new OfferMatchingService(
@@ -118,6 +119,7 @@ final class BenchmarkMatchingCommand extends Command
 
             $totalDurationMs = 0.0;
             $currentTopFive = [];
+            $currentJuniorTopFiveStats = [];
 
             for ($iteration = 0; $iteration < $iterations; ++$iteration) {
                 foreach ($offers as $offer) {
@@ -127,11 +129,13 @@ final class BenchmarkMatchingCommand extends Command
 
                     if (0 === $iteration) {
                         $currentTopFive[(string) $offer->getId()] = $this->extractTopFiveIdentifiers($payload['matches']);
+                        $currentJuniorTopFiveStats[(string) $offer->getId()] = $this->extractJuniorTopFiveStats($payload['matches']);
                     }
                 }
             }
 
             $topFiveByK[$k] = $currentTopFive;
+            $juniorTopFiveStatsByK[$k] = $currentJuniorTopFiveStats;
             $reports[$k] = [
                 'k' => $k,
                 'iterations' => $iterations,
@@ -149,10 +153,14 @@ final class BenchmarkMatchingCommand extends Command
             $durationGain = $referenceK === $k
                 ? 0.0
                 : round(($reports[$referenceK]['averageMsPerOffer'] ?? 0.0) - $report['averageMsPerOffer'], 1);
+            $juniorRepresentation = $this->aggregateJuniorTopFiveStats($juniorTopFiveStatsByK[$k] ?? []);
 
             $report['top5OverlapVsRef'] = round($overlap * 100, 1);
             $report['sameTop1VsRef'] = round($sameTopOneRate * 100, 1);
             $report['avgMsGainVsRef'] = $durationGain;
+            $report['juniorShareTop5'] = round($juniorRepresentation['junior_share_top5'] * 100, 1);
+            $report['offersWithJuniorTop5'] = round($juniorRepresentation['offers_with_junior_top5_rate'] * 100, 1);
+            $report['juniorTop1'] = round($juniorRepresentation['junior_top1_rate'] * 100, 1);
         }
         unset($report);
 
@@ -167,7 +175,7 @@ final class BenchmarkMatchingCommand extends Command
         ));
 
         $table = new Table($output);
-        $table->setHeaders(['k', 'avg ms/offre', 'total ms', 'overlap top5 ref', 'same top1 ref', 'gain vs ref']);
+        $table->setHeaders(['k', 'avg ms/offre', 'total ms', 'overlap top5 ref', 'same top1 ref', 'part juniors top5', 'offres avec junior top5', 'top1 junior', 'gain vs ref']);
         foreach ($kValues as $k) {
             $report = $reports[$k];
             $table->addRow([
@@ -176,12 +184,15 @@ final class BenchmarkMatchingCommand extends Command
                 number_format((float) $report['totalDurationMs'], 1, '.', ''),
                 number_format((float) $report['top5OverlapVsRef'], 1, '.', '') . '%',
                 number_format((float) $report['sameTop1VsRef'], 1, '.', '') . '%',
+                number_format((float) $report['juniorShareTop5'], 1, '.', '') . '%',
+                number_format((float) $report['offersWithJuniorTop5'], 1, '.', '') . '%',
+                number_format((float) $report['juniorTop1'], 1, '.', '') . '%',
                 ($report['avgMsGainVsRef'] >= 0 ? '+' : '') . number_format((float) $report['avgMsGainVsRef'], 1, '.', '') . ' ms',
             ]);
         }
         $table->render();
 
-        $io->note('L overlap est calcule par rapport au top 5 produit avec la valeur de k la plus elevee demandee.');
+        $io->note('L overlap est calcule par rapport au top 5 produit avec la valeur de k la plus elevee demandee. Un junior correspond ici a un profil avec au plus 2 ans d experience, comme dans FairnessAuditor.');
 
         return Command::SUCCESS;
     }
@@ -288,5 +299,66 @@ final class BenchmarkMatchingCommand extends Command
         }
 
         return 0 === $count ? 0.0 : $same / $count;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $matches
+     *
+     * @return array{juniorCountTop5: int, hasJuniorTop5: bool, juniorTop1: bool}
+     */
+    private function extractJuniorTopFiveStats(array $matches): array
+    {
+        $topFive = array_slice($matches, 0, 5);
+        $juniorCount = 0;
+
+        foreach ($topFive as $index => $match) {
+            $yearsExperience = (int) ($match['yearsExperience'] ?? 0);
+            if ($yearsExperience > 2) {
+                continue;
+            }
+
+            ++$juniorCount;
+        }
+
+        $topOneYearsExperience = (int) (($topFive[0]['yearsExperience'] ?? 99));
+
+        return [
+            'juniorCountTop5' => $juniorCount,
+            'hasJuniorTop5' => $juniorCount > 0,
+            'juniorTop1' => [] !== $topFive && $topOneYearsExperience <= 2,
+        ];
+    }
+
+    /**
+     * @param array<string, array{juniorCountTop5: int, hasJuniorTop5: bool, juniorTop1: bool}> $statsByOffer
+     *
+     * @return array{junior_share_top5: float, offers_with_junior_top5_rate: float, junior_top1_rate: float}
+     */
+    private function aggregateJuniorTopFiveStats(array $statsByOffer): array
+    {
+        if ([] === $statsByOffer) {
+            return [
+                'junior_share_top5' => 0.0,
+                'offers_with_junior_top5_rate' => 0.0,
+                'junior_top1_rate' => 0.0,
+            ];
+        }
+
+        $offerCount = count($statsByOffer);
+        $juniorSlots = 0;
+        $offersWithJuniorTop5 = 0;
+        $juniorTop1 = 0;
+
+        foreach ($statsByOffer as $stats) {
+            $juniorSlots += $stats['juniorCountTop5'];
+            $offersWithJuniorTop5 += $stats['hasJuniorTop5'] ? 1 : 0;
+            $juniorTop1 += $stats['juniorTop1'] ? 1 : 0;
+        }
+
+        return [
+            'junior_share_top5' => $juniorSlots / max(1, $offerCount * 5),
+            'offers_with_junior_top5_rate' => $offersWithJuniorTop5 / $offerCount,
+            'junior_top1_rate' => $juniorTop1 / $offerCount,
+        ];
     }
 }

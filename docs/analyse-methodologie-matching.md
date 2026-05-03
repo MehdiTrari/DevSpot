@@ -795,18 +795,22 @@ Le schema de preuve cible etait :
 
 Une comparaison existe bien, mais elle est plus complexe que ce schema binaire.
 
-Aujourd'hui, vous avez en pratique :
+Aujourd'hui, vous avez en pratique un protocole offline **A/B/C** :
 
 1. **Baseline**
-   - overlap de competences.
+   - score lexical / metier offline ;
+   - base sur les mots-cles, familles de role et adequation d'experience ;
+   - ne reutilise pas directement le label faible `weak_relevance()`.
 
 2. **Semantique brut**
-   - CamemBERT + cosinus.
+   - CamemBERT + cosinus ;
+   - avec projection optionnelle.
 
-3. **Enrichi**
-   - score semantique + bonus d'inference.
+3. **Enrichi proxy offline**
+   - score semantique + bonus borne sur competences proches ou implicites ;
+   - proxy documentaire du score enrichi runtime, pas reproduction exacte du service live.
 
-Donc l'experimentation reelle est plutot un **A/B/C** qu'un A/B.
+Le script `scripts/evaluate_matching_model.py` peut maintenant produire ces trois variantes dans un meme rapport JSON.
 
 ### Ce qui manque encore
 
@@ -817,17 +821,28 @@ Ce qui manque par rapport a un vrai protocole A/B robuste :
 3. un jeu de test separe et dur ;
 4. une mesure specifique de l'impact de l'anonymisation seule.
 
-### Ce qu'on peut encore changer
+### Premier increment Phase 3
 
-1. formaliser trois variantes experimentales :
-   - A = baseline,
-   - B = semantique brut,
-   - C = semantique enrichi ;
-2. ajouter une variante supplementaire :
+Un premier increment de phase 3 est en place :
+
+1. les trois variantes `baseline`, `semantic`, `enriched_proxy` sont comparables offline ;
+2. les labels faibles restent separes des scores testes ;
+3. un pack de revue humaine anonymisee peut etre genere ;
+4. les offres de revue sont choisies en priorite quand les methodes divergent dans leur top 5.
+
+Ce qui a ete fait ensuite :
+
+1. le pack a ete note humainement sur une echelle `1-5` ;
+2. les notes ont ete synthetisees dans `docs/matching-human-review-summary.md` ;
+3. les commentaires humains ont ete utilises pour identifier les ecarts metier.
+
+Ce qui est considere comme hors perimetre de cloture Phase 3 :
+
+1. ajouter une variante supplementaire :
    - D = semantique sur texte non anonymise,
    - E = semantique sur texte anonymise,
    pour mesurer l'effet reel de l'anonymisation ;
-3. faire un test qualitatif expert sur les tops 5.
+2. transformer les enseignements en ajustements du score enrichi.
 
 ---
 
@@ -851,22 +866,66 @@ Les metriques principales du depot sont :
 
 Ces metriques sont calculees offline a partir de labels heuristiques, pas de notes expertes humaines 1 a 5.
 
+Depuis le premier increment de phase 3, ces metriques peuvent etre calculees par methode :
+
+- `baseline` ;
+- `semantic` ;
+- `enriched_proxy`.
+
+Le label faible reste `weak_relevance()`, mais il sert seulement a evaluer les classements. Il ne doit pas etre confondu avec un score produit ni avec une annotation humaine.
+
+### Mesure Phase 3 du 3 mai 2026
+
+Le rapport `docs/matching-eval-phase3.json` compare les trois methodes sur `90` offres et `192` profils.
+
+| Methode | Recall@1 | Recall@3 | Recall@5 | MRR | nDCG@5 |
+|---|---:|---:|---:|---:|---:|
+| baseline | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 |
+| semantic | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 |
+| enriched_proxy | 1.0000 | 1.0000 | 1.0000 | 1.0000 | 1.0000 |
+
+Cette mesure est utile mais elle montre surtout une limite : les labels faibles sont trop faciles sur ce dataset. Le fait que les trois methodes atteignent `1.0000` ne prouve pas que les methodes sont equivalentes ; cela signifie que le protocole heuristique ne discrimine plus assez les tops 5.
+
+La suite methodologiquement correcte est donc d'utiliser `docs/matching-human-review-pack.md`, qui contient des offres selectionnees par fort desaccord entre methodes, puis de noter manuellement les candidats sur une echelle `1-5`.
+
+### Revue humaine Phase 3
+
+La revue humaine contient :
+
+- `10` offres ;
+- `50` candidats proposes ;
+- `49` notes exploitables ;
+- `1` candidat exclu explicitement du calcul : Offre 5 / Candidat D.
+
+Synthese des resultats :
+
+| Methode | Correlation avec note humaine | Note humaine moyenne du top 1 choisi | Top humain retrouve |
+|---|---:|---:|---:|
+| baseline | 0.540 | 4.13 / 5 | 5 / 10 |
+| semantic | -0.441 | 3.25 / 5 | 1 / 10 |
+| enriched_proxy | -0.404 | 3.85 / 5 | 1 / 10 |
+
+Lecture :
+
+- la baseline offline est la plus proche du jugement humain sur cet echantillon difficile ;
+- le semantique brut est trop permissif sur des profils partageant le vocabulaire de qualite, livraison ou collaboration ;
+- `enriched_proxy` remonte des profils parfois utiles mais amplifie aussi des faux positifs QA / DevOps sur des offres developpeur ;
+- l'experience cible, le mode de travail et la famille metier ressortent comme criteres humains importants.
+
 ### Ce que cela change
 
-Le projet est plus proche aujourd'hui d'une **evaluation IR / ranking** que d'une evaluation par jury expert.
+Le projet n'est plus uniquement dans une **evaluation IR / ranking** heuristique.
 
-Ce n'est pas un defaut en soi.
-Mais ce n'est pas la meme preuve.
+Il dispose maintenant d'une premiere lecture humaine qualitative, ce qui reduit l'ecart initial sur la pertinence.
+Cette preuve reste limitee, car l'echantillon est petit et un candidat est exclu du calcul, mais elle est beaucoup plus informative que les metriques faibles saturees.
+
+Une consequence directe a ete appliquee en Phase 4 : le score avance conserve CamemBERT, mais ajoute un garde-fou de famille metier. Quand l'offre et le candidat sont hors famille compatible, le bonus enrichi est neutralise et le score enrichi est plafonne pour limiter les faux positifs QA / DevOps / mobile observes dans la revue humaine.
 
 ### Ce qu'on peut encore changer
 
-1. garder les metriques de ranking ;
-2. ajouter une evaluation humaine sur un echantillon ;
-3. demander a des recruteurs ou experts tech de noter la qualite du top 5 ;
-4. croiser :
-   - score humain,
-   - position dans le classement,
-   - differences entre baseline, semantique, enrichi.
+1. refaire une revue humaine sur un second pack apres garde-fou de famille metier ;
+2. faire peser plus clairement le mode de travail et l'experience cible ;
+3. calibrer ensuite le bonus junior sur les cas vraiment compatibles.
 
 La combinaison des deux est beaucoup plus solide pour un memoire.
 
@@ -889,7 +948,17 @@ La fairness implementee mesure surtout :
 
 - **junior vs non-junior** ;
 - sur la base des annees d'experience ;
-- avec moyenne des scores et `disparate_impact_ratio`.
+- avec moyenne des scores, `disparate_impact_ratio`, effectifs, taux de selection et ecart moyen.
+
+Depuis le premier increment Phase 4, `FairnessAuditor` expose aussi :
+
+- `junior_count` ;
+- `non_junior_count` ;
+- `junior_selection_rate` ;
+- `non_junior_selection_rate` ;
+- `selection_rate_ratio` ;
+- `score_gap` ;
+- `assessment`.
 
 ### Ce qui a change
 
@@ -915,13 +984,19 @@ On peut dire plus modestement :
 
 - "nous auditons un biais potentiel junior / non-junior".
 
+Ce que l'on peut ajouter depuis Phase 4 :
+
+- "nous distinguons maintenant l'aide aux juniors d'une preuve de fairness generale" ;
+- "nous mesurons aussi si les juniors sont moins souvent selectionnes au-dessus d'un seuil de score favorable" ;
+- "nous avons un premier test contrefactuel verifiant que deux CV identiques sauf identite directe donnent le meme texte anonymise".
+
 ### Ce qu'on peut encore changer
 
 #### Minimum credible
 
-1. ajouter un test "avant anonymisation / apres anonymisation" sur les noms ;
-2. injecter des profils synthetiques differant seulement par identite ;
-3. mesurer si le ranking varie.
+1. [x] ajouter un test "avant anonymisation / apres anonymisation" sur les noms ;
+2. [x] injecter des profils synthetiques differant seulement par identite directe ;
+3. [ ] mesurer si le ranking varie sur des profils contrefactuels complets.
 
 #### Niveau intermediaire
 

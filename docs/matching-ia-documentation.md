@@ -385,6 +385,13 @@ Le module `FairnessAuditor` mesure si le système de matching est **équitable e
 | Score moyen juniors | $\text{mean}(\text{scores juniors})$ | Performance moyenne des juniors |
 | Score moyen non-juniors | $\text{mean}(\text{scores non-juniors})$ | Performance moyenne des seniors |
 | Ratio d'impact disparate | $\frac{\text{moy. juniors}}{\text{moy. non-juniors}}$ | Proche de 1.0 = équitable |
+| Effectifs juniors / non-juniors | $\text{count}(\text{group})$ | Vérifie que la comparaison est exploitable |
+| Taux de sélection junior / non-junior | $\frac{\text{scores} \ge 0.8}{\text{effectif groupe}}$ | Part des profils au-dessus d'un seuil favorable |
+| Ratio de taux de sélection | $\frac{\text{taux junior}}{\text{taux non-junior}}$ | Signal de sous/sur-sélection |
+| Écart moyen de score | $\text{moy. junior} - \text{moy. non-junior}$ | Sens et amplitude de l'écart |
+| Assessment | règle de lecture | `balanced_selection_rate`, `junior_under_selected`, `junior_over_selected` ou population insuffisante |
+
+Ces métriques ne prouvent pas une fairness générale. Elles mesurent surtout la dimension junior / non-junior, qui est volontairement conservée dans le produit.
 
 ### Application
 

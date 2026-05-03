@@ -55,9 +55,9 @@ final class OfferMatchingService
      * @return list<array{
      *     offer: array{id: int|null, title: string, location: ?string, locationType: ?string, contractType: ?string, experienceLevel: ?int},
      *     extractedRequirements: array{hardSkills: list<string>, softSkills: list<string>},
-     *     fairness: array{junior_avg_score: float, non_junior_avg_score: float, disparate_impact_ratio: float},
-     *     semantic: array{available: bool, fairness: array{junior_avg_score: float, non_junior_avg_score: float, disparate_impact_ratio: float}},
-     *     enriched: array{available: bool, fairness: array{junior_avg_score: float, non_junior_avg_score: float, disparate_impact_ratio: float}},
+     *     fairness: array<string, float|int|string>,
+     *     semantic: array{available: bool, fairness: array<string, float|int|string>},
+     *     enriched: array{available: bool, fairness: array<string, float|int|string>},
      *     matches: list<array{
      *         developerId: int|null,
      *         slug: ?string,
@@ -98,9 +98,9 @@ final class OfferMatchingService
      * @return array{
      *     offer: array{id: int|null, title: string, location: ?string, locationType: ?string, contractType: ?string, experienceLevel: ?int},
      *     extractedRequirements: array{hardSkills: list<string>, softSkills: list<string>},
-     *     fairness: array{junior_avg_score: float, non_junior_avg_score: float, disparate_impact_ratio: float},
-     *     semantic: array{available: bool, fairness: array{junior_avg_score: float, non_junior_avg_score: float, disparate_impact_ratio: float}},
-     *     enriched: array{available: bool, fairness: array{junior_avg_score: float, non_junior_avg_score: float, disparate_impact_ratio: float}},
+     *     fairness: array<string, float|int|string>,
+     *     semantic: array{available: bool, fairness: array<string, float|int|string>},
+     *     enriched: array{available: bool, fairness: array<string, float|int|string>},
      *     matches: list<array<string, mixed>>
      * }
      */

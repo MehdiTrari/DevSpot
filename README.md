@@ -193,6 +193,7 @@ Les documents de référence actuellement conservés dans le dépôt sont :
 - [docs/camembert-algorithme-technique.md](docs/camembert-algorithme-technique.md) — détail de l'algorithme vectoriel CamemBERT, projection, cosinus et scoring
 - [docs/analyse-methodologie-matching.md](docs/analyse-methodologie-matching.md) — comparaison entre la méthodologie cible, l'implémentation réelle et les écarts restants
 - [docs/matching-improvement-roadmap.md](docs/matching-improvement-roadmap.md) — feuille de route incrémentale pour le nettoyage, l'optimisation, la pertinence et la fairness
+- [docs/matching-human-review-summary.md](docs/matching-human-review-summary.md) — synthèse de la revue humaine Phase 3 sur la pertinence du matching
 - [docs/ci-cd-github-actions.md](docs/ci-cd-github-actions.md) — CI actuelle et cible CD via GitHub Actions
 - [docs/US15-performance.md](docs/US15-performance.md) — optimisation performance réalisée sur l'application
 - [docs/junior-skill-inference-implementation.md](docs/junior-skill-inference-implementation.md) — note de conception détaillée sur l'inférence de compétences juniors
@@ -205,6 +206,7 @@ Les documents de référence actuellement conservés dans le dépôt sont :
 - Pour comprendre l'algorithme CamemBERT en détail : lire [docs/camembert-algorithme-technique.md](docs/camembert-algorithme-technique.md)
 - Pour comprendre l'état réel de l'anonymisation et les écarts méthodologiques : lire [docs/analyse-methodologie-matching.md](docs/analyse-methodologie-matching.md)
 - Pour suivre les améliorations prévues : lire [docs/matching-improvement-roadmap.md](docs/matching-improvement-roadmap.md)
+- Pour lire la première synthèse de pertinence humaine : lire [docs/matching-human-review-summary.md](docs/matching-human-review-summary.md)
 - Pour la chaîne qualité/tests/CD : lire [docs/ci-cd-github-actions.md](docs/ci-cd-github-actions.md)
 
 ## Notes

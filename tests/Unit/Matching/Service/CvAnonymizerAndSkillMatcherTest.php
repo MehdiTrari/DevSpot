@@ -38,6 +38,30 @@ TEXT;
         self::assertStringContainsString('Disponible pour un poste Symfony.', $anonymized);
     }
 
+    public function testCvAnonymizerProducesSameTextForCounterfactualIdentities(): void
+    {
+        $anonymizer = new CvAnonymizer();
+
+        $first = <<<'TEXT'
+Alice Martin
+alice.dev@example.com
++33 6 12 34 56 78
+Developpeuse Symfony avec experience API Platform et SQL.
+TEXT;
+
+        $second = <<<'TEXT'
+Mehdi Trari
+mehdi.dev@example.com
++33 7 98 76 54 32
+Developpeuse Symfony avec experience API Platform et SQL.
+TEXT;
+
+        self::assertSame(
+            $anonymizer->anonymize($first, ['Alice', 'Martin']),
+            $anonymizer->anonymize($second, ['Mehdi', 'Trari']),
+        );
+    }
+
     public function testSkillMatcherScoresUsingCaseInsensitiveOverlapAndJuniorBoost(): void
     {
         $matcher = new SkillMatcher();
