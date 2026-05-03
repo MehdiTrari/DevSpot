@@ -171,7 +171,8 @@ final class AdminModerationLogsTest extends WebTestCase
         $crawler = $client->request('GET', sprintf('/admin/logs?admin=%d&target=%d', $admin->getId(), $target->getId()));
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('body', 'Page 1 / 2');
+        self::assertSelectorTextContains('body', '21 actions trouvées.');
+        self::assertSelectorTextContains('body', 'Page 1 / 3');
 
         $nextHref = $crawler->selectLink('Suivant')->link()->getUri();
         self::assertStringContainsString('page=2', $nextHref);
