@@ -73,10 +73,38 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/logs', name: 'app_admin_logs', methods: ['GET'])]
-    public function logs(AdminActionLogRepository $adminActionLogRepository): Response
+    public function logs(AdminActionLogRepository $adminActionLogRepository, UserRepository $userRepository, Request $request): Response
     {
+        $adminUser = null;
+        $targetUser = null;
+        $adminId = $request->query->getInt('admin');
+        $targetId = $request->query->getInt('target');
+
+        if ($adminId > 0) {
+            $adminUser = $userRepository->find($adminId);
+        }
+
+        if ($targetId > 0) {
+            $targetUser = $userRepository->find($targetId);
+        }
+
+        $perPage = 10;
+        $requestedPage = max(1, $request->query->getInt('page', 1));
+        $totalLogs = $adminActionLogRepository->countForHistory($adminUser, $targetUser);
+        $totalPages = max(1, (int) ceil($totalLogs / $perPage));
+        $currentPage = min($requestedPage, $totalPages);
+
         return $this->render('admin/logs.html.twig', [
-            'logs' => $adminActionLogRepository->findBy([], ['createdAt' => 'DESC'], 100),
+            'logs' => $adminActionLogRepository->findForHistory($adminUser, $targetUser, $currentPage, $perPage),
+            'adminUsers' => $userRepository->findAdmins(),
+            'targetUsers' => $userRepository->findBy([], ['email' => 'ASC'], 200),
+            'filters' => [
+                'admin' => $adminUser?->getId(),
+                'target' => $targetUser?->getId(),
+            ],
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+            'totalLogs' => $totalLogs,
         ]);
     }
 
@@ -427,7 +455,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/profiles/{id}/moderate', name: 'app_admin_profiles_moderate', requirements: ['id' => '\\d+'], methods: ['POST'])]
-    public function moderateProfile(DeveloperProfile $profile, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function moderateProfile(DeveloperProfile $profile, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, AdminModerationLogger $moderationLogger): Response
     {
         if (!$this->isCsrfTokenValid('admin_profile_moderate_' . $profile->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
@@ -442,16 +470,28 @@ final class AdminController extends AbstractController
             return $this->redirectToRefererOrRoute($request, 'app_admin_profiles');
         }
 
+        $previousPublic = $profile->isPublic();
         $profile->setIsPublic(false);
         $profile->setModeratedAt(new \DateTimeImmutable());
         $profile->setModerationReason($reason);
         $profile->setUpdatedAt(new \DateTimeImmutable());
         $notificationManager->notifyApplicantProfileModerated($profile, $reason);
 
-        $this->logAdminAction($entityManager, 'profile.moderated', $profile->getUser(), [
-            'profileId' => $profile->getId(),
-            'reason' => $reason,
-        ]);
+        $currentUser = $this->getUser();
+        if ($currentUser instanceof User) {
+            $moderationLogger->log(
+                AdminModerationLogger::VALIDATE_PROFILE,
+                $currentUser,
+                $profile->getUser(),
+                $reason,
+                [
+                    'profileId' => $profile->getId(),
+                    'previousPublic' => $previousPublic,
+                    'newPublic' => false,
+                    'source' => 'admin_profiles_moderate',
+                ],
+            );
+        }
 
         $entityManager->flush();
         $this->addFlash('success', 'Le profil a été modéré et l\'utilisateur a été notifié.');

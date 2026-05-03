@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\AdminActionLog;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -43,6 +44,49 @@ class AdminActionLogRepository extends ServiceEntityRepository
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @return list<AdminActionLog>
+     */
+    public function findForHistory(?User $adminUser = null, ?User $targetUser = null, int $page = 1, int $perPage = 20): array
+    {
+        $queryBuilder = $this->createQueryBuilder('log')
+            ->addSelect('adminUser', 'targetUser')
+            ->leftJoin('log.adminUser', 'adminUser')
+            ->leftJoin('log.targetUser', 'targetUser')
+            ->orderBy('log.createdAt', 'DESC')
+            ->setFirstResult(max(0, ($page - 1) * $perPage))
+            ->setMaxResults($perPage);
+
+        $this->applyHistoryFilters($queryBuilder, $adminUser, $targetUser);
+
+        return $queryBuilder->getQuery()->getResult();
+    }
+
+    public function countForHistory(?User $adminUser = null, ?User $targetUser = null): int
+    {
+        $queryBuilder = $this->createQueryBuilder('log')
+            ->select('COUNT(log.id)');
+
+        $this->applyHistoryFilters($queryBuilder, $adminUser, $targetUser);
+
+        return (int) $queryBuilder->getQuery()->getSingleScalarResult();
+    }
+
+    private function applyHistoryFilters(QueryBuilder $queryBuilder, ?User $adminUser, ?User $targetUser): void
+    {
+        if ($adminUser instanceof User) {
+            $queryBuilder
+                ->andWhere('log.adminUser = :adminUser')
+                ->setParameter('adminUser', $adminUser);
+        }
+
+        if ($targetUser instanceof User) {
+            $queryBuilder
+                ->andWhere('log.targetUser = :targetUser')
+                ->setParameter('targetUser', $targetUser);
+        }
     }
 
     //    /**

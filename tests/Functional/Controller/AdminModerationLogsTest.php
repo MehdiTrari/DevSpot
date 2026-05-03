@@ -2,6 +2,7 @@
 
 namespace App\Tests\Functional\Controller;
 
+use App\Entity\AdminActionLog;
 use App\Entity\User;
 use App\Enum\UserStatus;
 use App\Repository\AdminActionLogRepository;
@@ -107,6 +108,127 @@ final class AdminModerationLogsTest extends WebTestCase
         self::assertSame(UserStatus::ACTIVE, $userRepository->find($target->getId())?->getStatus());
     }
 
+    public function testLogsCanBeFilteredByAdminAndTarget(): void
+    {
+        $client = static::createClient();
+        $this->initializeSchemaIfNeeded();
+
+        $admin = $this->createUserWithStatus(
+            sprintf('admin_filter_%s@example.com', bin2hex(random_bytes(6))),
+            UserStatus::ACTIVE,
+            ['ROLE_ADMIN']
+        );
+        $otherAdmin = $this->createUserWithStatus(
+            sprintf('admin_filter_other_%s@example.com', bin2hex(random_bytes(6))),
+            UserStatus::ACTIVE,
+            ['ROLE_ADMIN']
+        );
+        $target = $this->createUserWithStatus(
+            sprintf('target_filter_%s@example.com', bin2hex(random_bytes(6))),
+            UserStatus::ACTIVE,
+            ['ROLE_APPLICANT']
+        );
+        $otherTarget = $this->createUserWithStatus(
+            sprintf('target_filter_other_%s@example.com', bin2hex(random_bytes(6))),
+            UserStatus::ACTIVE,
+            ['ROLE_APPLICANT']
+        );
+
+        $matchingReason = 'Filtre admin et cible '.bin2hex(random_bytes(4));
+        $otherReason = 'Filtre autre log '.bin2hex(random_bytes(4));
+        $this->createLog($admin, $target, AdminModerationLogger::BAN, $matchingReason);
+        $this->createLog($otherAdmin, $otherTarget, AdminModerationLogger::BAN, $otherReason);
+
+        $client->loginUser($admin);
+        $client->request('GET', sprintf('/admin/logs?admin=%d&target=%d', $admin->getId(), $target->getId()));
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('body', $matchingReason);
+        self::assertSelectorTextNotContains('body', $otherReason);
+    }
+
+    public function testLogsPaginationKeepsActiveFilters(): void
+    {
+        $client = static::createClient();
+        $this->initializeSchemaIfNeeded();
+
+        $admin = $this->createUserWithStatus(
+            sprintf('admin_logs_page_%s@example.com', bin2hex(random_bytes(6))),
+            UserStatus::ACTIVE,
+            ['ROLE_ADMIN']
+        );
+        $target = $this->createUserWithStatus(
+            sprintf('target_logs_page_%s@example.com', bin2hex(random_bytes(6))),
+            UserStatus::ACTIVE,
+            ['ROLE_APPLICANT']
+        );
+
+        for ($i = 1; $i <= 21; ++$i) {
+            $this->createLog($admin, $target, AdminModerationLogger::BAN, sprintf('Log pagine %02d', $i));
+        }
+
+        $client->loginUser($admin);
+        $crawler = $client->request('GET', sprintf('/admin/logs?admin=%d&target=%d', $admin->getId(), $target->getId()));
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('body', 'Page 1 / 2');
+
+        $nextHref = $crawler->selectLink('Suivant')->link()->getUri();
+        self::assertStringContainsString('page=2', $nextHref);
+        self::assertStringContainsString('admin='.$admin->getId(), $nextHref);
+        self::assertStringContainsString('target='.$target->getId(), $nextHref);
+    }
+
+    public function testAdminActionLogProofFieldsAreImmutable(): void
+    {
+        $client = static::createClient();
+        $this->initializeSchemaIfNeeded();
+
+        $admin = $this->createUserWithStatus(
+            sprintf('admin_immutable_%s@example.com', bin2hex(random_bytes(6))),
+            UserStatus::ACTIVE,
+            ['ROLE_ADMIN']
+        );
+        $target = $this->createUserWithStatus(
+            sprintf('target_immutable_%s@example.com', bin2hex(random_bytes(6))),
+            UserStatus::ACTIVE,
+            ['ROLE_APPLICANT']
+        );
+        $log = $this->createLog($admin, $target, AdminModerationLogger::BAN, 'Motif initial.');
+
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $log->setReason('Motif modifie.');
+
+        $this->expectException(\LogicException::class);
+        $entityManager->flush();
+    }
+
+    public function testAdminActionLogCannotBeDeleted(): void
+    {
+        $client = static::createClient();
+        $this->initializeSchemaIfNeeded();
+
+        $admin = $this->createUserWithStatus(
+            sprintf('admin_delete_log_%s@example.com', bin2hex(random_bytes(6))),
+            UserStatus::ACTIVE,
+            ['ROLE_ADMIN']
+        );
+        $target = $this->createUserWithStatus(
+            sprintf('target_delete_log_%s@example.com', bin2hex(random_bytes(6))),
+            UserStatus::ACTIVE,
+            ['ROLE_APPLICANT']
+        );
+        $log = $this->createLog($admin, $target, AdminModerationLogger::BAN, 'Motif conserve.');
+
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $entityManager->remove($log);
+
+        $this->expectException(\LogicException::class);
+        $entityManager->flush();
+    }
+
     private function initializeSchemaIfNeeded(): void
     {
         if (self::$schemaInitialized) {
@@ -155,5 +277,24 @@ final class AdminModerationLogsTest extends WebTestCase
         $entityManager->flush();
 
         return $user;
+    }
+
+    private function createLog(User $adminUser, User $targetUser, string $action, string $reason): AdminActionLog
+    {
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+
+        $log = (new AdminActionLog())
+            ->setAction($action)
+            ->setAdminUser($adminUser)
+            ->setTargetUser($targetUser)
+            ->setReason($reason)
+            ->setMetadata(['source' => 'test'])
+            ->setCreatedAt(new \DateTimeImmutable());
+
+        $entityManager->persist($log);
+        $entityManager->flush();
+
+        return $log;
     }
 }
