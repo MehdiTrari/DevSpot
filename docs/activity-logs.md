@@ -12,7 +12,9 @@ Il sert à :
 - conserver des informations techniques utiles à l'audit, comme l'adresse IP ;
 - stocker des détails structurés dans `metadata`, notamment les scores de matching.
 
-## Entité utilisée
+## Logs applicatifs
+
+### Entité utilisée
 
 Les logs applicatifs sont stockés dans l'entité `App\Entity\ActivityLog`, table SQL `activity_log`.
 
@@ -29,7 +31,7 @@ Les logs applicatifs sont stockés dans l'entité `App\Entity\ActivityLog`, tabl
 
 `createdAt` est généré automatiquement dans le constructeur PHP de `ActivityLog`.
 
-## Service central
+### Service central
 
 L'insertion des logs passe par `App\Service\LoggerService`.
 
@@ -66,9 +68,9 @@ $loggerService->log(
 );
 ```
 
-## Actions actuellement enregistrées
+### Actions actuellement enregistrées
 
-### `USER_LOGIN`
+#### `USER_LOGIN`
 
 Déclenché lors d'une connexion réussie.
 
@@ -90,7 +92,7 @@ Métadonnées :
 }
 ```
 
-### `PROFILE_UPDATE`
+#### `PROFILE_UPDATE`
 
 Déclenché lors de la création ou de la modification d'un profil postulant.
 
@@ -124,7 +126,7 @@ Pour une création de profil :
 }
 ```
 
-### `OFFER_PUBLISHED`
+#### `OFFER_PUBLISHED`
 
 Déclenché lorsqu'un recruteur publie une offre.
 
@@ -156,7 +158,7 @@ Métadonnées lors d'un changement de statut :
 }
 ```
 
-### `MATCHING_CALCULATED`
+#### `MATCHING_CALCULATED`
 
 Déclenché lorsqu'un matching recruteur est réellement recalculé.
 
@@ -206,6 +208,96 @@ Les scores de l'extraction sémantique sont donc conservés dans `metadata` via 
 - `scores[*].semanticPercentage` : score sémantique par profil ;
 - `scores[*].semanticEnrichedPercentage` : score enrichi par profil ;
 - `scores[*].scoreBreakdown` : détail du score métier.
+
+## Logs de modération admin
+
+### Entité utilisée
+
+Les décisions de modération administrative sont stockées dans `App\Entity\AdminActionLog`, table SQL `admin_action_log`.
+
+| Champ | Rôle |
+| --- | --- |
+| `id` | Identifiant du log |
+| `action` | Nature de la décision de modération |
+| `adminUser` | Administrateur responsable de la décision |
+| `targetUser` | Utilisateur impacté par la décision |
+| `reason` | Motivation textuelle de l'action |
+| `metadata` | Données JSON contextuelles |
+| `createdAt` | Date exacte de création du log |
+
+`createdAt` est renseigné au moment de l'action par le service de modération.
+
+### Service central
+
+Les écritures de modération passent par `App\Service\AdminModerationLogger`.
+
+Le service garantit :
+
+- l'écriture uniquement pour un compte disposant de `ROLE_ADMIN` ;
+- la création d'un `AdminActionLog` avec `adminUser`, `targetUser`, `reason`, `metadata` et `createdAt` ;
+- l'obligation d'une raison non vide pour l'action `BAN` ;
+- la possibilité de persister dans la transaction métier en laissant `flush` à `false`.
+
+Exemple :
+
+```php
+$adminModerationLogger->log(
+    AdminModerationLogger::BAN,
+    $adminUser,
+    $targetUser,
+    'Comportement abusif confirmé.',
+    [
+        'previousStatus' => 'active',
+        'newStatus' => 'banned',
+    ],
+);
+```
+
+### Actions de modération
+
+| Action | Déclencheur |
+| --- | --- |
+| `BAN` | Passage du compte au statut `banned` |
+| `UNBAN` | Réactivation d'un compte non pending |
+| `SUSPEND` | Passage du compte au statut `suspended` |
+| `ADD_WHITELIST` | Validation d'un compte pending vers `active` |
+| `VALIDATE_PROFILE` | Action disponible pour une validation de profil dédiée |
+| `REJECT` | Action disponible pour un refus de compte ou profil |
+
+Les actions de statut utilisateur sont intégrées dans `AdminController` :
+
+- `updateUserStatus()`
+- `suspendUser()`
+- `banUser()`
+- `validateUser()`
+
+### Métadonnées de statut
+
+Pour une modification de statut utilisateur, `metadata` contient au minimum :
+
+```json
+{
+  "previousStatus": "active",
+  "newStatus": "banned",
+  "source": "admin_users_quick_action"
+}
+```
+
+Le champ `source` indique le flux admin qui a déclenché l'action.
+
+### Filtrage de l'historique
+
+Le repository `AdminActionLogRepository` expose deux méthodes ciblées :
+
+```php
+$adminActionLogRepository->findByAdmin($adminUser);
+$adminActionLogRepository->findByTarget($targetUser);
+```
+
+Elles permettent de répondre aux questions :
+
+- qui a banni ou validé un compte ?
+- quelles décisions ont impacté un utilisateur donné ?
 
 ## Bonnes pratiques
 

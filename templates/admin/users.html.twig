@@ -1004,8 +1004,9 @@
                                         {% endif %}
 
                                         {% if user.status and user.status.value in ['active', 'suspended', 'pending'] %}
-                                            <form method="post" action="{{ path('app_admin_users_ban', {id: user.id}) }}">
+                                            <form method="post" action="{{ path('app_admin_users_ban', {id: user.id}) }}" onsubmit="const reason = prompt('Raison du bannissement ?'); if (!reason || !reason.trim()) { return false; } this.querySelector('[name=reason]').value = reason.trim();">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('admin_user_ban_' ~ user.id) }}">
+                                                <input type="hidden" name="reason" value="">
                                                 <button type="submit" class="admin-users-action-slate w-full rounded-lg px-3 py-2 text-xs font-semibold" {% if isCurrentAdmin %}disabled{% endif %}>Bannir</button>
                                             </form>
                                         {% endif %}
