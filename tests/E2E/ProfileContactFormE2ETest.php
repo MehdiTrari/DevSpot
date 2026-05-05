@@ -35,7 +35,9 @@ final class ProfileContactFormE2ETest extends PantherWebTestCase
             'contact_message[message]' => 'Bonjour, nous avons une opportunité CDI Symfony pour vous.',
         ]);
 
-        $bodyText = $this->waitForTextContent($client, 'body', 'Votre message a bien été envoyé au développeur.', 10000);
-        self::assertStringContainsString('Votre message a bien été envoyé au développeur.', $bodyText);
+        self::assertStringContainsString(
+            'Votre message a bien été envoyé au développeur.',
+            $this->waitForTextContent($client, '[data-notification-stack="true"]', 'Votre message a bien été envoyé au développeur.', 10000)
+        );
     }
 }
