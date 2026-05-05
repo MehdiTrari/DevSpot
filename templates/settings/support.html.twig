@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% form_theme supportForm 'form/my_theme.html.twig' %}
+
+{% block title %}Support | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-5xl self-start space-y-6">
+        <div class="theme-settings-card rounded-[2rem] p-6 sm:p-8">
+            <div class="max-w-3xl">
+                <span class="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">
+                    Support
+                </span>
+                <h1 class="ui-title mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Contacter l'équipe</h1>
+                <p class="ui-text-secondary mt-3 text-[15px] leading-relaxed">
+                    Utilisez ce formulaire pour signaler un problème ou formuler une demande.
+                </p>
+            </div>
+
+            <div class="mt-6">
+                {% include 'settings/_menu.html.twig' with { current: 'support' } %}
+            </div>
+
+            <div class="mt-8 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+                <aside class="theme-settings-card rounded-[1.7rem] border border-white/10 bg-slate-950/35 p-5">
+                    <p class="ui-title text-lg font-semibold">Identité transmise</p>
+                    <div class="mt-4 space-y-3 text-sm text-slate-300">
+                        <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                            <p class="text-xs uppercase tracking-[0.18em] text-slate-400">Compte</p>
+                            <p class="mt-1 font-semibold text-white">{{ requesterDisplayName }}</p>
+                            <p class="mt-1 text-slate-400">{{ requesterEmail }}</p>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                            <p class="text-xs uppercase tracking-[0.18em] text-slate-400">Avant de nous écrire</p>
+                            <p class="mt-1 leading-relaxed">
+                                Consultez d'abord la FAQ pour vérifier si une réponse immédiate est déjà disponible.
+                            </p>
+                            <a href="{{ helpFaqUrl }}" class="ui-link-accent mt-3 inline-flex items-center gap-2 text-sm font-semibold">
+                                Ouvrir la FAQ
+                            </a>
+                        </div>
+                    </div>
+                </aside>
+
+                <div class="theme-settings-card rounded-[1.7rem] border border-white/10 bg-slate-950/35 p-5 sm:p-6">
+                    {% if supportForm.vars.errors|length > 0 %}
+                        <div class="mb-4 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                            {{ form_errors(supportForm) }}
+                        </div>
+                    {% endif %}
+
+                    {{ form_start(supportForm, { attr: { class: 'space-y-1' } }) }}
+                        {{ form_row(supportForm.subject) }}
+                        {{ form_row(supportForm.message) }}
+
+                        <div class="pt-2">
+                            <button type="submit" class="ui-button-primary inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold">
+                                Envoyer la demande
+                            </button>
+                        </div>
+                    {{ form_end(supportForm) }}
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

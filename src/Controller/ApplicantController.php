@@ -15,6 +15,7 @@ use App\Repository\ConversationRepository;
 use App\Repository\DeveloperProfileRepository;
 use App\Repository\MessageRepository;
 use App\Service\ChatMercure;
+use App\Service\LoggerService;
 use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Dompdf\Dompdf;
@@ -255,6 +256,7 @@ final class ApplicantController extends AbstractController
         EntityManagerInterface $entityManager,
         DeveloperProfileRepository $developerProfileRepository,
         NotificationManager $notificationManager,
+        LoggerService $loggerService,
     ): Response {
         $user = $this->getApplicantUser();
 
@@ -275,6 +277,13 @@ final class ApplicantController extends AbstractController
             $this->handleAvatarUpload($form, $profile);
             $profile->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
+            $loggerService->log(
+                LoggerService::PROFILE_UPDATE,
+                $user,
+                DeveloperProfile::class,
+                $profile->getId(),
+                ['step' => 1, 'created' => $isNewProfile],
+            );
 
             return $this->redirectAfterProfileStep(
                 $request,
@@ -293,7 +302,7 @@ final class ApplicantController extends AbstractController
 
     #[Route('/applicant/profile/step-1', name: 'app_applicant_profile_step1')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function editProfileStep1(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function editProfileStep1(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, LoggerService $loggerService): Response
     {
         $profile = $this->getApplicantUser()->getDeveloperProfile();
         if (!$profile instanceof DeveloperProfile) {
@@ -306,6 +315,14 @@ final class ApplicantController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->handleAvatarUpload($form, $profile);
             $profile->setUpdatedAt(new \DateTimeImmutable());
+            $loggerService->log(
+                LoggerService::PROFILE_UPDATE,
+                $this->getApplicantUser(),
+                DeveloperProfile::class,
+                $profile->getId(),
+                ['step' => 1],
+                flush: false,
+            );
             $entityManager->flush();
 
             return $this->redirectAfterProfileStep(
@@ -345,7 +362,7 @@ final class ApplicantController extends AbstractController
 
     #[Route('/applicant/profile/step-2', name: 'app_applicant_profile_step2')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function editProfileStep2(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function editProfileStep2(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, LoggerService $loggerService): Response
     {
         $profile = $this->getApplicantUser()->getDeveloperProfile();
         if (!$profile instanceof DeveloperProfile) {
@@ -357,6 +374,14 @@ final class ApplicantController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $profile->setUpdatedAt(new \DateTimeImmutable());
+            $loggerService->log(
+                LoggerService::PROFILE_UPDATE,
+                $this->getApplicantUser(),
+                DeveloperProfile::class,
+                $profile->getId(),
+                ['step' => 2],
+                flush: false,
+            );
             $entityManager->flush();
 
             return $this->redirectAfterProfileStep(
@@ -376,7 +401,7 @@ final class ApplicantController extends AbstractController
 
     #[Route('/applicant/profile/step-3', name: 'app_applicant_profile_step3')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function editProfileStep3(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function editProfileStep3(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, LoggerService $loggerService): Response
     {
         $profile = $this->getApplicantUser()->getDeveloperProfile();
         if (!$profile instanceof DeveloperProfile) {
@@ -395,6 +420,14 @@ final class ApplicantController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $profile->setUpdatedAt(new \DateTimeImmutable());
+            $loggerService->log(
+                LoggerService::PROFILE_UPDATE,
+                $this->getApplicantUser(),
+                DeveloperProfile::class,
+                $profile->getId(),
+                ['step' => 3],
+                flush: false,
+            );
             $entityManager->flush();
 
             return $this->redirectAfterProfileStep(
@@ -414,7 +447,7 @@ final class ApplicantController extends AbstractController
 
     #[Route('/applicant/profile/step-4', name: 'app_applicant_profile_step4')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function editProfileStep4(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function editProfileStep4(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, LoggerService $loggerService): Response
     {
         $profile = $this->getApplicantUser()->getDeveloperProfile();
         if (!$profile instanceof DeveloperProfile) {
@@ -426,6 +459,14 @@ final class ApplicantController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $profile->setUpdatedAt(new \DateTimeImmutable());
+            $loggerService->log(
+                LoggerService::PROFILE_UPDATE,
+                $this->getApplicantUser(),
+                DeveloperProfile::class,
+                $profile->getId(),
+                ['step' => 4],
+                flush: false,
+            );
             $entityManager->flush();
 
             return $this->redirectAfterProfileStep(

@@ -9,9 +9,9 @@
                 <span class="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">
                     Paramètres
                 </span>
-                <h1 class="ui-title mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Centre de paramètres</h1>
+                <h1 class="ui-title mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Centre de Paramètres</h1>
                 <p class="ui-text-secondary mt-3 text-[15px] leading-relaxed">
-                    Regroupe les actions de compte et de préférences depuis un seul endroit.
+                    Regroupe les actions de compte et de Préférences depuis un seul endroit.
                 </p>
             </div>
 
@@ -21,7 +21,7 @@
 
             <div class="mt-8 grid gap-4 sm:grid-cols-2">
                 <a href="{{ path('app_settings_preferences') }}" class="premium-action-card flex items-start gap-3 rounded-[1.4rem] p-5 text-left">
-                    <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-emerald-300">⚙</span>
+                    <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-emerald-300">P</span>
                     <span>
                         <span class="ui-title block text-base font-semibold">Préférences</span>
                         <span class="ui-text-muted mt-1 block text-sm">Thème, mode jour/nuit et confort visuel.</span>
@@ -30,7 +30,7 @@
 
                 {% if app.user and app.user.canRequestRoleChange %}
                     <a href="{{ path('app_settings_role') }}" class="premium-action-card flex items-start gap-3 rounded-[1.4rem] p-5 text-left">
-                        <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-amber-300">⇄</span>
+                        <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-amber-300">R</span>
                         <span>
                             <span class="ui-title block text-base font-semibold">Changement de rôle</span>
                             <span class="ui-text-muted mt-1 block text-sm">Demander un passage candidat ou recruteur.</span>

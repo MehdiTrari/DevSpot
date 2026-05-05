@@ -1004,8 +1004,9 @@
                                         {% endif %}
 
                                         {% if user.status and user.status.value in ['active', 'suspended', 'pending'] %}
-                                            <form method="post" action="{{ path('app_admin_users_ban', {id: user.id}) }}">
+                                            <form method="post" action="{{ path('app_admin_users_ban', {id: user.id}) }}" onsubmit="const reason = prompt('Raison du bannissement ?'); if (!reason || !reason.trim()) { return false; } this.querySelector('[name=reason]').value = reason.trim();">
                                                 <input type="hidden" name="_token" value="{{ csrf_token('admin_user_ban_' ~ user.id) }}">
+                                                <input type="hidden" name="reason" value="">
                                                 <button type="submit" class="admin-users-action-slate w-full rounded-lg px-3 py-2 text-xs font-semibold" {% if isCurrentAdmin %}disabled{% endif %}>Bannir</button>
                                             </form>
                                         {% endif %}
@@ -1072,7 +1073,7 @@
                         required
                         minlength="6"
                         rows="4"
-                        placeholder="Expliquez pourquoi ce profil doit etre revu..."
+                        placeholder="Expliquez pourquoi ce profil doit être revu..."
                         class="w-full rounded-2xl border border-white/10 bg-slate-950/70 px-3.5 py-2.5 text-sm text-white placeholder:text-slate-500 outline-none transition focus:border-amber-400/50 focus:ring-2 focus:ring-amber-500/20"
                         data-admin-users-moderation-reason="true"
                     ></textarea>
