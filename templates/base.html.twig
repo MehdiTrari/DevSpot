@@ -390,7 +390,7 @@
                                 const payload = await response.json().catch(() => ({}));
 
                                 if (!response.ok || !payload.success) {
-                                    pushNotification(payload?.message ?? 'Action impossible, merci de reessayer.', payload?.type ?? 'error');
+                                    pushNotification(payload?.message ?? 'Action impossible, merci de réessayer.', payload?.type ?? 'error');
                                     return;
                                 }
 
@@ -401,9 +401,9 @@
                                     updateFavoriteCount(favoriteCount);
                                 }
 
-                                pushNotification(payload.message ?? 'Favoris mis a jour.', payload.type ?? 'success');
+                                pushNotification(payload.message ?? 'Favoris mis à jour.', payload.type ?? 'success');
                             } catch (_error) {
-                                pushNotification('Erreur reseau, merci de reessayer.', 'error');
+                                pushNotification('Erreur réseau, merci de réessayer.', 'error');
                             } finally {
                                 relatedForms.forEach((relatedForm) => setFavoriteFormLoading(relatedForm, false));
                             }
@@ -916,10 +916,12 @@
             {% set isNotificationsRoute = currentRoute starts with 'app_notifications' %}
             {% set isFavoritesRoute = currentRoute == 'app_recruiter_favorites' or currentRoute starts with 'app_recruiter_favorite_' %}
             {% set isRecruiterOffersRoute = currentRoute == 'app_recruiter_offers' or currentRoute starts with 'app_recruiter_offer_' %}
-            {% set isAdminWideRoute = currentRoute in ['app_admin_profiles', 'app_admin_companies', 'app_admin_users', 'app_admin_messages', 'app_admin_user_messages_compose'] %}
+            {% set isAdminWideRoute = currentRoute in ['app_admin_profiles', 'app_admin_companies', 'app_admin_users', 'app_admin_messages', 'app_admin_support_requests', 'app_admin_user_messages_compose'] %}
             {% set isMessagesRoute = currentRoute in ['app_applicant_messages', 'app_applicant_message_show', 'app_recruiter_messages', 'app_recruiter_message_show'] %}
             {% set isHelpRoute = currentRoute == 'app_help' %}
+            {% set isFaqRoute = currentRoute == 'app_faq' %}
             {% set helpPath = path('app_help') %}
+            {% set faqPath = path('app_faq') %}
 
             {# HEADER stable (sans animation) #}
             <header class="relative z-[70]">
@@ -927,7 +929,7 @@
                     <nav class="site-header-shell {{ isFavoritesRoute ? 'site-header-shell-favorites' : '' }} rounded-[2rem] px-3.5 py-1.5 sm:px-4.5 sm:py-2">
                         <div class="site-header-layout">
                         <div class="site-header-left">
-                            <a href="{{ path('app_home') }}" class="site-header-brand" aria-label="Aller a l'accueil de DevSpot">
+                            <a href="{{ path('app_home') }}" class="site-header-brand" aria-label="Aller à l'accueil de DevSpot">
                                 <span class="site-header-brand-mark">
                                     <svg class="h-5 w-5" viewBox="0 0 128 128" fill="none" aria-hidden="true">
                                         <path d="M48 36L22 64l26 28" stroke="#2557d6" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
@@ -983,7 +985,7 @@
 
                             {% if not is_granted('ROLE_ADMIN') %}
                                 {% if is_granted('ROLE_RECRUITER') %}
-                                    <a href="{{ path('app_recruiter_favorites') }}" class="site-header-icon-button {{ isFavoritesRoute ? 'site-header-icon-button-active' : '' }}" aria-label="Acceder aux favoris">
+                                    <a href="{{ path('app_recruiter_favorites') }}" class="site-header-icon-button {{ isFavoritesRoute ? 'site-header-icon-button-active' : '' }}" aria-label="Accéder aux favoris">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-.32-.17C9.24 18.8 3 15.37 3 9.75A4.5 4.5 0 0 1 7.5 5.25c1.74 0 3.16.81 4.5 2.09 1.34-1.28 2.76-2.09 4.5-2.09A4.5 4.5 0 0 1 21 9.75c0 5.62-6.24 9.05-8.68 10.33L12 20.25Z" />
                                         </svg>
@@ -1036,11 +1038,20 @@
                                         <a href="{{ helpPath }}" class="account-menu-item account-menu-item-hover">
                                             <span class="account-menu-icon" aria-hidden="true">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 6.75C4.168 5.917 5.754 5.5 7.5 5.5c1.902 0 3.615.495 4.8 1.483a.3.3 0 0 0 .384 0C13.885 5.995 15.598 5.5 17.5 5.5c1.746 0 3.332.417 4.5 1.25v11.5c-1.168-.833-2.754-1.25-4.5-1.25-1.902 0-3.615.495-4.8 1.483a.3.3 0 0 1-.384 0C11.115 17.495 9.402 17 7.5 17 5.754 17 4.168 17.417 3 18.25V6.75Z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12.5 7.25V18"/>
+                                                </svg>
+                                            </span>
+                                            Aide
+                                        </a>
+                                        <a href="{{ faqPath }}" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9.09 9a3 3 0 1 1 5.82 1c0 2-3 2-3 4"/>
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 17h.01"/>
                                                 </svg>
                                             </span>
-                                            Aide
+                                            Support
                                         </a>
                                         <a href="#" onclick="return false;" class="account-menu-item account-menu-item-hover">
                                             <span class="account-menu-icon" aria-hidden="true">
@@ -1088,11 +1099,20 @@
                                         <a href="{{ helpPath }}" class="account-menu-item account-menu-item-hover">
                                             <span class="account-menu-icon" aria-hidden="true">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 6.75C4.168 5.917 5.754 5.5 7.5 5.5c1.902 0 3.615.495 4.8 1.483a.3.3 0 0 0 .384 0C13.885 5.995 15.598 5.5 17.5 5.5c1.746 0 3.332.417 4.5 1.25v11.5c-1.168-.833-2.754-1.25-4.5-1.25-1.902 0-3.615.495-4.8 1.483a.3.3 0 0 1-.384 0C11.115 17.495 9.402 17 7.5 17 5.754 17 4.168 17.417 3 18.25V6.75Z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12.5 7.25V18"/>
+                                                </svg>
+                                            </span>
+                                            Aide
+                                        </a>
+                                        <a href="{{ faqPath }}" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9.09 9a3 3 0 1 1 5.82 1c0 2-3 2-3 4"/>
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 17h.01"/>
                                                 </svg>
                                             </span>
-                                            Aide
+                                            Support
                                         </a>
                                     </div>
                                 </div>
@@ -1116,6 +1136,7 @@
                                     {% endif %}
                                     {% if app.user and not is_granted('ROLE_ADMIN') and (is_granted('ROLE_RECRUITER') or is_granted('ROLE_APPLICANT')) %}
                                         <a href="{{ helpPath }}" class="site-mobile-menu-link {{ isHelpRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isHelpRoute %}aria-current="page"{% endif %}>Aide</a>
+                                        <a href="{{ faqPath }}" class="site-mobile-menu-link {{ isFaqRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isFaqRoute %}aria-current="page"{% endif %}>Support</a>
                                     {% endif %}
                                     {% if app.user %}
                                         <a href="{{ path('app_notifications_index') }}" class="site-mobile-menu-link {{ isNotificationsRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isNotificationsRoute %}aria-current="page"{% endif %}>
@@ -1143,6 +1164,8 @@
                                         <a href="{{ logout_path() }}" class="site-mobile-menu-link site-mobile-menu-link-logout">Déconnexion</a>
                                     {% else %}
                                         <a href="{{ path('app_login') }}" class="site-mobile-menu-link">Connexion</a>
+                                        <a href="{{ helpPath }}" class="site-mobile-menu-link {{ isHelpRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isHelpRoute %}aria-current="page"{% endif %}>Aide</a>
+                                        <a href="{{ faqPath }}" class="site-mobile-menu-link {{ isFaqRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isFaqRoute %}aria-current="page"{% endif %}>Support</a>
                                         <a href="{{ path('app_register') }}" class="site-mobile-menu-link">Créer un compte</a>
                                     {% endif %}
                                 </div>

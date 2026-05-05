@@ -11,7 +11,7 @@
                 </p>
                 <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Logs d'administration</h1>
                 <p class="ui-text-secondary mt-4 text-[15px]">
-                    Consulte les 100 dernieres actions journalisees sur la plateforme.
+                    Consulte et filtre les actions journalisees sur la plateforme.
                 </p>
             </div>
         </div>
@@ -20,9 +20,40 @@
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h2 class="ui-title text-2xl font-semibold tracking-tight">Historique récent</h2>
-                    <p class="ui-text-muted mt-2 text-sm">Action, auteur, cible, motif et métadonnées utiles.</p>
+                    <p class="ui-text-muted mt-2 text-sm">{{ totalLogs }} action{{ totalLogs > 1 ? 's' : '' }} trouvée{{ totalLogs > 1 ? 's' : '' }}.</p>
                 </div>
             </div>
+
+            <form method="get" class="mt-6 grid gap-4 rounded-[1.4rem] border border-white/10 bg-white/[0.03] p-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                <label class="block">
+                    <span class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Admin</span>
+                    <select name="admin" class="mt-2 w-full rounded-xl border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-sky-300/70">
+                        <option value="">Tous les admins</option>
+                        {% for adminUser in adminUsers %}
+                            <option value="{{ adminUser.id }}" {% if filters.admin == adminUser.id %}selected{% endif %}>{{ adminUser.email }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label class="block">
+                    <span class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Cible</span>
+                    <select name="target" class="mt-2 w-full rounded-xl border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-slate-100 outline-none transition focus:border-sky-300/70">
+                        <option value="">Toutes les cibles</option>
+                        {% for targetUser in targetUsers %}
+                            <option value="{{ targetUser.id }}" {% if filters.target == targetUser.id %}selected{% endif %}>{{ targetUser.email }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <div class="flex gap-2">
+                    <button type="submit" class="u-border-accent u-bg-accent u-text-accent inline-flex h-10 items-center justify-center rounded-full border px-4 text-sm font-semibold transition-opacity hover:opacity-90">
+                        Filtrer
+                    </button>
+                    <a href="{{ path('app_admin_logs') }}" class="u-border-pale-slate u-bg-pale-slate u-text-pale-slate inline-flex h-10 items-center justify-center rounded-full border px-4 text-sm font-semibold transition-opacity hover:opacity-90">
+                        Reset
+                    </a>
+                </div>
+            </form>
 
             <div class="mt-6 space-y-4">
                 {% for log in logs %}
@@ -71,6 +102,20 @@
                     </div>
                 {% endfor %}
             </div>
+
+            {% if totalPages > 1 %}
+                <div class="mt-6 flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
+                    <p class="text-sm text-slate-400">Page {{ currentPage }} / {{ totalPages }}</p>
+                    <div class="flex gap-2">
+                        {% if currentPage > 1 %}
+                            <a href="{{ path('app_admin_logs', {page: currentPage - 1, admin: filters.admin, target: filters.target}) }}" class="rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10">Précédent</a>
+                        {% endif %}
+                        {% if currentPage < totalPages %}
+                            <a href="{{ path('app_admin_logs', {page: currentPage + 1, admin: filters.admin, target: filters.target}) }}" class="rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10">Suivant</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </section>
 {% endblock %}

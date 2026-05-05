@@ -9,6 +9,7 @@ use App\Entity\JobOffer;
 use App\Entity\Message;
 use App\Entity\Notification;
 use App\Entity\RecruiterProfile;
+use App\Entity\SupportRequest;
 use App\Entity\User;
 use App\Enum\NotificationType;
 use App\Enum\UserStatus;
@@ -545,6 +546,37 @@ final class NotificationManager
                 $profile->getFirstName() ?? '',
                 $profile->getLastName() ?? '',
                 $reason
+            ),
+            $link
+        );
+    }
+
+    public function notifyAdminsSupportRequest(SupportRequest $supportRequest): bool
+    {
+        $submittedAt = $supportRequest->getCreatedAt() ?? new \DateTimeImmutable();
+        $requesterEmail = trim((string) ($supportRequest->getRequesterEmail() ?? ''));
+        $requesterLabel = trim((string) ($supportRequest->getRequesterDisplayName() ?? ''));
+        $identity = '' !== $requesterLabel ? $requesterLabel : 'Utilisateur inconnu';
+
+        if ('' !== $requesterEmail && $requesterEmail !== $identity) {
+            $identity = sprintf('%s (%s)', $identity, $requesterEmail);
+        }
+
+        $link = sprintf(
+            '%s?submittedAt=%s&requester=%s',
+            $this->urlGenerator->generate('app_admin_support_requests'),
+            rawurlencode($submittedAt->format('YmdHis.u')),
+            rawurlencode($requesterEmail)
+        );
+
+        return $this->broadcastToAdmins(
+            NotificationType::SUPPORT_REQUEST,
+            'Nouvelle demande de support',
+            sprintf(
+                '%s a envoye une demande de support le %s. Objet : %s.',
+                $identity,
+                $submittedAt->format('d/m/Y H:i'),
+                $supportRequest->getSubject() ?? 'Sans objet'
             ),
             $link
         );

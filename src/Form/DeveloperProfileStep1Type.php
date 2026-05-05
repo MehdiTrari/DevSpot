@@ -87,7 +87,7 @@ class DeveloperProfileStep1Type extends AbstractType
                 'mapped' => false,
                 'required' => false,
                 'label' => 'Photo de profil',
-                'help' => 'Formats acceptes : JPG, JPEG, PNG, WEBP, GIF. Taille max : 4 Mo.',
+                'help' => 'Formats acceptés : JPG, JPEG, PNG, WEBP, GIF. Taille max : 4 Mo.',
                 'constraints' => [
                     new Callback(static function (mixed $value, ExecutionContextInterface $context): void {
                         if (!$value instanceof UploadedFile) {
@@ -95,7 +95,7 @@ class DeveloperProfileStep1Type extends AbstractType
                         }
 
                         if ($value->getSize() > 4 * 1024 * 1024) {
-                            $context->buildViolation('L image ne doit pas dépasser 4 Mo.')->addViolation();
+                            $context->buildViolation('L\'image ne doit pas dépasser 4 Mo.')->addViolation();
 
                             return;
                         }
