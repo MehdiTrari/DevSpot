@@ -994,12 +994,23 @@ final class RecruiterController extends AbstractController
 
     private function buildMatchingCacheKey(int $offerId): string
     {
-        return 'matching_offer_' . $offerId;
+        return 'matching_offer_' . $offerId . $this->buildTestCacheSuffix();
     }
 
     private function buildMatchingSummaryCacheKey(int $offerId): string
     {
-        return 'matching_offer_summary_' . $offerId;
+        return 'matching_offer_summary_' . $offerId . $this->buildTestCacheSuffix();
+    }
+
+    private function buildTestCacheSuffix(): string
+    {
+        $testToken = $_SERVER['TEST_TOKEN'] ?? $_ENV['TEST_TOKEN'] ?? null;
+
+        if (!is_scalar($testToken) || '' === (string) $testToken) {
+            return '';
+        }
+
+        return '_test_' . (string) $testToken;
     }
 
     /**

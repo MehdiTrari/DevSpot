@@ -21,6 +21,30 @@ final class RecruiterOffersTest extends WebTestCase
 {
     private static bool $schemaInitialized = false;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        self::ensureKernelShutdown();
+        self::bootKernel();
+
+        /** @var EntityManagerInterface $entityManager */
+        $entityManager = static::getContainer()->get(EntityManagerInterface::class);
+        $metadata = $entityManager->getMetadataFactory()->getAllMetadata();
+
+        if ([] === $metadata) {
+            throw new \RuntimeException('Aucune métadonnée Doctrine disponible.');
+        }
+
+        $schemaTool = new SchemaTool($entityManager);
+        $schemaTool->dropSchema($metadata);
+        $schemaTool->createSchema($metadata);
+
+        $entityManager->clear();
+        self::$schemaInitialized = true;
+        self::ensureKernelShutdown();
+    }
+
     // ── Create offer ──
 
     public function testCreateOfferPageIsAccessible(): void
