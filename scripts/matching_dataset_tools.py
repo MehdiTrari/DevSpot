@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import json
 import re
 import unicodedata
@@ -108,6 +109,49 @@ CANONICAL_CASE = {
     "kotlin": "Kotlin",
     "python": "Python",
     "airflow": "Airflow",
+}
+
+MATCHING_TEXT_REPLACEMENTS: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"\breact(?:\.js|js)?\b", re.IGNORECASE), "React"),
+    (re.compile(r"\bvue(?:\.js|js)?\b", re.IGNORECASE), "Vue.js"),
+    (re.compile(r"\bnode(?:\.js|js)?\b", re.IGNORECASE), "Node.js"),
+    (re.compile(r"\btypescript\b", re.IGNORECASE), "TypeScript"),
+    (re.compile(r"\bjavascript\b", re.IGNORECASE), "JavaScript"),
+    (re.compile(r"\bpostgres(?:ql)?\b|\bPostgrela base de donnees\b", re.IGNORECASE), "PostgreSQL"),
+    (re.compile(r"\bmysql\b|\bMyla base de donnees\b", re.IGNORECASE), "MySQL"),
+    (re.compile(r"\bapi\s*platform\b", re.IGNORECASE), "API Platform"),
+    (re.compile(r"\b(?:rest api|api rest)\b", re.IGNORECASE), "REST API"),
+    (re.compile(r"\bci\s*\/?\s*cd\b", re.IGNORECASE), "CI/CD"),
+    (re.compile(r"\bgitlab ci\b", re.IGNORECASE), "CI/CD"),
+    (re.compile(r"\bprometheus\b", re.IGNORECASE), "Observability"),
+    (re.compile(r"\btailwind css\b", re.IGNORECASE), "Tailwind CSS"),
+    (re.compile(r"\btesting library\b", re.IGNORECASE), "Testing Library"),
+    (re.compile(r"\bfigma\b", re.IGNORECASE), "Figma"),
+    (re.compile(r"\bqa engineer\b|\bqa\b", re.IGNORECASE), "QA"),
+    (re.compile(r"\bsymfony\b", re.IGNORECASE), "Symfony"),
+    (re.compile(r"\bdocker\b", re.IGNORECASE), "Docker"),
+    (re.compile(r"\bkubernetes\b", re.IGNORECASE), "Kubernetes"),
+    (re.compile(r"\bphp\b", re.IGNORECASE), "PHP"),
+    (re.compile(r"\bsql\b", re.IGNORECASE), "SQL"),
+    (re.compile(r"\bhtml\b", re.IGNORECASE), "HTML"),
+    (re.compile(r"\bcss\b", re.IGNORECASE), "CSS"),
+    (re.compile(r"\betl\b", re.IGNORECASE), "ETL"),
+    (re.compile(r"\bfull-stack\b", re.IGNORECASE), "full stack"),
+    (re.compile(r"\bdevops\b", re.IGNORECASE), "DevOps"),
+    (re.compile(r"\ble front\b|\bfront end\b", re.IGNORECASE), "frontend"),
+    (re.compile(r"\ble backend\b|\bback end\b", re.IGNORECASE), "backend"),
+]
+
+SOFT_SKILL_KEYS = {
+    "communication",
+    "teamwork",
+    "problem solving",
+    "leadership",
+    "adaptability",
+    "time management",
+    "critical thinking",
+    "creativity",
+    "curiosity",
 }
 
 KEYWORD_PATTERNS = {
@@ -282,6 +326,80 @@ def dedupe_strings(values: list[str]) -> list[str]:
         seen.add(key)
         result.append(value)
     return result
+
+
+def dedupe_matching_strings(values: list[str]) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        key = normalize_key(value)
+        if not key or key in seen:
+            continue
+        seen.add(key)
+        result.append(collapse_spaces(value))
+    return result
+
+
+def matching_clean_text(value: Any) -> str:
+    cleaned = html.unescape(str(value or ""))
+    cleaned = re.sub(r"<[^>]+>", " ", cleaned)
+    cleaned = re.sub(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", " ", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\+?[0-9][0-9\s().-]{7,}", " ", cleaned)
+    cleaned = re.sub(r"https?://[^\s<>\"']+|www\.[^\s<>\"']+", " ", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\b(?:contact|portfolio|github|linkedin)\b\s*:?", " ", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"(?:\s*-\s*)+", " ", cleaned)
+
+    for pattern, replacement in MATCHING_TEXT_REPLACEMENTS:
+        cleaned = pattern.sub(replacement, cleaned)
+
+    return collapse_spaces(cleaned)
+
+
+def is_soft_skill(value: str) -> bool:
+    return normalize_key(value) in SOFT_SKILL_KEYS
+
+
+def format_skill_descriptor(skill: dict[str, Any]) -> str:
+    name = matching_clean_text(skill.get("skill", ""))
+    if not name:
+        return ""
+
+    details: list[str] = []
+    level = collapse_spaces(str(skill.get("level") or ""))
+    if level:
+        details.append(normalize_key(level))
+
+    years = skill.get("years")
+    if isinstance(years, int) and years > 0:
+        details.append(f"{years} year" if years == 1 else f"{years} years")
+
+    if not details:
+        return name
+
+    return f"{name} ({', '.join(details)})"
+
+
+def iso_to_period(value: Any) -> str:
+    text = collapse_spaces(str(value or ""))
+    if len(text) >= 7:
+        return text[:7].replace("-", "/")
+    return text
+
+
+def sort_experiences_key(experience: dict[str, Any]) -> tuple[int, str]:
+    return (1 if experience.get("isCurrent") else 0, collapse_spaces(str(experience.get("startDate") or "")))
+
+
+def sort_education_key(education: dict[str, Any]) -> str:
+    return collapse_spaces(str(education.get("endDate") or ""))
+
+
+def filter_non_empty(values: list[str | None]) -> list[str]:
+    return [value for value in values if value is not None and collapse_spaces(value)]
+
+
+def trim_sentence_fragment(value: str) -> str:
+    return collapse_spaces(value).rstrip(" .")
 
 
 def fill_missing_bio(profile: dict[str, Any], report: Counter[str]) -> None:
@@ -608,19 +726,136 @@ def save_dataset(path: str | Path, dataset: dict[str, Any]) -> None:
 
 def build_candidate_text(developer: dict[str, Any]) -> str:
     profile = developer.get("profile", {})
-    parts = [
-        profile.get("headline", ""),
-        profile.get("bio", ""),
-        " ".join(profile.get("desiredPositions", [])),
-        " ".join(skill.get("skill", "") for skill in profile.get("profileSkills", [])),
-    ]
-    for experience in profile.get("experiences", []):
-        parts.append(" ".join([
-            str(experience.get("title", "")),
-            str(experience.get("description", "")),
-            " ".join(experience.get("technologies", [])),
-        ]))
-    return collapse_spaces(" ".join(part for part in parts if part))
+    sections: list[str] = []
+
+    headline = matching_clean_text(profile.get("headline", ""))
+    if headline:
+        sections.append(f"Headline: {headline}")
+
+    summary_parts: list[str] = []
+    bio = matching_clean_text(profile.get("bio", ""))
+    if bio:
+        summary_parts.append(trim_sentence_fragment(bio))
+    experience_level = collapse_spaces(str(profile.get("experienceLevel") or ""))
+    if experience_level:
+        summary_parts.append(f"Experience level: {normalize_key(experience_level)}")
+    years_experience = profile.get("yearsExperience")
+    if isinstance(years_experience, int):
+        summary_parts.append(f"Years of experience: {years_experience}")
+    if summary_parts:
+        sections.append("Summary: " + ". ".join(summary_parts))
+
+    target_roles = dedupe_matching_strings([
+        matching_clean_text(position)
+        for position in profile.get("desiredPositions", [])
+    ])
+    if target_roles:
+        sections.append("Target roles: " + ", ".join(target_roles))
+
+    core_skills = dedupe_matching_strings([
+        formatted
+        for skill in profile.get("profileSkills", [])
+        if not is_soft_skill(str(skill.get("skill", "")))
+        for formatted in [format_skill_descriptor(skill)]
+        if formatted
+    ])
+    if core_skills:
+        sections.append("Core skills: " + ", ".join(core_skills))
+
+    soft_skills = dedupe_matching_strings([
+        formatted
+        for skill in profile.get("profileSkills", [])
+        if is_soft_skill(str(skill.get("skill", "")))
+        for formatted in [format_skill_descriptor(skill)]
+        if formatted
+    ])
+    if soft_skills:
+        sections.append("Soft skills: " + ", ".join(soft_skills))
+
+    experience_rows: list[str] = []
+    experiences = sorted(profile.get("experiences", []), key=sort_experiences_key, reverse=True)
+    for experience in experiences:
+        title = matching_clean_text(experience.get("title", ""))
+        description = matching_clean_text(experience.get("description", ""))
+        technologies = dedupe_matching_strings([
+            matching_clean_text(technology)
+            for technology in experience.get("technologies", [])
+        ])
+
+        parts = filter_non_empty([
+            f"Role: {title}" if title else None,
+            f"Summary: {trim_sentence_fragment(description)}" if description else None,
+            f"Technologies: {', '.join(technologies)}" if technologies else None,
+            (
+                f"Period: {iso_to_period(experience.get('startDate'))} to present"
+                if experience.get("isCurrent") and iso_to_period(experience.get("startDate"))
+                else (
+                    f"Period: {iso_to_period(experience.get('startDate'))} to {iso_to_period(experience.get('endDate'))}"
+                    if iso_to_period(experience.get("startDate")) and iso_to_period(experience.get("endDate"))
+                    else (
+                        f"Period: {iso_to_period(experience.get('startDate'))}"
+                        if iso_to_period(experience.get("startDate"))
+                        else None
+                    )
+                )
+            ),
+        ])
+
+        if parts:
+            experience_rows.append("- " + ". ".join(parts))
+
+    if experience_rows:
+        sections.append("Experience:\n" + "\n".join(dedupe_matching_strings(experience_rows)))
+
+    education_rows: list[str] = []
+    education_entries = sorted(profile.get("education", []), key=sort_education_key, reverse=True)
+    for education in education_entries:
+        degree = matching_clean_text(education.get("degree", ""))
+        field = matching_clean_text(education.get("field", ""))
+        description = matching_clean_text(education.get("description", ""))
+        parts = filter_non_empty([
+            f"Degree: {degree}" if degree else None,
+            f"Field: {field}" if field else None,
+            f"Summary: {trim_sentence_fragment(description)}" if description else None,
+        ])
+        if parts:
+            education_rows.append("- " + ". ".join(parts))
+
+    if education_rows:
+        sections.append("Education:\n" + "\n".join(dedupe_matching_strings(education_rows)))
+
+    return "\n\n".join(sections)
+
+
+def legacy_raw_text_fragment(value: Any) -> str:
+    cleaned = html.unescape(str(value or ""))
+    cleaned = re.sub(r"<[^>]+>", " ", cleaned)
+    return collapse_spaces(cleaned)
+
+
+def build_candidate_text_legacy(developer: dict[str, Any]) -> str:
+    profile = developer.get("profile", {})
+    fragments = filter_non_empty([
+        legacy_raw_text_fragment(profile.get("headline", "")),
+        legacy_raw_text_fragment(profile.get("bio", "")),
+    ])
+
+    experiences = sorted(profile.get("experiences", []), key=sort_experiences_key, reverse=True)
+    for experience in experiences:
+        technologies = [
+            legacy_raw_text_fragment(technology)
+            for technology in experience.get("technologies", [])
+        ]
+        parts = filter_non_empty([
+            legacy_raw_text_fragment(experience.get("title", "")),
+            legacy_raw_text_fragment(experience.get("companyName", "")),
+            legacy_raw_text_fragment(experience.get("description", "")),
+            collapse_spaces(" ".join(filter(None, technologies))),
+        ])
+        if parts:
+            fragments.append(". ".join(parts))
+
+    return "\n\n".join(fragments)
 
 
 def build_offer_text(offer: dict[str, Any]) -> str:

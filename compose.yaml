@@ -14,6 +14,7 @@ services:
         condition: service_healthy
 
   app:
+    image: devspot-app-dev
     build:
       context: .
       dockerfile: docker/symfony/Dockerfile

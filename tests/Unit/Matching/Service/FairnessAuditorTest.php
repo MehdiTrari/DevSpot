@@ -28,6 +28,13 @@ final class FairnessAuditorTest extends TestCase
             'junior_avg_score' => 0.7,
             'non_junior_avg_score' => 0.75,
             'disparate_impact_ratio' => 0.9333,
+            'junior_count' => 2,
+            'non_junior_count' => 2,
+            'junior_selection_rate' => 0.5,
+            'non_junior_selection_rate' => 0.5,
+            'selection_rate_ratio' => 1.0,
+            'score_gap' => -0.05,
+            'assessment' => 'balanced_selection_rate',
         ], $payload);
     }
 
@@ -46,6 +53,31 @@ final class FairnessAuditorTest extends TestCase
             'junior_avg_score' => 0.8,
             'non_junior_avg_score' => 0.0,
             'disparate_impact_ratio' => 1.0,
+            'junior_count' => 2,
+            'non_junior_count' => 0,
+            'junior_selection_rate' => 0.5,
+            'non_junior_selection_rate' => 0.0,
+            'selection_rate_ratio' => 1.0,
+            'score_gap' => 0.8,
+            'assessment' => 'insufficient_comparison_population',
         ], $payload);
+    }
+
+    public function testAuditCandidateScoresFlagsJuniorUnderSelection(): void
+    {
+        $auditor = new FairnessAuditor();
+
+        $payload = $auditor->auditCandidateScores([
+            ['yearsOfExperience' => 1, 'score' => 0.7],
+            ['yearsOfExperience' => 2, 'score' => 0.75],
+            ['yearsOfExperience' => 5, 'score' => 0.85],
+            ['yearsOfExperience' => 7, 'score' => 0.9],
+        ]);
+
+        self::assertSame('junior_under_selected', $payload['assessment']);
+        self::assertSame(0.0, $payload['junior_selection_rate']);
+        self::assertSame(1.0, $payload['non_junior_selection_rate']);
+        self::assertSame(0.0, $payload['selection_rate_ratio']);
+        self::assertSame(-0.15, $payload['score_gap']);
     }
 }

@@ -1,6 +1,6 @@
 # 🤖 Matching IA DevSpot — Documentation technique
 
-> **Version** : 1.0 — Avril 2026  
+> **Version** : 1.1 — Avril 2026  
 > **Auteurs** : Équipe DevSpot  
 > **Stack** : Symfony 7 (PHP) + FastAPI (Python) + CamemBERT (HuggingFace)
 
@@ -33,12 +33,17 @@
 
 Le système de matching IA de DevSpot met en relation des **offres d'emploi** de recruteurs avec des **profils développeurs** de la plateforme. Il produit un score de compatibilité en pourcentage pour chaque paire offre/candidat, permettant au recruteur de voir les profils les plus pertinents en premier.
 
+Deux niveaux de lecture sont volontairement séparés :
+
+- ce document décrit le **pipeline produit réellement exposé** dans l'application ;
+- le document [docs/camembert-algorithme-technique.md](camembert-algorithme-technique.md) décrit en détail la **brique vectorielle CamemBERT**, la projection et le calcul des scores.
+
 ### Principes fondamentaux
 
 - **Multimodal** : combine l'analyse par mots-clés, la compréhension sémantique du langage naturel et l'inférence de compétences implicites.
 - **Équitable** : un module de fairness mesure et signale les biais potentiels entre profils juniors et seniors.
 - **Transparent** : chaque score est décomposé (baseline, sémantique, enrichi) pour comprendre pourquoi un profil matche.
-- **Respectueux de la vie privée** : les CV sont anonymisés avant tout traitement IA (emails, téléphones, adresses supprimés).
+- **Respectueux de la vie privée** : les textes candidats sont dé-identifiés avant traitement IA, et la vue recruteur reste anonyme jusqu'au premier contact réussi.
 - **Performant** : les embeddings et les résultats de matching sont mis en cache pour éviter les recalculs inutiles.
 
 ---
@@ -56,7 +61,7 @@ Le système de matching IA de DevSpot met en relation des **offres d'emploi** de
 │                     OfferMatchingService (PHP)                      │
 │  • Convertit les entités en modèles de matching (DTOs)              │
 │  • Extrait les compétences depuis les textes (dictionnaire BDD)     │
-│  • Construit le texte CV anonymisé de chaque candidat               │
+│  • Construit le texte candidat de matching puis le dé-identifie     │
 │  • Orchestre les 3 stratégies de scoring                            │
 └──────┬──────────────────┬───────────────────┬──────────────────────┘
        │                  │                   │
@@ -107,6 +112,30 @@ Le système de matching IA de DevSpot met en relation des **offres d'emploi** de
 | `CvAnonymizer` | PHP | Anonymisation des données personnelles |
 | `FairnessAuditor` | PHP | Audit d'équité junior/senior |
 | Service ML FastAPI | Python | Modèle CamemBERT, embeddings, inférence |
+
+---
+
+### 2.1 Flux produit actuel
+
+Le pipeline réellement utilisé dans l'application suit la séquence ci-dessous :
+
+1. construction d'un texte candidat à partir du profil public ;
+2. dé-identification de ce texte avant envoi au service IA ;
+3. extraction des compétences explicites ;
+4. calcul du score baseline par overlap ;
+5. calcul du score sémantique CamemBERT ;
+6. inférence de compétences implicites par règles ;
+7. calcul du score enrichi DevSpot ;
+8. tri final ;
+9. exposition d'une vue recruteur **anonyme par défaut** ;
+10. révélation de l'identité seulement si une conversation existe déjà ou après un premier contact réussi.
+
+Concrètement, le matching côté recruteur fonctionne maintenant avec deux états :
+
+- **carte anonyme** : `candidateLabel`, scores, années d'expérience, compétences correspondantes et inférées ;
+- **carte révélée** : nom, headline, lien profil, conversation et favoris.
+
+La transition entre les deux états est déterminée par l'existence d'une conversation recruteur ↔ candidat, sans table supplémentaire dédiée.
 
 ---
 
@@ -356,6 +385,13 @@ Le module `FairnessAuditor` mesure si le système de matching est **équitable e
 | Score moyen juniors | $\text{mean}(\text{scores juniors})$ | Performance moyenne des juniors |
 | Score moyen non-juniors | $\text{mean}(\text{scores non-juniors})$ | Performance moyenne des seniors |
 | Ratio d'impact disparate | $\frac{\text{moy. juniors}}{\text{moy. non-juniors}}$ | Proche de 1.0 = équitable |
+| Effectifs juniors / non-juniors | $\text{count}(\text{group})$ | Vérifie que la comparaison est exploitable |
+| Taux de sélection junior / non-junior | $\frac{\text{scores} \ge 0.8}{\text{effectif groupe}}$ | Part des profils au-dessus d'un seuil favorable |
+| Ratio de taux de sélection | $\frac{\text{taux junior}}{\text{taux non-junior}}$ | Signal de sous/sur-sélection |
+| Écart moyen de score | $\text{moy. junior} - \text{moy. non-junior}$ | Sens et amplitude de l'écart |
+| Assessment | règle de lecture | `balanced_selection_rate`, `junior_under_selected`, `junior_over_selected` ou population insuffisante |
+
+Ces métriques ne prouvent pas une fairness générale. Elles mesurent surtout la dimension junior / non-junior, qui est volontairement conservée dans le produit.
 
 ### Application
 
@@ -370,15 +406,84 @@ Cela permet de comparer comment chaque approche traite les juniors et d'identifi
 
 ## 7. Anonymisation des CV
 
-Avant tout traitement par l'IA, les CV sont **anonymisés** par le composant `CvAnonymizer` :
+### 7.1 Objectif
+
+L'anonymisation actuelle vise deux choses distinctes :
+
+1. **réduire l'exposition de l'IA aux identifiants directs** dans le texte candidat ;
+2. **masquer l'identité côté recruteur** tant qu'aucun contact n'a été initié.
+
+Il ne s'agit pas encore d'une anonymisation forte par NER ni d'une neutralisation complète de tous les attributs potentiellement biaisants.
+
+### 7.2 Dé-identification du texte envoyé à l'IA
+
+Avant tout traitement par l'IA, le texte candidat de matching est **dé-identifié** par le composant `CvAnonymizer`.
+
+Les éléments suivants sont retirés ou masqués :
 
 | Donnée personnelle | Remplacement |
 |-------------------|-------------|
+| Prénom / nom injectés dans le texte | supprimés du texte source |
 | Adresses email | `[EMAIL]` |
 | Numéros de téléphone | `[PHONE]` |
 | Adresses postales | `[ADDRESS]` |
+| Slug public | `[SLUG]` |
+| URLs portfolio / GitHub / LinkedIn | `[URL]` |
+| Liens bruts présents dans les champs texte | `[URL]` |
 
-L'anonymisation utilise des expressions régulières pour détecter et masquer les informations personnellement identifiables (PII).
+Le contenu métier utile au matching est conservé, par exemple :
+
+- headline ;
+- bio ;
+- descriptions d'expérience ;
+- intitulés de poste ;
+- entreprises ;
+- compétences déclarées.
+
+L'anonymisation actuelle est **regex-based**. Elle constitue une phase 1 pragmatique de dé-identification, mais ne remplace pas un vrai pipeline NER orienté recherche / fairness.
+
+### 7.3 Vue recruteur anonymisée
+
+Le endpoint de matching ne renvoie plus systématiquement les données nominatives.
+
+Pour un candidat non révélé, la réponse expose principalement :
+
+- `candidateLabel` ;
+- `revealed = false` ;
+- `canContact` ;
+- `contactToken` ;
+- les scores ;
+- `yearsExperience` ;
+- les compétences correspondantes ;
+- les compétences inférées.
+
+Pour un candidat non révélé, les champs suivants ne sont pas exposés dans la carte initiale :
+
+- `fullName` ;
+- `headline` ;
+- `profileUrl` ;
+- `developerId` ;
+- actions de favoris.
+
+### 7.4 Révélation après contact
+
+L'identité est révélée dans deux cas :
+
+1. une conversation existe déjà entre le recruteur et le candidat ;
+2. le recruteur initie un premier contact depuis le matching.
+
+Le flux de révélation repose sur :
+
+- un `contactToken` opaque transmis par le matching ;
+- un endpoint dédié de contact ;
+- la création d'une conversation recruteur ↔ candidat ;
+- un recalcul ultérieur de l'état `revealed` via la conversation existante.
+
+Cette approche permet de concilier :
+
+- anonymisation initiale ;
+- contact direct depuis le matching ;
+- persistance simple du statut révélé sans stockage supplémentaire.
 
 ---
 
@@ -467,6 +572,7 @@ Dans l'état actuel du repo, les fichiers Compose visibles documentent surtout l
 | `/recruiter/offers` | GET | Liste des offres avec indicateur cache |
 | `/recruiter/offers/{id}` | GET | Détail d'une offre + matching caché |
 | `/recruiter/offers/{id}/matching` | GET | Endpoint JSON du matching (avec pagination) |
+| `/recruiter/offers/{id}/matching/contact` | POST | Création du premier contact et révélation du profil |
 | `/api/matching/preview` | POST | API JSON pour tester avec un payload brut |
 | `/matching/demo` | GET | Page de démo (comptes démo uniquement) |
 
