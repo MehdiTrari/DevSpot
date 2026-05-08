@@ -22,11 +22,46 @@
             let loading = false;
             let currentMatches = [];
             let activeContactMatch = null;
+            let currentSort = CACHED_DATA?.sort || 'match_desc';
 
             const $ = (sel, ctx) => (ctx || document).querySelector(sel);
             const escapeHtml = (v) => String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
             const pct = (v) => typeof v === 'number' ? `${v.toFixed(1)}%` : '-';
             const num = (v) => typeof v === 'number' ? v.toFixed(2) : '-';
+            const selectedSort = () => $('#matching-sort')?.value || currentSort;
+            const matchingUrl = (page, extra = '') => {
+                const sep = ENDPOINT.includes('?') ? '&' : '?';
+                const extraQuery = extra.replace(/^[?&]/, '');
+                const base = `${ENDPOINT}${sep}page=${page}&sort=${encodeURIComponent(selectedSort())}`;
+
+                return extraQuery ? `${base}&${extraQuery}` : base;
+            };
+            const readJsonResponse = async (response) => {
+                const text = await response.text();
+
+                try {
+                    const payload = text ? JSON.parse(text) : {};
+
+                    if (!response.ok) {
+                        throw new Error(payload.message || `HTTP ${response.status}`);
+                    }
+
+                    return payload;
+                } catch (error) {
+                    if (error instanceof SyntaxError) {
+                        const preview = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 240);
+
+                        throw new Error(preview || `HTTP ${response.status}`);
+                    }
+
+                    throw error;
+                }
+            };
+            const syncSort = (data) => {
+                currentSort = data?.sort || selectedSort();
+                const select = $('#matching-sort');
+                if (select) select.value = currentSort;
+            };
 
             const renderTags = (values, cls) => values.map(v => `<span class="rounded-full border px-3 py-1 text-xs font-semibold ${cls}">${escapeHtml(v)}</span>`).join('');
             const renderTechTags = (values) => values.map(i => `<span class="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-200">${escapeHtml(i.skill||'')} · ${escapeHtml(i.level||'')}</span>`).join('');
@@ -458,14 +493,13 @@
                 if (container) container.innerHTML = '<div class="py-10 text-center text-sm text-slate-400">Chargement…</div>';
 
                 try {
-                    const sep = ENDPOINT.includes('?') ? '&' : '?';
-                    const resp = await fetch(`${ENDPOINT}${sep}page=${page}`, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
-                    const data = await resp.json();
-                    if (!resp.ok) throw new Error(data.message || `HTTP ${resp.status}`);
+                    const resp = await fetch(matchingUrl(page), { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+                    const data = await readJsonResponse(resp);
 
                     currentPage = data.page;
                     totalPages = data.totalPages;
                     allData = data;
+                    syncSort(data);
                     renderSummary(data);
                     renderMatches(data.matches || [], (currentPage - 1) * PER_PAGE);
                     renderPagination();
@@ -484,14 +518,26 @@
             const init = () => {
                 const btn = $('#btn-launch-matching');
                 const refreshBtn = $('#btn-refresh-matching');
+                const sortSelect = $('#matching-sort');
                 if (!btn || btn.dataset.init === '1') return;
                 btn.dataset.init = '1';
+
+                if (sortSelect) {
+                    sortSelect.value = currentSort;
+                    sortSelect.addEventListener('change', () => {
+                        currentSort = sortSelect.value;
+                        if (!$('#matching-section')?.classList.contains('hidden')) {
+                            loadPage(1);
+                        }
+                    });
+                }
 
                 // If we have cached data, auto-display it
                 if (CACHED_DATA) {
                     currentPage = CACHED_DATA.page;
                     totalPages = CACHED_DATA.totalPages;
                     allData = CACHED_DATA;
+                    syncSort(CACHED_DATA);
 
                     btn.classList.add('hidden');
                     if (refreshBtn) refreshBtn.classList.remove('hidden');
@@ -518,9 +564,8 @@
 
                     try {
                         const refreshParam = isRefresh ? '&refresh=1' : '';
-                        const resp = await fetch(`${ENDPOINT}?page=1${refreshParam}`, { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
-                        const data = await resp.json();
-                        if (!resp.ok) throw new Error(data.message || `HTTP ${resp.status}`);
+                        const resp = await fetch(matchingUrl(1, refreshParam), { headers: { Accept: 'application/json' }, credentials: 'same-origin' });
+                        const data = await readJsonResponse(resp);
 
                         stopTimer();
                         setProgress(100, 'Matching terminé !');
@@ -528,6 +573,7 @@
                         currentPage = data.page;
                         totalPages = data.totalPages;
                         allData = data;
+                        syncSort(data);
 
                         btn.classList.add('hidden');
                         if (refreshBtn) refreshBtn.classList.remove('hidden');
@@ -675,6 +721,26 @@
 
         {# ── Matching results section (hidden until loaded) ── #}
         <div id="matching-section" class="hidden space-y-6">
+
+            <div class="flex flex-col gap-3 rounded-[1.5rem] border border-white/10 bg-slate-950/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Tri des candidats</p>
+                    <p class="mt-1 text-sm text-slate-300">Classement par score IA, fraicheur du profil, experience ou competences detectees.</p>
+                </div>
+                <label class="sr-only" for="matching-sort">Trier les candidats</label>
+                <select
+                    id="matching-sort"
+                    class="min-h-11 rounded-2xl border border-white/10 bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-inner outline-none transition hover:border-emerald-400/30 focus:border-emerald-400/50 focus:ring-2 focus:ring-emerald-400/20 sm:min-w-72"
+                >
+                    <option value="match_desc">Le plus matchant (Score IA)</option>
+                    <option value="match_asc">Le moins matchant</option>
+                    <option value="recent">Le plus recent</option>
+                    <option value="experience_desc">Experience decroissante</option>
+                    <option value="experience_asc">Experience croissante</option>
+                    <option value="skills_desc">Le plus de competences detectees</option>
+                    <option value="name_asc">Nom du profil A-Z</option>
+                </select>
+            </div>
 
             {# Summary cards #}
             <div id="matching-summary" class="rounded-[1.5rem] border border-emerald-500/20 bg-emerald-500/10 p-5">

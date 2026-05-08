@@ -41,6 +41,13 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class RecruiterController extends AbstractController
 {
     private const MATCHING_CACHE_TTL = 1800;
+    private const MATCHING_SORT_MATCH_DESC = 'match_desc';
+    private const MATCHING_SORT_MATCH_ASC = 'match_asc';
+    private const MATCHING_SORT_RECENT = 'recent';
+    private const MATCHING_SORT_EXPERIENCE_DESC = 'experience_desc';
+    private const MATCHING_SORT_EXPERIENCE_ASC = 'experience_asc';
+    private const MATCHING_SORT_SKILLS_DESC = 'skills_desc';
+    private const MATCHING_SORT_NAME_ASC = 'name_asc';
 
     #[Route('/recruiter', name: 'app_recruiter_home')]
     #[IsGranted('ROLE_RECRUITER')]
@@ -53,7 +60,9 @@ final class RecruiterController extends AbstractController
         $recruiterProfile = $this->getRecruiterProfile();
 
         if (!$recruiterProfile instanceof RecruiterProfile) {
-            throw $this->createNotFoundException('Profil recruteur introuvable.');
+            $this->addFlash('error', 'Votre compte recruteur n\'a pas encore de profil associé.');
+
+            return $this->redirectToRoute('app_home');
         }
 
         if ($notificationManager->notifyRecruiterIncompleteProfileReminder($recruiterProfile->getUser())) {
@@ -277,7 +286,8 @@ final class RecruiterController extends AbstractController
         $item = $cache->getItem($this->buildMatchingCacheKey((int) $offer->getId()));
         if ($item->isHit()) {
             $cached = $item->get();
-            $allMatches = $cached['matches'] ?? [];
+            $sort = self::MATCHING_SORT_MATCH_DESC;
+            $allMatches = $this->sortMatchingRows($cached['matches'] ?? [], $sort);
             $perPage = 10;
             $totalPages = max(1, (int) ceil(count($allMatches) / $perPage));
             $firstPageMatches = array_slice($allMatches, 0, $perPage);
@@ -304,6 +314,8 @@ final class RecruiterController extends AbstractController
                 'semantic' => $cached['semantic'] ?? null,
                 'enriched' => $cached['enriched'] ?? null,
                 'cachedAt' => $cached['cachedAt'] ?? null,
+                'sort' => $sort,
+                'sortOptions' => $this->matchingSortOptions(),
                 'matches' => $firstPageMatches,
             ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
@@ -412,7 +424,8 @@ final class RecruiterController extends AbstractController
             }
         }
 
-        $allMatches = $cachedData['matches'] ?? [];
+        $sort = $this->resolveMatchingSort((string) $request->query->get('sort', self::MATCHING_SORT_MATCH_DESC));
+        $allMatches = $this->sortMatchingRows($cachedData['matches'] ?? [], $sort);
         $totalMatches = count($allMatches);
         $page = max(1, $request->query->getInt('page', 1));
         $perPage = 10;
@@ -431,17 +444,22 @@ final class RecruiterController extends AbstractController
         );
 
         return $this->json([
-            'offer' => $cachedData['offer'],
+            'offer' => $cachedData['offer'] ?? [
+                'id' => $offer->getId(),
+                'title' => (string) $offer->getTitle(),
+            ],
             'matchesCount' => $totalMatches,
             'displayedMatches' => count($visibleMatches),
             'page' => $page,
             'perPage' => $perPage,
             'totalPages' => $totalPages,
-            'topMatchPercentage' => $cachedData['topMatchPercentage'],
-            'fairness' => $cachedData['fairness'],
-            'semantic' => $cachedData['semantic'],
-            'enriched' => $cachedData['enriched'],
-            'cachedAt' => $cachedData['cachedAt'],
+            'topMatchPercentage' => $cachedData['topMatchPercentage'] ?? null,
+            'fairness' => $cachedData['fairness'] ?? null,
+            'semantic' => $cachedData['semantic'] ?? null,
+            'enriched' => $cachedData['enriched'] ?? null,
+            'cachedAt' => $cachedData['cachedAt'] ?? null,
+            'sort' => $sort,
+            'sortOptions' => $this->matchingSortOptions(),
             'matches' => $visibleMatches,
         ]);
     }
@@ -1095,6 +1113,122 @@ final class RecruiterController extends AbstractController
     }
 
     /**
+     * @return array<string, string>
+     */
+    private function matchingSortOptions(): array
+    {
+        return [
+            self::MATCHING_SORT_MATCH_DESC => 'Le plus matchant (Score IA)',
+            self::MATCHING_SORT_MATCH_ASC => 'Le moins matchant',
+            self::MATCHING_SORT_RECENT => 'Le plus recent',
+            self::MATCHING_SORT_EXPERIENCE_DESC => 'Experience decroissante',
+            self::MATCHING_SORT_EXPERIENCE_ASC => 'Experience croissante',
+            self::MATCHING_SORT_SKILLS_DESC => 'Le plus de competences detectees',
+            self::MATCHING_SORT_NAME_ASC => 'Nom du profil A-Z',
+        ];
+    }
+
+    private function resolveMatchingSort(string $sort): string
+    {
+        return array_key_exists($sort, $this->matchingSortOptions()) ? $sort : self::MATCHING_SORT_MATCH_DESC;
+    }
+
+    /**
+     * @param list<array<string, mixed>> $matches
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function sortMatchingRows(array $matches, string $sort): array
+    {
+        $resolvedSort = $this->resolveMatchingSort($sort);
+
+        usort($matches, function (array $left, array $right) use ($resolvedSort): int {
+            return match ($resolvedSort) {
+                self::MATCHING_SORT_MATCH_ASC => $this->compareMatchingScore($left, $right),
+                self::MATCHING_SORT_RECENT => $this->compareDatesDesc($left['updatedAt'] ?? null, $right['updatedAt'] ?? null)
+                    ?: $this->compareMatchingScoreDesc($left, $right),
+                self::MATCHING_SORT_EXPERIENCE_DESC => ((int) ($right['yearsExperience'] ?? 0) <=> (int) ($left['yearsExperience'] ?? 0))
+                    ?: $this->compareMatchingScoreDesc($left, $right),
+                self::MATCHING_SORT_EXPERIENCE_ASC => ((int) ($left['yearsExperience'] ?? 0) <=> (int) ($right['yearsExperience'] ?? 0))
+                    ?: $this->compareMatchingScoreDesc($left, $right),
+                self::MATCHING_SORT_SKILLS_DESC => ($this->countDetectedSkills($right) <=> $this->countDetectedSkills($left))
+                    ?: $this->compareMatchingScoreDesc($left, $right),
+                self::MATCHING_SORT_NAME_ASC => $this->profileName($left) <=> $this->profileName($right),
+                default => $this->compareMatchingScoreDesc($left, $right),
+            };
+        });
+
+        return $matches;
+    }
+
+    /**
+     * Ascending comparison. Use compareMatchingScoreDesc for the default ranking.
+     */
+    private function compareMatchingScore(array $left, array $right): int
+    {
+        foreach (['semanticEnrichedPercentage', 'semanticPercentage', 'percentage'] as $field) {
+            $comparison = $this->numericValue($left[$field] ?? null) <=> $this->numericValue($right[$field] ?? null);
+            if (0 !== $comparison) {
+                return $comparison;
+            }
+        }
+
+        return $this->profileName($left) <=> $this->profileName($right);
+    }
+
+    private function compareMatchingScoreDesc(array $left, array $right): int
+    {
+        foreach (['semanticEnrichedPercentage', 'semanticPercentage', 'percentage'] as $field) {
+            $comparison = $this->numericValue($right[$field] ?? null) <=> $this->numericValue($left[$field] ?? null);
+            if (0 !== $comparison) {
+                return $comparison;
+            }
+        }
+
+        return $this->profileName($left) <=> $this->profileName($right);
+    }
+
+    private function compareDatesDesc(mixed $leftDate, mixed $rightDate): int
+    {
+        return $this->timestampValue($rightDate) <=> $this->timestampValue($leftDate);
+    }
+
+    private function numericValue(mixed $value): float
+    {
+        return is_float($value) || is_int($value) ? (float) $value : -1.0;
+    }
+
+    private function timestampValue(mixed $value): int
+    {
+        if (!is_string($value) || '' === trim($value)) {
+            return 0;
+        }
+
+        $timestamp = strtotime($value);
+
+        return false === $timestamp ? 0 : $timestamp;
+    }
+
+    private function profileName(array $match): string
+    {
+        return mb_strtolower((string) ($match['fullName'] ?? $match['candidateLabel'] ?? ''));
+    }
+
+    private function countDetectedSkills(array $match): int
+    {
+        $total = 0;
+
+        foreach (['matchedHardSkills', 'matchedSoftSkills', 'inferredSoftSkills', 'inferredTransferableSkills', 'inferredTechnicalSkills'] as $field) {
+            $values = $match[$field] ?? [];
+            if (is_array($values)) {
+                $total += count($values);
+            }
+        }
+
+        return $total;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function normalizeMatchForCache(array $match, int $index): array
@@ -1106,6 +1240,7 @@ final class RecruiterController extends AbstractController
             'fullName' => $match['fullName'] ?? 'Profil',
             'headline' => $match['headline'] ?? '',
             'yearsExperience' => $match['yearsExperience'] ?? 0,
+            'updatedAt' => $match['updatedAt'] ?? null,
             'percentage' => $match['percentage'] ?? null,
             'semanticPercentage' => $match['semanticPercentage'] ?? null,
             'semanticEnrichedPercentage' => $match['semanticEnrichedPercentage'] ?? null,

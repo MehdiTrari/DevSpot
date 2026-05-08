@@ -81,7 +81,13 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
         );
 
         if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
-            return new RedirectResponse($targetPath);
+            if (!$this->isMissingRecruiterProfileTarget($targetPath, $user)) {
+                return new RedirectResponse($targetPath);
+            }
+
+            $request->getSession()->getFlashBag()->add('error', 'Votre compte recruteur n\'a pas encore de profil associé.');
+
+            return new RedirectResponse($this->urlGenerator->generate('app_home'));
         }
 
         $roles = $token->getRoleNames();
@@ -90,6 +96,12 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
         }
 
         if (in_array('ROLE_RECRUITER', $roles, true)) {
+            if (!$user instanceof User || null === $user->getRecruiterProfile()) {
+                $request->getSession()->getFlashBag()->add('error', 'Votre compte recruteur n\'a pas encore de profil associé.');
+
+                return new RedirectResponse($this->urlGenerator->generate('app_home'));
+            }
+
             return new RedirectResponse($this->urlGenerator->generate('app_recruiter_home'));
         }
 
@@ -108,5 +120,20 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
     protected function getLoginUrl(Request $request): string
     {
         return $this->urlGenerator->generate(self::LOGIN_ROUTE);
+    }
+
+    private function isMissingRecruiterProfileTarget(string $targetPath, mixed $user): bool
+    {
+        if (!$user instanceof User || null !== $user->getRecruiterProfile()) {
+            return false;
+        }
+
+        if (!in_array('ROLE_RECRUITER', $user->getRoles(), true)) {
+            return false;
+        }
+
+        $path = parse_url($targetPath, PHP_URL_PATH);
+
+        return is_string($path) && str_starts_with($path, '/recruiter');
     }
 }

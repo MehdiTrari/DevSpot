@@ -159,6 +159,7 @@ final class OfferMatchingService
                 'fullName' => trim(sprintf('%s %s', (string) $developer?->getFirstName(), (string) $developer?->getLastName())),
                 'headline' => (string) $developer?->getHeadline(),
                 'yearsExperience' => $result->candidate->yearsOfExperience,
+                'updatedAt' => $developer?->getUpdatedAt()?->format('Y-m-d\TH:i:sP'),
                 'percentage' => round($result->score * 100, 1),
                 'score' => $result->score,
                 'semanticPercentage' => $semanticScore['percentage'],
