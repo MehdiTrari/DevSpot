@@ -1,0 +1,991 @@
+{
+  "model": "camembert-base",
+  "projectionPath": "ml/models/devspot-matching-projection.pt",
+  "methodsRequested": [
+    "baseline",
+    "semantic",
+    "enriched_proxy",
+    "reranker"
+  ],
+  "offers": 48,
+  "developers": 1000,
+  "labelSource": "explicit sparse labels generated for hard-negative offline evaluation; non-listed candidates are relevance 0",
+  "methods": {
+    "baseline": {
+      "method": "baseline",
+      "offersEvaluated": 48,
+      "recall@1": 0.125,
+      "recall@3": 0.125,
+      "recall@5": 0.2292,
+      "mrr": 0.1758,
+      "ndcg@5": 0.0743,
+      "sampleOffers": [
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "noa-robert-58-demo-v2",
+              "fullName": "Noa Robert",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "aya-robin-78-demo-v2",
+              "fullName": "Aya Robin",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "samir-faure-103-demo-v2",
+              "fullName": "Samir Faure",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "chloe-morel-181-demo-v2",
+              "fullName": "Chloe Morel",
+              "score": 0.87,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "sofia-robin-183-demo-v2",
+              "fullName": "Sofia Robin",
+              "score": 0.87,
+              "weakRelevance": 3
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "noa-robert-58-demo-v2",
+              "fullName": "Noa Robert",
+              "score": 0.79,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "aya-robin-78-demo-v2",
+              "fullName": "Aya Robin",
+              "score": 0.79,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "samir-faure-103-demo-v2",
+              "fullName": "Samir Faure",
+              "score": 0.79,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "chloe-morel-181-demo-v2",
+              "fullName": "Chloe Morel",
+              "score": 0.79,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "nabil-rossi-182-demo-v2",
+              "fullName": "Nabil Rossi",
+              "score": 0.79,
+              "weakRelevance": 3
+            }
+          ]
+        },
+        {
+          "title": "Integrateur Frontend",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "yasmine-rossi-4-demo-v2",
+              "fullName": "Yasmine Rossi",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "marius-rossi-9-demo-v2",
+              "fullName": "Marius Rossi",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "tom-durand-10-demo-v2",
+              "fullName": "Tom Durand",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "camille-bernard-11-demo-v2",
+              "fullName": "Camille Bernard",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "camille-lopez-14-demo-v2",
+              "fullName": "Camille Lopez",
+              "score": 0.87,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "noa-robert-58-demo-v2",
+              "fullName": "Noa Robert",
+              "score": 0.87,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "tomasz-garcia-244-demo-v3",
+              "fullName": "Tomasz Garcia",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "tom-nicolas-431-demo-v3",
+              "fullName": "Tom Nicolas",
+              "score": 0.87,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "fatou-costa-456-demo-v3",
+              "fullName": "Fatou Costa",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "anika-kowalski-484-demo-v3",
+              "fullName": "Anika Kowalski",
+              "score": 0.87,
+              "weakRelevance": 3
+            }
+          ]
+        },
+        {
+          "title": "Data Engineer Python / SQL",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "marius-petit-24-demo-v2",
+              "fullName": "Marius Petit",
+              "score": 0.95,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "chloe-girard-31-demo-v2",
+              "fullName": "Chloe Girard",
+              "score": 0.95,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "noa-chevalier-90-demo-v2",
+              "fullName": "Noa Chevalier",
+              "score": 0.95,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "camille-richard-153-demo-v2",
+              "fullName": "Camille Richard",
+              "score": 0.95,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "ilyes-lefevre-158-demo-v2",
+              "fullName": "Ilyes Lefevre",
+              "score": 0.95,
+              "weakRelevance": 0
+            }
+          ]
+        }
+      ]
+    },
+    "semantic": {
+      "method": "semantic",
+      "offersEvaluated": 48,
+      "recall@1": 0.0208,
+      "recall@3": 0.1667,
+      "recall@5": 0.2708,
+      "mrr": 0.1196,
+      "ndcg@5": 0.0574,
+      "sampleOffers": [
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "chloe-bernard-109-demo-v2",
+              "fullName": "Chloe Bernard",
+              "score": 0.8457,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "youssef-pham-790-demo-v3",
+              "fullName": "Youssef Pham",
+              "score": 0.8266,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "antoine-boumediene-787-demo-v3",
+              "fullName": "Antoine Boumediene",
+              "score": 0.8117,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "joao-mathieu-740-demo-v3",
+              "fullName": "Joao Mathieu",
+              "score": 0.7954,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "noa-robert-58-demo-v2",
+              "fullName": "Noa Robert",
+              "score": 0.7942,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "chloe-bernard-109-demo-v2",
+              "fullName": "Chloe Bernard",
+              "score": 0.7165,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "youssef-pham-790-demo-v3",
+              "fullName": "Youssef Pham",
+              "score": 0.6882,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "antoine-boumediene-787-demo-v3",
+              "fullName": "Antoine Boumediene",
+              "score": 0.6689,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "noa-robert-58-demo-v2",
+              "fullName": "Noa Robert",
+              "score": 0.6529,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "joao-mathieu-740-demo-v3",
+              "fullName": "Joao Mathieu",
+              "score": 0.6504,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Integrateur Frontend",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "adam-durand-22-demo-v2",
+              "fullName": "Adam Durand",
+              "score": 0.5342,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "ilyes-thomas-75-demo-v2",
+              "fullName": "Ilyes Thomas",
+              "score": 0.5338,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "sofia-richard-161-demo-v2",
+              "fullName": "Sofia Richard",
+              "score": 0.5148,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "nabil-fournier-121-demo-v2",
+              "fullName": "Nabil Fournier",
+              "score": 0.514,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "sofia-rossi-13-demo-v2",
+              "fullName": "Sofia Rossi",
+              "score": 0.4987,
+              "weakRelevance": 3
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "chloe-bernard-109-demo-v2",
+              "fullName": "Chloe Bernard",
+              "score": 0.8528,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "youssef-pham-790-demo-v3",
+              "fullName": "Youssef Pham",
+              "score": 0.826,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "noa-robert-58-demo-v2",
+              "fullName": "Noa Robert",
+              "score": 0.8084,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "antoine-boumediene-787-demo-v3",
+              "fullName": "Antoine Boumediene",
+              "score": 0.8014,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "ilyes-mercier-65-demo-v2",
+              "fullName": "Ilyes Mercier",
+              "score": 0.7988,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Data Engineer Python / SQL",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "chloe-mercier-148-demo-v2",
+              "fullName": "Chloe Mercier",
+              "score": 0.8382,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "eva-martin-159-demo-v2",
+              "fullName": "Eva Martin",
+              "score": 0.8271,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "eva-lefevre-168-demo-v2",
+              "fullName": "Eva Lefevre",
+              "score": 0.8158,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "noa-martin-134-demo-v2",
+              "fullName": "Noa Martin",
+              "score": 0.8066,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "loris-thomas-102-demo-v2",
+              "fullName": "Loris Thomas",
+              "score": 0.8063,
+              "weakRelevance": 0
+            }
+          ]
+        }
+      ]
+    },
+    "enriched_proxy": {
+      "method": "enriched_proxy",
+      "offersEvaluated": 48,
+      "recall@1": 0.1042,
+      "recall@3": 0.2917,
+      "recall@5": 0.3542,
+      "mrr": 0.2297,
+      "ndcg@5": 0.0878,
+      "sampleOffers": [
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "alice-dubois-921-demo-v3",
+              "fullName": "Alice Dubois",
+              "score": 0.856,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "leo-thomas-189-demo-v2",
+              "fullName": "Leo Thomas",
+              "score": 0.8555,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "mei-diop-641-demo-v3",
+              "fullName": "Mei Diop",
+              "score": 0.8344,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "yara-clement-378-demo-v3",
+              "fullName": "Yara Clement",
+              "score": 0.82,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "joao-mathieu-740-demo-v3",
+              "fullName": "Joao Mathieu",
+              "score": 0.82,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "chloe-bernard-109-demo-v2",
+              "fullName": "Chloe Bernard",
+              "score": 0.776,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "noa-robert-58-demo-v2",
+              "fullName": "Noa Robert",
+              "score": 0.7389,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "youssef-pham-790-demo-v3",
+              "fullName": "Youssef Pham",
+              "score": 0.7382,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "samir-faure-103-demo-v2",
+              "fullName": "Samir Faure",
+              "score": 0.7279,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "ilyes-mercier-65-demo-v2",
+              "fullName": "Ilyes Mercier",
+              "score": 0.7251,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Integrateur Frontend",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "adam-durand-22-demo-v2",
+              "fullName": "Adam Durand",
+              "score": 0.7052,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "ilyes-thomas-75-demo-v2",
+              "fullName": "Ilyes Thomas",
+              "score": 0.7048,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "sofia-richard-161-demo-v2",
+              "fullName": "Sofia Richard",
+              "score": 0.6858,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "nabil-fournier-121-demo-v2",
+              "fullName": "Nabil Fournier",
+              "score": 0.67,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "salome-rossi-73-demo-v2",
+              "fullName": "Salome Rossi",
+              "score": 0.6594,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "alice-dubois-921-demo-v3",
+              "fullName": "Alice Dubois",
+              "score": 0.856,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "mei-diop-641-demo-v3",
+              "fullName": "Mei Diop",
+              "score": 0.8306,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "yara-clement-378-demo-v3",
+              "fullName": "Yara Clement",
+              "score": 0.82,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "joao-mathieu-740-demo-v3",
+              "fullName": "Joao Mathieu",
+              "score": 0.82,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "antoine-boumediene-787-demo-v3",
+              "fullName": "Antoine Boumediene",
+              "score": 0.82,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Data Engineer Python / SQL",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "chloe-mercier-148-demo-v2",
+              "fullName": "Chloe Mercier",
+              "score": 0.9892,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "marius-dubois-55-demo-v2",
+              "fullName": "Marius Dubois",
+              "score": 0.9441,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "eva-lefevre-168-demo-v2",
+              "fullName": "Eva Lefevre",
+              "score": 0.9378,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "mila-martin-1-demo-v2",
+              "fullName": "Mila Martin",
+              "score": 0.9258,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "eva-morel-116-demo-v2",
+              "fullName": "Eva Morel",
+              "score": 0.9213,
+              "weakRelevance": 0
+            }
+          ]
+        }
+      ]
+    },
+    "reranker": {
+      "method": "reranker",
+      "offersEvaluated": 48,
+      "recall@1": 0.6458,
+      "recall@3": 0.9583,
+      "recall@5": 0.9583,
+      "mrr": 0.807,
+      "ndcg@5": 0.6353,
+      "sampleOffers": [
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "chloe-perrin-600-demo-v3",
+              "fullName": "Chloe Perrin",
+              "score": 0.953,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "maxime-tran-616-demo-v3",
+              "fullName": "Maxime Tran",
+              "score": 0.9374,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "fatou-martinez-990-demo-v3",
+              "fullName": "Fatou Martinez",
+              "score": 0.9373,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "marius-bianchi-976-demo-v3",
+              "fullName": "Marius Bianchi",
+              "score": 0.9342,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "bilal-el-amrani-418-demo-v3",
+              "fullName": "Bilal El Amrani",
+              "score": 0.9267,
+              "weakRelevance": 3
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "marius-bianchi-976-demo-v3",
+              "fullName": "Marius Bianchi",
+              "score": 0.9399,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "alice-dubois-921-demo-v3",
+              "fullName": "Alice Dubois",
+              "score": 0.9358,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "bilal-el-amrani-418-demo-v3",
+              "fullName": "Bilal El Amrani",
+              "score": 0.9256,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "mila-diop-731-demo-v3",
+              "fullName": "Mila Diop",
+              "score": 0.9231,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "iryna-gonzalez-289-demo-v3",
+              "fullName": "Iryna Gonzalez",
+              "score": 0.9216,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Integrateur Frontend",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "marius-masson-177-demo-v2",
+              "fullName": "Marius Masson",
+              "score": 0.9274,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "quentin-perrin-290-demo-v3",
+              "fullName": "Quentin Perrin",
+              "score": 0.9179,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "hana-roux-408-demo-v3",
+              "fullName": "Hana Roux",
+              "score": 0.9106,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "marius-fournier-173-demo-v2",
+              "fullName": "Marius Fournier",
+              "score": 0.9036,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "mael-martin-16-demo-v2",
+              "fullName": "Mael Martin",
+              "score": 0.9008,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "chloe-perrin-600-demo-v3",
+              "fullName": "Chloe Perrin",
+              "score": 0.9534,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "maxime-tran-616-demo-v3",
+              "fullName": "Maxime Tran",
+              "score": 0.9395,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "bilal-el-amrani-418-demo-v3",
+              "fullName": "Bilal El Amrani",
+              "score": 0.9272,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "marius-bianchi-976-demo-v3",
+              "fullName": "Marius Bianchi",
+              "score": 0.9254,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "ethan-garnier-905-demo-v3",
+              "fullName": "Ethan Garnier",
+              "score": 0.912,
+              "weakRelevance": 3
+            }
+          ]
+        },
+        {
+          "title": "Data Engineer Python / SQL",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "mila-kumar-516-demo-v3",
+              "fullName": "Mila Kumar",
+              "score": 0.9726,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "iryna-guerin-972-demo-v3",
+              "fullName": "Iryna Guerin",
+              "score": 0.9726,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "mila-petit-930-demo-v3",
+              "fullName": "Mila Petit",
+              "score": 0.9676,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "salma-andre-477-demo-v3",
+              "fullName": "Salma Andre",
+              "score": 0.9649,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "eva-chevalier-71-demo-v2",
+              "fullName": "Eva Chevalier",
+              "score": 0.8744,
+              "weakRelevance": 3
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "deltas": {
+    "semantic_vs_baseline": {
+      "recall@1": -0.1042,
+      "recall@3": 0.0417,
+      "recall@5": 0.0416,
+      "mrr": -0.0562,
+      "ndcg@5": -0.0169
+    },
+    "enriched_proxy_vs_baseline": {
+      "recall@1": -0.0208,
+      "recall@3": 0.1667,
+      "recall@5": 0.125,
+      "mrr": 0.0539,
+      "ndcg@5": 0.0135
+    },
+    "reranker_vs_baseline": {
+      "recall@1": 0.5208,
+      "recall@3": 0.8333,
+      "recall@5": 0.7291,
+      "mrr": 0.6312,
+      "ndcg@5": 0.561
+    }
+  },
+  "offersEvaluated": 48,
+  "recall@1": 0.6458,
+  "recall@3": 0.9583,
+  "recall@5": 0.9583,
+  "mrr": 0.807,
+  "ndcg@5": 0.6353,
+  "sampleOffers": [
+    {
+      "title": "Developpeur Android Kotlin",
+      "positiveCandidates": 12,
+      "top5": [
+        {
+          "candidateId": "chloe-perrin-600-demo-v3",
+          "fullName": "Chloe Perrin",
+          "score": 0.953,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "maxime-tran-616-demo-v3",
+          "fullName": "Maxime Tran",
+          "score": 0.9374,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "fatou-martinez-990-demo-v3",
+          "fullName": "Fatou Martinez",
+          "score": 0.9373,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "marius-bianchi-976-demo-v3",
+          "fullName": "Marius Bianchi",
+          "score": 0.9342,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "bilal-el-amrani-418-demo-v3",
+          "fullName": "Bilal El Amrani",
+          "score": 0.9267,
+          "weakRelevance": 3
+        }
+      ]
+    },
+    {
+      "title": "Developpeur Android Kotlin",
+      "positiveCandidates": 12,
+      "top5": [
+        {
+          "candidateId": "marius-bianchi-976-demo-v3",
+          "fullName": "Marius Bianchi",
+          "score": 0.9399,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "alice-dubois-921-demo-v3",
+          "fullName": "Alice Dubois",
+          "score": 0.9358,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "bilal-el-amrani-418-demo-v3",
+          "fullName": "Bilal El Amrani",
+          "score": 0.9256,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "mila-diop-731-demo-v3",
+          "fullName": "Mila Diop",
+          "score": 0.9231,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "iryna-gonzalez-289-demo-v3",
+          "fullName": "Iryna Gonzalez",
+          "score": 0.9216,
+          "weakRelevance": 0
+        }
+      ]
+    },
+    {
+      "title": "Integrateur Frontend",
+      "positiveCandidates": 12,
+      "top5": [
+        {
+          "candidateId": "marius-masson-177-demo-v2",
+          "fullName": "Marius Masson",
+          "score": 0.9274,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "quentin-perrin-290-demo-v3",
+          "fullName": "Quentin Perrin",
+          "score": 0.9179,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "hana-roux-408-demo-v3",
+          "fullName": "Hana Roux",
+          "score": 0.9106,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "marius-fournier-173-demo-v2",
+          "fullName": "Marius Fournier",
+          "score": 0.9036,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "mael-martin-16-demo-v2",
+          "fullName": "Mael Martin",
+          "score": 0.9008,
+          "weakRelevance": 0
+        }
+      ]
+    },
+    {
+      "title": "Developpeur Android Kotlin",
+      "positiveCandidates": 12,
+      "top5": [
+        {
+          "candidateId": "chloe-perrin-600-demo-v3",
+          "fullName": "Chloe Perrin",
+          "score": 0.9534,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "maxime-tran-616-demo-v3",
+          "fullName": "Maxime Tran",
+          "score": 0.9395,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "bilal-el-amrani-418-demo-v3",
+          "fullName": "Bilal El Amrani",
+          "score": 0.9272,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "marius-bianchi-976-demo-v3",
+          "fullName": "Marius Bianchi",
+          "score": 0.9254,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "ethan-garnier-905-demo-v3",
+          "fullName": "Ethan Garnier",
+          "score": 0.912,
+          "weakRelevance": 3
+        }
+      ]
+    },
+    {
+      "title": "Data Engineer Python / SQL",
+      "positiveCandidates": 12,
+      "top5": [
+        {
+          "candidateId": "mila-kumar-516-demo-v3",
+          "fullName": "Mila Kumar",
+          "score": 0.9726,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "iryna-guerin-972-demo-v3",
+          "fullName": "Iryna Guerin",
+          "score": 0.9726,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "mila-petit-930-demo-v3",
+          "fullName": "Mila Petit",
+          "score": 0.9676,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "salma-andre-477-demo-v3",
+          "fullName": "Salma Andre",
+          "score": 0.9649,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "eva-chevalier-71-demo-v2",
+          "fullName": "Eva Chevalier",
+          "score": 0.8744,
+          "weakRelevance": 3
+        }
+      ]
+    }
+  ],
+  "summaryMethod": "reranker"
+}

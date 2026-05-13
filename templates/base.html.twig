@@ -960,7 +960,6 @@
 
                         <div class="site-header-actions site-header-actions-desktop">
                         {% if app.user %}
-                            {% set unreadNotificationsCount = unread_notifications_count(app.user) %}
                             {% set profilePath = path('app_home') %}
                             {% set accountRoleLabel = 'Utilisateur' %}
                             {% if is_granted('ROLE_ADMIN') %}
@@ -999,7 +998,7 @@
                                     >
                                         {% include '_chat_entry_point.html.twig' with {
                                             user: app.user,
-                                            unreadCount: chat_unread_count(app.user),
+                                            unreadCount: chatUnreadCount,
                                             isActive: isMessagesRoute
                                         } only %}
                                     </div>
@@ -1273,9 +1272,7 @@
                             }
                         };
 
-                        poll();
-
-                        const pollTimer = window.setInterval(poll, 2000);
+                        const pollTimer = window.setInterval(poll, 15000);
                         const stopPolling = () => {
                             window.clearInterval(pollTimer);
                             delete root.dataset.chatEntryPointPollInitialized;

@@ -1,4 +1,4 @@
-# US15 — Amélioration de la performance
+# Amélioration de la performance
 
 Date: 10/03/2026  
 Branche: `feature/US15`

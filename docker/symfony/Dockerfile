@@ -1,6 +1,7 @@
-FROM php:8.3-cli
+FROM php:8.3-apache
 
-ENV COMPOSER_ALLOW_SUPERUSER=1
+ENV COMPOSER_ALLOW_SUPERUSER=1 \
+    APACHE_DOCUMENT_ROOT=/app/public
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -21,6 +22,10 @@ RUN apt-get update \
         opcache \
         pdo_pgsql \
         zip \
+    && a2enmod rewrite headers expires \
+    && sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf \
+    && printf '%s\n' '<Directory /app/public>' '    AllowOverride None' '    Require all granted' '    FallbackResource /index.php' '</Directory>' > /etc/apache2/conf-available/devspot.conf \
+    && a2enconf devspot \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -36,7 +41,7 @@ COPY docker/symfony/entrypoint.sh /usr/local/bin/devspot-entrypoint
 RUN chmod +x /usr/local/bin/devspot-entrypoint \
     && mkdir -p var/cache var/log public/uploads
 
-EXPOSE 8000
+EXPOSE 80
 
 ENTRYPOINT ["devspot-entrypoint"]
-CMD ["php", "-S", "0.0.0.0:8000", "-t", "public"]
+CMD ["apache2-foreground"]

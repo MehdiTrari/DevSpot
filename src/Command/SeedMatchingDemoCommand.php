@@ -431,7 +431,10 @@ final class SeedMatchingDemoCommand extends Command
 
     private function userStatus(string $value): UserStatus
     {
-        return UserStatus::from($value);
+        return match ($value) {
+            'inactive' => UserStatus::SUSPENDED,
+            default => UserStatus::tryFrom($value) ?? UserStatus::ACTIVE,
+        };
     }
 
     private function locationType(mixed $value): ?LocationType

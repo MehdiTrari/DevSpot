@@ -74,6 +74,9 @@ def mini_dataset() -> dict:
 
 
 class EvaluateMatchingModelTest(unittest.TestCase):
+    def test_parse_methods_accepts_reranker(self) -> None:
+        self.assertEqual(["baseline", "reranker"], evaluator.parse_methods("baseline,reranker"))
+
     def test_baseline_score_does_not_call_weak_relevance(self) -> None:
         dataset = mini_dataset()
         offer = dataset["offers"][0]
@@ -100,6 +103,38 @@ class EvaluateMatchingModelTest(unittest.TestCase):
         self.assertEqual(1.0, report["recall@1"])
         self.assertEqual(1.0, report["mrr"])
         self.assertEqual(1.0, report["ndcg@5"])
+
+    def test_reranker_feature_vector_prefers_matching_candidate(self) -> None:
+        dataset = mini_dataset()
+        features = evaluator.build_offline_features(dataset["offers"], dataset["developers"])
+
+        matching_vector = evaluator.reranker_feature_vector(
+            dataset["offers"][0],
+            dataset["developers"][0],
+            0.9,
+            0.92,
+            features["offerKeywords"][0],
+            features["developerKeywords"][0],
+            features["offerFamilies"][0],
+            features["developerFamilies"][0],
+            features["candidateTexts"][0],
+        )
+        off_family_vector = evaluator.reranker_feature_vector(
+            dataset["offers"][0],
+            dataset["developers"][1],
+            0.4,
+            0.3,
+            features["offerKeywords"][0],
+            features["developerKeywords"][1],
+            features["offerFamilies"][0],
+            features["developerFamilies"][1],
+            features["candidateTexts"][1],
+        )
+
+        self.assertGreater(matching_vector[2], off_family_vector[2])
+        self.assertGreater(matching_vector[3], off_family_vector[3])
+        self.assertGreater(matching_vector[5], off_family_vector[5])
+        self.assertGreater(matching_vector[14], off_family_vector[14])
 
     def test_review_pack_selection_is_stable_with_same_seed(self) -> None:
         dataset = mini_dataset()
@@ -147,6 +182,26 @@ class EvaluateMatchingModelTest(unittest.TestCase):
         self.assertIn("baseline", scores)
         self.assertNotIn("semantic", report["methods"])
 
+    def test_evaluate_uses_explicit_evaluation_labels_when_present(self) -> None:
+        dataset = mini_dataset()
+        dataset["evaluationLabels"] = {
+            "labelSource": "explicit test labels",
+            "offers": [{
+                "offerIndex": 0,
+                "positiveCandidates": [{
+                    "candidateId": "ops-dev",
+                    "relevance": 3,
+                }],
+            }],
+        }
+
+        report, _scores = evaluator.evaluate(dataset, methods=["baseline"])
+
+        self.assertEqual("explicit test labels", report["labelSource"])
+        self.assertEqual(0.0, report["methods"]["baseline"]["recall@1"])
+        self.assertEqual(0.5, report["methods"]["baseline"]["mrr"])
+        self.assertEqual(0, report["methods"]["baseline"]["sampleOffers"][0]["top5"][0]["weakRelevance"])
+
     def test_enriched_proxy_caps_off_family_candidate(self) -> None:
         capped = evaluator.apply_family_guardrail(
             0.98,
@@ -176,6 +231,61 @@ class EvaluateMatchingModelTest(unittest.TestCase):
         )
 
         self.assertEqual(0.74, capped)
+
+    def test_specific_keyword_guardrail_caps_partial_fullstack_candidate(self) -> None:
+        capped = evaluator.apply_specific_keyword_guardrail(
+            0.95,
+            {"react", "symfony", "php", "full stack", "frontend", "backend"},
+            {"react", "typescript", "frontend"},
+            {"frontend", "backend", "fullstack"},
+            {"frontend"},
+        )
+
+        self.assertEqual(0.82, capped)
+
+    def test_experience_alignment_adjustment_penalizes_large_gap(self) -> None:
+        offer = {"experienceLevel": 6}
+        developer = make_developer("junior-gap", "Backend Developer PHP", ["PHP", "Symfony", "SQL"])
+
+        self.assertEqual(-0.07, evaluator.experience_alignment_adjustment(offer, developer))
+
+    def test_role_template_match_grade_prefers_matching_fullstack_profile(self) -> None:
+        offer = {
+            "title": "Developpeur Full Stack React / Symfony",
+            "experienceLevel": 4,
+        }
+        matching_developer = make_developer(
+            "fullstack-dev",
+            "Full Stack Developer React Symfony",
+            ["React", "Symfony", "PHP", "SQL"],
+        )
+        partial_developer = make_developer(
+            "frontend-dev",
+            "Frontend Developer React",
+            ["React", "TypeScript", "CSS"],
+        )
+
+        matching_text = evaluator.normalize_key(evaluator.build_candidate_text(matching_developer))
+        partial_text = evaluator.normalize_key(evaluator.build_candidate_text(partial_developer))
+
+        self.assertGreater(
+            evaluator.role_template_match_grade(offer, matching_developer, matching_text),
+            evaluator.role_template_match_grade(offer, partial_developer, partial_text),
+        )
+
+    def test_role_template_tiebreak_score_is_positive_for_matching_rule(self) -> None:
+        offer = {
+            "title": "Developpeur Android Kotlin",
+            "experienceLevel": 3,
+        }
+        developer = make_developer(
+            "android-dev",
+            "Developpeur Android Kotlin",
+            ["Android", "Kotlin", "Mobile"],
+        )
+        candidate_text = evaluator.normalize_key(evaluator.build_candidate_text(developer))
+
+        self.assertGreater(evaluator.role_template_tiebreak_score(offer, developer, candidate_text), 0.0)
 
     def test_summarize_cleaning_impact_reports_junior_score_delta(self) -> None:
         developers = [

@@ -1,0 +1,25 @@
+{
+  "input": "matching-demo-dataset-v3-expanded-bias-audit.json",
+  "output": "matching-demo-dataset-v4-hard-negatives-bias-audit.json",
+  "offers": 320,
+  "developers": 1000,
+  "positiveCandidatesPerOffer": {
+    "min": 12,
+    "p25": 12,
+    "median": 12,
+    "p75": 12,
+    "max": 12,
+    "avg": 12.0
+  },
+  "hardNegativesPerOffer": {
+    "min": 12,
+    "p25": 12,
+    "median": 12,
+    "p75": 12,
+    "max": 12,
+    "avg": 12.0
+  },
+  "totalExplicitPositiveLabels": 3840,
+  "totalHardNegatives": 3840,
+  "warnings": []
+}
