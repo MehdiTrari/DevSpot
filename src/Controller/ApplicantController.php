@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Conversation;
 use App\Entity\DeveloperProfile;
+use App\Entity\JobOffer;
 use App\Entity\Message;
 use App\Entity\User;
 use App\Form\ChatReplyType;
@@ -13,10 +14,13 @@ use App\Form\DeveloperProfileStep3Type;
 use App\Form\DeveloperProfileStep4Type;
 use App\Repository\ConversationRepository;
 use App\Repository\DeveloperProfileRepository;
+use App\Repository\FavoriteProfileRepository;
+use App\Repository\JobOfferRepository;
 use App\Repository\MessageRepository;
 use App\Service\ChatMercure;
 use App\Service\LoggerService;
 use App\Service\NotificationManager;
+use App\Service\OfferLifecycleManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -38,8 +42,17 @@ final class ApplicantController extends AbstractController
 {
     #[Route('/applicant', name: 'app_applicant_home')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function home(NotificationManager $notificationManager, EntityManagerInterface $entityManager): Response
-    {
+    public function home(
+        NotificationManager $notificationManager,
+        EntityManagerInterface $entityManager,
+        ConversationRepository $conversationRepository,
+        MessageRepository $messageRepository,
+        FavoriteProfileRepository $favoriteProfileRepository,
+        JobOfferRepository $jobOfferRepository,
+        OfferLifecycleManager $offerLifecycleManager,
+    ): Response {
+        $offerLifecycleManager->expireDueOffers();
+
         $user = $this->getApplicantUser();
         $profile = $user->getDeveloperProfile();
         $checklist = $this->buildChecklist($profile);
@@ -48,9 +61,22 @@ final class ApplicantController extends AbstractController
             $entityManager->flush();
         }
 
+        $conversationRows = $this->buildApplicantConversationRows($conversationRepository, $messageRepository, $user);
+        $dashboard = $this->buildApplicantDashboard(
+            $user,
+            $profile,
+            $checklist,
+            $conversationRows,
+            $messageRepository,
+            $favoriteProfileRepository,
+            $jobOfferRepository,
+        );
+
         return $this->render('applicant/dashboard.html.twig', [
             'profile' => $profile,
             'checklist' => $checklist,
+            'dashboard' => $dashboard,
+            'conversationRows' => $conversationRows,
             'portfolioGenerated' => $profile instanceof DeveloperProfile && null !== $profile->getPortfolioGeneratedAt(),
         ]);
     }
@@ -695,7 +721,401 @@ final class ApplicantController extends AbstractController
     }
 
     /**
-     * @return list<array{conversation: Conversation, recruiterUser: ?User, lastMessage: Message, unreadCount: int}>
+     * @param array<string, array{done: bool, route: string, label: string}> $checklist
+     * @param list<array{conversation: Conversation, recruiterUser: ?User, recruiterName: string, recruiterCompany: ?string, lastMessage: Message, lastMessagePreview: string, lastMessageAt: ?\DateTimeImmutable, unreadCount: int, status: string}> $conversationRows
+     *
+     * @return array<string, mixed>
+     */
+    private function buildApplicantDashboard(
+        User $user,
+        ?DeveloperProfile $profile,
+        array $checklist,
+        array $conversationRows,
+        MessageRepository $messageRepository,
+        FavoriteProfileRepository $favoriteProfileRepository,
+        JobOfferRepository $jobOfferRepository,
+    ): array {
+        $doneCount = count(array_filter(array_column($checklist, 'done')));
+        $completionPercent = $doneCount * 25;
+        $activeConversationsCount = count($conversationRows);
+        $unreadMessagesCount = $messageRepository->countUnreadForUser($user);
+        $favoriteProfiles = $profile instanceof DeveloperProfile ? $favoriteProfileRepository->findByDeveloperProfile($profile) : [];
+        $interactions = $this->buildRecruiterInteractions($conversationRows, $favoriteProfiles);
+        $recommendedOffers = $profile instanceof DeveloperProfile
+            ? $this->buildCompatibleOfferRows($profile, $jobOfferRepository->findActiveForMatching())
+            : [];
+        $visibilityScore = $this->estimateProfileVisibilityScore(
+            $profile,
+            $completionPercent,
+            count($interactions),
+            $activeConversationsCount,
+        );
+
+        return [
+            'completionPercent' => $completionPercent,
+            'doneCount' => $doneCount,
+            'skills' => $this->buildSkillRows($profile),
+            'experiences' => $this->buildExperienceRows($profile),
+            'education' => $this->buildEducationRows($profile),
+            'skillsCount' => $profile instanceof DeveloperProfile ? $profile->getProfileSkills()->count() : 0,
+            'experiencesCount' => $profile instanceof DeveloperProfile ? $profile->getExperiences()->count() : 0,
+            'educationCount' => $profile instanceof DeveloperProfile ? $profile->getEducation()->count() : 0,
+            'hasCv' => $profile instanceof DeveloperProfile && null !== $profile->getCvPdfPath(),
+            'hasPortfolio' => $profile instanceof DeveloperProfile && null !== $profile->getPortfolioGeneratedAt(),
+            'desiredPositions' => $this->buildDesiredPositionRows($profile),
+            'recommendedOffers' => array_slice($recommendedOffers, 0, 3),
+            'compatibleOffersCount' => count(array_filter(
+                $recommendedOffers,
+                static fn (array $offer): bool => $offer['score'] >= 25,
+            )),
+            'savedOffersCount' => 0,
+            'activeConversationsCount' => $activeConversationsCount,
+            'unreadMessagesCount' => $unreadMessagesCount,
+            'recruiterInteractions' => array_slice($interactions, 0, 4),
+            'recruiterInteractionsCount' => count($interactions),
+            'favoriteRecruitersCount' => count($favoriteProfiles),
+            'visibilityScore' => $visibilityScore,
+            'visibilityLabel' => $this->visibilityLabel($visibilityScore),
+            'recommendations' => $this->buildProfileRecommendations($profile, $checklist),
+            'profileMessage' => $this->profileFollowUpMessage($profile, $checklist, $completionPercent),
+            'latestInteraction' => $conversationRows[0]['lastMessageAt'] ?? null,
+            'profileViewsCount' => null,
+            'contactsReceivedCount' => $activeConversationsCount,
+        ];
+    }
+
+    /**
+     * @param list<array{conversation: Conversation, recruiterUser: ?User, recruiterName: string, recruiterCompany: ?string, lastMessage: Message, lastMessagePreview: string, lastMessageAt: ?\DateTimeImmutable, unreadCount: int, status: string}> $conversationRows
+     * @param list<object> $favoriteProfiles
+     *
+     * @return list<array{name: string, company: ?string, source: string}>
+     */
+    private function buildRecruiterInteractions(array $conversationRows, array $favoriteProfiles): array
+    {
+        $rows = [];
+        $seen = [];
+
+        foreach ($conversationRows as $row) {
+            $recruiterUser = $row['recruiterUser'] ?? null;
+            if (!$recruiterUser instanceof User) {
+                continue;
+            }
+
+            $key = 'user-' . (string) $recruiterUser->getId();
+            if (isset($seen[$key])) {
+                continue;
+            }
+
+            $seen[$key] = true;
+            $recruiterProfile = $recruiterUser->getRecruiterProfile();
+            $rows[] = [
+                'name' => $this->resolveRecruiterDisplayName($recruiterUser),
+                'company' => $recruiterProfile?->getCompany()?->getName(),
+                'source' => 'Conversation active',
+            ];
+        }
+
+        foreach ($favoriteProfiles as $favoriteProfile) {
+            if (!method_exists($favoriteProfile, 'getRecruiterProfile')) {
+                continue;
+            }
+
+            $recruiterProfile = $favoriteProfile->getRecruiterProfile();
+            if (null === $recruiterProfile) {
+                continue;
+            }
+
+            $recruiterUser = $recruiterProfile->getUser();
+            $key = $recruiterUser instanceof User ? 'user-' . (string) $recruiterUser->getId() : 'profile-' . (string) $recruiterProfile->getId();
+            if (isset($seen[$key])) {
+                continue;
+            }
+
+            $seen[$key] = true;
+            $name = trim(sprintf('%s %s', (string) $recruiterProfile->getFirstName(), (string) $recruiterProfile->getLastName()));
+            $rows[] = [
+                'name' => '' !== $name ? $name : 'Recruteur',
+                'company' => $recruiterProfile->getCompany()?->getName(),
+                'source' => 'Profil suivi',
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param list<JobOffer> $offers
+     *
+     * @return list<array{title: string, company: ?string, location: ?string, contract: string, score: int, matchedSkills: list<string>}>
+     */
+    private function buildCompatibleOfferRows(DeveloperProfile $profile, array $offers): array
+    {
+        $profileSkills = $this->buildSkillRows($profile);
+        $desiredPositions = $this->buildDesiredPositionRows($profile);
+        $rows = [];
+
+        foreach ($offers as $offer) {
+            $text = mb_strtolower(trim(sprintf('%s %s %s', (string) $offer->getTitle(), (string) $offer->getDescription(), (string) $offer->getLocation())));
+            $matchedSkills = array_values(array_filter(
+                $profileSkills,
+                static fn (string $skill): bool => '' !== $skill && str_contains($text, mb_strtolower($skill)),
+            ));
+            $matchedPositions = array_values(array_filter(
+                $desiredPositions,
+                static fn (string $position): bool => '' !== $position && str_contains($text, mb_strtolower($position)),
+            ));
+
+            $score = min(45, count($matchedSkills) * 15) + min(25, count($matchedPositions) * 25);
+
+            if (null !== $profile->getLocationType() && $offer->getLocationType()?->value === $profile->getLocationType()->value) {
+                $score += 15;
+            }
+
+            $yearsExperience = $profile->getYearsExperience();
+            $offerExperienceLevel = $offer->getExperienceLevel();
+            if (null !== $yearsExperience && null !== $offerExperienceLevel) {
+                $score += abs($yearsExperience - $offerExperienceLevel) <= 2 ? 15 : 5;
+            } elseif (null !== $yearsExperience || null !== $offerExperienceLevel) {
+                $score += 5;
+            }
+
+            if (0 === $score) {
+                continue;
+            }
+
+            $rows[] = [
+                'title' => (string) $offer->getTitle(),
+                'company' => $offer->getRecruiterProfile()?->getCompany()?->getName(),
+                'location' => $offer->getLocation(),
+                'contract' => $this->contractLabel($offer),
+                'score' => min(100, $score),
+                'scoreLabel' => $this->offerScoreLabel(min(100, $score)),
+                'matchedSkills' => array_slice($matchedSkills, 0, 3),
+            ];
+        }
+
+        usort(
+            $rows,
+            static fn (array $left, array $right): int => $right['score'] <=> $left['score'],
+        );
+
+        return $rows;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function buildSkillRows(?DeveloperProfile $profile): array
+    {
+        if (!$profile instanceof DeveloperProfile) {
+            return [];
+        }
+
+        $skills = [];
+        foreach ($profile->getProfileSkills() as $profileSkill) {
+            $name = trim((string) $profileSkill->getSkill()?->getName());
+            if ('' !== $name) {
+                $skills[] = $name;
+            }
+        }
+
+        return array_values(array_unique($skills));
+    }
+
+    /**
+     * @return list<array{title: string, company: string}>
+     */
+    private function buildExperienceRows(?DeveloperProfile $profile): array
+    {
+        if (!$profile instanceof DeveloperProfile) {
+            return [];
+        }
+
+        $experiences = $profile->getExperiences()->toArray();
+        usort(
+            $experiences,
+            static fn ($left, $right): int => ($right->getStartDate()?->getTimestamp() ?? 0) <=> ($left->getStartDate()?->getTimestamp() ?? 0),
+        );
+
+        return array_values(array_map(
+            static fn ($experience): array => [
+                'title' => (string) $experience->getTitle(),
+                'company' => (string) $experience->getCompanyName(),
+            ],
+            array_slice($experiences, 0, 3),
+        ));
+    }
+
+    /**
+     * @return list<array{degree: string, school: string}>
+     */
+    private function buildEducationRows(?DeveloperProfile $profile): array
+    {
+        if (!$profile instanceof DeveloperProfile) {
+            return [];
+        }
+
+        $educationRows = $profile->getEducation()->toArray();
+        usort(
+            $educationRows,
+            static fn ($left, $right): int => ($right->getStartDate()?->getTimestamp() ?? 0) <=> ($left->getStartDate()?->getTimestamp() ?? 0),
+        );
+
+        return array_values(array_map(
+            static fn ($education): array => [
+                'degree' => trim(sprintf('%s %s', (string) $education->getDegree(), (string) $education->getField())),
+                'school' => (string) $education->getSchoolName(),
+            ],
+            array_slice($educationRows, 0, 3),
+        ));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function buildDesiredPositionRows(?DeveloperProfile $profile): array
+    {
+        if (!$profile instanceof DeveloperProfile) {
+            return [];
+        }
+
+        $positions = [];
+        foreach ($profile->getDesiredPositions() as $position) {
+            $name = trim((string) $position->getName());
+            if ('' !== $name) {
+                $positions[] = $name;
+            }
+        }
+
+        return array_values(array_unique($positions));
+    }
+
+    private function estimateProfileVisibilityScore(?DeveloperProfile $profile, int $completionPercent, int $interactionsCount, int $activeConversationsCount): int
+    {
+        if (!$profile instanceof DeveloperProfile) {
+            return 0;
+        }
+
+        $score = (int) round($completionPercent * 0.55);
+        $score += $profile->getPortfolioGeneratedAt() instanceof \DateTimeImmutable ? 10 : 0;
+        $score += $profile->isPublic() ? 20 : 0;
+        $hasExternalLink = '' !== trim((string) $profile->getLinkedinUrl())
+            || '' !== trim((string) $profile->getGithubUrl())
+            || '' !== trim((string) $profile->getPortfolioUrl());
+        $score += $hasExternalLink ? 5 : 0;
+        $score += min(10, ($interactionsCount + $activeConversationsCount) * 3);
+
+        return min(100, $score);
+    }
+
+    private function visibilityLabel(int $score): string
+    {
+        return match (true) {
+            $score >= 80 => 'Élevée',
+            $score >= 55 => 'Bonne',
+            $score >= 30 => 'À renforcer',
+            default => 'Faible',
+        };
+    }
+
+    /**
+     * @param array<string, array{done: bool, route: string, label: string}> $checklist
+     */
+    private function profileFollowUpMessage(?DeveloperProfile $profile, array $checklist, int $completionPercent): string
+    {
+        if (!$profile instanceof DeveloperProfile) {
+            return 'Créez votre profil pour activer le suivi des opportunités et des échanges recruteurs.';
+        }
+
+        if (0 === $profile->getExperiences()->count() && $checklist['step1']['done']) {
+            return 'Votre profil est lancé. Ajoutez une expérience récente pour améliorer votre visibilité.';
+        }
+
+        if (0 === $profile->getProfileSkills()->count()) {
+            return 'Ajoutez vos compétences techniques pour améliorer la précision du matching.';
+        }
+
+        if (!$checklist['step3']['done']) {
+            return 'Ajoutez un lien GitHub, LinkedIn ou portfolio pour renforcer la lecture de votre profil.';
+        }
+
+        if ($completionPercent < 100) {
+            return 'Votre profil est presque complet. Finalisez les étapes restantes pour faciliter le suivi recruteur.';
+        }
+
+        return 'Votre profil est complet. Gardez-le à jour pour maintenir la qualité des recommandations.';
+    }
+
+    private function offerScoreLabel(int $score): string
+    {
+        return match (true) {
+            $score >= 70 => 'Compatibilité élevée',
+            $score >= 40 => 'Compatibilité moyenne',
+            default => 'Compatibilité à vérifier',
+        };
+    }
+
+    /**
+     * @param array<string, array{done: bool, route: string, label: string}> $checklist
+     *
+     * @return list<array{label: string, route: string}>
+     */
+    private function buildProfileRecommendations(?DeveloperProfile $profile, array $checklist): array
+    {
+        if (!$profile instanceof DeveloperProfile) {
+            return [[
+                'label' => 'Créer le profil développeur pour débloquer le suivi candidat.',
+                'route' => 'app_applicant_profile_create',
+            ]];
+        }
+
+        $recommendations = [];
+        if (!$checklist['step1']['done']) {
+            return [[
+                'label' => 'Compléter les informations générales du profil.',
+                'route' => 'app_applicant_profile_create',
+            ]];
+        }
+
+        if (0 === $profile->getProfileSkills()->count()) {
+            $recommendations[] = ['label' => 'Ajouter les compétences principales.', 'route' => 'app_applicant_profile_step2'];
+        }
+        if (0 === $profile->getExperiences()->count()) {
+            $recommendations[] = ['label' => 'Renseigner au moins une expérience.', 'route' => 'app_applicant_profile_step2'];
+        }
+        if (0 === $profile->getEducation()->count()) {
+            $recommendations[] = ['label' => 'Ajouter une formation ou certification.', 'route' => 'app_applicant_profile_step2'];
+        }
+        if (($checklist['step2']['done'] || $checklist['step3']['done'] || $checklist['step4']['done']) && !$checklist['step3']['done']) {
+            $recommendations[] = ['label' => 'Ajouter un lien GitHub, LinkedIn ou portfolio.', 'route' => 'app_applicant_profile_step3'];
+        }
+        if (($checklist['step3']['done'] || $checklist['step4']['done']) && !$checklist['step4']['done']) {
+            $recommendations[] = ['label' => 'Préciser les postes recherchés.', 'route' => 'app_applicant_profile_step4'];
+        }
+        if (!in_array(false, array_column($checklist, 'done'), true) && null === $profile->getPortfolioGeneratedAt()) {
+            $recommendations[] = ['label' => 'Générer le portfolio public.', 'route' => 'app_applicant_portfolio_generate'];
+        }
+
+        return array_slice($recommendations, 0, 4);
+    }
+
+    private function contractLabel(JobOffer $offer): string
+    {
+        return match ($offer->getContractType()?->value) {
+            'full_time' => 'Temps plein',
+            'part_time' => 'Temps partiel',
+            'permanent' => 'CDI',
+            'fixed_term' => 'CDD',
+            'internship' => 'Stage',
+            'apprenticeship' => 'Alternance',
+            'freelance' => 'Freelance',
+            'contract' => 'Contrat',
+            default => 'Contrat non renseigné',
+        };
+    }
+
+    /**
+     * @return list<array{conversation: Conversation, recruiterUser: ?User, recruiterName: string, recruiterCompany: ?string, lastMessage: Message, lastMessagePreview: string, lastMessageAt: ?\DateTimeImmutable, unreadCount: int, status: string}>
      */
     private function buildApplicantConversationRows(ConversationRepository $conversationRepository, MessageRepository $messageRepository, User $user): array
     {
@@ -714,8 +1134,13 @@ final class ApplicantController extends AbstractController
             $conversationRows[] = [
                 'conversation' => $conversation,
                 'recruiterUser' => $conversation->getRecruiterUser(),
+                'recruiterName' => $this->resolveRecruiterDisplayName($conversation->getRecruiterUser()),
+                'recruiterCompany' => $conversation->getRecruiterUser()?->getRecruiterProfile()?->getCompany()?->getName(),
                 'lastMessage' => $lastMessage,
+                'lastMessagePreview' => mb_substr(trim(strip_tags((string) $lastMessage->getContent())), 0, 120),
+                'lastMessageAt' => $lastMessage->getCreatedAt(),
                 'unreadCount' => $messageRepository->countUnreadInConversationForUser($conversation, $user),
+                'status' => 'Ouverte',
             ];
         }
 

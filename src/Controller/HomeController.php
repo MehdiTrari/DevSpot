@@ -14,6 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class HomeController extends AbstractController
 {
     #[Route(path: '/', name: 'app_home')]
+    #[Route(path: '/home', name: 'app_home_alias')]
     public function home(
         Request $request,
         DeveloperProfileRepository $developerProfileRepository,
@@ -24,6 +25,10 @@ class HomeController extends AbstractController
 
         if ($this->isGranted('ROLE_ADMIN')) {
             return $this->redirectToRoute('app_admin_dashboard');
+        }
+
+        if ($this->isGranted('ROLE_APPLICANT')) {
+            return $this->redirectToRoute('app_applicant_home');
         }
 
         $isAnonymous = null === $this->getUser();

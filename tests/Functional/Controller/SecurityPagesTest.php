@@ -72,6 +72,22 @@ final class SecurityPagesTest extends WebTestCase
         self::assertSelectorExists('a[href="/applicant"]');
     }
 
+    public function testApplicantRequestingHomeIsRedirectedToDashboard(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('applicant_home_%s@example.com', bin2hex(random_bytes(8)));
+        $user = $this->createUserWithStatus($email, 'password123', UserStatus::ACTIVE, ['ROLE_APPLICANT']);
+
+        $client->loginUser($user);
+        $client->request('GET', '/');
+
+        self::assertResponseRedirects('/applicant');
+
+        $client->request('GET', '/home');
+
+        self::assertResponseRedirects('/applicant');
+    }
+
     public function testAdminCannotSeeOrAccessRoleSettings(): void
     {
         $client = static::createClient();
