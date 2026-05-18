@@ -895,24 +895,24 @@
             {% if app.user %}
                 {% set unreadNotificationsCount = unread_notifications_count(app.user) %}
                 {% if is_granted('ROLE_ADMIN') %}
-                    {% set dashboardPath = path('app_admin_dashboard') %}
-                    {% set profilePath = path('app_admin_dashboard') %}
+                    {% set dashboardPath = path('app_admin_dashboard_alias') %}
+                    {% set profilePath = path('app_admin_dashboard_alias') %}
                 {% elseif is_granted('ROLE_APPLICANT') %}
-                    {% set dashboardPath = path('app_applicant_home') %}
+                    {% set dashboardPath = path('app_applicant_dashboard') %}
                     {% set profilePath = path('app_applicant_home') %}
                     {% if app.user.developerProfile is not null and app.user.developerProfile.portfolioGeneratedAt is not null %}
                         {% set messagesPath = path('app_applicant_messages') %}
                         {% set chatUnreadCount = chat_unread_count(app.user) %}
                     {% endif %}
                 {% elseif is_granted('ROLE_RECRUITER') %}
-                    {% set dashboardPath = path('app_recruiter_home') %}
+                    {% set dashboardPath = path('app_recruiter_dashboard') %}
                     {% set profilePath = path('app_recruiter_home') %}
                     {% set messagesPath = path('app_recruiter_messages') %}
                     {% set chatUnreadCount = chat_unread_count(app.user) %}
                 {% endif %}
             {% endif %}
             {% set isHomeRoute = currentRoute == 'app_home' %}
-            {% set isDashboardRoute = currentRoute in ['app_admin_dashboard', 'app_applicant_home', 'app_recruiter_home'] %}
+            {% set isDashboardRoute = currentRoute in ['app_admin_dashboard', 'app_admin_dashboard_alias', 'app_applicant_home', 'app_applicant_dashboard', 'app_recruiter_home', 'app_recruiter_dashboard', 'app_dashboard'] %}
             {% set isNotificationsRoute = currentRoute starts with 'app_notifications' %}
             {% set isFavoritesRoute = currentRoute == 'app_recruiter_favorites' or currentRoute starts with 'app_recruiter_favorite_' %}
             {% set isRecruiterOffersRoute = currentRoute == 'app_recruiter_offers' or currentRoute starts with 'app_recruiter_offer_' %}
@@ -963,7 +963,7 @@
                             {% set profilePath = path('app_home') %}
                             {% set accountRoleLabel = 'Utilisateur' %}
                             {% if is_granted('ROLE_ADMIN') %}
-                                {% set profilePath = path('app_admin_dashboard') %}
+                                {% set profilePath = path('app_admin_dashboard_alias') %}
                                 {% set accountRoleLabel = 'Administrateur' %}
                             {% elseif is_granted('ROLE_RECRUITER') %}
                                 {% set profilePath = path('app_recruiter_home') %}

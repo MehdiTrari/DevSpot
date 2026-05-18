@@ -34,6 +34,19 @@ final class SecurityPagesTest extends WebTestCase
         self::assertStringContainsString('compte', trim($crawler->filter('button[type="submit"]')->text()));
     }
 
+    public function testAnonymousHomeShowsPublicLanding(): void
+    {
+        $client = static::createClient();
+        $client->request('GET', '/');
+
+        self::assertResponseIsSuccessful();
+        self::assertSelectorTextContains('h1', 'Trouvez les bons profils');
+        self::assertSelectorTextContains('body', 'Je suis développeur');
+        self::assertSelectorExists('a[href="/register"]');
+        self::assertSelectorExists('a[href="/login"]');
+        self::assertSelectorExists('a[href="#decouvrir"]');
+    }
+
     public function testLoginFormAuthenticatesActiveUser(): void
     {
         $client = static::createClient();
@@ -49,7 +62,9 @@ final class SecurityPagesTest extends WebTestCase
 
         self::assertResponseRedirects('/');
         $client->followRedirect();
-        self::assertSelectorTextContains('body', 'Connecté en tant que recruteur');
+        self::assertResponseRedirects('/settings');
+        $client->followRedirect();
+        self::assertSelectorTextContains('h1', 'Centre de Paramètres');
         self::assertSelectorExists('a[href="/logout"]');
     }
 
@@ -66,10 +81,10 @@ final class SecurityPagesTest extends WebTestCase
             'password' => $password,
         ]));
 
-        self::assertResponseRedirects('/applicant');
+        self::assertResponseRedirects('/applicant/dashboard');
         $crawler = $client->followRedirect();
         self::assertSelectorTextContains('h1', 'Mon dashboard.');
-        self::assertSelectorExists('a[href="/applicant"]');
+        self::assertSelectorExists('a[href="/applicant/dashboard"]');
     }
 
     public function testApplicantRequestingHomeIsRedirectedToDashboard(): void
@@ -81,11 +96,15 @@ final class SecurityPagesTest extends WebTestCase
         $client->loginUser($user);
         $client->request('GET', '/');
 
-        self::assertResponseRedirects('/applicant');
+        self::assertResponseRedirects('/applicant/dashboard');
 
         $client->request('GET', '/home');
 
-        self::assertResponseRedirects('/applicant');
+        self::assertResponseRedirects('/applicant/dashboard');
+
+        $client->request('GET', '/dashboard');
+
+        self::assertResponseRedirects('/applicant/dashboard');
     }
 
     public function testAdminCannotSeeOrAccessRoleSettings(): void
@@ -138,7 +157,9 @@ final class SecurityPagesTest extends WebTestCase
             'password' => $password,
         ]));
         $client->followRedirect();
-        self::assertSelectorTextContains('body', 'Connecté en tant que recruteur');
+        self::assertResponseRedirects('/settings');
+        $client->followRedirect();
+        self::assertSelectorTextContains('h1', 'Centre de Paramètres');
         self::assertSelectorExists('a[href="/logout"]');
 
         $client->request('GET', '/logout');

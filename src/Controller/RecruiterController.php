@@ -43,6 +43,7 @@ final class RecruiterController extends AbstractController
     private const MATCHING_CACHE_TTL = 1800;
 
     #[Route('/recruiter', name: 'app_recruiter_home')]
+    #[Route('/recruiter/dashboard', name: 'app_recruiter_dashboard')]
     #[IsGranted('ROLE_RECRUITER')]
     public function home(
         FavoriteProfileRepository $favoriteProfileRepository,

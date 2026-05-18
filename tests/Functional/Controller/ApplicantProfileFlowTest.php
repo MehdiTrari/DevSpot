@@ -28,10 +28,10 @@ final class ApplicantProfileFlowTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/applicant');
+        self::assertResponseRedirects('/applicant/dashboard');
         $crawler = $client->followRedirect();
 
-        $crawler = $client->click($crawler->filter('a[href="/applicant"]')->link());
+        $crawler = $client->click($crawler->filter('a[href="/applicant/dashboard"]')->link());
         self::assertResponseIsSuccessful();
         $crawler = $client->click($crawler->filter('a[href="/applicant/profile/create"]')->link());
         self::assertResponseIsSuccessful();
@@ -78,10 +78,10 @@ final class ApplicantProfileFlowTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/applicant');
+        self::assertResponseRedirects('/applicant/dashboard');
         $crawler = $client->followRedirect();
 
-        $crawler = $client->click($crawler->filter('a[href="/applicant"]')->link());
+        $crawler = $client->click($crawler->filter('a[href="/applicant/dashboard"]')->link());
         self::assertResponseIsSuccessful();
         $crawler = $client->click($crawler->filter('a[href="/applicant/profile/create"]')->link());
         self::assertResponseIsSuccessful();
@@ -141,10 +141,10 @@ final class ApplicantProfileFlowTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/applicant');
+        self::assertResponseRedirects('/applicant/dashboard');
         $crawler = $client->followRedirect();
 
-        $crawler = $client->click($crawler->filter('a[href="/applicant"]')->link());
+        $crawler = $client->click($crawler->filter('a[href="/applicant/dashboard"]')->link());
         self::assertResponseIsSuccessful();
         $crawler = $client->click($crawler->filter('a[href="/applicant/profile/create"]')->link());
         self::assertResponseIsSuccessful();
@@ -193,7 +193,7 @@ final class ApplicantProfileFlowTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/applicant');
+        self::assertResponseRedirects('/applicant/dashboard');
         $client->followRedirect();
 
         $crawler = $client->request('GET', '/applicant/profile/create');
@@ -238,7 +238,7 @@ final class ApplicantProfileFlowTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/applicant');
+        self::assertResponseRedirects('/applicant/dashboard');
         $client->followRedirect();
 
         $client->request('GET', '/applicant/profile/step-2');
@@ -263,11 +263,11 @@ final class ApplicantProfileFlowTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/applicant');
+        self::assertResponseRedirects('/applicant/dashboard');
         $crawler = $client->followRedirect();
 
-        self::assertSelectorExists('a[href="/applicant"]');
-        $crawler = $client->click($crawler->filter('a[href="/applicant"]')->link());
+        self::assertSelectorExists('a[href="/applicant/dashboard"]');
+        $crawler = $client->click($crawler->filter('a[href="/applicant/dashboard"]')->link());
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('a[href="/applicant/profile/create"]');
         self::assertSelectorNotExists('a[href="/applicant/profile/step-2"]');
@@ -287,11 +287,11 @@ final class ApplicantProfileFlowTest extends WebTestCase
             'email' => $email,
             'password' => $password,
         ]));
-        self::assertResponseRedirects('/applicant');
+        self::assertResponseRedirects('/applicant/dashboard');
         $crawler = $client->followRedirect();
 
-        self::assertSelectorExists('a[href="/applicant"]');
-        $crawler = $client->click($crawler->filter('a[href="/applicant"]')->link());
+        self::assertSelectorExists('a[href="/applicant/dashboard"]');
+        $crawler = $client->click($crawler->filter('a[href="/applicant/dashboard"]')->link());
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'À créer');
         self::assertSelectorTextContains('body', 'Créer mon profil');

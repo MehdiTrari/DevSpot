@@ -41,6 +41,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class ApplicantController extends AbstractController
 {
     #[Route('/applicant', name: 'app_applicant_home')]
+    #[Route('/applicant/dashboard', name: 'app_applicant_dashboard')]
     #[IsGranted('ROLE_APPLICANT')]
     public function home(
         NotificationManager $notificationManager,

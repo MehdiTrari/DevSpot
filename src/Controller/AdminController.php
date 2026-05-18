@@ -38,6 +38,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('', name: 'app_admin_dashboard')]
+    #[Route('/dashboard', name: 'app_admin_dashboard_alias')]
     public function dashboard(
         UserRepository $userRepository,
         DeveloperProfileRepository $profileRepository,
