@@ -54,11 +54,13 @@ Rescaling lineaire du score
            score final DevSpot
 ```
 
-Le systeme produit donc trois niveaux de score :
+Dans le pipeline produit actuellement expose dans l'application, le systeme produit donc trois niveaux de score :
 
 - un **score baseline** par overlap de competences ;
 - un **score semantique** derive des embeddings CamemBERT ;
 - un **score enrichi DevSpot** qui ajoute un bonus issu des competences inferees.
+
+Point important : un **reranker** existe aussi dans les scripts de recherche et d'evaluation offline du depot, notamment dans `scripts/train_matching_reranker.py` et `scripts/evaluate_matching_model.py`. Ce reranker est un modele tabulaire experimente au-dessus des signaux `baseline`, `semantic` et `enriched_proxy`, mais il n'est pas aujourd'hui la brique de scoring runtime exposee par les services Symfony du site. Autrement dit, dans le produit en ligne, le score final utilise reste le **score enrichi DevSpot** ; le reranker correspond pour l'instant a une piste avancee d'evaluation et de comparaison, pas a un quatrieme score affiche dans l'interface.
 
 ## 3. Architecture logicielle
 

@@ -4,7 +4,7 @@ DevSpot est une application Symfony de mise en relation entre recruteurs et dév
 
 ## Stack
 
-- Symfony 7.4 / PHP 8.3+
+- Symfony 7.4 / PHP 8.3 en Docker et en CI (`composer.json` reste compatible `>=8.2`)
 - PostgreSQL
 - Tailwind CSS + AssetMapper
 - Mercure pour le temps réel
@@ -16,10 +16,10 @@ DevSpot est une application Symfony de mise en relation entre recruteurs et dév
 
 ### Prérequis
 
-- PHP 8.3+
-- Composer
-- Symfony CLI
 - Docker + Docker Compose
+- PHP 8.2+ si tu exécutes Composer ou `bin/console` sur l'hôte
+- Composer
+- Symfony CLI (optionnel)
 
 ### Installation
 
@@ -29,32 +29,39 @@ DevSpot est une application Symfony de mise en relation entre recruteurs et dév
 composer install
 ```
 
+Cette étape est utile si tu exécutes aussi les commandes Composer, PHPUnit ou PHPStan sur l'hôte. Si tu travailles uniquement via Docker, le conteneur `app` peut installer ses dépendances au démarrage.
+
 2. Démarrer toute la stack locale
 
 ```bash
 docker compose up -d --build
 ```
 
-Cette commande démarre l'application Symfony, Caddy, PostgreSQL, Mercure, Mailpit, le service ML et la documentation MkDocs.
+Cette commande démarre l'application Symfony, Caddy, PostgreSQL, Mercure, Mailpit, le service ML, la documentation MkDocs et Adminer.
 
-3. Lancer le serveur Symfony
+3. Vérifier que la stack est démarrée
 
 ```bash
 docker compose ps
 ```
 
-3. Préparer la base si nécessaire
+4. Préparer la base si nécessaire
 
 ```bash
-php bin/console cache:clear
-php bin/console doctrine:migrations:status
-php bin/console doctrine:migrations:migrate
+docker compose exec app php bin/console doctrine:migrations:status
+docker compose exec app php bin/console doctrine:migrations:migrate --no-interaction
 ```
 
-4. Lancer Tailwind en watch si tu modifies le style
+Si tu dois invalider manuellement le cache Symfony :
 
 ```bash
-php bin/console tailwind:build --watch
+docker compose exec app php bin/console cache:clear
+```
+
+5. Lancer Tailwind en watch si tu modifies le style
+
+```bash
+docker compose exec app php bin/console tailwind:build --watch
 ```
 
 ### Réinitialiser le frontend local
@@ -150,7 +157,7 @@ composer test:e2e:debug
 - Mercure public compatibilité : http://localhost:3000/.well-known/mercure
 - Service ML : http://localhost:8001
 - Santé du service ML : http://localhost:8001/health
-- Documentation MkDocs : http://localhost:8002
+- Documentation MkDocs : http://localhost:8002/DevSpot/ (`http://localhost:8002` redirige vers cette URL)
 - Adminer : http://localhost:8081
 - Mailpit : http://localhost:8025
 - SMTP Mailpit : `localhost:1025`
@@ -187,6 +194,8 @@ Cette stack de production expose uniquement le reverse proxy en frontal. Postgre
 
 ## Documentation du projet
 
+Pour une lecture rapide et structurée de la documentation publiée, commencer par [docs/index.md](docs/index.md).
+
 Les documents de référence actuellement conservés dans le dépôt sont :
 
 - [docs/matching-ia-documentation.md](docs/matching-ia-documentation.md) — documentation technique du pipeline de matching IA
@@ -194,20 +203,28 @@ Les documents de référence actuellement conservés dans le dépôt sont :
 - [docs/analyse-methodologie-matching.md](docs/analyse-methodologie-matching.md) — comparaison entre la méthodologie cible, l'implémentation réelle et les écarts restants
 - [docs/matching-improvement-roadmap.md](docs/matching-improvement-roadmap.md) — feuille de route incrémentale pour le nettoyage, l'optimisation, la pertinence et la fairness
 - [docs/matching-human-review-summary.md](docs/matching-human-review-summary.md) — synthèse de la revue humaine Phase 3 sur la pertinence du matching
-- [docs/ci-cd-github-actions.md](docs/ci-cd-github-actions.md) — CI actuelle et cible CD via GitHub Actions
-- [docs/US15-performance.md](docs/US15-performance.md) — optimisation performance réalisée sur l'application
+- [docs/ci-cd-github-actions.md](docs/ci-cd-github-actions.md) — workflows GitHub Actions actuels pour la documentation, la qualité, les tests et la couverture
+- [docs/problème-performance.md](docs/problème-performance.md) — optimisation performance réalisée sur l'application
 - [docs/junior-skill-inference-implementation.md](docs/junior-skill-inference-implementation.md) — note de conception détaillée sur l'inférence de compétences juniors
 - [docs/plan-finetuning-camembert.md](docs/plan-finetuning-camembert.md) — feuille de route de fine-tuning CamemBERT
 
 ## Conseils de lecture
 
-- Pour lancer le projet : commencer par ce `README`
+### Lecture globale
+
+- Pour lancer le projet et situer le périmètre : commencer par ce `README`
+- Pour une vue d'ensemble structurée de la documentation : lire [docs/index.md](docs/index.md)
+- Pour comprendre l'architecture locale et la cible d'exploitation : lire [docs/architecture/system-overview.md](docs/architecture/system-overview.md)
+- Pour la cible de mise en production : lire [docs/ops/deployment-production.md](docs/ops/deployment-production.md)
+- Pour l'automatisation qualité et documentation : lire [docs/ci-cd-github-actions.md](docs/ci-cd-github-actions.md)
+
+### Lecture technique détaillée
+
 - Pour comprendre le matching IA côté produit : lire [docs/matching-ia-documentation.md](docs/matching-ia-documentation.md)
 - Pour comprendre l'algorithme CamemBERT en détail : lire [docs/camembert-algorithme-technique.md](docs/camembert-algorithme-technique.md)
 - Pour comprendre l'état réel de l'anonymisation et les écarts méthodologiques : lire [docs/analyse-methodologie-matching.md](docs/analyse-methodologie-matching.md)
 - Pour suivre les améliorations prévues : lire [docs/matching-improvement-roadmap.md](docs/matching-improvement-roadmap.md)
-- Pour lire la première synthèse de pertinence humaine : lire [docs/matching-human-review-summary.md](docs/matching-human-review-summary.md)
-- Pour la chaîne qualité/tests/CD : lire [docs/ci-cd-github-actions.md](docs/ci-cd-github-actions.md)
+- Pour lire la synthèse de pertinence humaine : lire [docs/matching-human-review-summary.md](docs/matching-human-review-summary.md)
 
 ## Notes
 
@@ -215,3 +232,4 @@ Les documents de référence actuellement conservés dans le dépôt sont :
 - Si le schéma est à jour, `doctrine:migrations:status` doit indiquer `Already at latest version`.
 - L'affichage de l'accueil dépend des profils publics avec portfolio généré présents en base.
 - Le dossier `ml/` contient les briques Python liées au matching sémantique et aux expérimentations NLP.
+- La CI GitHub exécute actuellement les jobs `quality`, `phpunit`, `e2e` et `coverage` définis dans `.github/workflows/tests.yml`.

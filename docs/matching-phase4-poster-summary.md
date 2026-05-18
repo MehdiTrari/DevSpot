@@ -10,7 +10,7 @@ Ce support presente les resultats principaux de l'algorithme dans un format cour
 | Qualite offline apres amelioration | `matching-eval-after.json` | recall@1 `1.0`, recall@3 `1.0`, recall@5 `1.0`, mrr `1.0`, ndcg@5 `0.9991` | l'amelioration augmente surtout la fiabilite du haut de classement |
 | Gain avant -> apres | comparaison offline | recall@1 `+0.0778`, mrr `+0.0389`, ndcg@5 `+0.0620` | le gain principal porte sur la qualite du rang 1 et de l'ordre des meilleurs profils |
 | Fiabilite des trois scores actuels | `matching-eval-phase4-guardrail.json` | `baseline`, `semantic`, `enriched_proxy` a `1.0` sur recall@1, recall@3, recall@5, mrr, ndcg@5 | sur ce protocole offline, les trois variantes restent stables et sans regression |
-| Score de production retenu | pipeline actuel | classement final par `enriched_proxy` | le score enrichi est le score produit principal expose au recruteur |
+| Score de production retenu | pipeline runtime actuel | classement final par score enrichi DevSpot | `enriched_proxy` reste le proxy offline de ce score dans les evaluations |
 | Robustesse top-k | benchmark local `k=30`, `50`, `100` | part juniors top 5 `58.0%`, offres avec junior top 5 `90.0%`, top 1 junior `80.0%` pour les trois valeurs de `k` | la reduction du retrieval top-k ne degrade pas la representation junior sur cette coupe locale |
 | Robustesse contrefactuelle | `matching-counterfactual-fairness.json` | `school` et `apparent_origin` : `0.0%` de changement ; `location` : effet concentre sur le `baseline` offline | les signaux identitaires directs testes n'affectent pas le pipeline semantique actuel |
 
@@ -24,6 +24,8 @@ Ce support presente les resultats principaux de l'algorithme dans un format cour
 
 ### Comment le protocole offline produit ses resultats
 
+Dans ce document, `enriched_proxy` designe la variante offline employee pour approximer le score enrichi runtime expose par l'application.
+
 1. chaque offre est comparee a l'ensemble des profils developpeurs du dataset ;
 2. un label heuristique `weak_relevance` entre `0` et `3` sert de reference offline ;
 3. ce label repose sur le recouvrement de familles de roles, de mots-cles metier et l'adequation d'experience ;
@@ -35,7 +37,7 @@ Ce support presente les resultats principaux de l'algorithme dans un format cour
 | --- | --- | --- | --- |
 | Baseline | mots-cles, familles de roles, experience, et dans l'evaluation offline un signal de localisation | score additif borne entre `0` et `1` a partir des overlaps et de l'adequation d'experience | reference explicable et rapide |
 | Score semantique | texte d'offre + texte candidat nettoye | embeddings CamemBERT puis similarite cosinus | comprehension du sens, des synonymes et du contexte |
-| Score enrichi `enriched_proxy` | score semantique + competences inferees + garde-fou de famille de roles | bonus borne ajoute au score semantique, puis cap sur profils hors famille | score principal de classement en production |
+| Score enrichi runtime / proxy offline `enriched_proxy` | score semantique + competences inferees + garde-fou de famille de roles | bonus borne ajoute au score semantique, puis cap sur profils hors famille | le runtime utilise le score enrichi DevSpot ; `enriched_proxy` sert de proxy dans les rapports offline |
 | Audit fairness | scores par groupe junior / non-junior | moyennes, ratio d'impact, taux de selection a seuil `0.8` | verification d'equite sur les resultats |
 | Tests contrefactuels | versions mutees des profils | recomparaison des rankings et des deltas de score | verification de robustesse sur localisation, ecole, origine apparente |
 

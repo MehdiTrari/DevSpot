@@ -2,11 +2,17 @@
 
 Cette section regroupe la documentation d'exploitation et de qualité du projet.
 
-## Documents actuels
+## Lecture globale de l'exploitation
+
+- [Déploiement & production](deployment-production.md) : cible de production, exposition réseau, reverse proxy et principes de release
+- [CI/CD GitHub Actions](../ci-cd-github-actions.md) : automatisation actuelle de la qualité et du build documentaire
+- [Système & déploiement](../architecture/system-overview.md) : topologie locale, services Docker et articulation local / production
+
+## Lecture détaillée
 
 - [CI/CD GitHub Actions](../ci-cd-github-actions.md)
 - [Déploiement & production](deployment-production.md)
-- [US15 — Amélioration de la performance](../US15-performance.md)
+- [US15 — Amélioration de la performance](../problème-performance.md)
 
 ## Pistes d'extension
 

@@ -40,10 +40,12 @@ Les sujets d'infrastructure et de déploiement sont documentés explicitement da
 
 ## Publication
 
-Le projet est prêt à publier cette documentation via MkDocs et GitHub Pages grâce à :
+Le projet peut construire cette documentation via MkDocs et GitHub Actions grâce à :
 
 - `mkdocs.yml`
 - `.github/workflows/docs.yml`
+
+Le build documentaire est exécuté en mode strict. Le déploiement GitHub Pages, lui, reste conditionné à la variable de dépôt `ENABLE_GITHUB_PAGES=true` sur `main` ou `master`.
 
 À ce stade, la documentation couvre :
 
@@ -72,7 +74,7 @@ Les accès historiques en `localhost:8000` et `localhost:3000` restent disponibl
 - Mercure public compatibilité : `http://localhost:3000/.well-known/mercure`
 - Service ML : `http://localhost:8001`
 - Santé du service ML : `http://localhost:8001/health`
-- Documentation MkDocs : `http://localhost:8002`
+- Documentation MkDocs : `http://localhost:8002/DevSpot/` (`http://localhost:8002` redirige vers cette URL)
 - Adminer : `http://localhost:8081`
 - Mailpit : `http://localhost:8025`
 - SMTP Mailpit : `localhost:1025`
@@ -93,4 +95,4 @@ Ou directement via Docker Compose depuis la racine du projet :
 docker compose up -d docs
 ```
 
-La documentation est alors accessible sur `http://127.0.0.1:8002`.
+La documentation est alors accessible sur `http://127.0.0.1:8002/DevSpot/`.

@@ -13,6 +13,129 @@ Note : selon l'environnement, Doctrine Migrations ajoute aussi la table techniqu
 
 ## Vue d'ensemble
 
+Les tableaux détaillés ci-dessous restent la **source de vérité** pour les colonnes, types et contraintes. Les schémas Mermaid suivants servent de lecture rapide du modèle relationnel.
+
+### Diagramme ER global
+
+<pre class="mermaid">
+erDiagram
+	USER ||--o| DEVELOPER_PROFILE : porte
+	USER ||--o| RECRUITER_PROFILE : porte
+	COMPANY ||--o{ RECRUITER_PROFILE : rattache
+	RECRUITER_PROFILE ||--o{ JOB_OFFER : publie
+	RECRUITER_PROFILE ||--o{ FAVORITE_PROFILE : cree
+	DEVELOPER_PROFILE ||--o{ FAVORITE_PROFILE : est_favori
+	DEVELOPER_PROFILE ||--o{ PROFILE_SKILL : declare
+	SKILL ||--o{ PROFILE_SKILL : reference
+	DEVELOPER_PROFILE ||--o{ EXPERIENCE : contient
+	EXPERIENCE ||--o{ EXPERIENCE_TECHNOLOGY : utilise
+	TECHNOLOGY ||--o{ EXPERIENCE_TECHNOLOGY : reference
+	DEVELOPER_PROFILE ||--o{ EDUCATION : contient
+	DEVELOPER_PROFILE ||--o{ CONTACT_MESSAGE : recoit
+	DEVELOPER_PROFILE ||--o{ DEVELOPER_PROFILE_POSITION : cible
+	POSITION ||--o{ DEVELOPER_PROFILE_POSITION : reference
+
+	USER {
+		int id PK
+		string email
+		json roles
+		string status
+	}
+	DEVELOPER_PROFILE {
+		int id PK
+		int user_id FK
+		string slug
+		boolean is_public
+		string experience_level
+	}
+	RECRUITER_PROFILE {
+		int id PK
+		int user_id FK
+		int company_id FK
+		string job_title
+	}
+	COMPANY {
+		int id PK
+		string name
+		string size
+	}
+	JOB_OFFER {
+		int id PK
+		int recruiter_profile_id FK
+		string title
+		string status
+		string contract_type
+	}
+	PROFILE_SKILL {
+		int id PK
+		int developer_profile_id FK
+		int skill_id FK
+		string level
+	}
+	EXPERIENCE {
+		int id PK
+		int developer_profile_id FK
+		string company_name
+	}
+	EDUCATION {
+		int id PK
+		int developer_profile_id FK
+		string school_name
+	}
+	FAVORITE_PROFILE {
+		int id PK
+		int recruiter_profile_id FK
+		int developer_profile_id FK
+	}
+</pre>
+
+### Diagramme ER communication, notifications et audit
+
+<pre class="mermaid">
+erDiagram
+	USER ||--o{ CONVERSATION : participe
+	USER ||--o{ MESSAGE : envoie
+	USER ||--o{ NOTIFICATION : recoit
+	USER ||--o{ ACTIVITY_LOG : declenche
+	USER ||--o{ ADMIN_ACTION_LOG : agit
+	USER ||--o{ ADMIN_ACTION_LOG : cible
+	CONVERSATION ||--o{ MESSAGE : contient
+
+	USER {
+		int id PK
+		string email
+	}
+	CONVERSATION {
+		int id PK
+		int recruiter_id FK
+		int developer_id FK
+		string status
+	}
+	MESSAGE {
+		int id PK
+		int conversation_id FK
+		int sender_id FK
+		text content
+	}
+	NOTIFICATION {
+		int id PK
+		int user_id FK
+		string type
+		boolean is_read
+	}
+	ACTIVITY_LOG {
+		int id PK
+		int user_id FK
+		string action
+	}
+	ADMIN_ACTION_LOG {
+		int id PK
+		int admin_id FK
+		int target_user_id FK
+		string action
+	}
+</pre>
+
 ### Découpage fonctionnel
 
 - Authentification et comptes : `user`

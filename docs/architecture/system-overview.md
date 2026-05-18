@@ -22,7 +22,7 @@ Navigateur
    ├── http://mercure.devspot.localhost -> Caddy -> Mercure
    ├── http://localhost:8000  -> Caddy -> Symfony
    ├── http://localhost:3000  -> Caddy -> Mercure
-   ├── http://localhost:8002  -> MkDocs
+   ├── http://localhost:8002/DevSpot/  -> MkDocs
    ├── http://localhost:8081  -> Adminer
    ├── http://localhost:8025  -> Mailpit
    └── http://localhost:8001  -> ML FastAPI
@@ -48,7 +48,7 @@ Symfony
 
 - **mailer** : Mailpit, SMTP local sur `localhost:1025`, interface web sur `localhost:8025`
 - **adminer** : inspection SQL locale sur `localhost:8081`
-- **docs** : documentation MkDocs locale sur `localhost:8002`
+- **docs** : documentation MkDocs locale sur `localhost:8002/DevSpot/` (`localhost:8002` redirige vers cette URL)
 
 ## Pourquoi nous n'utilisons pas de Compose profiles ici
 
@@ -172,7 +172,7 @@ La base de production fournie dans le dépôt formalise les choix retenus pour l
 
 ### Moyen terme
 
-- ajouter un reverse proxy de dev/prod pour homogénéiser les URLs,
+- consolider l'homogénéité des URLs et conventions réseau entre local et production autour de Caddy,
 - produire une image Symfony plus proche de la prod (PHP-FPM + serveur web),
 - distinguer clairement `compose` local et déploiement production.
 

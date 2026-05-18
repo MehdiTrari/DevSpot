@@ -2,14 +2,19 @@
 
 Cette section isole les documents liés à l'expérimentation IA, au matching sémantique et aux travaux de mémoire.
 
-## Documents actuels
+## Lecture globale des résultats
+
+- [Synthèse de revue humaine Phase 3](../matching-human-review-summary.md)
+- [Résultats Phase 4 avant / après](../matching-phase4-before-after.md)
+- [Résumé poster Phase 4](../matching-phase4-poster-summary.md)
+
+## Lecture technique et méthodologique
 
 - [Algorithme CamemBERT détaillé](../camembert-algorithme-technique.md)
 - [Analyse méthodologique du matching](../analyse-methodologie-matching.md)
 - [Roadmap d'amélioration du matching](../matching-improvement-roadmap.md)
-- [Synthèse de revue humaine Phase 3](../matching-human-review-summary.md)
 - [Inférence de compétences junior-aware](../junior-skill-inference-implementation.md)
-- [Plan de fine-tuning CamemBERT](../plan-finetuning-camembert.md)
+- [Perspective de fine-tuning CamemBERT (non réalisée)](../plan-finetuning-camembert.md)
 
 ## Pourquoi séparer cette section
 

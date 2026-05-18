@@ -221,13 +221,13 @@ Avant la prod réelle, prévoir au minimum :
 
 ## Priorités retenues pour le projet
 
-À ce stade du projet, l'ordre de priorité retenu est le suivant :
+À ce stade du projet, les priorités structurantes retenues sont les suivantes :
 
-1. garder la stack Docker locale complète telle qu'elle est,
-2. introduire une **stack de production distincte** du local,
-3. ajouter un **reverse proxy** devant Symfony et Mercure,
-4. faire évoluer Symfony vers une image plus prod (`php-fpm` + proxy),
-5. sortir la documentation du runtime applicatif de production,
+1. garder une stack Docker locale complète et simple à lancer,
+2. conserver une **stack de production distincte** du local,
+3. garder un **reverse proxy** frontal devant Symfony et Mercure,
+4. faire évoluer Symfony vers une image plus prod (`php-fpm` + proxy) si le déploiement est industrialisé davantage,
+5. maintenir la documentation hors du runtime applicatif de production,
 6. documenter une procédure de release simple et répétable.
 
 ## Lecture des choix d'architecture

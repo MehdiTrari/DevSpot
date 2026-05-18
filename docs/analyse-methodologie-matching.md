@@ -581,20 +581,20 @@ Sans introduire tout de suite une vraie base vectorielle, la trajectoire la plus
 
 ### Etat actuel apres le premier increment de phase 2
 
-Une premiere optimisation pragmatique a deja ete mise en place :
+Une premiere optimisation pragmatique a d'abord ete mise en place :
 
 1. le **score baseline** continue d'etre calcule sur l'ensemble des profils publics ;
 2. le **score semantique** et le **score enrichi** ne sont plus calcules que sur un **top-k baseline** ;
 3. la valeur par defaut du top-k est actuellement **50** ;
 4. les profils hors top-k restent visibles dans les resultats, mais sans score semantique ni enrichi.
 
-Cette etape est utile car elle reduit deja le cout du reranking le plus cher, tout en gardant le comportement produit actuel.
+Cette etape etait utile car elle reduisait deja le cout du reranking le plus cher, tout en gardant le comportement produit actuel.
 
-En revanche, il ne faut pas la confondre avec l'architecture cible :
+À ce stade du premier increment, il ne fallait toutefois pas la confondre avec l'architecture cible :
 
-1. il n'existe pas encore de **stock d'embeddings candidats pre-calcules** ;
-2. il n'y a pas encore de **retrieval vectoriel dedie** avant reranking ;
-3. la phase 2 reste donc **en cours**, pas terminee.
+1. il n'existait pas encore de **stock d'embeddings candidats pre-calcules** ;
+2. il n'y avait pas encore de **retrieval vectoriel dedie** avant reranking ;
+3. la phase 2 etait donc encore **en cours**, pas terminee.
 
 ### Etat actuel apres le deuxieme increment de phase 2
 
@@ -606,10 +606,10 @@ Le pipeline a ensuite ete renforce avec un stockage persistant des embeddings ca
 4. une commande de backfill permet de reconstruire ce stock hors ligne ;
 5. le scoring semantique du reranking reutilise desormais ce stock quand il est disponible.
 
-Ce point reduit deja une partie du cout recurrent lie au matching semantique, mais il ne clot pas encore la phase 2, car :
+Ce point reduisait deja une partie du cout recurrent lie au matching semantique, mais il ne cloturait pas encore la phase 2, car :
 
-1. la **preselection initiale** repose toujours sur la baseline ;
-2. le **retrieval vectoriel** exploitant directement les embeddings stockes n'est pas encore en place ;
+1. la **preselection initiale** reposait toujours sur la baseline ;
+2. le **retrieval vectoriel** exploitant directement les embeddings stockes n'etait pas encore en place ;
 3. la comparaison formelle des valeurs de top-k et des gains de performance reste a faire.
 
 ### Etat actuel apres le troisieme increment de phase 2
@@ -886,7 +886,7 @@ Le rapport `docs/matching-eval-phase3.json` compare les trois methodes sur `90` 
 
 Cette mesure est utile mais elle montre surtout une limite : les labels faibles sont trop faciles sur ce dataset. Le fait que les trois methodes atteignent `1.0000` ne prouve pas que les methodes sont equivalentes ; cela signifie que le protocole heuristique ne discrimine plus assez les tops 5.
 
-La suite methodologiquement correcte est donc d'utiliser `docs/matching-human-review-pack.md`, qui contient des offres selectionnees par fort desaccord entre methodes, puis de noter manuellement les candidats sur une echelle `1-5`.
+La suite methodologiquement correcte est donc d'utiliser un pack interne de revue humaine contenant des offres selectionnees par fort desaccord entre methodes, puis de noter manuellement les candidats sur une echelle `1-5`.
 
 ### Revue humaine Phase 3
 
@@ -1275,4 +1275,3 @@ soit :
 - `docs/camembert-algorithme-technique.md`
 - `docs/junior-skill-inference-implementation.md`
 - `docs/plan-finetuning-camembert.md`
-- `docs/memoire-devspot-draft.md`

@@ -4,21 +4,25 @@
 > **Date** : Avril 2026  
 > **Matériel cible** : RTX 3060 (12 Go VRAM)
 
+> **Statut réel dans le projet** : ce fine-tuning complet n'a finalement **pas été réalisé** dans la version actuelle de DevSpot.
+> La solution effectivement implémentée et utilisée en runtime repose sur `camembert-base` **gelé**, une **projection linéaire entraînée** et un score enrichi côté application.
+> Ce document est donc conservé comme **plan de recherche / perspective d'évolution**, pas comme compte-rendu d'une étape exécutée.
+
 ---
 
-## Table des matières
+## Plan du document
 
-1. [Pourquoi fine-tuner ?](#1-pourquoi-fine-tuner-)
-2. [Ce qu'on a aujourd'hui vs ce qu'on veut](#2-ce-quon-a-aujourdhui-vs-ce-quon-veut)
-3. [Prérequis matériels et logiciels](#3-prérequis-matériels-et-logiciels)
-4. [Étape 1 — Préparer le dataset](#étape-1--préparer-le-dataset)
-5. [Étape 2 — Écrire le script de fine-tuning](#étape-2--écrire-le-script-de-fine-tuning)
-6. [Étape 3 — Lancer l'entraînement sur GPU](#étape-3--lancer-lentraînement-sur-gpu)
-7. [Étape 4 — Évaluer les résultats](#étape-4--évaluer-les-résultats)
-8. [Étape 5 — Intégrer le modèle fine-tuné](#étape-5--intégrer-le-modèle-fine-tuné)
-9. [Estimation des ressources RTX 3060](#estimation-des-ressources-rtx-3060)
-10. [Risques et solutions de repli](#risques-et-solutions-de-repli)
-11. [Checklist complète](#checklist-complète)
+1. Pourquoi fine-tuner ?
+2. Ce qu'on a aujourd'hui vs ce qu'on veut
+3. Prérequis matériels et logiciels
+4. Étape 1 — Préparer le dataset
+5. Étape 2 — Écrire le script de fine-tuning
+6. Étape 3 — Lancer l'entraînement sur GPU
+7. Étape 4 — Évaluer les résultats
+8. Étape 5 — Intégrer le modèle fine-tuné
+9. Estimation des ressources RTX 3060
+10. Risques et solutions de repli
+11. Checklist complète
 
 ---
 
@@ -36,6 +40,8 @@ CamemBERT a été pré-entraîné sur **138 Go de texte français général** (W
 ---
 
 ## 2. Ce qu'on a aujourd'hui vs ce qu'on veut
+
+Avant lecture : la colonne "Aujourd'hui" correspond à l'état réel du dépôt ; la colonne "Après fine-tuning" décrit une cible envisagée mais non mise en production.
 
 | Aspect | Aujourd'hui (projection) | Après fine-tuning |
 |--------|-------------------------|-------------------|
@@ -136,6 +142,8 @@ python scripts/clean_dataset.py \
 ---
 
 ## Étape 2 — Écrire le script de fine-tuning
+
+Le script `finetune_camembert.py` mentionné dans cette page n'a pas été produit dans le dépôt final.
 
 ### Différences avec le script actuel
 
@@ -244,6 +252,8 @@ tokenizer.save_pretrained("ml/models/camembert-devspot-finetuned")
 
 ## Étape 3 — Lancer l'entraînement sur GPU
 
+Cette étape n'a pas été exécutée dans le cadre du projet tel qu'il est livré aujourd'hui.
+
 ### Commandes à exécuter sur le PC avec RTX 3060
 
 ```bash
@@ -342,6 +352,8 @@ Le gain attendu est de **+15 à +25 points** sur chaque métrique, car le modèl
 ---
 
 ## Étape 5 — Intégrer le modèle fine-tuné
+
+Cette intégration n'a pas eu lieu. En pratique, le runtime actuel continue d'utiliser `CAMEMBERT_MODEL=camembert-base` et, quand elle est activée, la projection `ml/models/devspot-matching-projection.pt`.
 
 Une fois le modèle entraîné et évalué, l'intégration est simple car notre architecture est déjà prête.
 
@@ -453,6 +465,8 @@ Si le fine-tuning complet n'apporte pas assez d'amélioration avec notre dataset
 ---
 
 ## Checklist complète
+
+Cette checklist doit être lue comme une checklist de **travail envisagé**, non comme une liste d'actions réalisées.
 
 ### 📋 Sur le PC portable (maintenant, sans GPU)
 

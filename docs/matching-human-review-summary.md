@@ -4,7 +4,7 @@ Date : 3 mai 2026
 
 ## Jeu relu
 
-- Source : `docs/matching-human-review-pack.md`
+- Source de travail : pack interne de revue humaine construit pour la Phase 3
 - Offres relues : 10
 - Candidats proposes : 50
 - Notes humaines exploitables : 49

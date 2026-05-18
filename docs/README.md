@@ -35,14 +35,24 @@ docs/
 
 ## Publication
 
-Le projet est prêt à publier cette documentation via MkDocs et GitHub Pages grâce à :
+Le projet peut construire cette documentation via MkDocs et GitHub Actions grâce à :
 
 - [mkdocs.yml](../mkdocs.yml)
 - [.github/workflows/docs.yml](../.github/workflows/docs.yml)
 
-En local, la publication peut être testée avec :
+Le build documentaire est exécuté en mode strict. Le déploiement GitHub Pages reste conditionné à la variable de dépôt `ENABLE_GITHUB_PAGES=true` sur `main` ou `master`.
+
+En local, l'aperçu peut être testé soit avec Python :
 
 ```bash
 pip install mkdocs-material
 mkdocs serve
 ```
+
+Soit avec Docker Compose :
+
+```bash
+docker compose up -d docs
+```
+
+Dans ce cas, la documentation est accessible sur `http://localhost:8002/DevSpot/` et `http://localhost:8002` redirige vers cette URL.

@@ -3,6 +3,12 @@ set -euo pipefail
 
 cd /app
 
+if command -v git >/dev/null 2>&1 && [[ -e .git ]]; then
+  if ! git config --global --get-all safe.directory 2>/dev/null | grep -Fxq /app; then
+    git config --global --add safe.directory /app
+  fi
+fi
+
 mkdir -p "var/cache/${APP_ENV:-dev}" "var/cache/${APP_ENV:-dev}/profiler" var/log public/uploads
 chmod -R a+rwX var public/uploads
 

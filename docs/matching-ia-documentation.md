@@ -6,26 +6,20 @@
 
 ---
 
-## Table des matières
+## Plan du document
 
-1. [Vue d'ensemble](#1-vue-densemble)
-2. [Architecture du pipeline](#2-architecture-du-pipeline)
-3. [Les 3 scores de matching](#3-les-3-scores-de-matching)
-   - 3.1 [Baseline (mots-clés)](#31-baseline-mots-clés)
-   - 3.2 [Sémantique (CamemBERT)](#32-sémantique-camembert)
-   - 3.3 [Matching DevSpot (enrichi)](#33-matching-devspot-enrichi)
-4. [Le modèle CamemBERT](#4-le-modèle-camembert)
-   - 4.1 [Qu'est-ce que CamemBERT ?](#41-quest-ce-que-camembert-)
-   - 4.2 [Comment on l'utilise](#42-comment-on-lutilise)
-   - 4.3 [Entraînement de la couche de projection](#43-entraînement-de-la-couche-de-projection)
-5. [Inférence de compétences](#5-inférence-de-compétences)
-6. [Audit de fairness (équité)](#6-audit-de-fairness-équité)
-7. [Anonymisation des CV](#7-anonymisation-des-cv)
-8. [Cache et performance](#8-cache-et-performance)
-9. [Infrastructure et déploiement](#9-infrastructure-et-déploiement)
-10. [Endpoints API](#10-endpoints-api)
-11. [Évaluation du modèle](#11-évaluation-du-modèle)
-12. [Glossaire](#12-glossaire)
+1. Vue d'ensemble
+2. Architecture du pipeline
+3. Les 3 scores de matching
+4. Le modèle CamemBERT
+5. Inférence de compétences
+6. Audit de fairness (équité)
+7. Anonymisation des CV
+8. Cache et performance
+9. Infrastructure et déploiement
+10. Endpoints API
+11. Évaluation du modèle
+12. Glossaire
 
 ---
 
@@ -527,7 +521,7 @@ Le pipeline de matching dépend de deux briques d'exécution :
 - l'application Symfony,
 - un service ML FastAPI accessible via `ML_SERVICE_URL`.
 
-Dans l'état actuel du repo, les fichiers Compose visibles documentent surtout l'infrastructure locale annexe (`database`, `mercure`, `adminer`, `mailer`). Le service ML est bien attendu par le code, mais il n'est pas décrit explicitement dans ces fichiers Compose.
+Dans l'état actuel du repo, `compose.yaml` décrit explicitement les services `app`, `database`, `mercure`, `mailer` et `ml`, tandis que `compose.override.yaml` ajoute les services locaux `docs` et `adminer`.
 
 ### Service ML Python
 
