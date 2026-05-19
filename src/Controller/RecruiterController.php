@@ -47,6 +47,8 @@ final class RecruiterController extends AbstractController
     #[IsGranted('ROLE_RECRUITER')]
     public function home(
         FavoriteProfileRepository $favoriteProfileRepository,
+        ConversationRepository $conversationRepository,
+        MessageRepository $messageRepository,
         NotificationManager $notificationManager,
         EntityManagerInterface $entityManager,
         #[Autowire(service: 'cache.app')] CacheItemPoolInterface $cache,
@@ -68,6 +70,12 @@ final class RecruiterController extends AbstractController
         );
 
         $favoriteProfiles = $this->findCurrentRecruiterFavorites($favoriteProfileRepository);
+        $interactionDashboard = $this->buildRecruiterInteractionDashboard(
+            $recruiterProfile,
+            $conversationRepository,
+            $messageRepository,
+            $favoriteProfileRepository,
+        );
 
         return $this->render('recruiter/dashboard.html.twig', [
             'matchingPreviewEndpoint' => $this->generateUrl('api_matching_preview'),
@@ -82,6 +90,7 @@ final class RecruiterController extends AbstractController
             'closedOffersCount' => $closedOffersCount,
             'favoriteProfiles' => $favoriteProfiles,
             'favoriteProfilesCount' => count($favoriteProfiles),
+            'interactionDashboard' => $interactionDashboard,
         ]);
     }
 
@@ -1043,6 +1052,328 @@ final class RecruiterController extends AbstractController
         }
 
         return [$offerRows, $favoriteRows, $offersCount, $activeOffersCount, $closedOffersCount];
+    }
+
+    /**
+     * @return array{
+     *     contactedProfilesCount: int,
+     *     repliedProfilesCount: int,
+     *     favoriteProfilesCount: int,
+     *     activeConversationsCount: int,
+     *     unansweredConversationsCount: int,
+     *     linkedProfilesCount: int,
+     *     responseRate: int,
+     *     relaunchRows: list<array>,
+     *     rows: list<array{
+     *         profileName: string,
+     *         headline: string,
+     *         profileSlug: ?string,
+     *         conversationId: ?int,
+     *         linkedOfferTitle: ?string,
+     *         exchangeStatus: string,
+     *         lastSignal: string,
+     *         lastActivityAt: ?\DateTimeImmutable,
+     *         interestScore: int,
+     *         interestLabel: string,
+     *         isFavorite: bool,
+     *         hasConversation: bool,
+     *         hasReply: bool,
+     *         isUnanswered: bool
+     *     }>
+     * }
+     */
+    private function buildRecruiterInteractionDashboard(
+        RecruiterProfile $recruiterProfile,
+        ConversationRepository $conversationRepository,
+        MessageRepository $messageRepository,
+        FavoriteProfileRepository $favoriteProfileRepository,
+    ): array {
+        $recruiterUser = $recruiterProfile->getUser();
+        if (!$recruiterUser instanceof User) {
+            return [
+                'contactedProfilesCount' => 0,
+                'repliedProfilesCount' => 0,
+                'favoriteProfilesCount' => 0,
+                'activeConversationsCount' => 0,
+                'unansweredConversationsCount' => 0,
+                'linkedProfilesCount' => 0,
+                'responseRate' => 0,
+                'relaunchRows' => [],
+                'rows' => [],
+            ];
+        }
+
+        $favoriteProfiles = [];
+        foreach ($favoriteProfileRepository->findForRecruiterProfile($recruiterProfile) as $favorite) {
+            if (!$favorite instanceof FavoriteProfile || !$favorite->getDeveloperProfile() instanceof DeveloperProfile) {
+                continue;
+            }
+
+            $developer = $favorite->getDeveloperProfile();
+            $developerId = $developer->getId();
+            if (null !== $developerId) {
+                $favoriteProfiles[$developerId] = $developer;
+            }
+        }
+
+        $offerTitles = [];
+        foreach ($recruiterProfile->getJobOffers() as $offer) {
+            if ($offer instanceof JobOffer && null !== $offer->getTitle() && '' !== trim($offer->getTitle())) {
+                $offerTitles[] = trim($offer->getTitle());
+            }
+        }
+
+        $rowsByProfileId = [];
+        $contactedProfileIds = [];
+        $repliedProfileIds = [];
+        $unansweredConversationsCount = 0;
+        $linkedProfileIds = [];
+
+        foreach ($conversationRepository->findActiveForRecruiter($recruiterUser) as $conversation) {
+            if (!$conversation instanceof Conversation) {
+                continue;
+            }
+
+            $applicantUser = $conversation->getApplicantUser();
+            $developer = $applicantUser?->getDeveloperProfile();
+            if (!$developer instanceof DeveloperProfile) {
+                continue;
+            }
+
+            $developerId = $developer->getId();
+            if (null === $developerId) {
+                continue;
+            }
+
+            $messages = $conversation->getMessages()->toArray();
+            $recruiterMessagesCount = 0;
+            $applicantMessagesCount = 0;
+            $lastMessageAt = null;
+
+            foreach ($messages as $message) {
+                if (!$message instanceof Message) {
+                    continue;
+                }
+
+                $senderId = $message->getSenderUser()?->getId();
+                if ($senderId === $recruiterUser->getId()) {
+                    ++$recruiterMessagesCount;
+                } elseif ($senderId === $applicantUser?->getId()) {
+                    ++$applicantMessagesCount;
+                }
+
+                $createdAt = $message->getCreatedAt();
+                if ($createdAt instanceof \DateTimeImmutable && (null === $lastMessageAt || $createdAt > $lastMessageAt)) {
+                    $lastMessageAt = $createdAt;
+                }
+            }
+
+            $hasReply = $applicantMessagesCount > 0;
+            $isUnanswered = $recruiterMessagesCount > 0 && !$hasReply;
+            $linkedOfferTitle = $this->resolveLinkedOfferTitle((string) $conversation->getSubject(), $offerTitles);
+            $lastMessage = $messageRepository->findLastInConversation($conversation);
+            $lastSignal = $this->resolveRecruiterInteractionLastSignal($conversation, $lastMessage, $recruiterUser, $applicantUser, $hasReply, $isUnanswered);
+            $exchangeStatus = $hasReply ? 'A répondu' : ($isUnanswered ? 'Sans réponse' : 'Conversation active');
+            $isFavorite = isset($favoriteProfiles[$developerId]);
+            $isRecent = ($conversation->getUpdatedAt() ?? $lastMessageAt) instanceof \DateTimeImmutable
+                && ($conversation->getUpdatedAt() ?? $lastMessageAt) >= new \DateTimeImmutable('-14 days');
+            $interestScore = $this->calculateRecruiterInterestScore(
+                isFavorite: $isFavorite,
+                hasConversation: true,
+                hasReply: $hasReply,
+                messagesCount: count($messages),
+                hasLinkedOffer: null !== $linkedOfferTitle,
+                isRecent: $isRecent,
+            );
+
+            $contactedProfileIds[$developerId] = true;
+            if ($hasReply) {
+                $repliedProfileIds[$developerId] = true;
+            }
+            if ($isUnanswered) {
+                ++$unansweredConversationsCount;
+            }
+            if (null !== $linkedOfferTitle) {
+                $linkedProfileIds[$developerId] = true;
+            }
+
+            $rowsByProfileId[$developerId] = [
+                'profileName' => $this->formatDeveloperProfileName($developer),
+                'headline' => (string) ($developer->getHeadline() ?: 'Profil développeur'),
+                'profileSlug' => $developer->getSlug(),
+                'conversationId' => $conversation->getId(),
+                'linkedOfferTitle' => $linkedOfferTitle,
+                'exchangeStatus' => $exchangeStatus,
+                'lastSignal' => $lastSignal,
+                'lastActivityAt' => $conversation->getUpdatedAt() ?? $lastMessageAt,
+                'interestScore' => $interestScore,
+                'interestLabel' => $this->resolveInterestLabel($interestScore),
+                'isFavorite' => $isFavorite,
+                'hasConversation' => true,
+                'hasReply' => $hasReply,
+                'isUnanswered' => $isUnanswered,
+            ];
+        }
+
+        foreach ($favoriteProfiles as $developerId => $developer) {
+            if (isset($rowsByProfileId[$developerId])) {
+                continue;
+            }
+
+            $interestScore = $this->calculateRecruiterInterestScore(
+                isFavorite: true,
+                hasConversation: false,
+                hasReply: false,
+                messagesCount: 0,
+                hasLinkedOffer: false,
+                isRecent: false,
+            );
+
+            $rowsByProfileId[$developerId] = [
+                'profileName' => $this->formatDeveloperProfileName($developer),
+                'headline' => (string) ($developer->getHeadline() ?: 'Profil développeur'),
+                'profileSlug' => $developer->getSlug(),
+                'conversationId' => null,
+                'linkedOfferTitle' => null,
+                'exchangeStatus' => 'Favori sans contact',
+                'lastSignal' => 'Ajouté aux favoris',
+                'lastActivityAt' => null,
+                'interestScore' => $interestScore,
+                'interestLabel' => $this->resolveInterestLabel($interestScore),
+                'isFavorite' => true,
+                'hasConversation' => false,
+                'hasReply' => false,
+                'isUnanswered' => false,
+            ];
+        }
+
+        $rows = array_values($rowsByProfileId);
+        usort($rows, static fn (array $a, array $b): int => ($b['interestScore'] <=> $a['interestScore']) ?: (($b['lastActivityAt']?->getTimestamp() ?? 0) <=> ($a['lastActivityAt']?->getTimestamp() ?? 0)));
+        $relaunchRows = $this->buildRecruiterRelaunchRows($rows);
+
+        $contactedProfilesCount = count($contactedProfileIds);
+        $repliedProfilesCount = count($repliedProfileIds);
+
+        return [
+            'contactedProfilesCount' => $contactedProfilesCount,
+            'repliedProfilesCount' => $repliedProfilesCount,
+            'favoriteProfilesCount' => count($favoriteProfiles),
+            'activeConversationsCount' => count($conversationRepository->findActiveForRecruiter($recruiterUser)),
+            'unansweredConversationsCount' => $unansweredConversationsCount,
+            'linkedProfilesCount' => count($linkedProfileIds),
+            'responseRate' => $contactedProfilesCount > 0 ? (int) round(($repliedProfilesCount / $contactedProfilesCount) * 100) : 0,
+            'relaunchRows' => $relaunchRows,
+            'rows' => array_slice($rows, 0, 8),
+        ];
+    }
+
+    /**
+     * @param list<array> $rows
+     *
+     * @return list<array>
+     */
+    private function buildRecruiterRelaunchRows(array $rows): array
+    {
+        $relaunchRows = [];
+        $staleLimit = new \DateTimeImmutable('-7 days');
+
+        foreach ($rows as $row) {
+            $lastActivityAt = $row['lastActivityAt'] ?? null;
+            $isStale = $lastActivityAt instanceof \DateTimeImmutable && $lastActivityAt <= $staleLimit;
+            $isUnanswered = true === ($row['isUnanswered'] ?? false);
+            $hasInterestingScoreWithoutRecentFollowUp = $isStale && (int) ($row['interestScore'] ?? 0) >= 45;
+
+            if (!$isUnanswered && !$hasInterestingScoreWithoutRecentFollowUp) {
+                continue;
+            }
+
+            $row['relaunchReason'] = $isUnanswered
+                ? 'Contacté sans réponse'
+                : 'Interaction ancienne avec intérêt à suivre';
+
+            $relaunchRows[] = $row;
+            if (count($relaunchRows) >= 4) {
+                break;
+            }
+        }
+
+        return $relaunchRows;
+    }
+
+    /**
+     * @param list<string> $offerTitles
+     */
+    private function resolveLinkedOfferTitle(string $conversationSubject, array $offerTitles): ?string
+    {
+        $normalizedSubject = mb_strtolower($conversationSubject);
+        foreach ($offerTitles as $offerTitle) {
+            if ('' !== $offerTitle && str_contains($normalizedSubject, mb_strtolower($offerTitle))) {
+                return $offerTitle;
+            }
+        }
+
+        return null;
+    }
+
+    private function resolveRecruiterInteractionLastSignal(
+        Conversation $conversation,
+        ?Message $lastMessage,
+        User $recruiterUser,
+        ?User $applicantUser,
+        bool $hasReply,
+        bool $isUnanswered,
+    ): string {
+        if ($lastMessage instanceof Message) {
+            $senderId = $lastMessage->getSenderUser()?->getId();
+            if ($senderId === $applicantUser?->getId()) {
+                return 'Réponse candidat';
+            }
+
+            if ($senderId === $recruiterUser->getId()) {
+                return $hasReply ? 'Relance recruteur' : 'Premier message envoyé';
+            }
+        }
+
+        if ($isUnanswered) {
+            return 'En attente de réponse';
+        }
+
+        return (string) ($conversation->getSubject() ?: 'Conversation active');
+    }
+
+    private function calculateRecruiterInterestScore(
+        bool $isFavorite,
+        bool $hasConversation,
+        bool $hasReply,
+        int $messagesCount,
+        bool $hasLinkedOffer,
+        bool $isRecent,
+    ): int {
+        $score = 0;
+        $score += $isFavorite ? 20 : 0;
+        $score += $hasConversation ? 20 : 0;
+        $score += $hasReply ? 25 : 0;
+        $score += $messagesCount >= 4 ? 15 : 0;
+        $score += $hasLinkedOffer ? 10 : 0;
+        $score += $isRecent ? 10 : 0;
+
+        return min(100, $score);
+    }
+
+    private function resolveInterestLabel(int $score): string
+    {
+        return match (true) {
+            $score >= 75 => 'Élevé',
+            $score >= 45 => 'À suivre',
+            default => 'Initial',
+        };
+    }
+
+    private function formatDeveloperProfileName(DeveloperProfile $developer): string
+    {
+        $fullName = trim(sprintf('%s %s', (string) $developer->getFirstName(), (string) $developer->getLastName()));
+
+        return '' !== $fullName ? $fullName : 'Profil développeur';
     }
 
     private function buildMatchingCacheKey(int $offerId): string
