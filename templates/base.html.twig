@@ -940,11 +940,6 @@
                             </a>
 
                             <div class="site-header-nav site-header-nav-desktop" aria-label="Navigation principale">
-                                {% if app.user and not is_granted('ROLE_ADMIN') and (is_granted('ROLE_RECRUITER') or is_granted('ROLE_APPLICANT')) %}
-                                    <a href="{{ path('app_home') }}" class="site-header-link {{ isHomeRoute ? 'site-header-link-active' : '' }}" {% if isHomeRoute %}aria-current="page"{% endif %}>
-                                        Accueil
-                                    </a>
-                                {% endif %}
                                 {% if dashboardPath %}
                                     <a href="{{ dashboardPath }}" class="site-header-link {{ isDashboardRoute ? 'site-header-link-active' : '' }}" {% if isDashboardRoute %}aria-current="page"{% endif %}>
                                         Dashboard
@@ -1127,9 +1122,6 @@
                             </summary>
                             <div class="site-mobile-menu-panel">
                                 <div class="site-mobile-menu-links">
-                                    {% if app.user and not is_granted('ROLE_ADMIN') and (is_granted('ROLE_RECRUITER') or is_granted('ROLE_APPLICANT')) %}
-                                        <a href="{{ path('app_home') }}" class="site-mobile-menu-link {{ isHomeRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isHomeRoute %}aria-current="page"{% endif %}>Accueil</a>
-                                    {% endif %}
                                     {% if dashboardPath %}
                                         <a href="{{ dashboardPath }}" class="site-mobile-menu-link {{ isDashboardRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isDashboardRoute %}aria-current="page"{% endif %}>Dashboard</a>
                                     {% endif %}
