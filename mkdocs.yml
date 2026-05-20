@@ -60,6 +60,7 @@ nav:
   - Ops:
       - Vue d'ensemble: ops/index.md
       - Déploiement & production: ops/deployment-production.md
+      - Runbook VPS, Name.com et CD: ops/runbook-vps-namecom.md
       - CI/CD GitHub Actions: ci-cd-github-actions.md
       - Performance US15: problème-performance.md
   - Recherche:

@@ -3,6 +3,7 @@
 /.env.local
 /.env.local.php
 /.env.*.local
+/.env.prod
 /config/secrets/prod/prod.decrypt.private.php
 /public/bundles/
 /var/
@@ -33,3 +34,4 @@ config/secrets/*/decrypt.private.php
 ###< friendsofphp/php-cs-fixer ###
 .venv-docs/
 /site/
+/ansible/inventory/production.ini

@@ -192,6 +192,12 @@ docker compose -f compose.prod.yaml --env-file .env.prod up -d --build
 
 Cette stack de production expose uniquement le reverse proxy en frontal. PostgreSQL et le service ML restent sur le réseau interne.
 
+Pour automatiser un déploiement sur VPS avec votre domaine, voir aussi :
+
+- `ansible/playbooks/bootstrap.yml`
+- `ansible/playbooks/deploy.yml`
+- [docs/ops/runbook-vps-namecom.md](docs/ops/runbook-vps-namecom.md)
+
 ## Documentation du projet
 
 Pour une lecture rapide et structurée de la documentation publiée, commencer par [docs/index.md](docs/index.md).

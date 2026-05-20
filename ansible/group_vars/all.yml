@@ -1,0 +1,21 @@
+---
+devspot_app_root: /opt/devspot
+devspot_compose_file: compose.prod.yaml
+devspot_env_file_src: "{{ lookup('env', 'DEVSPOT_ENV_FILE') | default('', true) }}"
+devspot_prune_images: true
+devspot_run_migrations: true
+devspot_sync_excludes:
+  - .git/
+  - .github/
+  - .venv/
+  - .venv-docs/
+  - ansible/inventory/production.ini
+  - var/
+  - vendor/
+  - node_modules/
+  - public/assets/
+  - site/
+  - .env
+  - .env.local
+  - .env.prod
+  - .env.*.local

@@ -1,0 +1,8 @@
+[devspot]
+production ansible_host=203.0.113.10 ansible_user=deploy ansible_port=22
+
+[devspot:vars]
+ansible_python_interpreter=/usr/bin/python3
+devspot_domain=devspot.software
+devspot_mercure_domain=mercure.devspot.software
+devspot_app_root=/opt/devspot
