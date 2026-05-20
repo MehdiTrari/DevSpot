@@ -9,8 +9,8 @@ use App\Entity\User;
 use App\Enum\UserStatus;
 use App\Form\RegistrationFormType;
 use App\Repository\UserRepository;
-use App\Service\NotificationManager;
 use App\Security\EmailVerifier;
+use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -49,13 +49,13 @@ class RegistrationController extends AbstractController
             $workEmail = trim((string) $form->get('workEmail')->getData());
 
             // Server-side validation of recruiter-specific required fields
-            if ($accountType === 'recruiter') {
+            if ('recruiter' === $accountType) {
                 $hasError = false;
-                if ($companyName === '') {
+                if ('' === $companyName) {
                     $this->addFlash('error', 'Le nom de l\'entreprise est requis pour un compte recruteur.');
                     $hasError = true;
                 }
-                if ($workEmail === '') {
+                if ('' === $workEmail) {
                     $this->addFlash('error', 'L\'email professionnel est requis pour un compte recruteur.');
                     $hasError = true;
                 }
@@ -71,7 +71,7 @@ class RegistrationController extends AbstractController
             $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
             $user->setStatus(UserStatus::PENDING);
 
-            if ($accountType === 'recruiter') {
+            if ('recruiter' === $accountType) {
                 $user->setRoles(['ROLE_RECRUITER']);
 
                 $company = new Company();
@@ -82,7 +82,7 @@ class RegistrationController extends AbstractController
                 $recruiterProfile->setFirstName($firstName);
                 $recruiterProfile->setLastName($lastName);
                 $recruiterProfile->setJobTitle('');
-                $recruiterProfile->setWorkEmail($workEmail !== '' ? $workEmail : null);
+                $recruiterProfile->setWorkEmail('' !== $workEmail ? $workEmail : null);
                 $recruiterProfile->setCompany($company);
                 $recruiterProfile->setUser($user);
                 $entityManager->persist($recruiterProfile);
@@ -110,7 +110,9 @@ class RegistrationController extends AbstractController
             $notificationManager->notifyAdminsNewPendingAccount($user);
 
             // generate a signed url and email it to the user
-            $this->emailVerifier->sendEmailConfirmation('app_verify_email', $user,
+            $this->emailVerifier->sendEmailConfirmation(
+                'app_verify_email',
+                $user,
                 (new TemplatedEmail())
                     ->from(new Address('mailer@devspot.com', 'DevSpot Mail Bot'))
                     ->to((string) $user->getEmail())

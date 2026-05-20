@@ -9,6 +9,7 @@ use App\Entity\JobOffer;
 use App\Entity\Message;
 use App\Entity\Notification;
 use App\Entity\RecruiterProfile;
+use App\Entity\SupportRequest;
 use App\Entity\User;
 use App\Enum\NotificationType;
 use App\Enum\UserStatus;
@@ -427,6 +428,44 @@ final class NotificationManager
         );
     }
 
+    /**
+     * @param iterable<User> $targetUsers
+     */
+    public function sendAdminMessage(User $adminUser, iterable $targetUsers, string $title, string $content, ?string $link = null): int
+    {
+        $senderLabel = $this->resolveUserDisplayName($adminUser);
+        $sentCount = 0;
+        $seenUserIds = [];
+
+        foreach ($targetUsers as $targetUser) {
+            if (!$targetUser instanceof User) {
+                continue;
+            }
+
+            $targetUserId = $targetUser->getId();
+            if (null !== $targetUserId && isset($seenUserIds[$targetUserId])) {
+                continue;
+            }
+
+            if (null !== $targetUserId) {
+                $seenUserIds[$targetUserId] = true;
+            }
+
+            $this->createNotification(
+                $targetUser,
+                NotificationType::ADMIN_MESSAGE,
+                $title,
+                $content,
+                $link,
+                $adminUser,
+                $senderLabel
+            );
+            ++$sentCount;
+        }
+
+        return $sentCount;
+    }
+
     public function notifyAdminsRoleRequest(User $requester, string $requestedRole): bool
     {
         $link = $this->urlGenerator->generate('app_admin_users', [
@@ -512,8 +551,50 @@ final class NotificationManager
         );
     }
 
-    private function createNotification(User $targetUser, NotificationType $type, string $title, string $content, ?string $link = null): void
+    public function notifyAdminsSupportRequest(SupportRequest $supportRequest): bool
     {
+        $submittedAt = $supportRequest->getCreatedAt() ?? new \DateTimeImmutable();
+        $requesterEmail = trim((string) ($supportRequest->getRequesterEmail() ?? ''));
+        $requesterLabel = trim((string) ($supportRequest->getRequesterDisplayName() ?? ''));
+        $identity = '' !== $requesterLabel ? $requesterLabel : 'Utilisateur inconnu';
+
+        if ('' !== $requesterEmail && $requesterEmail !== $identity) {
+            $identity = sprintf('%s (%s)', $identity, $requesterEmail);
+        }
+
+        $link = sprintf(
+            '%s?submittedAt=%s&requester=%s',
+            $this->urlGenerator->generate('app_admin_support_requests'),
+            rawurlencode($submittedAt->format('YmdHis.u')),
+            rawurlencode($requesterEmail)
+        );
+
+        return $this->broadcastToAdmins(
+            NotificationType::SUPPORT_REQUEST,
+            'Nouvelle demande de support',
+            sprintf(
+                '%s a envoye une demande de support le %s. Objet : %s.',
+                $identity,
+                $submittedAt->format('d/m/Y H:i'),
+                $supportRequest->getSubject() ?? 'Sans objet'
+            ),
+            $link
+        );
+    }
+
+    private function createNotification(
+        User $targetUser,
+        NotificationType $type,
+        string $title,
+        string $content,
+        ?string $link = null,
+        ?User $senderUser = null,
+        ?string $senderLabel = null,
+    ): void {
+        if (null === $senderLabel && $senderUser instanceof User) {
+            $senderLabel = $this->resolveUserDisplayName($senderUser);
+        }
+
         $notification = new Notification();
         $notification->setUser($targetUser);
         $notification->setType($type);
@@ -521,6 +602,8 @@ final class NotificationManager
         $notification->setContent($content);
         $notification->setLink($link);
         $notification->setIsRead(false);
+        $notification->setSenderUser($senderUser);
+        $notification->setSenderLabel($senderLabel);
 
         $this->entityManager->persist($notification);
     }

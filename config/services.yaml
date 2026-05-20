@@ -9,6 +9,7 @@
 parameters:
     app.ai_matching.base_url: '%env(ML_SERVICE_URL)%'
     app.ai_matching.timeout: '%env(float:ML_SERVICE_TIMEOUT)%'
+    app.matching_candidate_token.secret: '%kernel.secret%'
 
 services:
     # default configuration for services in *this* file
@@ -27,6 +28,10 @@ services:
         arguments:
             $baseUrl: '%app.ai_matching.base_url%'
             $timeout: '%app.ai_matching.timeout%'
+
+    App\Service\MatchingCandidateTokenService:
+        arguments:
+            $secret: '%app.matching_candidate_token.secret%'
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

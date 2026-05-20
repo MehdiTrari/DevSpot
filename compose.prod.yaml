@@ -1,0 +1,117 @@
+services:
+  reverse-proxy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:-devspot.localhost}
+      MERCURE_PUBLIC_HOST: ${MERCURE_PUBLIC_HOST:-mercure.devspot.localhost}
+    volumes:
+      - ./docker/caddy/Caddyfile.prod:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+      mercure:
+        condition: service_healthy
+
+  app:
+    image: devspot-app-prod
+    build:
+      context: .
+      dockerfile: docker/symfony/Dockerfile.prod
+    restart: unless-stopped
+    environment:
+      APP_ENV: prod
+      APP_DEBUG: 0
+      APP_SECRET: ${APP_SECRET:-change-me-in-production}
+      APP_SHARE_DIR: var/share
+      DEFAULT_URI: https://${APP_DOMAIN:-devspot.localhost}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@database:5432/${POSTGRES_DB:-app}?serverVersion=16&charset=utf8
+      MAILER_DSN: ${MAILER_DSN:-null://null}
+      MERCURE_URL: http://mercure/.well-known/mercure
+      MERCURE_PUBLIC_URL: https://${MERCURE_PUBLIC_HOST:-mercure.devspot.localhost}/.well-known/mercure
+      MERCURE_JWT_SECRET: ${MERCURE_JWT_SECRET:-change-me-in-production}
+      ML_SERVICE_URL: http://ml:8001
+      ML_SERVICE_TIMEOUT: ${ML_SERVICE_TIMEOUT:-10}
+      WAIT_FOR_DB: 1
+      RUN_MIGRATIONS: 0
+      DB_HOST: database
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-app}
+    volumes:
+      - app_uploads:/var/www/html/public/uploads
+      - app_share:/var/www/html/var/share
+    depends_on:
+      database:
+        condition: service_healthy
+      ml:
+        condition: service_healthy
+      mercure:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  database:
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${POSTGRES_DB:-app}", "-U", "${POSTGRES_USER:-app}"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+
+  ml:
+    build:
+      context: ./ml
+    restart: unless-stopped
+    environment:
+      CAMEMBERT_DEVICE: ${CAMEMBERT_DEVICE:-cpu}
+      UVICORN_PORT: 8001
+    volumes:
+      - huggingface_cache:/root/.cache/huggingface
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health').read()"]
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  mercure:
+    image: dunglas/mercure
+    restart: unless-stopped
+    environment:
+      SERVER_NAME: :80
+      MERCURE_PUBLISHER_JWT_KEY: ${MERCURE_JWT_SECRET:-change-me-in-production}
+      MERCURE_SUBSCRIBER_JWT_KEY: ${MERCURE_JWT_SECRET:-change-me-in-production}
+      MERCURE_EXTRA_DIRECTIVES: |
+        cors_origins https://${APP_DOMAIN:-devspot.localhost}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/healthz"]
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    volumes:
+      - mercure_data:/data
+      - mercure_config:/config
+
+volumes:
+  app_share:
+  app_uploads:
+  caddy_config:
+  caddy_data:
+  database_data:
+  huggingface_cache:
+  mercure_config:
+  mercure_data:

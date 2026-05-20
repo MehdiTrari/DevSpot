@@ -1,0 +1,991 @@
+{
+  "model": "camembert-base",
+  "projectionPath": "ml/models/devspot-matching-projection.pt",
+  "methodsRequested": [
+    "baseline",
+    "semantic",
+    "enriched_proxy",
+    "reranker"
+  ],
+  "offers": 320,
+  "developers": 1000,
+  "labelSource": "explicit sparse labels generated for hard-negative offline evaluation; non-listed candidates are relevance 0",
+  "methods": {
+    "baseline": {
+      "method": "baseline",
+      "offersEvaluated": 320,
+      "recall@1": 0.1406,
+      "recall@3": 0.2156,
+      "recall@5": 0.2875,
+      "mrr": 0.2164,
+      "ndcg@5": 0.1021,
+      "sampleOffers": [
+        {
+          "title": "Developpeur Full Stack React / Symfony",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "yasmine-rossi-4-demo-v2",
+              "fullName": "Yasmine Rossi",
+              "score": 1.0,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "marius-rossi-9-demo-v2",
+              "fullName": "Marius Rossi",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "camille-lopez-14-demo-v2",
+              "fullName": "Camille Lopez",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "ilyes-guerin-37-demo-v2",
+              "fullName": "Ilyes Guerin",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "yanis-fournier-42-demo-v2",
+              "fullName": "Yanis Fournier",
+              "score": 1.0,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Full Stack React / Symfony",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "yasmine-rossi-4-demo-v2",
+              "fullName": "Yasmine Rossi",
+              "score": 1.0,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "marius-rossi-9-demo-v2",
+              "fullName": "Marius Rossi",
+              "score": 1.0,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "camille-lopez-14-demo-v2",
+              "fullName": "Camille Lopez",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "ilyes-guerin-50-demo-v2",
+              "fullName": "Ilyes Guerin",
+              "score": 1.0,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "camille-richard-105-demo-v2",
+              "fullName": "Camille Richard",
+              "score": 1.0,
+              "weakRelevance": 3
+            }
+          ]
+        },
+        {
+          "title": "DevOps Engineer",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "loris-thomas-102-demo-v2",
+              "fullName": "Loris Thomas",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "assia-francois-345-demo-v3",
+              "fullName": "Assia Francois",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "ines-faure-395-demo-v3",
+              "fullName": "Ines Faure",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "abdoulaye-gauthier-401-demo-v3",
+              "fullName": "Abdoulaye Gauthier",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "olena-gauthier-445-demo-v3",
+              "fullName": "Olena Gauthier",
+              "score": 1.0,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "noa-robert-58-demo-v2",
+              "fullName": "Noa Robert",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "aya-robin-78-demo-v2",
+              "fullName": "Aya Robin",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "samir-faure-103-demo-v2",
+              "fullName": "Samir Faure",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "chloe-morel-181-demo-v2",
+              "fullName": "Chloe Morel",
+              "score": 0.87,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "sofia-robin-183-demo-v2",
+              "fullName": "Sofia Robin",
+              "score": 0.87,
+              "weakRelevance": 3
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "noa-robert-58-demo-v2",
+              "fullName": "Noa Robert",
+              "score": 0.87,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "aya-robin-78-demo-v2",
+              "fullName": "Aya Robin",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "samir-faure-103-demo-v2",
+              "fullName": "Samir Faure",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "chloe-morel-181-demo-v2",
+              "fullName": "Chloe Morel",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "sofia-robin-183-demo-v2",
+              "fullName": "Sofia Robin",
+              "score": 0.87,
+              "weakRelevance": 0
+            }
+          ]
+        }
+      ]
+    },
+    "semantic": {
+      "method": "semantic",
+      "offersEvaluated": 320,
+      "recall@1": 0.0375,
+      "recall@3": 0.15,
+      "recall@5": 0.225,
+      "mrr": 0.1285,
+      "ndcg@5": 0.0555,
+      "sampleOffers": [
+        {
+          "title": "Developpeur Full Stack React / Symfony",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "nour-faure-167-demo-v2",
+              "fullName": "Nour Faure",
+              "score": 0.8976,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "mael-boyer-165-demo-v2",
+              "fullName": "Mael Boyer",
+              "score": 0.8758,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "ilyes-guerin-50-demo-v2",
+              "fullName": "Ilyes Guerin",
+              "score": 0.8612,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "loris-robin-169-demo-v2",
+              "fullName": "Loris Robin",
+              "score": 0.8588,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "inaya-petit-135-demo-v2",
+              "fullName": "Inaya Petit",
+              "score": 0.8476,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Full Stack React / Symfony",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "nour-faure-167-demo-v2",
+              "fullName": "Nour Faure",
+              "score": 0.8976,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "mael-boyer-165-demo-v2",
+              "fullName": "Mael Boyer",
+              "score": 0.8758,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "ilyes-guerin-50-demo-v2",
+              "fullName": "Ilyes Guerin",
+              "score": 0.8612,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "loris-robin-169-demo-v2",
+              "fullName": "Loris Robin",
+              "score": 0.8588,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "inaya-petit-135-demo-v2",
+              "fullName": "Inaya Petit",
+              "score": 0.8476,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "DevOps Engineer",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "chloe-mercier-148-demo-v2",
+              "fullName": "Chloe Mercier",
+              "score": 0.9343,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "iryna-lopez-313-demo-v3",
+              "fullName": "Iryna Lopez",
+              "score": 0.9149,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "mateusz-kouassi-279-demo-v3",
+              "fullName": "Mateusz Kouassi",
+              "score": 0.9078,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "adam-mathieu-527-demo-v3",
+              "fullName": "Adam Mathieu",
+              "score": 0.9032,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "nour-richard-51-demo-v2",
+              "fullName": "Nour Richard",
+              "score": 0.9011,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "chloe-bernard-109-demo-v2",
+              "fullName": "Chloe Bernard",
+              "score": 0.8457,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "youssef-pham-790-demo-v3",
+              "fullName": "Youssef Pham",
+              "score": 0.8266,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "antoine-boumediene-787-demo-v3",
+              "fullName": "Antoine Boumediene",
+              "score": 0.8117,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "joao-mathieu-740-demo-v3",
+              "fullName": "Joao Mathieu",
+              "score": 0.7954,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "noa-robert-58-demo-v2",
+              "fullName": "Noa Robert",
+              "score": 0.7942,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "chloe-bernard-109-demo-v2",
+              "fullName": "Chloe Bernard",
+              "score": 0.8569,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "youssef-pham-790-demo-v3",
+              "fullName": "Youssef Pham",
+              "score": 0.8269,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "antoine-boumediene-787-demo-v3",
+              "fullName": "Antoine Boumediene",
+              "score": 0.815,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "noa-robert-58-demo-v2",
+              "fullName": "Noa Robert",
+              "score": 0.8037,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "ilyes-mercier-65-demo-v2",
+              "fullName": "Ilyes Mercier",
+              "score": 0.7937,
+              "weakRelevance": 0
+            }
+          ]
+        }
+      ]
+    },
+    "enriched_proxy": {
+      "method": "enriched_proxy",
+      "offersEvaluated": 320,
+      "recall@1": 0.1437,
+      "recall@3": 0.2687,
+      "recall@5": 0.3531,
+      "mrr": 0.246,
+      "ndcg@5": 0.1097,
+      "sampleOffers": [
+        {
+          "title": "Developpeur Full Stack React / Symfony",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "marius-rossi-9-demo-v2",
+              "fullName": "Marius Rossi",
+              "score": 1.036,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "nina-lopez-29-demo-v2",
+              "fullName": "Nina Lopez",
+              "score": 1.036,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "ilyes-guerin-50-demo-v2",
+              "fullName": "Ilyes Guerin",
+              "score": 1.036,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "nabil-lefevre-83-demo-v2",
+              "fullName": "Nabil Lefevre",
+              "score": 1.036,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "yanis-lopez-131-demo-v2",
+              "fullName": "Yanis Lopez",
+              "score": 1.036,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Full Stack React / Symfony",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "marius-rossi-9-demo-v2",
+              "fullName": "Marius Rossi",
+              "score": 1.036,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "ilyes-guerin-50-demo-v2",
+              "fullName": "Ilyes Guerin",
+              "score": 1.036,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "nabil-lefevre-83-demo-v2",
+              "fullName": "Nabil Lefevre",
+              "score": 1.036,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "mael-boyer-165-demo-v2",
+              "fullName": "Mael Boyer",
+              "score": 1.036,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "nour-faure-167-demo-v2",
+              "fullName": "Nour Faure",
+              "score": 1.036,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "DevOps Engineer",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "mael-durand-6-demo-v2",
+              "fullName": "Mael Durand",
+              "score": 0.856,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "salome-faure-36-demo-v2",
+              "fullName": "Salome Faure",
+              "score": 0.856,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "aya-richard-64-demo-v2",
+              "fullName": "Aya Richard",
+              "score": 0.856,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "tom-boyer-91-demo-v2",
+              "fullName": "Tom Boyer",
+              "score": 0.856,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "ilyes-masson-96-demo-v2",
+              "fullName": "Ilyes Masson",
+              "score": 0.856,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "alice-dubois-921-demo-v3",
+              "fullName": "Alice Dubois",
+              "score": 0.856,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "leo-thomas-189-demo-v2",
+              "fullName": "Leo Thomas",
+              "score": 0.8555,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "mei-diop-641-demo-v3",
+              "fullName": "Mei Diop",
+              "score": 0.8344,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "yara-clement-378-demo-v3",
+              "fullName": "Yara Clement",
+              "score": 0.82,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "joao-mathieu-740-demo-v3",
+              "fullName": "Joao Mathieu",
+              "score": 0.82,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "leo-thomas-189-demo-v2",
+              "fullName": "Leo Thomas",
+              "score": 0.856,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "alice-dubois-921-demo-v3",
+              "fullName": "Alice Dubois",
+              "score": 0.856,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "mei-diop-641-demo-v3",
+              "fullName": "Mei Diop",
+              "score": 0.8452,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "alexandre-sy-834-demo-v3",
+              "fullName": "Alexandre Sy",
+              "score": 0.8344,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "yara-clement-378-demo-v3",
+              "fullName": "Yara Clement",
+              "score": 0.82,
+              "weakRelevance": 0
+            }
+          ]
+        }
+      ]
+    },
+    "reranker": {
+      "method": "reranker",
+      "offersEvaluated": 320,
+      "recall@1": 0.7562,
+      "recall@3": 0.9719,
+      "recall@5": 0.9875,
+      "mrr": 0.8675,
+      "ndcg@5": 0.699,
+      "sampleOffers": [
+        {
+          "title": "Developpeur Full Stack React / Symfony",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "ilyes-guerin-50-demo-v2",
+              "fullName": "Ilyes Guerin",
+              "score": 0.987,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "ilyes-fournier-133-demo-v2",
+              "fullName": "Ilyes Fournier",
+              "score": 0.9867,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "adam-robin-115-demo-v2",
+              "fullName": "Adam Robin",
+              "score": 0.9863,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "noa-morel-95-demo-v2",
+              "fullName": "Noa Morel",
+              "score": 0.9851,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "aya-bernard-40-demo-v2",
+              "fullName": "Aya Bernard",
+              "score": 0.984,
+              "weakRelevance": 3
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Full Stack React / Symfony",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "yasmine-rossi-4-demo-v2",
+              "fullName": "Yasmine Rossi",
+              "score": 0.987,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "samir-richard-93-demo-v2",
+              "fullName": "Samir Richard",
+              "score": 0.9867,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "ilyes-guerin-50-demo-v2",
+              "fullName": "Ilyes Guerin",
+              "score": 0.986,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "loris-robin-169-demo-v2",
+              "fullName": "Loris Robin",
+              "score": 0.9823,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "adam-robin-115-demo-v2",
+              "fullName": "Adam Robin",
+              "score": 0.9822,
+              "weakRelevance": 3
+            }
+          ]
+        },
+        {
+          "title": "DevOps Engineer",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "mei-legrand-648-demo-v3",
+              "fullName": "Mei Legrand",
+              "score": 0.9575,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "matteo-ait-haddou-956-demo-v3",
+              "fullName": "Matteo Ait Haddou",
+              "score": 0.9572,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "youssef-francois-259-demo-v3",
+              "fullName": "Youssef Francois",
+              "score": 0.9568,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "zahra-fontaine-726-demo-v3",
+              "fullName": "Zahra Fontaine",
+              "score": 0.9413,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "nawal-petrenko-396-demo-v3",
+              "fullName": "Nawal Petrenko",
+              "score": 0.9305,
+              "weakRelevance": 3
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "chloe-perrin-600-demo-v3",
+              "fullName": "Chloe Perrin",
+              "score": 0.953,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "maxime-tran-616-demo-v3",
+              "fullName": "Maxime Tran",
+              "score": 0.9374,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "fatou-martinez-990-demo-v3",
+              "fullName": "Fatou Martinez",
+              "score": 0.9373,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "marius-bianchi-976-demo-v3",
+              "fullName": "Marius Bianchi",
+              "score": 0.9342,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "bilal-el-amrani-418-demo-v3",
+              "fullName": "Bilal El Amrani",
+              "score": 0.9267,
+              "weakRelevance": 3
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "chloe-perrin-600-demo-v3",
+              "fullName": "Chloe Perrin",
+              "score": 0.9486,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "marius-bianchi-976-demo-v3",
+              "fullName": "Marius Bianchi",
+              "score": 0.9374,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "fatou-martinez-990-demo-v3",
+              "fullName": "Fatou Martinez",
+              "score": 0.9372,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "bilal-el-amrani-418-demo-v3",
+              "fullName": "Bilal El Amrani",
+              "score": 0.93,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "maxime-tran-616-demo-v3",
+              "fullName": "Maxime Tran",
+              "score": 0.9136,
+              "weakRelevance": 3
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "deltas": {
+    "semantic_vs_baseline": {
+      "recall@1": -0.1031,
+      "recall@3": -0.0656,
+      "recall@5": -0.0625,
+      "mrr": -0.0879,
+      "ndcg@5": -0.0466
+    },
+    "enriched_proxy_vs_baseline": {
+      "recall@1": 0.0031,
+      "recall@3": 0.0531,
+      "recall@5": 0.0656,
+      "mrr": 0.0296,
+      "ndcg@5": 0.0076
+    },
+    "reranker_vs_baseline": {
+      "recall@1": 0.6156,
+      "recall@3": 0.7563,
+      "recall@5": 0.7,
+      "mrr": 0.6511,
+      "ndcg@5": 0.5969
+    }
+  },
+  "offersEvaluated": 320,
+  "recall@1": 0.7562,
+  "recall@3": 0.9719,
+  "recall@5": 0.9875,
+  "mrr": 0.8675,
+  "ndcg@5": 0.699,
+  "sampleOffers": [
+    {
+      "title": "Developpeur Full Stack React / Symfony",
+      "positiveCandidates": 12,
+      "top5": [
+        {
+          "candidateId": "ilyes-guerin-50-demo-v2",
+          "fullName": "Ilyes Guerin",
+          "score": 0.987,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "ilyes-fournier-133-demo-v2",
+          "fullName": "Ilyes Fournier",
+          "score": 0.9867,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "adam-robin-115-demo-v2",
+          "fullName": "Adam Robin",
+          "score": 0.9863,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "noa-morel-95-demo-v2",
+          "fullName": "Noa Morel",
+          "score": 0.9851,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "aya-bernard-40-demo-v2",
+          "fullName": "Aya Bernard",
+          "score": 0.984,
+          "weakRelevance": 3
+        }
+      ]
+    },
+    {
+      "title": "Developpeur Full Stack React / Symfony",
+      "positiveCandidates": 12,
+      "top5": [
+        {
+          "candidateId": "yasmine-rossi-4-demo-v2",
+          "fullName": "Yasmine Rossi",
+          "score": 0.987,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "samir-richard-93-demo-v2",
+          "fullName": "Samir Richard",
+          "score": 0.9867,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "ilyes-guerin-50-demo-v2",
+          "fullName": "Ilyes Guerin",
+          "score": 0.986,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "loris-robin-169-demo-v2",
+          "fullName": "Loris Robin",
+          "score": 0.9823,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "adam-robin-115-demo-v2",
+          "fullName": "Adam Robin",
+          "score": 0.9822,
+          "weakRelevance": 3
+        }
+      ]
+    },
+    {
+      "title": "DevOps Engineer",
+      "positiveCandidates": 12,
+      "top5": [
+        {
+          "candidateId": "mei-legrand-648-demo-v3",
+          "fullName": "Mei Legrand",
+          "score": 0.9575,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "matteo-ait-haddou-956-demo-v3",
+          "fullName": "Matteo Ait Haddou",
+          "score": 0.9572,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "youssef-francois-259-demo-v3",
+          "fullName": "Youssef Francois",
+          "score": 0.9568,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "zahra-fontaine-726-demo-v3",
+          "fullName": "Zahra Fontaine",
+          "score": 0.9413,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "nawal-petrenko-396-demo-v3",
+          "fullName": "Nawal Petrenko",
+          "score": 0.9305,
+          "weakRelevance": 3
+        }
+      ]
+    },
+    {
+      "title": "Developpeur Android Kotlin",
+      "positiveCandidates": 12,
+      "top5": [
+        {
+          "candidateId": "chloe-perrin-600-demo-v3",
+          "fullName": "Chloe Perrin",
+          "score": 0.953,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "maxime-tran-616-demo-v3",
+          "fullName": "Maxime Tran",
+          "score": 0.9374,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "fatou-martinez-990-demo-v3",
+          "fullName": "Fatou Martinez",
+          "score": 0.9373,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "marius-bianchi-976-demo-v3",
+          "fullName": "Marius Bianchi",
+          "score": 0.9342,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "bilal-el-amrani-418-demo-v3",
+          "fullName": "Bilal El Amrani",
+          "score": 0.9267,
+          "weakRelevance": 3
+        }
+      ]
+    },
+    {
+      "title": "Developpeur Android Kotlin",
+      "positiveCandidates": 12,
+      "top5": [
+        {
+          "candidateId": "chloe-perrin-600-demo-v3",
+          "fullName": "Chloe Perrin",
+          "score": 0.9486,
+          "weakRelevance": 3
+        },
+        {
+          "candidateId": "marius-bianchi-976-demo-v3",
+          "fullName": "Marius Bianchi",
+          "score": 0.9374,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "fatou-martinez-990-demo-v3",
+          "fullName": "Fatou Martinez",
+          "score": 0.9372,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "bilal-el-amrani-418-demo-v3",
+          "fullName": "Bilal El Amrani",
+          "score": 0.93,
+          "weakRelevance": 0
+        },
+        {
+          "candidateId": "maxime-tran-616-demo-v3",
+          "fullName": "Maxime Tran",
+          "score": 0.9136,
+          "weakRelevance": 3
+        }
+      ]
+    }
+  ],
+  "summaryMethod": "reranker"
+}

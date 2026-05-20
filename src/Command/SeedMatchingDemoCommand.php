@@ -66,10 +66,10 @@ final class SeedMatchingDemoCommand extends Command
         $datasetArgument = $input->getArgument('dataset');
         $datasetPath = is_string($datasetArgument) && '' !== trim($datasetArgument)
             ? trim($datasetArgument)
-            : $this->projectDir.'/docs/matching-demo-dataset.json';
+            : $this->projectDir . '/docs/matching-demo-dataset.json';
 
         if (!str_starts_with($datasetPath, '/') && !preg_match('/^[A-Za-z]:\\\\/', $datasetPath)) {
-            $datasetPath = $this->projectDir.'/'.$datasetPath;
+            $datasetPath = $this->projectDir . '/' . $datasetPath;
         }
 
         if (!is_file($datasetPath)) {
@@ -431,7 +431,10 @@ final class SeedMatchingDemoCommand extends Command
 
     private function userStatus(string $value): UserStatus
     {
-        return UserStatus::from($value);
+        return match ($value) {
+            'inactive' => UserStatus::SUSPENDED,
+            default => UserStatus::tryFrom($value) ?? UserStatus::ACTIVE,
+        };
     }
 
     private function locationType(mixed $value): ?LocationType

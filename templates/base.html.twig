@@ -390,7 +390,7 @@
                                 const payload = await response.json().catch(() => ({}));
 
                                 if (!response.ok || !payload.success) {
-                                    pushNotification(payload?.message ?? 'Action impossible, merci de reessayer.', payload?.type ?? 'error');
+                                    pushNotification(payload?.message ?? 'Action impossible, merci de réessayer.', payload?.type ?? 'error');
                                     return;
                                 }
 
@@ -401,9 +401,9 @@
                                     updateFavoriteCount(favoriteCount);
                                 }
 
-                                pushNotification(payload.message ?? 'Favoris mis a jour.', payload.type ?? 'success');
+                                pushNotification(payload.message ?? 'Favoris mis à jour.', payload.type ?? 'success');
                             } catch (_error) {
-                                pushNotification('Erreur reseau, merci de reessayer.', 'error');
+                                pushNotification('Erreur réseau, merci de réessayer.', 'error');
                             } finally {
                                 relatedForms.forEach((relatedForm) => setFavoriteFormLoading(relatedForm, false));
                             }
@@ -561,6 +561,313 @@
                 document.addEventListener('DOMContentLoaded', initUiBehaviors);
                 document.addEventListener('turbo:load', initUiBehaviors);
             </script>
+            <script>
+                (() => {
+                    if (window.DevSpotMultiSelect) {
+                        return;
+                    }
+
+                    const accentThemes = {
+                        emerald: {
+                            control: ['focus-within:border-emerald-500/45', 'focus-within:bg-white/10', 'focus-within:ring-4', 'focus-within:ring-emerald-500/20'],
+                            searchShell: ['focus-within:border-emerald-400/35'],
+                            count: ['u-border-success', 'u-bg-success', 'u-text-success'],
+                            chip: ['u-border-success', 'u-bg-success', 'u-text-success'],
+                            selectedOption: ['border-emerald-400/35', 'bg-emerald-500/15', 'shadow-lg', 'shadow-emerald-950/20'],
+                            indicator: ['u-border-success', 'u-bg-success', 'u-text-success'],
+                            searchIcon: 'u-text-success',
+                            badge: 'u-border-success u-bg-success u-text-success',
+                        },
+                        blue: {
+                            control: ['focus-within:border-blue-500/45', 'focus-within:bg-white/10', 'focus-within:ring-4', 'focus-within:ring-blue-500/20'],
+                            searchShell: ['focus-within:border-blue-400/35'],
+                            count: ['u-border-info', 'u-bg-info', 'u-text-info'],
+                            chip: ['u-border-info', 'u-bg-info', 'u-text-info'],
+                            selectedOption: ['border-blue-400/35', 'bg-blue-500/15', 'shadow-lg', 'shadow-blue-950/20'],
+                            indicator: ['u-border-info', 'u-bg-info', 'u-text-info'],
+                            searchIcon: 'u-text-info',
+                            badge: 'u-border-info u-bg-info u-text-info',
+                        },
+                    };
+
+                    const badgeThemes = {
+                        admin: 'u-border-pale-red u-bg-pale-red u-text-pale-red',
+                        recruiter: 'u-border-pale-purple u-bg-pale-purple u-text-pale-purple',
+                        applicant: 'u-border-pale-pink u-bg-pale-pink u-text-pale-pink',
+                        rose: 'u-border-pale-red u-bg-pale-red u-text-pale-red',
+                        violet: 'u-border-pale-purple u-bg-pale-purple u-text-pale-purple',
+                        blue: 'u-border-info u-bg-info u-text-info',
+                        emerald: 'u-border-success u-bg-success u-text-success',
+                    };
+
+                    const escapeHtml = (value) => String(value)
+                        .replaceAll('&', '&amp;')
+                        .replaceAll('<', '&lt;')
+                        .replaceAll('>', '&gt;')
+                        .replaceAll('"', '&quot;')
+                        .replaceAll("'", '&#039;');
+
+                    const resolveRoots = (scope) => {
+                        if (!(scope instanceof Document) && !(scope instanceof Element)) {
+                            return [];
+                        }
+
+                        const roots = [];
+                        if (scope instanceof Element && scope.matches('[data-ui-multiselect="true"]')) {
+                            roots.push(scope);
+                        }
+
+                        roots.push(...scope.querySelectorAll('[data-ui-multiselect="true"]'));
+
+                        return roots;
+                    };
+
+                    const resolveTheme = (accent) => accentThemes[accent] ?? accentThemes.emerald;
+
+                    const resolveBadgeTheme = (tone, theme) => badgeThemes[tone] ?? theme.badge;
+
+                    const formatSelectedCount = (select, count) => {
+                        const singular = select.dataset.multiselectSelectedSingular || 'élément';
+                        const plural = select.dataset.multiselectSelectedPlural || 'éléments';
+
+                        return `${count} ${count === 1 ? singular : plural}`;
+                    };
+
+                    const dispatchChange = (select) => {
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                    };
+
+                    const init = (scope = document) => {
+                        resolveRoots(scope).forEach((root) => {
+                            if (root.dataset.multiselectInitialized === 'true') {
+                                return;
+                            }
+
+                            const nativeWrapper = root.querySelector('[data-ui-multiselect-native="true"]');
+                            const enhancedWrapper = root.querySelector('[data-ui-multiselect-enhanced="true"]');
+                            const select = nativeWrapper?.querySelector('select[multiple]');
+                            const control = root.querySelector('[data-ui-multiselect-control="true"]');
+                            const tagsContainer = root.querySelector('[data-ui-multiselect-tags="true"]');
+                            const searchShell = root.querySelector('[data-ui-multiselect-search-shell="true"]');
+                            const searchIcon = root.querySelector('[data-ui-multiselect-search-icon="true"]');
+                            const searchInput = root.querySelector('[data-ui-multiselect-search="true"]');
+                            const countBadge = root.querySelector('[data-ui-multiselect-count="true"]');
+                            const optionsContainer = root.querySelector('[data-ui-multiselect-options="true"]');
+                            const emptyState = root.querySelector('[data-ui-multiselect-empty-state="true"]');
+                            const placeholderElement = root.querySelector('[data-ui-multiselect-selection-placeholder="true"]');
+
+                            if (!nativeWrapper || !enhancedWrapper || !select || !control || !tagsContainer || !searchShell || !searchInput || !countBadge || !optionsContainer || !emptyState || !placeholderElement) {
+                                return;
+                            }
+
+                            root.dataset.multiselectInitialized = 'true';
+
+                            const theme = resolveTheme(select.dataset.multiselectAccent);
+                            const selectableOptions = Array.from(select.options).filter((option) => !option.disabled && option.value !== '');
+                            const selectionPlaceholder = placeholderElement.textContent?.trim() || select.dataset.multiselectSelectionPlaceholder || 'Sélectionner une ou plusieurs options';
+                            const hideEmptySelection = select.dataset.multiselectHideEmptySelection === 'true';
+
+                            control.classList.add(...theme.control);
+                            searchShell.classList.add(...theme.searchShell);
+                            countBadge.classList.add(...theme.count);
+                            if (searchIcon) {
+                                searchIcon.classList.add(theme.searchIcon);
+                            }
+
+                            const renderTags = () => {
+                                const selectedOptions = selectableOptions.filter((option) => option.selected);
+                                tagsContainer.innerHTML = '';
+
+                                if (selectedOptions.length === 0) {
+                                    if (hideEmptySelection) {
+                                        tagsContainer.classList.add('hidden');
+                                        searchShell.classList.remove('mt-3');
+
+                                        return;
+                                    }
+
+                                    tagsContainer.classList.remove('hidden');
+                                    searchShell.classList.add('mt-3');
+
+                                    const placeholder = document.createElement('span');
+                                    placeholder.className = 'py-1 text-sm text-slate-500';
+                                    placeholder.textContent = selectionPlaceholder;
+                                    tagsContainer.appendChild(placeholder);
+
+                                    return;
+                                }
+
+                                tagsContainer.classList.remove('hidden');
+                                searchShell.classList.add('mt-3');
+
+                                selectedOptions.forEach((option) => {
+                                    const label = option.dataset.optionTagLabel || option.dataset.optionTitle || option.textContent?.trim() || 'Option';
+                                    const tag = document.createElement('button');
+                                    tag.type = 'button';
+                                    tag.className = `inline-flex max-w-full items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition ${theme.chip.join(' ')}`;
+                                    tag.innerHTML = `
+                                        <span class="truncate max-w-[15rem]">${escapeHtml(label)}</span>
+                                        <span aria-hidden="true" class="text-base leading-none opacity-70">×</span>
+                                    `;
+                                    tag.setAttribute('aria-label', `Retirer ${label}`);
+                                    tag.addEventListener('click', () => {
+                                        option.selected = false;
+                                        render();
+                                        dispatchChange(select);
+                                        searchInput.focus();
+                                    });
+                                    tagsContainer.appendChild(tag);
+                                });
+                            };
+
+                            const renderOptions = () => {
+                                const query = searchInput.value.trim().toLowerCase();
+                                optionsContainer.innerHTML = '';
+
+                                let visibleCount = 0;
+
+                                selectableOptions.forEach((option) => {
+                                    const title = option.dataset.optionTitle || option.textContent?.trim() || 'Option';
+                                    const description = option.dataset.optionDescription || '';
+                                    const badge = option.dataset.optionBadge || '';
+                                    const badgeTone = option.dataset.optionBadgeTone || '';
+                                    const searchText = [
+                                        option.dataset.optionSearch || '',
+                                        option.textContent || '',
+                                        title,
+                                        description,
+                                        badge,
+                                    ].join(' ').toLowerCase();
+
+                                    if (query && !searchText.includes(query)) {
+                                        return;
+                                    }
+
+                                    visibleCount += 1;
+
+                                    const optionButton = document.createElement('button');
+                                    optionButton.type = 'button';
+                                    optionButton.className = [
+                                        'w-full',
+                                        'rounded-[1.25rem]',
+                                        'border',
+                                        'px-3.5',
+                                        'py-3',
+                                        'text-left',
+                                        'transition-all',
+                                        'duration-200',
+                                        option.selected
+                                            ? ['text-white', ...theme.selectedOption].join(' ')
+                                            : 'border-white/5 bg-transparent text-slate-200 hover:border-white/10 hover:bg-white/5',
+                                    ].join(' ');
+                                    optionButton.setAttribute('aria-pressed', option.selected ? 'true' : 'false');
+
+                                    const indicator = option.selected ? '✓' : '+';
+                                    const badgeMarkup = badge !== ''
+                                        ? `<span class="inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${resolveBadgeTheme(badgeTone, theme)}">${escapeHtml(badge)}</span>`
+                                        : '';
+                                    const descriptionMarkup = description !== ''
+                                        ? `<span class="mt-1 block text-xs text-slate-400">${escapeHtml(description)}</span>`
+                                        : '';
+
+                                    optionButton.innerHTML = `
+                                        <span class="flex items-start justify-between gap-3">
+                                            <span class="min-w-0">
+                                                <span class="block truncate text-sm font-semibold">${escapeHtml(title)}</span>
+                                                ${descriptionMarkup}
+                                            </span>
+                                            <span class="flex shrink-0 items-center gap-2">
+                                                ${badgeMarkup}
+                                                <span class="inline-flex h-7 w-7 items-center justify-center rounded-full border text-sm font-semibold ${theme.indicator.join(' ')}">${indicator}</span>
+                                            </span>
+                                        </span>
+                                    `;
+
+                                    optionButton.addEventListener('click', () => {
+                                        option.selected = !option.selected;
+                                        render();
+                                        dispatchChange(select);
+                                        searchInput.focus();
+                                    });
+
+                                    optionsContainer.appendChild(optionButton);
+                                });
+
+                                emptyState.classList.toggle('hidden', visibleCount > 0);
+                            };
+
+                            const render = () => {
+                                countBadge.textContent = formatSelectedCount(select, selectableOptions.filter((option) => option.selected).length);
+                                renderTags();
+                                renderOptions();
+                            };
+
+                            searchInput.setAttribute('aria-label', select.labels?.[0]?.textContent?.trim() || select.name || 'Recherche');
+                            searchInput.addEventListener('input', renderOptions);
+                            searchInput.addEventListener('keydown', (event) => {
+                                if (event.key !== 'Backspace' || searchInput.value !== '') {
+                                    return;
+                                }
+
+                                const lastSelectedOption = [...selectableOptions].reverse().find((option) => option.selected);
+                                if (!lastSelectedOption) {
+                                    return;
+                                }
+
+                                lastSelectedOption.selected = false;
+                                render();
+                                dispatchChange(select);
+                                event.preventDefault();
+                            });
+
+                            select.addEventListener('change', render);
+
+                            nativeWrapper.classList.add('hidden');
+                            enhancedWrapper.classList.remove('hidden');
+                            render();
+                        });
+                    };
+
+                    let observerStarted = false;
+
+                    const startObserver = () => {
+                        if (observerStarted || !document.body) {
+                            return;
+                        }
+
+                        observerStarted = true;
+
+                        const observer = new MutationObserver((mutations) => {
+                            mutations.forEach((mutation) => {
+                                mutation.addedNodes.forEach((node) => {
+                                    if (node instanceof Element) {
+                                        init(node);
+                                    }
+                                });
+                            });
+                        });
+
+                        observer.observe(document.body, {
+                            childList: true,
+                            subtree: true,
+                        });
+                    };
+
+                    document.addEventListener('DOMContentLoaded', () => {
+                        init();
+                        startObserver();
+                    });
+                    document.addEventListener('turbo:load', () => {
+                        init();
+                        startObserver();
+                    });
+
+                    window.DevSpotMultiSelect = {
+                        init,
+                        refresh: init,
+                    };
+                })();
+            </script>
         {% endblock %}
     </head>
     
@@ -609,10 +916,12 @@
             {% set isNotificationsRoute = currentRoute starts with 'app_notifications' %}
             {% set isFavoritesRoute = currentRoute == 'app_recruiter_favorites' or currentRoute starts with 'app_recruiter_favorite_' %}
             {% set isRecruiterOffersRoute = currentRoute == 'app_recruiter_offers' or currentRoute starts with 'app_recruiter_offer_' %}
-            {% set isAdminWideRoute = currentRoute in ['app_admin_profiles', 'app_admin_companies', 'app_admin_users', 'app_admin_messages'] %}
+            {% set isAdminWideRoute = currentRoute in ['app_admin_profiles', 'app_admin_companies', 'app_admin_users', 'app_admin_messages', 'app_admin_support_requests', 'app_admin_user_messages_compose'] %}
             {% set isMessagesRoute = currentRoute in ['app_applicant_messages', 'app_applicant_message_show', 'app_recruiter_messages', 'app_recruiter_message_show'] %}
             {% set isHelpRoute = currentRoute == 'app_help' %}
+            {% set isFaqRoute = currentRoute == 'app_faq' %}
             {% set helpPath = path('app_help') %}
+            {% set faqPath = path('app_faq') %}
 
             {# HEADER stable (sans animation) #}
             <header class="relative z-[70]">
@@ -620,7 +929,7 @@
                     <nav class="site-header-shell {{ isFavoritesRoute ? 'site-header-shell-favorites' : '' }} rounded-[2rem] px-3.5 py-1.5 sm:px-4.5 sm:py-2">
                         <div class="site-header-layout">
                         <div class="site-header-left">
-                            <a href="{{ path('app_home') }}" class="site-header-brand" aria-label="Aller a l'accueil de DevSpot">
+                            <a href="{{ path('app_home') }}" class="site-header-brand" aria-label="Aller à l'accueil de DevSpot">
                                 <span class="site-header-brand-mark">
                                     <svg class="h-5 w-5" viewBox="0 0 128 128" fill="none" aria-hidden="true">
                                         <path d="M48 36L22 64l26 28" stroke="#2557d6" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
@@ -651,7 +960,6 @@
 
                         <div class="site-header-actions site-header-actions-desktop">
                         {% if app.user %}
-                            {% set unreadNotificationsCount = unread_notifications_count(app.user) %}
                             {% set profilePath = path('app_home') %}
                             {% set accountRoleLabel = 'Utilisateur' %}
                             {% if is_granted('ROLE_ADMIN') %}
@@ -676,7 +984,7 @@
 
                             {% if not is_granted('ROLE_ADMIN') %}
                                 {% if is_granted('ROLE_RECRUITER') %}
-                                    <a href="{{ path('app_recruiter_favorites') }}" class="site-header-icon-button {{ isFavoritesRoute ? 'site-header-icon-button-active' : '' }}" aria-label="Acceder aux favoris">
+                                    <a href="{{ path('app_recruiter_favorites') }}" class="site-header-icon-button {{ isFavoritesRoute ? 'site-header-icon-button-active' : '' }}" aria-label="Accéder aux favoris">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-.32-.17C9.24 18.8 3 15.37 3 9.75A4.5 4.5 0 0 1 7.5 5.25c1.74 0 3.16.81 4.5 2.09 1.34-1.28 2.76-2.09 4.5-2.09A4.5 4.5 0 0 1 21 9.75c0 5.62-6.24 9.05-8.68 10.33L12 20.25Z" />
                                         </svg>
@@ -690,7 +998,7 @@
                                     >
                                         {% include '_chat_entry_point.html.twig' with {
                                             user: app.user,
-                                            unreadCount: chat_unread_count(app.user),
+                                            unreadCount: chatUnreadCount,
                                             isActive: isMessagesRoute
                                         } only %}
                                     </div>
@@ -729,11 +1037,20 @@
                                         <a href="{{ helpPath }}" class="account-menu-item account-menu-item-hover">
                                             <span class="account-menu-icon" aria-hidden="true">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 6.75C4.168 5.917 5.754 5.5 7.5 5.5c1.902 0 3.615.495 4.8 1.483a.3.3 0 0 0 .384 0C13.885 5.995 15.598 5.5 17.5 5.5c1.746 0 3.332.417 4.5 1.25v11.5c-1.168-.833-2.754-1.25-4.5-1.25-1.902 0-3.615.495-4.8 1.483a.3.3 0 0 1-.384 0C11.115 17.495 9.402 17 7.5 17 5.754 17 4.168 17.417 3 18.25V6.75Z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12.5 7.25V18"/>
+                                                </svg>
+                                            </span>
+                                            Aide
+                                        </a>
+                                        <a href="{{ faqPath }}" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9.09 9a3 3 0 1 1 5.82 1c0 2-3 2-3 4"/>
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 17h.01"/>
                                                 </svg>
                                             </span>
-                                            Aide
+                                            Support
                                         </a>
                                         <a href="#" onclick="return false;" class="account-menu-item account-menu-item-hover">
                                             <span class="account-menu-icon" aria-hidden="true">
@@ -781,11 +1098,20 @@
                                         <a href="{{ helpPath }}" class="account-menu-item account-menu-item-hover">
                                             <span class="account-menu-icon" aria-hidden="true">
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 6.75C4.168 5.917 5.754 5.5 7.5 5.5c1.902 0 3.615.495 4.8 1.483a.3.3 0 0 0 .384 0C13.885 5.995 15.598 5.5 17.5 5.5c1.746 0 3.332.417 4.5 1.25v11.5c-1.168-.833-2.754-1.25-4.5-1.25-1.902 0-3.615.495-4.8 1.483a.3.3 0 0 1-.384 0C11.115 17.495 9.402 17 7.5 17 5.754 17 4.168 17.417 3 18.25V6.75Z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12.5 7.25V18"/>
+                                                </svg>
+                                            </span>
+                                            Aide
+                                        </a>
+                                        <a href="{{ faqPath }}" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M9.09 9a3 3 0 1 1 5.82 1c0 2-3 2-3 4"/>
                                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 17h.01"/>
                                                 </svg>
                                             </span>
-                                            Aide
+                                            Support
                                         </a>
                                     </div>
                                 </div>
@@ -809,6 +1135,7 @@
                                     {% endif %}
                                     {% if app.user and not is_granted('ROLE_ADMIN') and (is_granted('ROLE_RECRUITER') or is_granted('ROLE_APPLICANT')) %}
                                         <a href="{{ helpPath }}" class="site-mobile-menu-link {{ isHelpRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isHelpRoute %}aria-current="page"{% endif %}>Aide</a>
+                                        <a href="{{ faqPath }}" class="site-mobile-menu-link {{ isFaqRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isFaqRoute %}aria-current="page"{% endif %}>Support</a>
                                     {% endif %}
                                     {% if app.user %}
                                         <a href="{{ path('app_notifications_index') }}" class="site-mobile-menu-link {{ isNotificationsRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isNotificationsRoute %}aria-current="page"{% endif %}>
@@ -836,6 +1163,8 @@
                                         <a href="{{ logout_path() }}" class="site-mobile-menu-link site-mobile-menu-link-logout">Déconnexion</a>
                                     {% else %}
                                         <a href="{{ path('app_login') }}" class="site-mobile-menu-link">Connexion</a>
+                                        <a href="{{ helpPath }}" class="site-mobile-menu-link {{ isHelpRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isHelpRoute %}aria-current="page"{% endif %}>Aide</a>
+                                        <a href="{{ faqPath }}" class="site-mobile-menu-link {{ isFaqRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isFaqRoute %}aria-current="page"{% endif %}>Support</a>
                                         <a href="{{ path('app_register') }}" class="site-mobile-menu-link">Créer un compte</a>
                                     {% endif %}
                                 </div>
@@ -943,9 +1272,7 @@
                             }
                         };
 
-                        poll();
-
-                        const pollTimer = window.setInterval(poll, 2000);
+                        const pollTimer = window.setInterval(poll, 15000);
                         const stopPolling = () => {
                             window.clearInterval(pollTimer);
                             delete root.dataset.chatEntryPointPollInitialized;

@@ -7,6 +7,11 @@
     <script>
         (() => {
             const ENDPOINT = {{ matchingEndpoint|json_encode|raw }};
+            const CONTACT_ENDPOINT = {{ matchingContactEndpoint|json_encode|raw }};
+            const CONTACT_CSRF = {{ matchingContactCsrfToken|json_encode|raw }};
+            const OFFER_TITLE = {{ offer.title|json_encode|raw }};
+            const DEFAULT_RECRUITER_NAME = {{ app.user and app.user.recruiterProfile ? ((app.user.recruiterProfile.firstName ~ ' ' ~ app.user.recruiterProfile.lastName)|trim)|json_encode|raw : '""' }};
+            const DEFAULT_RECRUITER_EMAIL = {{ app.user and app.user.email ? app.user.email|json_encode|raw : '""' }};
             const PER_PAGE = 10;
             const CACHED_DATA = {{ cachedMatching|default('null')|raw }};
             const nextFrame = () => new Promise(resolve => requestAnimationFrame(() => resolve()));
@@ -15,6 +20,8 @@
             let currentPage = 1;
             let totalPages = 1;
             let loading = false;
+            let currentMatches = [];
+            let activeContactMatch = null;
 
             const $ = (sel, ctx) => (ctx || document).querySelector(sel);
             const escapeHtml = (v) => String(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;');
@@ -73,25 +80,40 @@
                 return `<button type="button" data-fav-dev="${m.developerId}" data-is-fav="${isFav?'1':'0'}" data-add-url="${escapeHtml(m.favoriteAddUrl)}" data-remove-url="${escapeHtml(m.favoriteRemoveUrl)}" data-add-token="${escapeHtml(m.favoriteAddToken)}" data-remove-token="${escapeHtml(m.favoriteRemoveToken)}" class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border transition-all duration-300 active:scale-90 ${cls}" title="${isFav?'Retirer des favoris':'Ajouter aux favoris'}">${isFav?filledHeart:outlinedHeart}</button>`;
             };
 
+            const contactBtn = (m, index) => {
+                if (!m.canContact || !m.contactToken) return '';
+
+                return `<button type="button" data-contact-index="${index}" class="inline-flex items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-300 transition hover:border-emerald-400/40 hover:bg-emerald-500/20">Contacter ce profil</button>`;
+            };
+
             /* ---------- Render one match card ---------- */
-            const matchCard = (m, rank) => {
+            const matchCard = (m, rank, index) => {
                 const hardSkills = Array.isArray(m.matchedHardSkills) ? m.matchedHardSkills : [];
                 const softSkills = Array.isArray(m.matchedSoftSkills) ? m.matchedSoftSkills : [];
                 const inferredTech = Array.isArray(m.inferredTechnicalSkills) ? m.inferredTechnicalSkills : [];
                 const inferredSoft = Array.isArray(m.inferredSoftSkills) ? m.inferredSoftSkills : [];
                 const inferredTransf = Array.isArray(m.inferredTransferableSkills) ? m.inferredTransferableSkills : [];
-                const link = m.profileUrl ? `<a href="${escapeHtml(m.profileUrl)}" class="hover:text-emerald-300 underline underline-offset-2">${escapeHtml(m.fullName||'Profil')}</a>` : escapeHtml(m.fullName||'Profil');
+                const title = m.revealed
+                    ? (m.profileUrl ? `<a href="${escapeHtml(m.profileUrl)}" class="hover:text-emerald-300 underline underline-offset-2">${escapeHtml(m.fullName||'Profil')}</a>` : escapeHtml(m.fullName||'Profil'))
+                    : escapeHtml(m.candidateLabel || 'Candidat');
+                const subtitle = m.revealed
+                    ? escapeHtml(m.headline || '')
+                    : 'Identité masquée jusqu’au premier contact.';
+                const action = m.revealed
+                    ? (m.conversationUrl ? `<a href="${escapeHtml(m.conversationUrl)}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10">Ouvrir la conversation</a>` : '')
+                    : contactBtn(m, index);
 
                 return `
                 <article class="rounded-[1.5rem] border border-white/10 bg-slate-950/40 p-5 transition hover:border-emerald-400/20 hover:bg-slate-900/50">
                     <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                         <div class="flex items-start gap-3">
-                            ${favBtn(m)}
+                            ${m.revealed ? favBtn(m) : ''}
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-wider text-emerald-300">#${rank}</p>
-                                <h3 class="mt-2 text-lg font-semibold text-white">${link}</h3>
-                                <p class="mt-1 text-sm text-slate-300">${escapeHtml(m.headline||'')}</p>
+                                <h3 class="mt-2 text-lg font-semibold text-white">${title}</h3>
+                                <p class="mt-1 text-sm text-slate-300">${subtitle}</p>
                                 <p class="mt-2 text-xs text-slate-400">${escapeHtml(String(m.yearsExperience??0))} an(s) d'expérience</p>
+                                <div class="mt-3">${action}</div>
                             </div>
                         </div>
                         <div class="grid gap-2 sm:grid-cols-3">
@@ -228,17 +250,203 @@
                 });
             };
 
+            const resetContactStatus = () => {
+                const status = $('#matching-contact-status');
+                if (status) {
+                    status.className = 'hidden rounded-2xl border px-4 py-3 text-sm';
+                    status.textContent = '';
+                }
+
+                document.querySelectorAll('[data-error-for]').forEach(node => {
+                    node.textContent = '';
+                    node.classList.add('hidden');
+                });
+            };
+
+            const setContactStatus = (message, tone = 'error') => {
+                const status = $('#matching-contact-status');
+                if (!status) return;
+
+                const palette = tone === 'success'
+                    ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-100'
+                    : 'border-rose-500/20 bg-rose-500/10 text-rose-100';
+
+                status.className = `rounded-2xl border px-4 py-3 text-sm ${palette}`;
+                status.textContent = message;
+            };
+
+            const showContactErrors = (errors = {}) => {
+                Object.entries(errors).forEach(([field, messages]) => {
+                    const node = document.querySelector(`[data-error-for="${field}"]`);
+                    if (!node) return;
+                    node.textContent = Array.isArray(messages) ? messages.join(' ') : String(messages || '');
+                    node.classList.remove('hidden');
+                });
+            };
+
+            const openContactModal = (match) => {
+                activeContactMatch = match;
+                resetContactStatus();
+
+                $('#matching-contact-target').textContent = match.candidateLabel || 'Candidat';
+                $('#matching-contact-token').value = match.contactToken || '';
+                $('#matching-contact-recruiter-name').value = DEFAULT_RECRUITER_NAME || '';
+                $('#matching-contact-recruiter-email').value = DEFAULT_RECRUITER_EMAIL || '';
+                $('#matching-contact-subject').value = OFFER_TITLE ? `À propos de ${OFFER_TITLE}` : '';
+                $('#matching-contact-message').value = '';
+
+                const modal = $('#matching-contact-modal');
+                if (!modal) return;
+
+                modal.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+                setTimeout(() => $('#matching-contact-message')?.focus(), 0);
+            };
+
+            const closeContactModal = () => {
+                activeContactMatch = null;
+                const modal = $('#matching-contact-modal');
+                if (modal) modal.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            };
+
+            const mergeRevealedMatch = (revealedMatch) => {
+                if (!activeContactMatch) return;
+
+                const mergeOne = (match) => {
+                    if ((activeContactMatch.contactToken && match.contactToken === activeContactMatch.contactToken) || match.candidateLabel === activeContactMatch.candidateLabel) {
+                        const merged = {
+                            ...match,
+                            ...revealedMatch,
+                            revealed: true,
+                            canContact: false,
+                        };
+                        delete merged.contactToken;
+
+                        return merged;
+                    }
+
+                    return match;
+                };
+
+                currentMatches = currentMatches.map(mergeOne);
+
+                if (allData && Array.isArray(allData.matches)) {
+                    allData.matches = allData.matches.map(mergeOne);
+                }
+            };
+
+            const wireContactButtons = (container) => {
+                container.querySelectorAll('[data-contact-index]').forEach(button => {
+                    if (button.dataset.contactInit === '1') return;
+                    button.dataset.contactInit = '1';
+
+                    button.addEventListener('click', () => {
+                        const index = parseInt(button.dataset.contactIndex || '', 10);
+                        const match = Number.isNaN(index) ? null : currentMatches[index] || null;
+                        if (!match) return;
+                        openContactModal(match);
+                    });
+                });
+            };
+
+            const wireContactModal = () => {
+                const modal = $('#matching-contact-modal');
+                const form = $('#matching-contact-form');
+                const closeButtons = modal ? modal.querySelectorAll('[data-close-contact-modal]') : [];
+                const submitButton = $('#matching-contact-submit');
+
+                if (!modal || !form || form.dataset.init === '1') return;
+                form.dataset.init = '1';
+
+                closeButtons.forEach(button => button.addEventListener('click', closeContactModal));
+                modal.addEventListener('click', (event) => {
+                    if (event.target === modal) {
+                        closeContactModal();
+                    }
+                });
+                document.addEventListener('keydown', (event) => {
+                    if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+                        closeContactModal();
+                    }
+                });
+
+                form.addEventListener('submit', async (event) => {
+                    event.preventDefault();
+                    resetContactStatus();
+
+                    if (!activeContactMatch) {
+                        setContactStatus('Aucun profil à contacter.');
+
+                        return;
+                    }
+
+                    submitButton.disabled = true;
+                    submitButton.classList.add('opacity-60', 'cursor-not-allowed');
+
+                    try {
+                        const response = await fetch(CONTACT_ENDPOINT, {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            credentials: 'same-origin',
+                            body: JSON.stringify({
+                                _token: CONTACT_CSRF,
+                                contactToken: $('#matching-contact-token').value,
+                                recruiterName: $('#matching-contact-recruiter-name').value,
+                                recruiterEmail: $('#matching-contact-recruiter-email').value,
+                                subject: $('#matching-contact-subject').value,
+                                message: $('#matching-contact-message').value,
+                            }),
+                        });
+
+                        const payload = await response.json().catch(() => ({}));
+
+                        if (response.status === 422) {
+                            setContactStatus(payload.message || 'Le formulaire contient des erreurs.');
+                            showContactErrors(payload.errors || {});
+
+                            return;
+                        }
+
+                        if (!response.ok || payload.success !== true) {
+                            setContactStatus(payload.message || 'Envoi impossible.');
+
+                            return;
+                        }
+
+                        mergeRevealedMatch(payload.match || {});
+                        renderMatches(currentMatches, (currentPage - 1) * PER_PAGE);
+                        closeContactModal();
+
+                        if (typeof pushNotification === 'function') {
+                            pushNotification(payload.message || 'Votre message a bien été envoyé au développeur.', 'success');
+                        }
+                    } catch (_) {
+                        setContactStatus('Erreur réseau.');
+                    } finally {
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('opacity-60', 'cursor-not-allowed');
+                    }
+                });
+            };
+
             /* ---------- Render matches ---------- */
             const renderMatches = (matches, pageOffset) => {
                 const container = $('#matching-results');
                 if (!container) return;
+                currentMatches = Array.isArray(matches) ? matches.map(match => ({ ...match })) : [];
                 container.innerHTML = '';
-                if (!matches.length) {
+                if (!currentMatches.length) {
                     container.innerHTML = '<div class="rounded-2xl border border-dashed border-white/10 bg-slate-950/30 px-4 py-5 text-sm text-slate-500">Aucun profil correspondant.</div>';
                     return;
                 }
-                matches.forEach((m, i) => container.insertAdjacentHTML('beforeend', matchCard(m, pageOffset + i + 1)));
+                currentMatches.forEach((m, i) => container.insertAdjacentHTML('beforeend', matchCard(m, pageOffset + i + 1, i)));
                 wireFavButtons(container);
+                wireContactButtons(container);
             };
 
             /* ---------- Load a page ---------- */
@@ -257,6 +465,7 @@
 
                     currentPage = data.page;
                     totalPages = data.totalPages;
+                    allData = data;
                     renderSummary(data);
                     renderMatches(data.matches || [], (currentPage - 1) * PER_PAGE);
                     renderPagination();
@@ -289,7 +498,7 @@
                     $('#matching-section').classList.remove('hidden');
 
                     renderSummary(CACHED_DATA);
-                    renderMatches(CACHED_DATA.matches || [], 0);
+                    renderMatches(CACHED_DATA.matches || [], (currentPage - 1) * PER_PAGE);
                     renderPagination();
                 }
 
@@ -348,6 +557,7 @@
 
                 btn.addEventListener('click', () => launchMatching(false));
                 if (refreshBtn) refreshBtn.addEventListener('click', () => launchMatching(true));
+                wireContactModal();
             };
 
             document.addEventListener('DOMContentLoaded', init);
@@ -497,6 +707,56 @@
 
             {# Pagination #}
             <div id="matching-pagination" class="pb-4"></div>
+        </div>
+
+        <div id="matching-contact-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 px-4 py-8 backdrop-blur-sm">
+            <div class="mx-auto flex min-h-full max-w-2xl items-center justify-center">
+                <div class="w-full rounded-[2rem] border border-white/10 bg-slate-900/95 p-6 shadow-2xl shadow-black/50 sm:p-8">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-300">Premier contact</p>
+                            <h2 class="mt-2 text-2xl font-semibold text-white" id="matching-contact-target">Candidat</h2>
+                            <p class="mt-2 text-sm text-slate-400">L’identité complète sera révélée après l’envoi du message.</p>
+                        </div>
+                        <button type="button" data-close-contact-modal class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10">✕</button>
+                    </div>
+
+                    <form id="matching-contact-form" class="mt-6 space-y-4">
+                        <input type="hidden" id="matching-contact-token" name="contactToken">
+
+                        <div id="matching-contact-status" class="hidden rounded-2xl border px-4 py-3 text-sm"></div>
+
+                        <div>
+                            <label for="matching-contact-recruiter-name" class="mb-2 block text-sm font-semibold text-white">Nom</label>
+                            <input id="matching-contact-recruiter-name" name="recruiterName" type="text" class="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none transition focus:border-emerald-400/40">
+                            <p data-error-for="recruiterName" class="mt-2 hidden text-sm text-rose-300"></p>
+                        </div>
+
+                        <div>
+                            <label for="matching-contact-recruiter-email" class="mb-2 block text-sm font-semibold text-white">Email</label>
+                            <input id="matching-contact-recruiter-email" name="recruiterEmail" type="email" class="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none transition focus:border-emerald-400/40">
+                            <p data-error-for="recruiterEmail" class="mt-2 hidden text-sm text-rose-300"></p>
+                        </div>
+
+                        <div>
+                            <label for="matching-contact-subject" class="mb-2 block text-sm font-semibold text-white">Sujet</label>
+                            <input id="matching-contact-subject" name="subject" type="text" class="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none transition focus:border-emerald-400/40">
+                            <p data-error-for="subject" class="mt-2 hidden text-sm text-rose-300"></p>
+                        </div>
+
+                        <div>
+                            <label for="matching-contact-message" class="mb-2 block text-sm font-semibold text-white">Message</label>
+                            <textarea id="matching-contact-message" name="message" rows="6" maxlength="5000" class="w-full rounded-2xl border border-white/10 bg-slate-950/60 px-4 py-3 text-white outline-none transition focus:border-emerald-400/40"></textarea>
+                            <p data-error-for="message" class="mt-2 hidden text-sm text-rose-300"></p>
+                        </div>
+
+                        <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                            <button type="button" data-close-contact-modal class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10">Annuler</button>
+                            <button id="matching-contact-submit" type="submit" class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-5 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400">Envoyer le message</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </section>
 {% endblock %}

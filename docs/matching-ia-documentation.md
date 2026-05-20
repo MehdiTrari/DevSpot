@@ -1,31 +1,25 @@
 # 🤖 Matching IA DevSpot — Documentation technique
 
-> **Version** : 1.0 — Avril 2026  
+> **Version** : 1.1 — Avril 2026  
 > **Auteurs** : Équipe DevSpot  
 > **Stack** : Symfony 7 (PHP) + FastAPI (Python) + CamemBERT (HuggingFace)
 
 ---
 
-## Table des matières
+## Plan du document
 
-1. [Vue d'ensemble](#1-vue-densemble)
-2. [Architecture du pipeline](#2-architecture-du-pipeline)
-3. [Les 3 scores de matching](#3-les-3-scores-de-matching)
-   - 3.1 [Baseline (mots-clés)](#31-baseline-mots-clés)
-   - 3.2 [Sémantique (CamemBERT)](#32-sémantique-camembert)
-   - 3.3 [Matching DevSpot (enrichi)](#33-matching-devspot-enrichi)
-4. [Le modèle CamemBERT](#4-le-modèle-camembert)
-   - 4.1 [Qu'est-ce que CamemBERT ?](#41-quest-ce-que-camembert-)
-   - 4.2 [Comment on l'utilise](#42-comment-on-lutilise)
-   - 4.3 [Entraînement de la couche de projection](#43-entraînement-de-la-couche-de-projection)
-5. [Inférence de compétences](#5-inférence-de-compétences)
-6. [Audit de fairness (équité)](#6-audit-de-fairness-équité)
-7. [Anonymisation des CV](#7-anonymisation-des-cv)
-8. [Cache et performance](#8-cache-et-performance)
-9. [Infrastructure et déploiement](#9-infrastructure-et-déploiement)
-10. [Endpoints API](#10-endpoints-api)
-11. [Évaluation du modèle](#11-évaluation-du-modèle)
-12. [Glossaire](#12-glossaire)
+1. Vue d'ensemble
+2. Architecture du pipeline
+3. Les 3 scores de matching
+4. Le modèle CamemBERT
+5. Inférence de compétences
+6. Audit de fairness (équité)
+7. Anonymisation des CV
+8. Cache et performance
+9. Infrastructure et déploiement
+10. Endpoints API
+11. Évaluation du modèle
+12. Glossaire
 
 ---
 
@@ -33,12 +27,17 @@
 
 Le système de matching IA de DevSpot met en relation des **offres d'emploi** de recruteurs avec des **profils développeurs** de la plateforme. Il produit un score de compatibilité en pourcentage pour chaque paire offre/candidat, permettant au recruteur de voir les profils les plus pertinents en premier.
 
+Deux niveaux de lecture sont volontairement séparés :
+
+- ce document décrit le **pipeline produit réellement exposé** dans l'application ;
+- le document [docs/camembert-algorithme-technique.md](camembert-algorithme-technique.md) décrit en détail la **brique vectorielle CamemBERT**, la projection et le calcul des scores.
+
 ### Principes fondamentaux
 
 - **Multimodal** : combine l'analyse par mots-clés, la compréhension sémantique du langage naturel et l'inférence de compétences implicites.
 - **Équitable** : un module de fairness mesure et signale les biais potentiels entre profils juniors et seniors.
 - **Transparent** : chaque score est décomposé (baseline, sémantique, enrichi) pour comprendre pourquoi un profil matche.
-- **Respectueux de la vie privée** : les CV sont anonymisés avant tout traitement IA (emails, téléphones, adresses supprimés).
+- **Respectueux de la vie privée** : les textes candidats sont dé-identifiés avant traitement IA, et la vue recruteur reste anonyme jusqu'au premier contact réussi.
 - **Performant** : les embeddings et les résultats de matching sont mis en cache pour éviter les recalculs inutiles.
 
 ---
@@ -56,8 +55,8 @@ Le système de matching IA de DevSpot met en relation des **offres d'emploi** de
 │                     OfferMatchingService (PHP)                      │
 │  • Convertit les entités en modèles de matching (DTOs)              │
 │  • Extrait les compétences depuis les textes (dictionnaire BDD)     │
-│  • Construit le texte CV anonymisé de chaque candidat               │
-│  • Orchestre les 3 stratégies de scoring en parallèle               │
+│  • Construit le texte candidat de matching puis le dé-identifie     │
+│  • Orchestre les 3 stratégies de scoring                            │
 └──────┬──────────────────┬───────────────────┬──────────────────────┘
        │                  │                   │
        ▼                  ▼                   ▼
@@ -107,6 +106,30 @@ Le système de matching IA de DevSpot met en relation des **offres d'emploi** de
 | `CvAnonymizer` | PHP | Anonymisation des données personnelles |
 | `FairnessAuditor` | PHP | Audit d'équité junior/senior |
 | Service ML FastAPI | Python | Modèle CamemBERT, embeddings, inférence |
+
+---
+
+### 2.1 Flux produit actuel
+
+Le pipeline réellement utilisé dans l'application suit la séquence ci-dessous :
+
+1. construction d'un texte candidat à partir du profil public ;
+2. dé-identification de ce texte avant envoi au service IA ;
+3. extraction des compétences explicites ;
+4. calcul du score baseline par overlap ;
+5. calcul du score sémantique CamemBERT ;
+6. inférence de compétences implicites par règles ;
+7. calcul du score enrichi DevSpot ;
+8. tri final ;
+9. exposition d'une vue recruteur **anonyme par défaut** ;
+10. révélation de l'identité seulement si une conversation existe déjà ou après un premier contact réussi.
+
+Concrètement, le matching côté recruteur fonctionne maintenant avec deux états :
+
+- **carte anonyme** : `candidateLabel`, scores, années d'expérience, compétences correspondantes et inférées ;
+- **carte révélée** : nom, headline, lien profil, conversation et favoris.
+
+La transition entre les deux états est déterminée par l'existence d'une conversation recruteur ↔ candidat, sans table supplémentaire dédiée.
 
 ---
 
@@ -356,6 +379,13 @@ Le module `FairnessAuditor` mesure si le système de matching est **équitable e
 | Score moyen juniors | $\text{mean}(\text{scores juniors})$ | Performance moyenne des juniors |
 | Score moyen non-juniors | $\text{mean}(\text{scores non-juniors})$ | Performance moyenne des seniors |
 | Ratio d'impact disparate | $\frac{\text{moy. juniors}}{\text{moy. non-juniors}}$ | Proche de 1.0 = équitable |
+| Effectifs juniors / non-juniors | $\text{count}(\text{group})$ | Vérifie que la comparaison est exploitable |
+| Taux de sélection junior / non-junior | $\frac{\text{scores} \ge 0.8}{\text{effectif groupe}}$ | Part des profils au-dessus d'un seuil favorable |
+| Ratio de taux de sélection | $\frac{\text{taux junior}}{\text{taux non-junior}}$ | Signal de sous/sur-sélection |
+| Écart moyen de score | $\text{moy. junior} - \text{moy. non-junior}$ | Sens et amplitude de l'écart |
+| Assessment | règle de lecture | `balanced_selection_rate`, `junior_under_selected`, `junior_over_selected` ou population insuffisante |
+
+Ces métriques ne prouvent pas une fairness générale. Elles mesurent surtout la dimension junior / non-junior, qui est volontairement conservée dans le produit.
 
 ### Application
 
@@ -370,15 +400,84 @@ Cela permet de comparer comment chaque approche traite les juniors et d'identifi
 
 ## 7. Anonymisation des CV
 
-Avant tout traitement par l'IA, les CV sont **anonymisés** par le composant `CvAnonymizer` :
+### 7.1 Objectif
+
+L'anonymisation actuelle vise deux choses distinctes :
+
+1. **réduire l'exposition de l'IA aux identifiants directs** dans le texte candidat ;
+2. **masquer l'identité côté recruteur** tant qu'aucun contact n'a été initié.
+
+Il ne s'agit pas encore d'une anonymisation forte par NER ni d'une neutralisation complète de tous les attributs potentiellement biaisants.
+
+### 7.2 Dé-identification du texte envoyé à l'IA
+
+Avant tout traitement par l'IA, le texte candidat de matching est **dé-identifié** par le composant `CvAnonymizer`.
+
+Les éléments suivants sont retirés ou masqués :
 
 | Donnée personnelle | Remplacement |
 |-------------------|-------------|
+| Prénom / nom injectés dans le texte | supprimés du texte source |
 | Adresses email | `[EMAIL]` |
 | Numéros de téléphone | `[PHONE]` |
 | Adresses postales | `[ADDRESS]` |
+| Slug public | `[SLUG]` |
+| URLs portfolio / GitHub / LinkedIn | `[URL]` |
+| Liens bruts présents dans les champs texte | `[URL]` |
 
-L'anonymisation utilise des expressions régulières pour détecter et masquer les informations personnellement identifiables (PII).
+Le contenu métier utile au matching est conservé, par exemple :
+
+- headline ;
+- bio ;
+- descriptions d'expérience ;
+- intitulés de poste ;
+- entreprises ;
+- compétences déclarées.
+
+L'anonymisation actuelle est **regex-based**. Elle constitue une phase 1 pragmatique de dé-identification, mais ne remplace pas un vrai pipeline NER orienté recherche / fairness.
+
+### 7.3 Vue recruteur anonymisée
+
+Le endpoint de matching ne renvoie plus systématiquement les données nominatives.
+
+Pour un candidat non révélé, la réponse expose principalement :
+
+- `candidateLabel` ;
+- `revealed = false` ;
+- `canContact` ;
+- `contactToken` ;
+- les scores ;
+- `yearsExperience` ;
+- les compétences correspondantes ;
+- les compétences inférées.
+
+Pour un candidat non révélé, les champs suivants ne sont pas exposés dans la carte initiale :
+
+- `fullName` ;
+- `headline` ;
+- `profileUrl` ;
+- `developerId` ;
+- actions de favoris.
+
+### 7.4 Révélation après contact
+
+L'identité est révélée dans deux cas :
+
+1. une conversation existe déjà entre le recruteur et le candidat ;
+2. le recruteur initie un premier contact depuis le matching.
+
+Le flux de révélation repose sur :
+
+- un `contactToken` opaque transmis par le matching ;
+- un endpoint dédié de contact ;
+- la création d'une conversation recruteur ↔ candidat ;
+- un recalcul ultérieur de l'état `revealed` via la conversation existante.
+
+Cette approche permet de concilier :
+
+- anonymisation initiale ;
+- contact direct depuis le matching ;
+- persistance simple du statut révélé sans stockage supplémentaire.
 
 ---
 
@@ -392,7 +491,7 @@ Le client `AiMatchingClient` met en cache les embeddings CamemBERT dans le files
 |-----------|--------|
 | Backend | `cache.app` (filesystem Symfony) |
 | TTL | 604 800 secondes (7 jours) |
-| Clé | Préfixe (`embed_` ou `infer_`) + hash SHA-256 du texte |
+| Clé | `ai_matching.{embed|infer}.{sha256_du_texte}` |
 | Optimisation batch | Les textes non-cachés sont envoyés en batch au service ML |
 
 ### Cache des résultats de matching (30 min)
@@ -415,14 +514,14 @@ Les résultats complets du matching sont cachés côté contrôleur :
 
 ## 9. Infrastructure et déploiement
 
-### Services Docker
+### Services et exécution
 
-```yaml
-services:
-  database:        # PostgreSQL 16
-  ml-service:      # Python 3.11 + CamemBERT + FastAPI
-  app:             # Symfony (PHP 8.x)
-```
+Le pipeline de matching dépend de deux briques d'exécution :
+
+- l'application Symfony,
+- un service ML FastAPI accessible via `ML_SERVICE_URL`.
+
+Dans l'état actuel du repo, `compose.yaml` décrit explicitement les services `app`, `database`, `mercure`, `mailer` et `ml`, tandis que `compose.override.yaml` ajoute les services locaux `docs` et `adminer`.
 
 ### Service ML Python
 
@@ -439,10 +538,10 @@ services:
 
 | Variable | Défaut | Description |
 |----------|--------|-------------|
-| `ML_SERVICE_URL` | `http://127.0.0.1:8001` | URL du service Python ML |
-| `ML_SERVICE_TIMEOUT` | `20` secondes | Timeout des appels HTTP |
+| `ML_SERVICE_URL` | `http://localhost:8001` | URL du service Python ML |
+| `ML_SERVICE_TIMEOUT` | `10` secondes | Timeout des appels HTTP |
 | `CAMEMBERT_MODEL` | `camembert-base` | Modèle HuggingFace à charger |
-| `CAMEMBERT_DEVICE` | auto | Device PyTorch (cpu/cuda) |
+| `CAMEMBERT_DEVICE` | `cpu` | Device PyTorch (cpu/cuda) |
 | `CAMEMBERT_PROJECTION_PATH` | — | Chemin vers la matrice de projection entraînée |
 
 ---
@@ -456,7 +555,7 @@ services:
 | `/health` | GET | Vérification de santé du service |
 | `/embed` | POST | Texte → vecteur embedding (768 dims) |
 | `/embed-batch` | POST | Textes → vecteurs batch |
-| `/similarity` | POST | Offre + candidat → score de similarité |
+| `/match` | POST | Offre + candidat → score de similarité sémantique |
 | `/infer-skills` | POST | Texte → compétences inférées |
 | `/infer-skills-batch` | POST | Textes → compétences inférées batch |
 
@@ -467,6 +566,7 @@ services:
 | `/recruiter/offers` | GET | Liste des offres avec indicateur cache |
 | `/recruiter/offers/{id}` | GET | Détail d'une offre + matching caché |
 | `/recruiter/offers/{id}/matching` | GET | Endpoint JSON du matching (avec pagination) |
+| `/recruiter/offers/{id}/matching/contact` | POST | Création du premier contact et révélation du profil |
 | `/api/matching/preview` | POST | API JSON pour tester avec un payload brut |
 | `/matching/demo` | GET | Page de démo (comptes démo uniquement) |
 

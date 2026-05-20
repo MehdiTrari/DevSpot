@@ -1,0 +1,18 @@
+{
+    auto_https off
+}
+
+http://devspot.localhost, http://localhost:8000, http://:8000 {
+    encode zstd gzip
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options SAMEORIGIN
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+    reverse_proxy app:80
+}
+
+http://mercure.devspot.localhost, http://localhost:3000, http://:3000 {
+    encode zstd gzip
+    reverse_proxy mercure:80
+}

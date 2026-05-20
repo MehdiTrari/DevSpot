@@ -1,5 +1,3 @@
-{% set isAdmin = is_granted('ROLE_ADMIN') %}
-
 <div class="space-y-6">
     <div class="theme-settings-card rounded-[2.75rem] p-6 sm:p-8">
         <div class="flex flex-wrap items-center justify-between gap-4">
@@ -32,7 +30,7 @@
                 {% set panelClass = 'ui-panel' %}
                 {% set pillClass = 'ui-pill-muted' %}
                 {% set iconColor = 'ui-text-muted' %}
-            {% elseif notifType in ['content_reported', 'profile_incomplete', 'job_offer_expired', 'profile_moderated'] %}
+            {% elseif notifType in ['content_reported', 'profile_incomplete', 'job_offer_expired', 'profile_moderated', 'admin_message'] %}
                 {% set panelClass = 'ui-panel-warning' %}
                 {% set pillClass = 'ui-pill-warning' %}
                 {% set iconColor = 'text-amber-500' %}
@@ -54,7 +52,7 @@
                 <div class="flex items-start gap-4">
                     {# ── Icon per category ── #}
                     <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/60 dark:bg-white/10 {{ iconColor }}">
-                        {% if notifType in ['content_reported', 'profile_incomplete', 'job_offer_expired', 'profile_moderated'] %}
+                        {% if notifType in ['content_reported', 'profile_incomplete', 'job_offer_expired', 'profile_moderated', 'admin_message'] %}
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
                         {% elseif notifType in ['account_suspended', 'account_banned', 'account_rejected'] %}
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
@@ -81,12 +79,31 @@
                             {% endif %}
                         </div>
 
-                        {% if isAdmin %}
+                        {% if notifType == 'profile_moderated' %}
+                            <p class="ui-text-secondary text-sm leading-relaxed">Ce message de modération est consultable dans une fenêtre dédiée.</p>
+                        {% else %}
                             <p class="ui-text-secondary text-sm leading-relaxed">{{ notification.content }}</p>
+                        {% endif %}
+
+                        {% if notification.senderDisplayName %}
+                            <p class="ui-text-soft text-xs">Envoye par {{ notification.senderDisplayName }}</p>
                         {% endif %}
 
                         <div class="flex flex-wrap items-center gap-3">
                             <p class="ui-text-soft text-xs">{{ notification.createdAt ? notification.createdAt|date('d/m/Y H:i') : '' }}</p>
+                            {% if notifType == 'profile_moderated' %}
+                                <button
+                                    type="button"
+                                    data-notification-modal-open="true"
+                                    data-notification-modal-title="{{ notification.title|e('html_attr') }}"
+                                    data-notification-modal-content="{{ notification.content|e('html_attr') }}"
+                                    data-notification-modal-date="{{ (notification.createdAt ? notification.createdAt|date('d/m/Y H:i') : '')|e('html_attr') }}"
+                                    data-notification-modal-link="{{ (notification.link ?? '')|e('html_attr') }}"
+                                    class="ui-button-warning inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold"
+                                >
+                                    Ouvrir le message
+                                </button>
+                            {% endif %}
                             {% if notification.link %}
                                 <a href="{{ notification.link }}" class="ui-link-accent inline-flex items-center gap-1 text-xs font-semibold">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5"><path fill-rule="evenodd" d="M5.22 14.78a.75.75 0 0 0 1.06 0l7.22-7.22v5.69a.75.75 0 0 0 1.5 0v-7.5a.75.75 0 0 0-.75-.75h-7.5a.75.75 0 0 0 0 1.5h5.69l-7.22 7.22a.75.75 0 0 0 0 1.06Z" clip-rule="evenodd"/></svg>

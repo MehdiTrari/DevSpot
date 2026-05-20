@@ -3,7 +3,6 @@
 namespace App\Tests\E2E;
 
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
-use Symfony\Component\Panther\Client;
 
 final class ProfileCreationFlowTest extends PantherWebTestCase
 {

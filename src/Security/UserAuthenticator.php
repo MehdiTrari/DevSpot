@@ -5,12 +5,13 @@ namespace App\Security;
 use App\Entity\User;
 use App\Enum\UserStatus;
 use App\Repository\UserRepository;
+use App\Service\LoggerService;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Http\Authenticator\AbstractLoginFormAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\CsrfTokenBadge;
@@ -30,8 +31,8 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
     public function __construct(
         private UrlGeneratorInterface $urlGenerator,
         private UserRepository $userRepository,
-    )
-    {
+        private LoggerService $loggerService,
+    ) {
     }
 
     public function authenticate(Request $request): Passport
@@ -47,7 +48,7 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
                     throw new CustomUserMessageAuthenticationException('Identifiants invalides.');
                 }
 
-                if ($user->getStatus() === UserStatus::PENDING) {
+                if (UserStatus::PENDING === $user->getStatus()) {
                     throw new CustomUserMessageAuthenticationException('Votre compte est en attente de validation.');
                 }
 
@@ -67,6 +68,18 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
+        $user = $token->getUser();
+        $this->loggerService->log(
+            LoggerService::USER_LOGIN,
+            $user instanceof User ? $user : null,
+            User::class,
+            $user instanceof User ? $user->getId() : null,
+            [
+                'firewall' => $firewallName,
+                'roles' => $token->getRoleNames(),
+            ],
+        );
+
         if ($targetPath = $this->getTargetPath($request->getSession(), $firewallName)) {
             return new RedirectResponse($targetPath);
         }

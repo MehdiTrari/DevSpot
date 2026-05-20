@@ -15,23 +15,24 @@ use App\Repository\ConversationRepository;
 use App\Repository\DeveloperProfileRepository;
 use App\Repository\MessageRepository;
 use App\Service\ChatMercure;
+use App\Service\LoggerService;
 use App\Service\NotificationManager;
+use Doctrine\ORM\EntityManagerInterface;
 use Dompdf\Dompdf;
 use Dompdf\Options;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
 
 final class ApplicantController extends AbstractController
 {
@@ -60,8 +61,7 @@ final class ApplicantController extends AbstractController
         ConversationRepository $conversationRepository,
         MessageRepository $messageRepository,
         ChatMercure $chatMercure,
-    ): Response
-    {
+    ): Response {
         $user = $this->getApplicantUser();
         $profile = $user->getDeveloperProfile();
 
@@ -99,8 +99,7 @@ final class ApplicantController extends AbstractController
         HtmlSanitizerInterface $contactMessageSanitizer,
         NotificationManager $notificationManager,
         ChatMercure $chatMercure,
-    ): Response
-    {
+    ): Response {
         $applicantUser = $this->getApplicantUser();
         $profile = $applicantUser->getDeveloperProfile();
 
@@ -257,6 +256,7 @@ final class ApplicantController extends AbstractController
         EntityManagerInterface $entityManager,
         DeveloperProfileRepository $developerProfileRepository,
         NotificationManager $notificationManager,
+        LoggerService $loggerService,
     ): Response {
         $user = $this->getApplicantUser();
 
@@ -277,6 +277,13 @@ final class ApplicantController extends AbstractController
             $this->handleAvatarUpload($form, $profile);
             $profile->setUpdatedAt(new \DateTimeImmutable());
             $entityManager->flush();
+            $loggerService->log(
+                LoggerService::PROFILE_UPDATE,
+                $user,
+                DeveloperProfile::class,
+                $profile->getId(),
+                ['step' => 1, 'created' => $isNewProfile],
+            );
 
             return $this->redirectAfterProfileStep(
                 $request,
@@ -295,7 +302,7 @@ final class ApplicantController extends AbstractController
 
     #[Route('/applicant/profile/step-1', name: 'app_applicant_profile_step1')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function editProfileStep1(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function editProfileStep1(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, LoggerService $loggerService): Response
     {
         $profile = $this->getApplicantUser()->getDeveloperProfile();
         if (!$profile instanceof DeveloperProfile) {
@@ -308,6 +315,14 @@ final class ApplicantController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $this->handleAvatarUpload($form, $profile);
             $profile->setUpdatedAt(new \DateTimeImmutable());
+            $loggerService->log(
+                LoggerService::PROFILE_UPDATE,
+                $this->getApplicantUser(),
+                DeveloperProfile::class,
+                $profile->getId(),
+                ['step' => 1],
+                flush: false,
+            );
             $entityManager->flush();
 
             return $this->redirectAfterProfileStep(
@@ -347,7 +362,7 @@ final class ApplicantController extends AbstractController
 
     #[Route('/applicant/profile/step-2', name: 'app_applicant_profile_step2')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function editProfileStep2(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function editProfileStep2(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, LoggerService $loggerService): Response
     {
         $profile = $this->getApplicantUser()->getDeveloperProfile();
         if (!$profile instanceof DeveloperProfile) {
@@ -359,6 +374,14 @@ final class ApplicantController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $profile->setUpdatedAt(new \DateTimeImmutable());
+            $loggerService->log(
+                LoggerService::PROFILE_UPDATE,
+                $this->getApplicantUser(),
+                DeveloperProfile::class,
+                $profile->getId(),
+                ['step' => 2],
+                flush: false,
+            );
             $entityManager->flush();
 
             return $this->redirectAfterProfileStep(
@@ -378,7 +401,7 @@ final class ApplicantController extends AbstractController
 
     #[Route('/applicant/profile/step-3', name: 'app_applicant_profile_step3')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function editProfileStep3(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function editProfileStep3(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, LoggerService $loggerService): Response
     {
         $profile = $this->getApplicantUser()->getDeveloperProfile();
         if (!$profile instanceof DeveloperProfile) {
@@ -397,6 +420,14 @@ final class ApplicantController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $profile->setUpdatedAt(new \DateTimeImmutable());
+            $loggerService->log(
+                LoggerService::PROFILE_UPDATE,
+                $this->getApplicantUser(),
+                DeveloperProfile::class,
+                $profile->getId(),
+                ['step' => 3],
+                flush: false,
+            );
             $entityManager->flush();
 
             return $this->redirectAfterProfileStep(
@@ -416,7 +447,7 @@ final class ApplicantController extends AbstractController
 
     #[Route('/applicant/profile/step-4', name: 'app_applicant_profile_step4')]
     #[IsGranted('ROLE_APPLICANT')]
-    public function editProfileStep4(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function editProfileStep4(Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, LoggerService $loggerService): Response
     {
         $profile = $this->getApplicantUser()->getDeveloperProfile();
         if (!$profile instanceof DeveloperProfile) {
@@ -428,6 +459,14 @@ final class ApplicantController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $profile->setUpdatedAt(new \DateTimeImmutable());
+            $loggerService->log(
+                LoggerService::PROFILE_UPDATE,
+                $this->getApplicantUser(),
+                DeveloperProfile::class,
+                $profile->getId(),
+                ['step' => 4],
+                flush: false,
+            );
             $entityManager->flush();
 
             return $this->redirectAfterProfileStep(
@@ -552,17 +591,17 @@ final class ApplicantController extends AbstractController
         $dompdf->render();
         $pdf = $dompdf->output();
 
-        $uploadDirectory = $this->getParameter('kernel.project_dir').'/public/uploads/cv';
+        $uploadDirectory = $this->getParameter('kernel.project_dir') . '/public/uploads/cv';
         if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0777, true) && !is_dir($uploadDirectory)) {
             throw new \RuntimeException('Le dossier de génération des CV est introuvable.');
         }
 
         $safeSlug = $profile->getSlug() ?: 'profil';
         $fileName = sprintf('%s-cv.pdf', $safeSlug);
-        $filePath = $uploadDirectory.'/'.$fileName;
+        $filePath = $uploadDirectory . '/' . $fileName;
         file_put_contents($filePath, $pdf);
 
-        $profile->setCvPdfPath('uploads/cv/'.$fileName);
+        $profile->setCvPdfPath('uploads/cv/' . $fileName);
         $entityManager->flush();
 
         $response = new Response($pdf);
@@ -729,24 +768,24 @@ final class ApplicantController extends AbstractController
 
         if ($profile instanceof DeveloperProfile) {
             $step1Done =
-                '' !== trim((string) ($profile->getFirstName() ?? '')) &&
-                '' !== trim((string) ($profile->getLastName() ?? '')) &&
-                '' !== trim((string) ($profile->getHeadline() ?? '')) &&
-                '' !== trim((string) ($profile->getCity() ?? '')) &&
-                '' !== trim((string) ($profile->getCountry() ?? '')) &&
-                null !== $profile->getLocationType() &&
-                null !== $profile->getExperienceLevel() &&
-                null !== $profile->getYearsExperience() &&
-                '' !== trim((string) ($profile->getBio() ?? ''));
+                '' !== trim((string) ($profile->getFirstName() ?? ''))
+                && '' !== trim((string) ($profile->getLastName() ?? ''))
+                && '' !== trim((string) ($profile->getHeadline() ?? ''))
+                && '' !== trim((string) ($profile->getCity() ?? ''))
+                && '' !== trim((string) ($profile->getCountry() ?? ''))
+                && null !== $profile->getLocationType()
+                && null !== $profile->getExperienceLevel()
+                && null !== $profile->getYearsExperience()
+                && '' !== trim((string) ($profile->getBio() ?? ''));
 
             $step2Done =
-                $profile->getEducation()->count() > 0 &&
-                $profile->getProfileSkills()->count() > 0;
+                $profile->getEducation()->count() > 0
+                && $profile->getProfileSkills()->count() > 0;
 
             $step3Done =
-                '' !== trim((string) ($profile->getGithubUrl() ?? '')) ||
-                '' !== trim((string) ($profile->getLinkedinUrl() ?? '')) ||
-                '' !== trim((string) ($profile->getPortfolioUrl() ?? ''));
+                '' !== trim((string) ($profile->getGithubUrl() ?? ''))
+                || '' !== trim((string) ($profile->getLinkedinUrl() ?? ''))
+                || '' !== trim((string) ($profile->getPortfolioUrl() ?? ''));
 
             $step4Done = $profile->getDesiredPositions()->count() > 0;
         }
@@ -779,7 +818,7 @@ final class ApplicantController extends AbstractController
     {
         $firstName = $this->slugifyPart((string) $profile->getFirstName());
         $lastName = $this->slugifyPart((string) $profile->getLastName());
-        $base = $firstName.$lastName;
+        $base = $firstName . $lastName;
 
         if ('' === $base) {
             $base = 'profil';
@@ -789,7 +828,7 @@ final class ApplicantController extends AbstractController
         $i = 2;
 
         while (null !== $developerProfileRepository->findOneBy(['slug' => $slug])) {
-            $slug = $base.$i;
+            $slug = $base . $i;
             ++$i;
         }
 
@@ -812,7 +851,7 @@ final class ApplicantController extends AbstractController
             return;
         }
 
-        $uploadDirectory = $this->getParameter('kernel.project_dir').'/public/uploads/avatars';
+        $uploadDirectory = $this->getParameter('kernel.project_dir') . '/public/uploads/avatars';
         if (!is_dir($uploadDirectory) && !mkdir($uploadDirectory, 0777, true) && !is_dir($uploadDirectory)) {
             throw new \RuntimeException('Le dossier de téléversement des avatars est introuvable.');
         }
@@ -836,7 +875,7 @@ final class ApplicantController extends AbstractController
             throw new \RuntimeException('Impossible d\'enregistrer la photo de profil.', 0, $exception);
         }
 
-        $profile->setAvatarPath('uploads/avatars/'.$fileName);
+        $profile->setAvatarPath('uploads/avatars/' . $fileName);
     }
 
     private function removePreviousAvatar(DeveloperProfile $profile, string $uploadDirectory): void
@@ -846,7 +885,7 @@ final class ApplicantController extends AbstractController
             return;
         }
 
-        $currentFilePath = $this->getParameter('kernel.project_dir').'/public/'.$currentAvatarPath;
+        $currentFilePath = $this->getParameter('kernel.project_dir') . '/public/' . $currentAvatarPath;
         if (is_file($currentFilePath) && str_starts_with(dirname($currentFilePath), $uploadDirectory)) {
             @unlink($currentFilePath);
         }

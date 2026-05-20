@@ -189,7 +189,7 @@ class JobOffer
     public function setStatus(OfferStatus $status): static
     {
         $this->status = $status;
-        $this->isActive = ($status === OfferStatus::PUBLISHED);
+        $this->isActive = (OfferStatus::PUBLISHED === $status);
         $this->updatedAt = new \DateTimeImmutable();
 
         return $this;

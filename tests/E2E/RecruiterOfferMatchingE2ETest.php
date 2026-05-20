@@ -9,7 +9,7 @@ use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 final class RecruiterOfferMatchingE2ETest extends PantherWebTestCase
 {
     #[RunInSeparateProcess]
-    public function testRecruiterCanLaunchMatchingAndFavoriteAProfileFromOfferDetail(): void
+    public function testRecruiterMustContactBeforeIdentityRevealAndCanFavoriteAfterwards(): void
     {
         $entityManager = $this->resetDatabase();
 
@@ -39,8 +39,23 @@ final class RecruiterOfferMatchingE2ETest extends PantherWebTestCase
         $summaryText = $this->waitForTextContent($client, '#summary-count', '1 profils', 20000);
         self::assertStringContainsString('1 profils', $summaryText);
 
-        $resultsText = $this->waitForTextContent($client, '#matching-results', 'Nadia Front', 20000);
-        self::assertStringContainsString('Nadia Front', $resultsText);
+        $resultsText = $this->waitForTextContent($client, '#matching-results', 'Candidat #1', 20000);
+        self::assertStringContainsString('Candidat #1', $resultsText);
+        self::assertStringNotContainsString('Nadia Front', $resultsText);
+        self::assertSame([], $client->getCrawler()->filter('[data-fav-dev]')->extract(['_text']));
+
+        $client->waitFor('[data-contact-index]');
+        $this->clickByJs($client, '[data-contact-index]');
+        $client->waitForVisibility('#matching-contact-modal');
+
+        $this->type($client, '#matching-contact-recruiter-name', 'Mylène Recruiter');
+        $this->type($client, '#matching-contact-recruiter-email', $email);
+        $this->type($client, '#matching-contact-subject', 'Premier échange');
+        $this->type($client, '#matching-contact-message', 'Bonjour, votre profil semble correspondre à notre besoin Symfony.');
+        $this->clickByJs($client, '#matching-contact-submit');
+
+        $revealedText = $this->waitForTextContent($client, '#matching-results', 'Nadia Front', 20000);
+        self::assertStringContainsString('Nadia Front', $revealedText);
 
         $client->waitFor('[data-fav-dev]');
         $this->clickByJs($client, '[data-fav-dev]');
@@ -63,7 +78,7 @@ final class RecruiterOfferMatchingE2ETest extends PantherWebTestCase
             usleep(100000);
         }
 
-        self::assertTrue($isFavorite, 'Le profil devrait être ajouté aux favoris depuis les résultats de matching.');
+        self::assertTrue($isFavorite, 'Le profil devrait être ajouté aux favoris seulement après révélation.');
 
         self::ensureKernelShutdown();
         self::bootKernel();

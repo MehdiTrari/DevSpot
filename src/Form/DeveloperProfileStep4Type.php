@@ -26,7 +26,15 @@ class DeveloperProfileStep4Type extends AbstractType
                 'required' => false,
                 'multiple' => true,
                 'expanded' => false,
-                'help' => 'Sélection multiple possible.',
+                'help' => 'Sélection directe, sans Ctrl ni Cmd.',
+                'attr' => [
+                    'data-multiselect-accent' => 'emerald',
+                    'data-multiselect-search-placeholder' => 'Rechercher un poste',
+                    'data-multiselect-selection-placeholder' => 'Choisir un ou plusieurs postes',
+                    'data-multiselect-empty' => 'Aucun poste ne correspond à cette recherche.',
+                    'data-multiselect-selected-singular' => 'poste',
+                    'data-multiselect-selected-plural' => 'postes',
+                ],
             ])
         ;
     }

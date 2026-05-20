@@ -1,0 +1,102 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Demandes de support | DevSpot Admin{% endblock %}
+
+{% block body %}
+    <section class="favorites-showcase-page relative z-[1] w-full max-w-[86rem] self-start px-5 pb-8 pt-2 font-sans sm:px-8 sm:pb-10 sm:pt-3 lg:px-10 lg:pb-12 lg:pt-4">
+        <div class="favorite-showcase-hero mx-auto max-w-3xl text-center">
+            <p class="favorite-showcase-kicker">Administration</p>
+            <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Demandes de support.</h1>
+            <p class="ui-text-secondary mx-auto mt-4 max-w-2xl text-[13px] leading-relaxed sm:text-[15px]">
+                Retrouvez les demandes des utilisateurs, ouvrez une réponse par email ou contactez-les directement dans l'application.
+            </p>
+        </div>
+
+        <div class="mt-10 lg:mt-12">
+            <div class="w-full rounded-[2rem] border border-white/10 bg-slate-900/50 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-8">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <p class="text-sm text-slate-400">Boîte de réception support</p>
+                        <p class="ui-title mt-1 text-xl font-semibold">{{ totalSupportRequests }} demande(s) enregistrée(s)</p>
+                    </div>
+                    <a href="{{ path('app_admin_support_requests') }}" class="favorite-showcase-toolbar-pill inline-flex h-9 items-center justify-center rounded-full px-3 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:border-white/30 hover:bg-white/12 hover:text-white">
+                        Rafraîchir
+                    </a>
+                </div>
+
+                {% if supportRequests|length > 0 %}
+                    <div class="mt-6 grid gap-4">
+                        {% for supportRequest in supportRequests %}
+                            {% set replySubject = ('Re: ' ~ (supportRequest.subject ?: 'Support DevSpot')) %}
+                            {% set replyBody = ('Bonjour ' ~ (supportRequest.requesterDisplayName ?: 'Utilisateur') ~ ',' ~ "\n\n") %}
+                            <article class="rounded-[1.7rem] border border-white/10 bg-slate-950/35 p-5 shadow-xl shadow-black/20">
+                                <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                    <div class="min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            <span class="ui-pill ui-pill-info rounded-full px-2.5 py-1 text-[11px] font-semibold">Support</span>
+                                            <span class="text-xs text-slate-500">{{ supportRequest.createdAt ? supportRequest.createdAt|date('d/m/Y H:i') : '-' }}</span>
+                                        </div>
+                                        <h2 class="ui-title mt-3 text-xl font-semibold tracking-tight">{{ supportRequest.subject ?: 'Sans objet' }}</h2>
+                                        <p class="mt-2 text-sm font-medium text-slate-200">{{ supportRequest.requesterDisplayName ?: 'Utilisateur DevSpot' }}</p>
+                                        {% if supportRequest.requesterEmail and supportRequest.requesterEmail != supportRequest.requesterDisplayName %}
+                                            <p class="mt-1 text-sm text-slate-400">{{ supportRequest.requesterEmail }}</p>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-2 lg:justify-end">
+                                        <a href="mailto:{{ supportRequest.requesterEmail }}?subject={{ replySubject|url_encode }}&body={{ replyBody|url_encode }}" class="u-border-pale-blue u-bg-pale-blue u-text-pale-blue inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90">
+                                            Répondre par email
+                                        </a>
+                                        {% if supportRequest.user %}
+                                            <a href="{{ path('app_admin_user_messages_compose', {
+                                                recipient: supportRequest.user.id,
+                                                title: replySubject,
+                                                content: replyBody
+                                            }) }}" class="u-border-info u-bg-info u-text-info inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90">
+                                                Répondre dans l'application
+                                            </a>
+                                        {% else %}
+                                            <span class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-400">
+                                                Compte indisponible
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 rounded-[1.3rem] border border-white/10 bg-white/[0.04] px-4 py-4">
+                                    <p class="text-xs uppercase tracking-[0.18em] text-slate-500">Message</p>
+                                    <p class="mt-3 whitespace-pre-line text-sm leading-7 text-slate-200">{{ supportRequest.message }}</p>
+                                </div>
+                            </article>
+                        {% endfor %}
+                    </div>
+
+                    {% if totalPages > 1 %}
+                        <div class="mt-6 flex items-center justify-between rounded-[1.5rem] border border-white/10 bg-slate-950/30 px-5 py-4">
+                            <p class="text-sm text-slate-400">Page {{ currentPage }} / {{ totalPages }}</p>
+                            <div class="flex items-center gap-2">
+                                {% if currentPage > 1 %}
+                                    <a href="{{ path('app_admin_support_requests', { page: currentPage - 1 }) }}" class="rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10">Précédent</a>
+                                {% endif %}
+                                {% if currentPage < totalPages %}
+                                    <a href="{{ path('app_admin_support_requests', { page: currentPage + 1 }) }}" class="rounded-lg bg-white/5 px-3 py-2 text-sm font-semibold text-slate-200 hover:bg-white/10">Suivant</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="favorite-showcase-empty mt-6 rounded-[2.2rem] px-6 py-10 text-center sm:px-8">
+                        <p class="ui-title text-xl font-semibold">Aucune demande de support</p>
+                        <p class="ui-text-secondary mx-auto mt-3 max-w-2xl text-sm leading-relaxed sm:text-[15px]">
+                            Les demandes créées depuis le formulaire utilisateur apparaîtront ici.
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
+            Priorisez les demandes, répondez depuis le bon canal et gardez une vue claire sur les sollicitations support.
+        </p>
+    </section>
+{% endblock %}

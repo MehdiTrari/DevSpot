@@ -7,15 +7,20 @@ use App\Entity\ContactMessage;
 use App\Entity\DeveloperProfile;
 use App\Entity\User;
 use App\Enum\UserStatus;
+use App\Form\AdminUserMessageType;
+use App\Form\Model\AdminUserMessageData;
 use App\Repository\AdminActionLogRepository;
 use App\Repository\CompanyRepository;
 use App\Repository\ContactMessageRepository;
 use App\Repository\DeveloperProfileRepository;
+use App\Repository\SupportRequestRepository;
 use App\Repository\UserRepository;
+use App\Service\AdminModerationLogger;
 use App\Service\NotificationManager;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -38,6 +43,7 @@ final class AdminController extends AbstractController
         DeveloperProfileRepository $profileRepository,
         CompanyRepository $companyRepository,
         ContactMessageRepository $contactMessageRepository,
+        SupportRequestRepository $supportRequestRepository,
         AdminActionLogRepository $adminActionLogRepository,
         NotificationManager $notificationManager,
     ): Response {
@@ -51,6 +57,7 @@ final class AdminController extends AbstractController
             'totalCompanies' => $companyRepository->count([]),
             'totalMessages' => $contactMessageRepository->count([]),
             'unreadMessages' => $contactMessageRepository->count(['isRead' => false]),
+            'totalSupportRequests' => $supportRequestRepository->count([]),
         ];
 
         $recentActions = $adminActionLogRepository->findBy([], ['createdAt' => 'DESC'], 5);
@@ -62,6 +69,42 @@ final class AdminController extends AbstractController
             'recentActions' => $recentActions,
             'recentUsers' => $recentUsers,
             'recentMessages' => $recentMessages,
+        ]);
+    }
+
+    #[Route('/logs', name: 'app_admin_logs', methods: ['GET'])]
+    public function logs(AdminActionLogRepository $adminActionLogRepository, UserRepository $userRepository, Request $request): Response
+    {
+        $adminUser = null;
+        $targetUser = null;
+        $adminId = $request->query->getInt('admin');
+        $targetId = $request->query->getInt('target');
+
+        if ($adminId > 0) {
+            $adminUser = $userRepository->find($adminId);
+        }
+
+        if ($targetId > 0) {
+            $targetUser = $userRepository->find($targetId);
+        }
+
+        $perPage = 10;
+        $requestedPage = max(1, $request->query->getInt('page', 1));
+        $totalLogs = $adminActionLogRepository->countForHistory($adminUser, $targetUser);
+        $totalPages = max(1, (int) ceil($totalLogs / $perPage));
+        $currentPage = min($requestedPage, $totalPages);
+
+        return $this->render('admin/logs.html.twig', [
+            'logs' => $adminActionLogRepository->findForHistory($adminUser, $targetUser, $currentPage, $perPage),
+            'adminUsers' => $userRepository->findAdmins(),
+            'targetUsers' => $userRepository->findBy([], ['email' => 'ASC'], 200),
+            'filters' => [
+                'admin' => $adminUser?->getId(),
+                'target' => $targetUser?->getId(),
+            ],
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+            'totalLogs' => $totalLogs,
         ]);
     }
 
@@ -100,6 +143,81 @@ final class AdminController extends AbstractController
                 'status' => $status,
                 'q' => $search,
             ],
+        ]);
+    }
+
+    #[Route('/users/messages/compose', name: 'app_admin_user_messages_compose', methods: ['GET', 'POST'])]
+    public function composeUserMessage(
+        Request $request,
+        UserRepository $userRepository,
+        EntityManagerInterface $entityManager,
+        NotificationManager $notificationManager,
+    ): Response {
+        $adminUser = $this->getUser();
+        if (!$adminUser instanceof User) {
+            throw $this->createAccessDeniedException('Vous devez être authentifié.');
+        }
+
+        $messageData = new AdminUserMessageData();
+        if (!$request->isMethod('POST')) {
+            $messageData->setRecipients($this->resolveRequestedRecipients($request, $userRepository, $adminUser));
+            $prefilledTitle = trim((string) $request->query->get('title', ''));
+            $prefilledContent = (string) $request->query->get('content', '');
+
+            if ('' !== $prefilledTitle) {
+                $messageData->setTitle($prefilledTitle);
+            }
+
+            if ('' !== trim($prefilledContent)) {
+                $messageData->setContent($prefilledContent);
+            }
+        }
+
+        $form = $this->createForm(AdminUserMessageType::class, $messageData, [
+            'sender_user' => $adminUser,
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $recipientIds = array_values(array_filter(array_map(
+                static fn (User $recipient): ?int => $recipient->getId(),
+                $messageData->getRecipients()
+            )));
+
+            try {
+                $sentCount = $notificationManager->sendAdminMessage(
+                    $adminUser,
+                    $messageData->getRecipients(),
+                    $messageData->getTitle(),
+                    $messageData->getContent()
+                );
+
+                if ($sentCount < 1) {
+                    $form->addError(new FormError('Aucun destinataire valide n’a été sélectionné.'));
+                } else {
+                    $this->logAdminAction($entityManager, 'user.message_sent', null, [
+                        'recipientIds' => $recipientIds,
+                        'recipientCount' => $sentCount,
+                        'title' => $messageData->getTitle(),
+                    ]);
+
+                    $entityManager->flush();
+                    $this->addFlash('success', sprintf('Message envoyé à %d utilisateur(s).', $sentCount));
+
+                    return $this->redirectToRoute('app_admin_dashboard');
+                }
+            } catch (\Throwable $exception) {
+                $this->logger->error('L\'envoi d\'un message administrateur a échoué.', [
+                    'adminUserId' => $adminUser->getId(),
+                    'recipientIds' => $recipientIds,
+                    'error' => $exception->getMessage(),
+                ]);
+                $form->addError(new FormError('Erreur technique lors de l’envoi du message. Merci de réessayer.'));
+            }
+        }
+
+        return $this->render('admin/user_messages_compose.html.twig', [
+            'messageForm' => $form,
         ]);
     }
 
@@ -150,7 +268,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/users/{id}/status', name: 'app_admin_users_update_status', methods: ['POST'])]
-    public function updateUserStatus(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function updateUserStatus(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, AdminModerationLogger $moderationLogger): Response
     {
         if (!$this->isCsrfTokenValid('admin_user_status_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
@@ -173,6 +291,13 @@ final class AdminController extends AbstractController
         }
 
         $previousStatus = $user->getStatus()?->value;
+        $reason = $this->resolveStatusActionReason($request, $status, $previousStatus);
+        if (UserStatus::BANNED === $status && '' === $reason) {
+            $this->addFlash('error', 'Merci de renseigner une raison de bannissement.');
+
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
+        }
+
         $user->setStatus($status);
         $user->setUpdatedAt(new \DateTimeImmutable());
         if (UserStatus::ACTIVE === $status) {
@@ -184,10 +309,19 @@ final class AdminController extends AbstractController
             $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $status);
         }
 
-        $this->logAdminAction($entityManager, 'user.status_changed', $user, [
-            'previousStatus' => $previousStatus,
-            'newStatus' => $status->value,
-        ]);
+        if ($currentUser instanceof User) {
+            $moderationLogger->log(
+                $this->resolveModerationAction($status, $previousStatus),
+                $currentUser,
+                $user,
+                $reason,
+                [
+                    'previousStatus' => $previousStatus,
+                    'newStatus' => $status->value,
+                    'source' => 'admin_users_update_status',
+                ],
+            );
+        }
 
         $entityManager->flush();
         $this->addFlash('success', 'Le statut de l\'utilisateur a été mis à jour.');
@@ -196,21 +330,21 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/users/{id}/suspend', name: 'app_admin_users_suspend', methods: ['POST'])]
-    public function suspendUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function suspendUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, AdminModerationLogger $moderationLogger): Response
     {
-        return $this->applyStatusAction($user, $request, $entityManager, $notificationManager, UserStatus::SUSPENDED, 'admin_user_suspend_', 'user.suspended', 'Compte suspendu.');
+        return $this->applyStatusAction($user, $request, $entityManager, $notificationManager, $moderationLogger, UserStatus::SUSPENDED, 'admin_user_suspend_', 'Compte suspendu.');
     }
 
     #[Route('/users/{id}/ban', name: 'app_admin_users_ban', methods: ['POST'])]
-    public function banUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function banUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, AdminModerationLogger $moderationLogger): Response
     {
-        return $this->applyStatusAction($user, $request, $entityManager, $notificationManager, UserStatus::BANNED, 'admin_user_ban_', 'user.banned', 'Compte banni.');
+        return $this->applyStatusAction($user, $request, $entityManager, $notificationManager, $moderationLogger, UserStatus::BANNED, 'admin_user_ban_', 'Compte banni.');
     }
 
     #[Route('/users/{id}/validate', name: 'app_admin_users_validate', methods: ['POST'])]
-    public function validateUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function validateUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, AdminModerationLogger $moderationLogger): Response
     {
-        return $this->applyStatusAction($user, $request, $entityManager, $notificationManager, UserStatus::ACTIVE, 'admin_user_validate_', 'user.validated', 'Compte valide.');
+        return $this->applyStatusAction($user, $request, $entityManager, $notificationManager, $moderationLogger, UserStatus::ACTIVE, 'admin_user_validate_', 'Compte valide.');
     }
 
     #[Route('/users/{id}/reject', name: 'app_admin_users_reject', methods: ['POST'])]
@@ -244,13 +378,13 @@ final class AdminController extends AbstractController
 
             $entityManager->flush();
 
-            $this->addFlash('success', 'Compte refuse et supprime definitiement avec toutes ses donnees.');
+            $this->addFlash('success', 'Compte refusé et supprimé définitivement avec toutes ses données.');
         } catch (\Throwable $exception) {
             $this->logger->error('Le refus d\'un compte utilisateur a echoue.', [
                 'userId' => $userId,
                 'error' => $exception->getMessage(),
             ]);
-            $this->addFlash('error', 'Erreur lors du refus du compte. Merci de reessayer.');
+            $this->addFlash('error', 'Erreur lors du refus du compte. Merci de réessayer.');
 
             return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
@@ -289,13 +423,13 @@ final class AdminController extends AbstractController
 
             $entityManager->flush();
 
-            $this->addFlash('success', 'Compte utilisateur supprime definitiement avec toutes ses donnees.');
+            $this->addFlash('success', 'Compte utilisateur supprimé définitivement avec toutes ses données.');
         } catch (\Throwable $exception) {
             $this->logger->error('La suppression d\'un compte utilisateur a echoue.', [
                 'userId' => $userId,
                 'error' => $exception->getMessage(),
             ]);
-            $this->addFlash('error', 'Erreur lors de la suppression du compte. Merci de reessayer.');
+            $this->addFlash('error', 'Erreur lors de la suppression du compte. Merci de réessayer.');
 
             return $this->redirectToRefererOrRoute($request, 'app_admin_users');
         }
@@ -321,7 +455,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/profiles/{id}/moderate', name: 'app_admin_profiles_moderate', requirements: ['id' => '\\d+'], methods: ['POST'])]
-    public function moderateProfile(DeveloperProfile $profile, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
+    public function moderateProfile(DeveloperProfile $profile, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager, AdminModerationLogger $moderationLogger): Response
     {
         if (!$this->isCsrfTokenValid('admin_profile_moderate_' . $profile->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
@@ -331,21 +465,33 @@ final class AdminController extends AbstractController
 
         $reason = trim((string) $request->request->get('reason', ''));
         if ('' === $reason) {
-            $this->addFlash('error', 'Merci de renseigner un message de moderation.');
+            $this->addFlash('error', 'Merci de renseigner un Message de modération.');
 
             return $this->redirectToRefererOrRoute($request, 'app_admin_profiles');
         }
 
+        $previousPublic = $profile->isPublic();
         $profile->setIsPublic(false);
         $profile->setModeratedAt(new \DateTimeImmutable());
         $profile->setModerationReason($reason);
         $profile->setUpdatedAt(new \DateTimeImmutable());
         $notificationManager->notifyApplicantProfileModerated($profile, $reason);
 
-        $this->logAdminAction($entityManager, 'profile.moderated', $profile->getUser(), [
-            'profileId' => $profile->getId(),
-            'reason' => $reason,
-        ]);
+        $currentUser = $this->getUser();
+        if ($currentUser instanceof User) {
+            $moderationLogger->log(
+                AdminModerationLogger::VALIDATE_PROFILE,
+                $currentUser,
+                $profile->getUser(),
+                $reason,
+                [
+                    'profileId' => $profile->getId(),
+                    'previousPublic' => $previousPublic,
+                    'newPublic' => false,
+                    'source' => 'admin_profiles_moderate',
+                ],
+            );
+        }
 
         $entityManager->flush();
         $this->addFlash('success', 'Le profil a été modéré et l\'utilisateur a été notifié.');
@@ -387,6 +533,23 @@ final class AdminController extends AbstractController
         ]);
     }
 
+    #[Route('/support', name: 'app_admin_support_requests')]
+    public function supportRequests(SupportRequestRepository $supportRequestRepository, Request $request): Response
+    {
+        $page = max(1, $request->query->getInt('page', 1));
+        $perPage = 10;
+        $totalSupportRequests = $supportRequestRepository->count([]);
+        $totalPages = max(1, (int) ceil($totalSupportRequests / $perPage));
+        $currentPage = min($page, $totalPages);
+
+        return $this->render('admin/support_requests.html.twig', [
+            'supportRequests' => $supportRequestRepository->findAdminSupportRequestsPaginated($currentPage, $perPage),
+            'totalSupportRequests' => $totalSupportRequests,
+            'currentPage' => $currentPage,
+            'totalPages' => $totalPages,
+        ]);
+    }
+
     #[Route('/messages/{id}/delete', name: 'app_admin_messages_delete', methods: ['POST'])]
     public function deleteMessage(ContactMessage $contactMessage, Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -422,9 +585,9 @@ final class AdminController extends AbstractController
         Request $request,
         EntityManagerInterface $entityManager,
         NotificationManager $notificationManager,
+        AdminModerationLogger $moderationLogger,
         UserStatus $newStatus,
         string $csrfPrefix,
-        string $logAction,
         string $successMessage,
     ): Response {
         if (!$this->isCsrfTokenValid($csrfPrefix . $user->getId(), (string) $request->request->get('_token'))) {
@@ -441,6 +604,13 @@ final class AdminController extends AbstractController
         }
 
         $previousStatus = $user->getStatus()?->value;
+        $reason = $this->resolveStatusActionReason($request, $newStatus, $previousStatus);
+        if (UserStatus::BANNED === $newStatus && '' === $reason) {
+            $this->addFlash('error', 'Merci de renseigner une raison de bannissement.');
+
+            return $this->redirectToRefererOrRoute($request, 'app_admin_users');
+        }
+
         $user->setStatus($newStatus);
         $user->setUpdatedAt(new \DateTimeImmutable());
         if (UserStatus::ACTIVE === $newStatus) {
@@ -452,10 +622,19 @@ final class AdminController extends AbstractController
             $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $newStatus);
         }
 
-        $this->logAdminAction($entityManager, $logAction, $user, [
-            'previousStatus' => $previousStatus,
-            'newStatus' => $newStatus->value,
-        ]);
+        if ($currentUser instanceof User) {
+            $moderationLogger->log(
+                $this->resolveModerationAction($newStatus, $previousStatus),
+                $currentUser,
+                $user,
+                $reason,
+                [
+                    'previousStatus' => $previousStatus,
+                    'newStatus' => $newStatus->value,
+                    'source' => 'admin_users_quick_action',
+                ],
+            );
+        }
 
         $entityManager->flush();
         $this->addFlash('success', $successMessage);
@@ -490,6 +669,49 @@ final class AdminController extends AbstractController
         }
 
         return $this->redirectToRoute($route, $parameters);
+    }
+
+    private function resolveStatusActionReason(Request $request, UserStatus $newStatus, ?string $previousStatus): string
+    {
+        $reason = trim((string) $request->request->get('reason', ''));
+        if ('' !== $reason) {
+            return $reason;
+        }
+
+        if (UserStatus::ACTIVE === $newStatus && UserStatus::PENDING->value === $previousStatus) {
+            return 'Validation du compte en attente.';
+        }
+
+        if (UserStatus::ACTIVE === $newStatus) {
+            return 'Réactivation du compte.';
+        }
+
+        if (UserStatus::SUSPENDED === $newStatus) {
+            return 'Suspension administrative du compte.';
+        }
+
+        return '';
+    }
+
+    private function resolveModerationAction(UserStatus $newStatus, ?string $previousStatus): string
+    {
+        if (UserStatus::BANNED === $newStatus) {
+            return AdminModerationLogger::BAN;
+        }
+
+        if (UserStatus::SUSPENDED === $newStatus) {
+            return AdminModerationLogger::SUSPEND;
+        }
+
+        if (UserStatus::ACTIVE === $newStatus && UserStatus::PENDING->value === $previousStatus) {
+            return AdminModerationLogger::ADD_WHITELIST;
+        }
+
+        if (UserStatus::ACTIVE === $newStatus) {
+            return AdminModerationLogger::UNBAN;
+        }
+
+        return AdminModerationLogger::VALIDATE_PROFILE;
     }
 
     private function logAdminAction(
@@ -589,5 +811,38 @@ final class AdminController extends AbstractController
         }
 
         $entityManager->remove($user);
+    }
+
+    /**
+     * @return list<User>
+     */
+    private function resolveRequestedRecipients(Request $request, UserRepository $userRepository, User $currentAdmin): array
+    {
+        $requestedRecipientIds = [];
+
+        $singleRecipient = $request->query->getInt('recipient', 0);
+        if ($singleRecipient > 0) {
+            $requestedRecipientIds[] = $singleRecipient;
+        }
+
+        $multipleRecipients = $request->query->all('recipients');
+        foreach ($multipleRecipients as $recipientId) {
+            $normalizedId = (int) $recipientId;
+            if ($normalizedId > 0) {
+                $requestedRecipientIds[] = $normalizedId;
+            }
+        }
+
+        $requestedRecipientIds = array_values(array_unique($requestedRecipientIds));
+        if ([] === $requestedRecipientIds) {
+            return [];
+        }
+
+        $recipients = $userRepository->findBy(['id' => $requestedRecipientIds]);
+
+        return array_values(array_filter(
+            $recipients,
+            static fn (User $recipient): bool => $recipient->getId() !== $currentAdmin->getId()
+        ));
     }
 }

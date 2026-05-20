@@ -9,6 +9,8 @@ use App\Matching\Model\JobOffer;
 
 final class EnrichedMatchingService
 {
+    private const INCOMPATIBLE_FAMILY_SCORE_CAP = 0.74;
+
     private const LEVEL_WEIGHTS = [
         'beginner' => 0.35,
         'intermediate' => 0.65,
@@ -48,6 +50,22 @@ final class EnrichedMatchingService
         'kubernetes' => ['docker', 'devops engineer'],
     ];
 
+    /**
+     * Broad role-family guardrails. They do not replace CamemBERT; they prevent
+     * the enriched bonus from promoting semantically close but off-family profiles.
+     */
+    private const FAMILY_KEYWORDS = [
+        'backend' => ['backend', 'back-end', 'php', 'symfony', 'api platform', 'node.js', 'nodejs', 'api development'],
+        'frontend' => ['frontend', 'front-end', 'react', 'vue.js', 'vuejs', 'javascript', 'typescript', 'html', 'css', 'tailwind'],
+        'fullstack' => ['full stack', 'fullstack', 'full-stack'],
+        'devops' => ['devops', 'platform engineer', 'docker', 'kubernetes', 'linux', 'ci/cd', 'gitlab ci', 'redis', 'observability'],
+        'qa' => ['qa', 'quality', 'qualite', 'test automation', 'testing', 'postman'],
+        'mobile' => ['mobile', 'android', 'kotlin'],
+        'data' => ['data engineer', 'python', 'airflow', 'etl', 'pandas'],
+    ];
+
+    private const DEVELOPMENT_FAMILIES = ['backend', 'frontend', 'fullstack'];
+
     public function __construct(
         private readonly CandidateSkillInferenceService $candidateSkillInferenceService,
         private readonly SemanticMatchingService $semanticMatchingService,
@@ -55,8 +73,7 @@ final class EnrichedMatchingService
     }
 
     /**
-     * @param list<CandidateProfile> $candidates
-     *
+     * @param list<CandidateProfile>                                                        $candidates
      * @param array<string, array{score: ?float, percentage: ?float, dimension: ?int}>|null $rawSemanticScores
      *
      * @return array{available: bool, scores: array<string, array{score: ?float, percentage: ?float, dimension: ?int, inferredSoftSkills: list<string>, inferredTransferableSkills: list<string>, inferredTechnicalSkills: list<array{skill: string, level: string, confidence: float}>, confidence: array<string, float>, enrichedText: string}>}
@@ -89,6 +106,7 @@ final class EnrichedMatchingService
             ];
 
             $bonus = $this->computeInferenceBonus(
+                $offer,
                 $candidate,
                 $inference,
                 $normalizedOfferHardSkills,
@@ -99,6 +117,7 @@ final class EnrichedMatchingService
             $finalPercentage = null;
             if (is_float($semanticScore['score']) || is_int($semanticScore['score'])) {
                 $finalScore = round(min(1.0, max(0.0, (float) $semanticScore['score'] + $bonus)), 4);
+                $finalScore = $this->applyFamilyGuardrail($offer, $candidate, $finalScore);
                 $finalPercentage = round($finalScore * 100, 1);
             }
 
@@ -122,13 +141,17 @@ final class EnrichedMatchingService
 
     /**
      * @param array{inferredSoftSkills: list<string>, inferredTransferableSkills: list<string>, inferredTechnicalSkills: list<array{skill: string, level: string, confidence: float}>} $inference
-     * @param list<string> $normalizedOfferHardSkills
-     * @param list<string> $normalizedOfferSoftSkills
+     * @param list<string>                                                                                                                                                             $normalizedOfferHardSkills
+     * @param list<string>                                                                                                                                                             $normalizedOfferSoftSkills
      */
-    private function computeInferenceBonus(CandidateProfile $candidate, array $inference, array $normalizedOfferHardSkills, array $normalizedOfferSoftSkills): float
+    private function computeInferenceBonus(JobOffer $offer, CandidateProfile $candidate, array $inference, array $normalizedOfferHardSkills, array $normalizedOfferSoftSkills): float
     {
         $normalizedCandidateHardSkills = array_map([$this, 'normalize'], $candidate->hardSkills);
         $normalizedCandidateSoftSkills = array_map([$this, 'normalize'], $candidate->softSkills);
+
+        if (!$this->hasCompatiblePrimaryFamily($offer, $candidate)) {
+            return 0.0;
+        }
 
         $technicalBonus = 0.0;
         foreach ($inference['inferredTechnicalSkills'] as $technicalSkill) {
@@ -189,5 +212,142 @@ final class EnrichedMatchingService
     private function normalize(string $value): string
     {
         return mb_strtolower(trim($value));
+    }
+
+    private function applyFamilyGuardrail(JobOffer $offer, CandidateProfile $candidate, float $score): float
+    {
+        if ($this->hasCompatiblePrimaryFamily($offer, $candidate)) {
+            return $score;
+        }
+
+        return round(min($score, self::INCOMPATIBLE_FAMILY_SCORE_CAP), 4);
+    }
+
+    private function hasCompatiblePrimaryFamily(JobOffer $offer, CandidateProfile $candidate): bool
+    {
+        $offerFamilies = $this->primaryFamilies($this->familiesFromText(implode(' ', [
+            $offer->title,
+            $offer->description,
+            implode(' ', $offer->requiredHardSkills),
+        ])));
+        if ($this->hasBlockingRoleMismatch($offerFamilies, $candidate->rawCv)) {
+            return false;
+        }
+
+        $candidateFamilies = $this->primaryFamilies($this->familiesFromText(implode(' ', [
+            $candidate->rawCv,
+            implode(' ', $candidate->hardSkills),
+        ])));
+
+        if ([] === $offerFamilies || [] === $candidateFamilies) {
+            return true;
+        }
+
+        if ([] !== array_intersect($offerFamilies, $candidateFamilies)) {
+            return true;
+        }
+
+        if (in_array('fullstack', $offerFamilies, true)) {
+            return [] !== array_intersect(['backend', 'frontend'], $candidateFamilies);
+        }
+
+        return false;
+    }
+
+    /**
+     * Human review showed that QA/DevOps/mobile profiles can share delivery or
+     * tooling vocabulary with developer offers. A headline-level mismatch is a
+     * stronger signal than incidental HTML/CSS/Docker keywords.
+     *
+     * @param list<string> $offerPrimaryFamilies
+     */
+    private function hasBlockingRoleMismatch(array $offerPrimaryFamilies, string $candidateText): bool
+    {
+        if ([] === array_intersect(self::DEVELOPMENT_FAMILIES, $offerPrimaryFamilies)) {
+            return false;
+        }
+
+        $headline = $this->candidateHeadline($candidateText);
+        if ('' === $headline) {
+            $headline = $candidateText;
+        }
+
+        $normalizedHeadline = $this->normalize($headline);
+        $hasDeveloperHeadline = str_contains($normalizedHeadline, 'developpeur')
+            || str_contains($normalizedHeadline, 'developer')
+            || str_contains($normalizedHeadline, 'full stack')
+            || str_contains($normalizedHeadline, 'frontend')
+            || str_contains($normalizedHeadline, 'backend')
+            || str_contains($normalizedHeadline, 'php')
+            || str_contains($normalizedHeadline, 'symfony')
+            || str_contains($normalizedHeadline, 'react')
+            || str_contains($normalizedHeadline, 'node');
+
+        if ($hasDeveloperHeadline) {
+            return false;
+        }
+
+        $hasBlockingHeadline = str_contains($normalizedHeadline, 'qa')
+            || str_contains($normalizedHeadline, 'qualite')
+            || str_contains($normalizedHeadline, 'quality')
+            || str_contains($normalizedHeadline, 'devops')
+            || str_contains($normalizedHeadline, 'platform engineer')
+            || str_contains($normalizedHeadline, 'mobile')
+            || str_contains($normalizedHeadline, 'android')
+            || str_contains($normalizedHeadline, 'data engineer');
+
+        if (!$hasBlockingHeadline && $headline === $candidateText) {
+            return [] !== array_intersect(
+                ['qa', 'devops', 'mobile', 'data'],
+                $this->primaryFamilies($this->familiesFromText($candidateText)),
+            );
+        }
+
+        return $hasBlockingHeadline;
+    }
+
+    private function candidateHeadline(string $candidateText): string
+    {
+        if (1 === preg_match('/^Headline:\s*(.+)$/mi', $candidateText, $matches)) {
+            return trim($matches[1]);
+        }
+
+        $firstLine = strtok($candidateText, "\n");
+
+        return is_string($firstLine) ? trim($firstLine) : '';
+    }
+
+    /**
+     * @param list<string> $families
+     *
+     * @return list<string>
+     */
+    private function primaryFamilies(array $families): array
+    {
+        if ([] !== array_intersect(self::DEVELOPMENT_FAMILIES, $families)) {
+            return array_values(array_intersect(self::DEVELOPMENT_FAMILIES, $families));
+        }
+
+        return $families;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function familiesFromText(string $text): array
+    {
+        $normalizedText = $this->normalize($text);
+        $families = [];
+
+        foreach (self::FAMILY_KEYWORDS as $family => $keywords) {
+            foreach ($keywords as $keyword) {
+                if (str_contains($normalizedText, $keyword)) {
+                    $families[] = $family;
+                    break;
+                }
+            }
+        }
+
+        return array_values(array_unique($families));
     }
 }

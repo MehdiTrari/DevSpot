@@ -25,8 +25,8 @@ final class ApplicantMessagesTest extends WebTestCase
         $password = 'password123';
         $user = $this->createApplicantWithProfile($email, $password);
 
-        $olderRecruiter = $this->createRecruiterWithProfile('alice_' . bin2hex(random_bytes(4)) . '@example.com', 'Alice', 'Recruiter');
-        $newerRecruiter = $this->createRecruiterWithProfile('bob_' . bin2hex(random_bytes(4)) . '@example.com', 'Bob', 'Recruiter');
+        $olderRecruiter = $this->createRecruiterWithProfile('alice_'.bin2hex(random_bytes(4)).'@example.com', 'Alice', 'Recruiter');
+        $newerRecruiter = $this->createRecruiterWithProfile('bob_'.bin2hex(random_bytes(4)).'@example.com', 'Bob', 'Recruiter');
 
         $olderConversation = $this->createConversation(
             $user,
@@ -82,7 +82,7 @@ final class ApplicantMessagesTest extends WebTestCase
         $email = sprintf('read_messages_%s@example.com', bin2hex(random_bytes(6)));
         $password = 'password123';
         $user = $this->createApplicantWithProfile($email, $password);
-        $recruiter = $this->createRecruiterWithProfile('carla_' . bin2hex(random_bytes(4)) . '@example.com', 'Carla', 'Recruiter');
+        $recruiter = $this->createRecruiterWithProfile('carla_'.bin2hex(random_bytes(4)).'@example.com', 'Carla', 'Recruiter');
 
         $conversation = $this->createConversation(
             $user,
@@ -110,7 +110,7 @@ final class ApplicantMessagesTest extends WebTestCase
         $email = sprintf('show_message_%s@example.com', bin2hex(random_bytes(6)));
         $password = 'password123';
         $user = $this->createApplicantWithProfile($email, $password);
-        $recruiter = $this->createRecruiterWithProfile('diane_' . bin2hex(random_bytes(4)) . '@example.com', 'Diane', 'Recruiter');
+        $recruiter = $this->createRecruiterWithProfile('diane_'.bin2hex(random_bytes(4)).'@example.com', 'Diane', 'Recruiter');
 
         $conversation = $this->createConversation(
             $user,
@@ -126,7 +126,7 @@ final class ApplicantMessagesTest extends WebTestCase
         self::assertInstanceOf(Message::class, $message);
 
         $this->login($client, $email, $password);
-        $client->request('GET', '/applicant/messages/' . $conversation->getId());
+        $client->request('GET', '/applicant/messages/'.$conversation->getId());
 
         self::assertResponseIsSuccessful();
         self::assertSelectorTextContains('body', 'Diane Recruiter');
@@ -147,7 +147,7 @@ final class ApplicantMessagesTest extends WebTestCase
         $email = sprintf('mercure_messages_%s@example.com', bin2hex(random_bytes(6)));
         $password = 'password123';
         $user = $this->createApplicantWithProfile($email, $password);
-        $recruiter = $this->createRecruiterWithProfile('mercure_recruiter_' . bin2hex(random_bytes(4)) . '@example.com', 'Mona', 'Recruiter');
+        $recruiter = $this->createRecruiterWithProfile('mercure_recruiter_'.bin2hex(random_bytes(4)).'@example.com', 'Mona', 'Recruiter');
 
         $conversation = $this->createConversation(
             $user,
@@ -158,7 +158,7 @@ final class ApplicantMessagesTest extends WebTestCase
         );
 
         $this->login($client, $email, $password);
-        $client->request('GET', '/applicant/messages/' . $conversation->getId());
+        $client->request('GET', '/applicant/messages/'.$conversation->getId());
 
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('[data-chat-mercure-url]');
@@ -173,7 +173,7 @@ final class ApplicantMessagesTest extends WebTestCase
 
         $owner = $this->createApplicantWithProfile($ownerEmail, $password);
         $otherUser = $this->createApplicantWithProfile($otherEmail, $password);
-        $recruiter = $this->createRecruiterWithProfile('eva_' . bin2hex(random_bytes(4)) . '@example.com', 'Eva', 'Recruiter');
+        $recruiter = $this->createRecruiterWithProfile('eva_'.bin2hex(random_bytes(4)).'@example.com', 'Eva', 'Recruiter');
 
         self::assertInstanceOf(DeveloperProfile::class, $owner->getDeveloperProfile());
         self::assertInstanceOf(DeveloperProfile::class, $otherUser->getDeveloperProfile());
@@ -187,7 +187,7 @@ final class ApplicantMessagesTest extends WebTestCase
         );
 
         $this->login($client, $otherEmail, $password);
-        $client->request('GET', '/applicant/messages/' . $conversation->getId());
+        $client->request('GET', '/applicant/messages/'.$conversation->getId());
 
         self::assertResponseStatusCodeSame(404);
     }
@@ -233,7 +233,7 @@ final class ApplicantMessagesTest extends WebTestCase
         $email = sprintf('header_messages_%s@example.com', bin2hex(random_bytes(6)));
         $password = 'password123';
         $user = $this->createApplicantWithProfile($email, $password);
-        $recruiter = $this->createRecruiterWithProfile('franck_' . bin2hex(random_bytes(4)) . '@example.com', 'Franck', 'Recruiter');
+        $recruiter = $this->createRecruiterWithProfile('franck_'.bin2hex(random_bytes(4)).'@example.com', 'Franck', 'Recruiter');
 
         $this->createConversation(
             $user,
@@ -272,7 +272,7 @@ final class ApplicantMessagesTest extends WebTestCase
         $profile->setFirstName('Test');
         $profile->setLastName('Applicant');
         $profile->setHeadline('Developpeur Symfony');
-        $profile->setSlug('messages-' . bin2hex(random_bytes(5)));
+        $profile->setSlug('messages-'.bin2hex(random_bytes(5)));
         $profile->setIsPublic(true);
         $profile->setPortfolioGeneratedAt(new \DateTimeImmutable());
         $profile->setUser($user);

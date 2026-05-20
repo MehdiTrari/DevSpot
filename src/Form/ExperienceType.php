@@ -58,6 +58,14 @@ class ExperienceType extends AbstractType
                 'required' => false,
                 'multiple' => true,
                 'expanded' => false,
+                'attr' => [
+                    'data-multiselect-accent' => 'emerald',
+                    'data-multiselect-search-placeholder' => 'Rechercher une technologie',
+                    'data-multiselect-selection-placeholder' => 'Choisir les technologies utilisées',
+                    'data-multiselect-empty' => 'Aucune technologie ne correspond à cette recherche.',
+                    'data-multiselect-selected-singular' => 'technologie',
+                    'data-multiselect-selected-plural' => 'technologies',
+                ],
             ])
         ;
     }

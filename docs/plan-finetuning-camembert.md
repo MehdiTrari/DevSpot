@@ -4,21 +4,25 @@
 > **Date** : Avril 2026  
 > **Matériel cible** : RTX 3060 (12 Go VRAM)
 
+> **Statut réel dans le projet** : ce fine-tuning complet n'a finalement **pas été réalisé** dans la version actuelle de DevSpot.
+> La solution effectivement implémentée et utilisée en runtime repose sur `camembert-base` **gelé**, une **projection linéaire entraînée** et un score enrichi côté application.
+> Ce document est donc conservé comme **plan de recherche / perspective d'évolution**, pas comme compte-rendu d'une étape exécutée.
+
 ---
 
-## Table des matières
+## Plan du document
 
-1. [Pourquoi fine-tuner ?](#1-pourquoi-fine-tuner-)
-2. [Ce qu'on a aujourd'hui vs ce qu'on veut](#2-ce-quon-a-aujourdhui-vs-ce-quon-veut)
-3. [Prérequis matériels et logiciels](#3-prérequis-matériels-et-logiciels)
-4. [Étape 1 — Préparer le dataset](#étape-1--préparer-le-dataset)
-5. [Étape 2 — Écrire le script de fine-tuning](#étape-2--écrire-le-script-de-fine-tuning)
-6. [Étape 3 — Lancer l'entraînement sur GPU](#étape-3--lancer-lentraînement-sur-gpu)
-7. [Étape 4 — Évaluer les résultats](#étape-4--évaluer-les-résultats)
-8. [Étape 5 — Intégrer le modèle fine-tuné](#étape-5--intégrer-le-modèle-fine-tuné)
-9. [Estimation des ressources RTX 3060](#estimation-des-ressources-rtx-3060)
-10. [Risques et solutions de repli](#risques-et-solutions-de-repli)
-11. [Checklist complète](#checklist-complète)
+1. Pourquoi fine-tuner ?
+2. Ce qu'on a aujourd'hui vs ce qu'on veut
+3. Prérequis matériels et logiciels
+4. Étape 1 — Préparer le dataset
+5. Étape 2 — Écrire le script de fine-tuning
+6. Étape 3 — Lancer l'entraînement sur GPU
+7. Étape 4 — Évaluer les résultats
+8. Étape 5 — Intégrer le modèle fine-tuné
+9. Estimation des ressources RTX 3060
+10. Risques et solutions de repli
+11. Checklist complète
 
 ---
 
@@ -36,6 +40,8 @@ CamemBERT a été pré-entraîné sur **138 Go de texte français général** (W
 ---
 
 ## 2. Ce qu'on a aujourd'hui vs ce qu'on veut
+
+Avant lecture : la colonne "Aujourd'hui" correspond à l'état réel du dépôt ; la colonne "Après fine-tuning" décrit une cible envisagée mais non mise en production.
 
 | Aspect | Aujourd'hui (projection) | Après fine-tuning |
 |--------|-------------------------|-------------------|
@@ -87,11 +93,26 @@ pip install wandb
 ### État actuel du dataset
 
 ```
-docs/matching-demo-dataset-v2-clean.json
-├── 192 développeurs
-└── 90 offres
-→ Matrice potentielle : 192 × 90 = 17 280 paires
+matching-demo-dataset-v3-expanded-bias-audit.json
+matching-demo-dataset-v4-hard-negatives-bias-audit.json
+├── 1000 développeurs
+└── 320 offres
+→ Matrice potentielle : 1000 × 320 = 320 000 paires
 ```
+
+Le dépôt contient encore le dataset historique `docs/matching-demo-dataset-v2-clean.json` (`192` développeurs, `90` offres), mais ce n'est plus le corpus le plus large disponible.
+
+Pour un travail de fine-tuning, le meilleur point de départ documentaire aujourd'hui est :
+
+- `matching-demo-dataset-v3-expanded-bias-audit.json` pour le corpus élargi ;
+- `matching-demo-dataset-v4-hard-negatives-bias-audit.json` pour le corpus élargi avec cas difficiles explicites.
+
+Le rapport `docs/matching-demo-dataset-v4-hard-negatives.report.json` confirme actuellement :
+
+- `320` offres ;
+- `1000` développeurs ;
+- `12` candidats positifs explicites par offre ;
+- `12` hard negatives par offre.
 
 ### Ce qu'on doit faire
 
@@ -127,15 +148,17 @@ Si tu veux un modèle encore meilleur, tu peux annoter manuellement 200-500 pair
 ### Commande de préparation
 
 ```bash
-# Vérifier et nettoyer le dataset
+# Vérifier et nettoyer le dataset élargi
 python scripts/clean_dataset.py \
-  --input docs/matching-demo-dataset-v2-clean.json \
+  --input matching-demo-dataset-v3-expanded-bias-audit.json \
   --output docs/matching-demo-dataset-v3-finetuning.json
 ```
 
 ---
 
 ## Étape 2 — Écrire le script de fine-tuning
+
+Le script `finetune_camembert.py` mentionné dans cette page n'a pas été produit dans le dépôt final.
 
 ### Différences avec le script actuel
 
@@ -244,6 +267,8 @@ tokenizer.save_pretrained("ml/models/camembert-devspot-finetuned")
 
 ## Étape 3 — Lancer l'entraînement sur GPU
 
+Cette étape n'a pas été exécutée dans le cadre du projet tel qu'il est livré aujourd'hui.
+
 ### Commandes à exécuter sur le PC avec RTX 3060
 
 ```bash
@@ -256,14 +281,14 @@ python3 -c "import torch; print(torch.cuda.get_device_name(0)); print(f'{torch.c
 
 # 2. (Optionnel) Évaluer le modèle AVANT fine-tuning pour avoir une baseline
 python3 scripts/evaluate_matching_model.py \
-  --dataset docs/matching-demo-dataset-v2-clean.json \
+  --dataset matching-demo-dataset-v4-hard-negatives-bias-audit.json \
   --model camembert-base \
   --device cuda \
   --output docs/eval-before-finetuning.json
 
 # 3. Lancer le fine-tuning 🚀
 python3 scripts/finetune_camembert.py \
-  --dataset docs/matching-demo-dataset-v2-clean.json \
+  --dataset matching-demo-dataset-v4-hard-negatives-bias-audit.json \
   --model camembert-base \
   --output ml/models/camembert-devspot-finetuned \
   --device cuda \
@@ -275,7 +300,7 @@ python3 scripts/finetune_camembert.py \
 
 # 4. Évaluer le modèle APRÈS fine-tuning
 python3 scripts/evaluate_matching_model.py \
-  --dataset docs/matching-demo-dataset-v2-clean.json \
+  --dataset matching-demo-dataset-v4-hard-negatives-bias-audit.json \
   --model ml/models/camembert-devspot-finetuned \
   --device cuda \
   --output docs/eval-after-finetuning.json
@@ -299,9 +324,9 @@ for metric in ['recall_at_1', 'recall_at_3', 'recall_at_5', 'mrr', 'ndcg_at_5']:
 |-------|--------------|
 | Chargement du modèle | ~30 secondes |
 | Encodage initial du dataset | ~2-5 minutes |
-| Entraînement (3 epochs, 192 devs × 90 offres) | **30 min – 1h30** |
+| Entraînement (3 epochs, 1000 devs × 320 offres) | **plusieurs heures, à calibrer sur GPU** |
 | Évaluation | ~2-5 minutes |
-| **Total** | **~45 min – 2h** |
+| **Total** | **de l'ordre de plusieurs heures** |
 
 ---
 
@@ -342,6 +367,8 @@ Le gain attendu est de **+15 à +25 points** sur chaque métrique, car le modèl
 ---
 
 ## Étape 5 — Intégrer le modèle fine-tuné
+
+Cette intégration n'a pas eu lieu. En pratique, le runtime actuel continue d'utiliser `CAMEMBERT_MODEL=camembert-base` et, quand elle est activée, la projection `ml/models/devspot-matching-projection.pt`.
 
 Une fois le modèle entraîné et évalué, l'intégration est simple car notre architecture est déjà prête.
 
@@ -436,7 +463,7 @@ gradient_checkpointing = True        # échange calcul contre mémoire
 
 | Risque | Probabilité | Solution |
 |--------|-------------|----------|
-| **Dataset trop petit** (192 devs, 90 offres) | Moyenne | Augmenter le dataset ou utiliser la data augmentation |
+| **Dataset encore imparfait** (même élargi) | Moyenne | continuer l'annotation, calibrer les splits et comparer `v3 expanded` vs `v4 hard negatives` |
 | **Overfitting** (le modèle mémorise au lieu d'apprendre) | Moyenne | Early stopping + validation split + dropout |
 | **VRAM insuffisante** | Faible (12 Go suffisent) | Réduire batch_size/max_length, activer gradient checkpointing |
 | **Résultats dégradés** | Faible | Garder le modèle actuel (projection), itérer sur le dataset |
@@ -454,9 +481,11 @@ Si le fine-tuning complet n'apporte pas assez d'amélioration avec notre dataset
 
 ## Checklist complète
 
+Cette checklist doit être lue comme une checklist de **travail envisagé**, non comme une liste d'actions réalisées.
+
 ### 📋 Sur le PC portable (maintenant, sans GPU)
 
-- [ ] Vérifier que le dataset `docs/matching-demo-dataset-v2-clean.json` est complet et propre
+- [ ] Vérifier que les datasets `matching-demo-dataset-v3-expanded-bias-audit.json` et `matching-demo-dataset-v4-hard-negatives-bias-audit.json` sont complets et propres
 - [ ] (Optionnel) Enrichir le dataset avec plus de profils/offres
 - [ ] Écrire le script `scripts/finetune_camembert.py`
 - [ ] Écrire/adapter le script d'évaluation pour comparer avant/après

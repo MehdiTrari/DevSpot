@@ -31,8 +31,8 @@ final class ResetFrontendCommand extends Command
 
         $io->title('Réinitialisation du frontend local');
 
-        $this->purgeDirectory($this->projectDir.'/var/tailwind');
-        $this->purgeDirectory($this->projectDir.'/public/assets');
+        $this->purgeDirectory($this->projectDir . '/var/tailwind');
+        $this->purgeDirectory($this->projectDir . '/public/assets');
 
         $io->section('Reconstruction des caches et assets');
 
@@ -79,7 +79,7 @@ final class ResetFrontendCommand extends Command
                 continue;
             }
 
-            $itemPath = $path.'/'.$item;
+            $itemPath = $path . '/' . $item;
 
             if (is_dir($itemPath) && !is_link($itemPath)) {
                 $this->purgeDirectory($itemPath);

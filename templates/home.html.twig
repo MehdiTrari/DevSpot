@@ -22,17 +22,17 @@
     <section class="w-full max-w-6xl space-y-8 font-sans">
         <article class="favorite-showcase-hero mx-auto w-full max-w-5xl px-1 py-2 text-center sm:px-2 sm:py-3">
             <div class="mx-auto max-w-3xl">
-                    <p class="favorite-showcase-kicker">
-                        Espace public
-                    </p>
-                    <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Bienvenue sur DevSpot.</h1>
-                    <p class="ui-text-secondary mt-4 text-[15px] leading-relaxed">
-                        {% if app.user %}
-                            Connecté en tant que <span class="ui-title font-semibold">{{ is_granted('ROLE_ADMIN') ? 'admin' : (is_granted('ROLE_APPLICANT') ? 'candidat' : 'recruteur') }}</span>.
-                        {% else %}
-                            Complète ton profil développeur, rends ton portfolio public et démarre ton matching.
-                        {% endif %}
-                    </p>
+                <p class="favorite-showcase-kicker">
+                    Espace public
+                </p>
+                <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Bienvenue sur DevSpot.</h1>
+                <p class="ui-text-secondary mt-4 text-[15px] leading-relaxed">
+                    {% if app.user %}
+                        Connecté en tant que <span class="ui-title font-semibold">{{ is_granted('ROLE_ADMIN') ? 'admin' : (is_granted('ROLE_APPLICANT') ? 'candidat' : 'recruteur') }}</span>.
+                    {% else %}
+                        Complète ton profil développeur, rends ton portfolio public et démarre ton matching.
+                    {% endif %}
+                </p>
             </div>
 
             {% if not app.user %}
@@ -152,7 +152,7 @@
             {% endif %}
         </article>
 
-        {% if topMatches is not empty %}
+        {% if topMatches is not empty and is_granted('ROLE_RECRUITER') %}
             <article class="theme-settings-card rounded-[2.35rem] p-6 sm:p-8">
                 <div class="flex items-center justify-between gap-3">
                     <div>

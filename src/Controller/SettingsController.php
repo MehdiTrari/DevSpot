@@ -2,11 +2,21 @@
 
 namespace App\Controller;
 
+use App\Entity\SupportRequest;
+use App\Entity\User;
+use App\Form\SupportRequestType;
+use App\Service\SupportRequestManager;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\HtmlSanitizer\HtmlSanitizerInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 #[Route('/settings')]
 #[IsGranted('ROLE_USER')]
@@ -27,6 +37,11 @@ final class SettingsController extends AbstractController
     #[Route('/role', name: 'app_settings_role', methods: ['GET'])]
     public function role(): Response
     {
+        $user = $this->getUser();
+        if (!$user instanceof User || !$user->canRequestRoleChange()) {
+            throw $this->createAccessDeniedException();
+        }
+
         return $this->render('settings/role.html.twig');
     }
 
@@ -34,9 +49,75 @@ final class SettingsController extends AbstractController
     #[IsGranted('ROLE_APPLICANT')]
     public function slug(): Response
     {
+        $user = $this->getUser();
+        if (!$user instanceof User || !$user->isApplicantOnly()) {
+            throw $this->createAccessDeniedException();
+        }
+
         return $this->render('settings/slug.html.twig', [
-            'profile' => $this->getUser()?->getDeveloperProfile(),
+            'profile' => $user->getDeveloperProfile(),
         ]);
+    }
+
+    #[Route('/support', name: 'app_settings_support', methods: ['GET', 'POST'])]
+    public function support(
+        Request $request,
+        SupportRequestManager $supportRequestManager,
+        #[\Symfony\Component\DependencyInjection\Attribute\Autowire(service: 'html_sanitizer.sanitizer.contact_message')]
+        HtmlSanitizerInterface $contactMessageSanitizer,
+        LoggerInterface $logger,
+    ): Response {
+        $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $supportRequest = new SupportRequest();
+        $supportRequest->setUser($user);
+        $supportRequest->setRequesterDisplayName($supportRequestManager->resolveRequesterDisplayName($user));
+        $supportRequest->setRequesterEmail((string) ($user->getEmail() ?? ''));
+
+        $form = $this->createForm(SupportRequestType::class, $supportRequest);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $sanitizedSubject = trim($contactMessageSanitizer->sanitize((string) ($supportRequest->getSubject() ?? '')));
+            $sanitizedMessage = trim($contactMessageSanitizer->sanitize((string) ($supportRequest->getMessage() ?? '')));
+
+            $supportRequest->setSubject($sanitizedSubject);
+            $supportRequest->setMessage($sanitizedMessage);
+
+            if ('' === $sanitizedSubject) {
+                $form->get('subject')->addError(new FormError('L\'objet contient trop de contenu HTML non autorisé.'));
+            }
+
+            if (mb_strlen($sanitizedMessage) < 10) {
+                $form->get('message')->addError(new FormError('Le message contient trop de contenu HTML non autorisé.'));
+            }
+
+            if ($form->isValid()) {
+                try {
+                    $allEmailsSent = $supportRequestManager->submit($supportRequest);
+
+                    if ($allEmailsSent) {
+                        $this->addFlash('success', 'Votre demande de support a bien été envoyée à l’équipe administratrice.');
+                    } else {
+                        $this->addFlash('error', 'Votre demande de support a été enregistrée, mais l’email d’alerte aux administrateurs n’a pas pu être envoyé.');
+                    }
+
+                    return $this->redirectToRoute('app_settings_support');
+                } catch (\Throwable $exception) {
+                    $logger->error('Soumission de demande de support echouee.', [
+                        'userId' => $user->getId(),
+                        'error' => $exception->getMessage(),
+                    ]);
+
+                    $form->addError(new FormError('Erreur technique lors de l’envoi de votre demande. Merci de réessayer.'));
+                }
+            }
+        }
+
+        return $this->renderSupportPage($form, $user, $supportRequestManager);
     }
 
     #[Route('/admin/colors', name: 'app_settings_admin_colors', methods: ['GET'])]
@@ -46,7 +127,7 @@ final class SettingsController extends AbstractController
         $cssPath = $kernel->getProjectDir() . '/public/styles/base-theme.css';
         $cssContent = @file_get_contents($cssPath);
 
-        if ($cssContent === false) {
+        if (false === $cssContent) {
             throw $this->createNotFoundException('Impossible de lire le fichier base-theme.css');
         }
 
@@ -110,7 +191,7 @@ final class SettingsController extends AbstractController
             $dayText = $lightMap[$textToken] ?? '-';
             $dayBorder = $lightMap[$borderToken] ?? '-';
 
-            if ($dayBg === '-' || $dayText === '-' || $dayBorder === '-') {
+            if ('-' === $dayBg || '-' === $dayText || '-' === $dayBorder) {
                 continue;
             }
 
@@ -176,7 +257,7 @@ final class SettingsController extends AbstractController
             $deduplicationKey = $this->buildColorTripletDeduplicationKey($family);
             $existing = $catalog[$bucket][$deduplicationKey] ?? null;
 
-            if ($existing !== null && $this->getColorTripletFamilyPriority($existing['family']) <= $this->getColorTripletFamilyPriority($family)) {
+            if (null !== $existing && $this->getColorTripletFamilyPriority($existing['family']) <= $this->getColorTripletFamilyPriority($family)) {
                 continue;
             }
 
@@ -243,7 +324,7 @@ final class SettingsController extends AbstractController
 
         $label = ucwords(str_replace('-', ' ', $previewFamily));
 
-        return $label !== '' ? $label : 'Apercu';
+        return '' !== $label ? $label : 'Apercu';
     }
 
     private function buildColorTripletDeduplicationKey(string $family): string
@@ -285,7 +366,7 @@ final class SettingsController extends AbstractController
         }
 
         $blockContent = $matches[1] ?? '';
-        if ($blockContent === '') {
+        if ('' === $blockContent) {
             return [];
         }
 
@@ -296,7 +377,7 @@ final class SettingsController extends AbstractController
             $tokenName = '--' . trim((string) ($declaration[1] ?? ''));
             $tokenValue = trim((string) ($declaration[2] ?? ''));
 
-            if ($tokenName === '--' || $tokenValue === '' || !$this->isColorLikeValue($tokenValue)) {
+            if ('--' === $tokenName || '' === $tokenValue || !$this->isColorLikeValue($tokenValue)) {
                 continue;
             }
 
@@ -432,7 +513,7 @@ final class SettingsController extends AbstractController
             $selectorBlock = trim((string) ($rule[1] ?? ''));
             $declarationBlock = (string) ($rule[2] ?? '');
 
-            if ($selectorBlock === '' || $declarationBlock === '') {
+            if ('' === $selectorBlock || '' === $declarationBlock) {
                 continue;
             }
 
@@ -442,7 +523,7 @@ final class SettingsController extends AbstractController
 
             preg_match_all('/\.([a-zA-Z0-9_-]+)/', $selectorBlock, $classMatches);
             $classes = array_values(array_unique($classMatches[1] ?? []));
-            if ($classes === []) {
+            if ([] === $classes) {
                 continue;
             }
 
@@ -452,7 +533,7 @@ final class SettingsController extends AbstractController
                 $property = strtolower(trim((string) ($declaration[1] ?? '')));
                 $value = trim((string) ($declaration[2] ?? ''));
 
-                if ($property === '' || $value === '' || !$this->isColorLikeValue($value)) {
+                if ('' === $property || '' === $value || !$this->isColorLikeValue($value)) {
                     continue;
                 }
 
@@ -510,5 +591,17 @@ final class SettingsController extends AbstractController
         }
 
         return $rows;
+    }
+
+    private function renderSupportPage(FormInterface $form, User $user, SupportRequestManager $supportRequestManager): Response
+    {
+        $statusCode = $form->isSubmitted() && !$form->isValid() ? 422 : 200;
+
+        return $this->render('settings/support.html.twig', [
+            'supportForm' => $form->createView(),
+            'requesterDisplayName' => $supportRequestManager->resolveRequesterDisplayName($user),
+            'requesterEmail' => $user->getEmail(),
+            'helpFaqUrl' => $this->generateUrl('app_faq', [], UrlGeneratorInterface::ABSOLUTE_URL) . '#support-centre',
+        ], new Response('', $statusCode));
     }
 }

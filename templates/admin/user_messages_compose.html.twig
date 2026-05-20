@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+{% form_theme messageForm 'form/my_theme.html.twig' %}
+
+{% block title %}Envoyer un message | DevSpot Admin{% endblock %}
+
+{% block body %}
+<section class="favorites-showcase-page relative z-[1] w-full max-w-[72rem] self-start px-5 pb-8 pt-2 font-sans sm:px-8 sm:pb-10 sm:pt-3 lg:px-10 lg:pb-12 lg:pt-4">
+    <div class="favorite-showcase-hero mx-auto max-w-3xl text-center">
+        <p class="favorite-showcase-kicker">Administration</p>
+        <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Messagerie administrateur.</h1>
+        <p class="ui-text-secondary mx-auto mt-4 max-w-2xl text-[13px] leading-relaxed sm:text-[15px]">
+            Envoyez une information ciblée à un ou plusieurs utilisateurs. Le message sera visible dans leur centre de notifications.
+        </p>
+    </div>
+
+    <div class="mt-10 space-y-6">
+        <div class="theme-settings-card rounded-[2.35rem] p-6 sm:p-8">
+            {{ form_start(messageForm, {attr: {class: 'space-y-6', novalidate: 'novalidate'}}) }}
+                {{ form_errors(messageForm) }}
+
+                <div class="grid gap-6 xl:grid-cols-[minmax(0,0.94fr)_minmax(0,1.06fr)]">
+                    <div class="rounded-[1.9rem] border border-white/10 bg-white/5 p-5 sm:p-6">
+                        <div class="mb-4">
+                            <h2 class="ui-title text-lg font-semibold">Sélection du ou des destintaire(s)</h2>
+                        </div>
+
+                        <div class="mb-0 space-y-1.5">
+                            {{ form_label(messageForm.recipients) }}
+                            {{ form_widget(messageForm.recipients, {
+                                attr: {
+                                    class: 'min-h-[24rem]',
+                                    size: 12
+                                }
+                            }) }}
+                            {{ form_errors(messageForm.recipients) }}
+                        </div>
+                    </div>
+
+                    <div class="rounded-[1.9rem] border border-white/10 bg-white/5 p-5 sm:p-6">
+                        <div class="mb-4">
+                            <h2 class="ui-title text-lg font-semibold">Contenu du message</h2>
+                            <p class="ui-text-secondary mt-2 text-sm leading-relaxed">
+                                Rédigez un objet clair et un message lisible pour le centre de notifications.
+                            </p>
+                        </div>
+
+                        <div class="space-y-5">
+                            {{ form_row(messageForm.title) }}
+                            {{ form_row(messageForm.content, {
+                                attr: {
+                                    class: 'min-h-[21rem]'
+                                }
+                            }) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-end gap-3 pt-2">
+                    <a href="{{ path('app_admin_users') }}" class="u-border-pale-slate u-bg-pale-slate u-text-pale-slate inline-flex items-center justify-center rounded-full border px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90">
+                        Retour aux utilisateurs
+                    </a>
+                    <button type="submit" class="u-border-success u-bg-success u-text-success inline-flex items-center justify-center rounded-full border px-5 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90">
+                        Envoyer le message
+                    </button>
+                </div>
+            {{ form_end(messageForm) }}
+        </div>
+        <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
+            Utilisez la page <a href="{{ path('app_admin_users') }}" class="ui-link-accent font-semibold">Utilisateurs</a> pour préremplir un destinataire précis depuis le menu <span class="font-semibold text-white">Gérer</span>.
+        </p>
+    </div>
+</section>
+{% endblock %}

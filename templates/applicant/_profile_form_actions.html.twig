@@ -22,8 +22,14 @@
     </div>
 </div>
 
+<div
+    data-dashboard-exit-overlay="{{ dialog_id }}"
+    class="fixed inset-0 z-[80] hidden"
+    aria-hidden="true"
+></div>
+
 <dialog id="{{ dialog_id }}"
-    class="fixed inset-0 m-auto w-full max-w-md rounded-[2rem] border p-0 shadow-2xl dashboard-exit-dialog"
+    class="fixed inset-0 z-[81] m-auto w-full max-w-md rounded-[2rem] border p-0 shadow-2xl dashboard-exit-dialog"
 >
     <div class="space-y-6 p-7">
         <div>
@@ -111,7 +117,7 @@
         box-shadow: 0 24px 56px rgba(var(--indeed-shadow-rgb), 0.24);
     }
 
-    #{{ dialog_id }}::backdrop {
+    [data-dashboard-exit-overlay="{{ dialog_id }}"] {
         background: rgba(var(--indeed-shadow-rgb), 0.28);
         backdrop-filter: blur(4px);
     }
@@ -142,7 +148,7 @@
         color: var(--ui-heading);
     }
 
-    :root[data-theme="dark"] #{{ dialog_id }}::backdrop {
+    :root[data-theme="dark"] [data-dashboard-exit-overlay="{{ dialog_id }}"] {
         background: rgba(4, 8, 15, 0.72);
     }
 </style>
@@ -153,10 +159,23 @@
         const formId = {{ form_id|json_encode|raw }};
         const dialog = document.getElementById(dialogId);
         const form = document.getElementById(formId);
+        const overlay = document.querySelector(`[data-dashboard-exit-overlay="${dialogId}"]`);
 
-        if (!(dialog instanceof HTMLDialogElement) || !(form instanceof HTMLFormElement)) {
+        if (!(dialog instanceof HTMLDialogElement) || !(form instanceof HTMLFormElement) || !(overlay instanceof HTMLElement)) {
             return;
         }
+
+        const openDialog = () => {
+            dialog.setAttribute('open', 'open');
+            overlay.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden');
+        };
+
+        const closeDialog = () => {
+            dialog.removeAttribute('open');
+            overlay.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        };
 
         document.querySelectorAll(`[data-dashboard-exit-trigger="${dialogId}"]`).forEach((trigger) => {
             if (trigger.dataset.dashboardExitBound === 'true') {
@@ -165,14 +184,12 @@
 
             trigger.dataset.dashboardExitBound = 'true';
             trigger.addEventListener('click', (event) => {
-                if (typeof dialog.showModal !== 'function') {
-                    return;
-                }
-
                 event.preventDefault();
-                dialog.showModal();
+                openDialog();
             });
         });
+
+        overlay.addEventListener('click', closeDialog);
 
         dialog.querySelectorAll(`[data-dashboard-exit-close="${dialogId}"]`).forEach((button) => {
             if (button.dataset.dashboardExitCloseBound === 'true') {
@@ -180,7 +197,7 @@
             }
 
             button.dataset.dashboardExitCloseBound = 'true';
-            button.addEventListener('click', () => dialog.close());
+            button.addEventListener('click', closeDialog);
         });
 
         dialog.querySelectorAll(`[data-dashboard-save-exit="${formId}"]`).forEach((button) => {
@@ -199,9 +216,15 @@
                 }
 
                 actionInput.value = 'save_and_exit';
-                dialog.close();
+                closeDialog();
                 form.requestSubmit();
             });
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && dialog.hasAttribute('open')) {
+                closeDialog();
+            }
         });
     })();
 </script>
