@@ -37,7 +37,8 @@ final class ProfileVisibilityToggleE2ETest extends PantherWebTestCase
         self::assertStringContainsString('Génère d\'abord ton portfolio avant de le rendre public.', $this->waitForTextContent($client, '[data-notification-stack="true"]', 'Génère d\'abord ton portfolio avant de le rendre public.'));
         self::assertStringContainsString('Privé', $this->getTextContent($client, '[data-visibility-badge="true"]'));
 
-        $client->clickLink('Générer mon portfolio');
+        $client->waitFor('a[href="/applicant/portfolio/generate"]');
+        $this->clickByJs($client, 'a[href="/applicant/portfolio/generate"]');
         $client->waitFor('#profil');
 
         $this->visit($client, '/applicant');

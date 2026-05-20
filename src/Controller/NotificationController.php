@@ -79,6 +79,13 @@ final class NotificationController extends AbstractController
         $notification->markAsRead();
         $entityManager->flush();
 
+        if ($request->isXmlHttpRequest() && str_contains((string) $request->headers->get('Accept'), 'application/json')) {
+            return $this->json([
+                'ok' => true,
+                'unreadCount' => $notificationRepository->countUnreadForUser($user),
+            ]);
+        }
+
         if ($request->isXmlHttpRequest()) {
             return $this->renderNotificationsPartial($filter, $user, $request, $notificationRepository);
         }

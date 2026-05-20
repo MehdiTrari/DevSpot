@@ -65,7 +65,7 @@
             {% set locationModeLabel = profile and profile.locationType ? (locationTypeLabels[profile.locationType.value] ?? null) : null %}
             {% set locationLabel = profile and (profile.city or profile.country) ? [profile.city, profile.country]|filter(v => v)|join(', ') : 'Localisation Non renseignée' %}
             {% set yearsValue = profile and profile.yearsExperience is not null ? profile.yearsExperience : null %}
-            {% set portfolioLabel = profile and profile.portfolioGeneratedAt ? 'Portfolio publie' : 'Portfolio non genere' %}
+            {% set portfolioLabel = profile and profile.portfolioGeneratedAt ? 'Portfolio publié' : 'Portfolio non généré' %}
             {% set statusLabel = canOpenProfile ? 'Consultable maintenant' : 'Profil non consultable' %}
 
             <article

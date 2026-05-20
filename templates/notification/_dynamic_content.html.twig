@@ -3,7 +3,7 @@
         <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
                 <h1 id="notifications-title" class="ui-title text-3xl font-semibold tracking-tight">Notifications</h1>
-                <p class="ui-text-muted mt-1 text-sm">{{ unreadCount }} notification(s) non lue(s)</p>
+                <p data-notification-unread-label="true" class="ui-text-muted mt-1 text-sm">{{ unreadCount }} notification(s) non lue(s)</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
                 {% if unreadCount > 0 %}
@@ -26,6 +26,8 @@
         {% for notification in notifications %}
             {# ── Color coding by notification type ── #}
             {% set notifType = notification.type.value|default('') %}
+            {% set notificationReadUrl = path('app_notifications_mark_read', {id: notification.id, filter: currentFilter, page: currentPage}) %}
+            {% set notificationReadToken = csrf_token('notification_read_' ~ notification.id) %}
             {% if notification.isRead %}
                 {% set panelClass = 'ui-panel' %}
                 {% set pillClass = 'ui-pill-muted' %}
@@ -48,7 +50,7 @@
                 {% set iconColor = 'text-emerald-500' %}
             {% endif %}
 
-            <article class="rounded-[1.75rem] p-5 shadow-xl backdrop-blur-xl transition-colors {{ panelClass }}">
+            <article data-notification-card="true" data-notification-unread="{{ notification.isRead ? 'false' : 'true' }}" class="rounded-[1.75rem] p-5 shadow-xl backdrop-blur-xl transition-colors {{ panelClass }}">
                 <div class="flex items-start gap-4">
                     {# ── Icon per category ── #}
                     <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/60 dark:bg-white/10 {{ iconColor }}">
@@ -73,9 +75,9 @@
                         <div class="flex flex-wrap items-center gap-2">
                             <h2 class="ui-title text-sm font-semibold">{{ notification.title }}</h2>
                             {% if notification.isRead %}
-                                <span class="ui-pill ui-pill-muted rounded-full px-2.5 py-0.5 text-[11px] font-semibold">Lue</span>
+                                <span data-notification-state-badge="true" class="ui-pill ui-pill-muted rounded-full px-2.5 py-0.5 text-[11px] font-semibold">Lue</span>
                             {% else %}
-                                <span class="ui-pill {{ pillClass }} rounded-full px-2.5 py-0.5 text-[11px] font-semibold">Nouvelle</span>
+                                <span data-notification-state-badge="true" class="ui-pill {{ pillClass }} rounded-full px-2.5 py-0.5 text-[11px] font-semibold">Nouvelle</span>
                             {% endif %}
                         </div>
 
@@ -99,13 +101,26 @@
                                     data-notification-modal-content="{{ notification.content|e('html_attr') }}"
                                     data-notification-modal-date="{{ (notification.createdAt ? notification.createdAt|date('d/m/Y H:i') : '')|e('html_attr') }}"
                                     data-notification-modal-link="{{ (notification.link ?? '')|e('html_attr') }}"
+                                    {% if not notification.isRead %}
+                                        data-notification-interaction-read="true"
+                                        data-notification-read-url="{{ notificationReadUrl }}"
+                                        data-notification-read-token="{{ notificationReadToken }}"
+                                    {% endif %}
                                     class="ui-button-warning inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold"
                                 >
                                     Ouvrir le message
                                 </button>
                             {% endif %}
                             {% if notification.link %}
-                                <a href="{{ notification.link }}" class="ui-link-accent inline-flex items-center gap-1 text-xs font-semibold">
+                                <a
+                                    href="{{ notification.link }}"
+                                    {% if not notification.isRead %}
+                                        data-notification-interaction-read="true"
+                                        data-notification-read-url="{{ notificationReadUrl }}"
+                                        data-notification-read-token="{{ notificationReadToken }}"
+                                    {% endif %}
+                                    class="ui-link-accent inline-flex items-center gap-1 text-xs font-semibold"
+                                >
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5"><path fill-rule="evenodd" d="M5.22 14.78a.75.75 0 0 0 1.06 0l7.22-7.22v5.69a.75.75 0 0 0 1.5 0v-7.5a.75.75 0 0 0-.75-.75h-7.5a.75.75 0 0 0 0 1.5h5.69l-7.22 7.22a.75.75 0 0 0 0 1.06Z" clip-rule="evenodd"/></svg>
                                     Voir la page
                                 </a>
@@ -115,7 +130,7 @@
 
                     <div class="flex shrink-0 items-center gap-2">
                         {% if not notification.isRead %}
-                            <form method="post" data-notification-async="true" data-turbo="false" action="{{ path('app_notifications_mark_read', {id: notification.id, filter: currentFilter, page: currentPage}) }}">
+                            <form method="post" data-notification-async="true" data-notification-read-form="true" data-turbo="false" action="{{ path('app_notifications_mark_read', {id: notification.id, filter: currentFilter, page: currentPage}) }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token('notification_read_' ~ notification.id) }}">
                                 <button type="submit" class="ui-button-warning inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 0 1 .143 1.052l-8 10.5a.75.75 0 0 1-1.127.075l-4.5-4.5a.75.75 0 0 1 1.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 0 1 1.05-.143Z" clip-rule="evenodd"/></svg>

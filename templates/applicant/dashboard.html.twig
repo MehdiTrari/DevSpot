@@ -2,124 +2,216 @@
 
 {% block title %}Mon espace | DevSpot{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .dashboard-tooltip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            overflow: visible;
+        }
+
+        .dashboard-tooltip::after {
+            content: attr(data-ui-tooltip);
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 14px);
+            z-index: 9999;
+            min-width: 13rem;
+            max-width: min(22rem, calc(100vw - 32px));
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--ui-tooltip-border);
+            border-radius: 1rem;
+            background: var(--ui-tooltip-bg);
+            color: var(--ui-tooltip-text);
+            box-shadow: var(--ui-tooltip-shadow);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            font-size: 0.82rem;
+            font-weight: 800;
+            line-height: 1.4;
+            text-align: center;
+            white-space: normal;
+            pointer-events: none;
+            opacity: 0;
+            transform: translate(-50%, 8px) scale(0.96);
+            transition: opacity 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .dashboard-tooltip::before {
+            content: "";
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 7px);
+            z-index: 10000;
+            width: 12px;
+            height: 12px;
+            border-right: 1px solid var(--ui-tooltip-border);
+            border-bottom: 1px solid var(--ui-tooltip-border);
+            background: var(--ui-tooltip-bg);
+            pointer-events: none;
+            opacity: 0;
+            transform: translate(-50%, 8px) rotate(45deg);
+            transition: opacity 180ms ease, transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .dashboard-tooltip:hover::after,
+        .dashboard-tooltip:focus-visible::after,
+        .dashboard-tooltip:focus-within::after,
+        .dashboard-tooltip:hover::before,
+        .dashboard-tooltip:focus-visible::before,
+        .dashboard-tooltip:focus-within::before {
+            opacity: 1;
+        }
+
+        .dashboard-tooltip:hover::after,
+        .dashboard-tooltip:focus-visible::after,
+        .dashboard-tooltip:focus-within::after {
+            transform: translate(-50%, 0) scale(1);
+        }
+
+        .dashboard-tooltip:hover::before,
+        .dashboard-tooltip:focus-visible::before,
+        .dashboard-tooltip:focus-within::before {
+            transform: translate(-50%, 0) rotate(45deg);
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
-    {% set doneCount = [checklist.step1.done, checklist.step2.done, checklist.step3.done, checklist.step4.done]|filter(v => v)|length %}
-    {% set progressPercent = doneCount * 25 %}
+    {% set doneCount = dashboard.doneCount|default([checklist.step1.done, checklist.step2.done, checklist.step3.done, checklist.step4.done]|filter(v => v)|length) %}
+    {% set progressPercent = dashboard.completionPercent|default(doneCount * 25) %}
+    {% set canStep2 = checklist.step1.done %}
+    {% set canStep3 = checklist.step2.done or checklist.step3.done or checklist.step4.done %}
+    {% set canStep4 = checklist.step3.done or checklist.step4.done %}
 
     <section class="w-full max-w-6xl space-y-8 font-sans">
         <div class="favorite-showcase-hero mx-auto w-full max-w-5xl px-1 py-2 text-center sm:px-2 sm:py-3">
             <div class="mx-auto max-w-3xl">
-                    <p class="favorite-showcase-kicker">
-                        Espace candidat
-                    </p>
-                    <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Mon dashboard.</h1>
-                    <p class="ui-text-secondary mt-4 text-[15px]">{{ not checklist.step4.done ? 'Ton profil développeur est à compléter.' : 'Ton profil développeur est terminé.' }}</p>
-
-                    {% if doneCount < 4 %}
-                        <p class="ui-text-muted mt-2 text-[15px]">Complète ton profil en 4 étapes simples.</p>
-                        <div class="mt-8 max-w-xl">
-                            <div class="ui-text-muted mb-3 flex items-center justify-between text-xs font-medium uppercase tracking-wider">
-                                <span>Progression du profil</span>
-                                <span class="ui-title">{{ doneCount }}/4</span>
-                            </div>
-                            <div class="ui-progress-track h-1.5 w-full overflow-hidden rounded-full shadow-inner">
-                                <div class="ui-progress-value h-1.5 rounded-full transition-all duration-1000 ease-out" style="width: {{ progressPercent }}%;"></div>
-                            </div>
-                            <p class="ui-text-muted mt-3 text-sm">{{ progressPercent }}% complété</p>
-                        </div>
-                    {% endif %}
+                <p class="favorite-showcase-kicker">Espace candidat</p>
+                <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Mon dashboard.</h1>
+                <p class="ui-text-secondary mx-auto mt-4 max-w-2xl text-[15px]">
+                    Pilote ton profil, tes opportunités et tes échanges recruteurs depuis un espace personnel.
+                </p>
             </div>
         </div>
 
-        <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div class="theme-settings-card rounded-[2.35rem] p-8">
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            <article class="theme-settings-card rounded-[1.75rem] p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Compétences</p>
+                <p class="ui-title mt-3 text-3xl font-semibold">{{ dashboard.skillsCount }}</p>
+                <p class="ui-text-muted mt-2 text-xs">renseignée{{ dashboard.skillsCount > 1 ? 's' : '' }}</p>
+            </article>
+
+            <article class="theme-settings-card rounded-[1.75rem] p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Expériences</p>
+                <p class="ui-title mt-3 text-3xl font-semibold">{{ dashboard.experiencesCount }}</p>
+                <p class="ui-text-muted mt-2 text-xs">ajoutée{{ dashboard.experiencesCount > 1 ? 's' : '' }}</p>
+            </article>
+
+            <article class="theme-settings-card rounded-[1.75rem] p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Formations</p>
+                <p class="ui-title mt-3 text-3xl font-semibold">{{ dashboard.educationCount }}</p>
+                <p class="ui-text-muted mt-2 text-xs">ajoutée{{ dashboard.educationCount > 1 ? 's' : '' }}</p>
+            </article>
+
+            <article class="theme-settings-card rounded-[1.75rem] p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">CV</p>
+                <p class="ui-title mt-3 text-2xl font-semibold">{{ dashboard.hasCv ? 'Oui' : 'Non' }}</p>
+                <p class="ui-text-muted mt-2 text-xs">PDF généré</p>
+            </article>
+
+            <article class="theme-settings-card rounded-[1.75rem] p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Portfolio</p>
+                <p class="ui-title mt-3 text-2xl font-semibold">{{ dashboard.hasPortfolio ? 'Oui' : 'Non' }}</p>
+                <p class="ui-text-muted mt-2 text-xs">{{ profile and profile.public ? 'public' : 'privé ou absent' }}</p>
+            </article>
+        </div>
+
+        <div class="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
+            <div class="theme-settings-card flex h-full flex-col rounded-[2.35rem] p-6">
                 {% if not checklist.step1.done %}
-                    <h2 class="ui-title text-2xl font-semibold tracking-tight">Créer votre profil développeur</h2>
-                    <p class="ui-text-muted mt-3 text-[15px] leading-relaxed">Commence par l'étape 1 pour créer le profil puis reviens ici pour avancer.</p>
-                    <a href="{{ path('app_applicant_profile_create') }}" class="ui-button-primary mt-8 inline-flex items-center justify-center rounded-full px-6 py-3.5 text-[15px] font-bold active:scale-95">
-                        Créer mon profil
-                    </a>
+                    <div class="flex items-start justify-between gap-5">
+                        <div>
+                            <span class="ui-pill ui-pill-danger inline-flex rounded-full px-3 py-1 text-xs font-semibold">À créer</span>
+                            <h2 class="ui-title mt-4 text-2xl font-semibold tracking-tight">Créer votre profil développeur</h2>
+                        </div>
+                    </div>
+                    <div class="premium-divider mt-5 flex flex-1 flex-col justify-center gap-4 border-t pt-5">
+                        <p class="ui-text-muted text-[15px] leading-relaxed">{{ dashboard.profileMessage }}</p>
+                        <div class="flex">
+                            <a href="{{ path('app_applicant_profile_create') }}" class="ui-button-primary inline-flex w-full items-center justify-center rounded-2xl px-6 py-3.5 text-[15px] font-bold active:scale-95">
+                                Créer mon profil
+                            </a>
+                        </div>
+                    </div>
                 {% else %}
-                    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="flex items-start justify-between gap-5">
                         <div class="flex items-start gap-4 sm:gap-5">
                             {% if profile.avatarPath %}
-                                <img src="{{ asset(profile.avatarPath) }}" alt="Photo de profil de {{ profile.firstName }} {{ profile.lastName }}" class="h-16 w-16 shrink-0 rounded-2xl border object-cover premium-divider sm:h-20 sm:w-20">
+                                <img src="{{ asset(profile.avatarPath) }}" alt="Photo de profil de {{ profile.firstName }} {{ profile.lastName }}" class="h-20 w-20 shrink-0 rounded-2xl border object-cover premium-divider sm:h-24 sm:w-24">
                             {% else %}
-                                <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Photo de profil par défaut" class="h-16 w-16 shrink-0 rounded-2xl border object-cover premium-divider sm:h-20 sm:w-20">
+                                <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Photo de profil par défaut" class="h-20 w-20 shrink-0 rounded-2xl border object-cover premium-divider sm:h-24 sm:w-24">
                             {% endif %}
                             <div>
                                 <h2 class="ui-title text-2xl font-semibold tracking-tight">{{ profile.firstName ?: 'Profil' }} {{ profile.lastName ?: '' }}</h2>
-                                <p class="ui-text-muted mt-2 text-[15px] font-medium">{{ profile.headline ?: 'Headline non renseignée' }}</p>
+                                <p class="ui-text-muted mt-2 text-[15px] font-semibold">{{ profile.headline ?: 'Headline non renseignée' }}</p>
+                                <p class="ui-text-muted mt-2 text-sm">{{ profile.city ?: 'Localisation non renseignée' }}{% if profile.country %}, {{ profile.country }}{% endif %}</p>
                             </div>
                         </div>
-                        <div class="flex flex-wrap items-center gap-3">
+                        <div class="flex shrink-0 flex-nowrap items-center gap-3 whitespace-nowrap">
                             {% if profile.public or doneCount == 4 %}
-                                <form method="post" action="{{ path('app_applicant_profile_visibility') }}" data-visibility-toggle="true">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('toggle_visibility') }}">
-                                    <input type="hidden" name="is_public" value="{{ profile.public ? '0' : '1' }}" data-visibility-value="true">
-                                    <button type="submit" data-visibility-button="true" class="ui-button-secondary inline-flex items-center justify-center rounded-full px-4 py-2 text-xs font-semibold tracking-wide active:scale-95">
-                                        {{ profile.public ? 'Passer en privé' : 'Passer en public' }}
-                                    </button>
-                                </form>
+                                <div class="dashboard-tooltip" data-ui-tooltip="Changer la visibilité">
+                                    <form method="post" action="{{ path('app_applicant_profile_visibility') }}" data-visibility-toggle="true" class="inline-flex">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle_visibility') }}">
+                                        <input type="hidden" name="is_public" value="{{ profile.public ? '0' : '1' }}" data-visibility-value="true">
+                                        <button type="submit" aria-label="Changer la visibilité du profil" data-visibility-button="true" class="inline-flex items-center justify-center whitespace-nowrap rounded-full border px-4 py-2 text-xs font-semibold tracking-wide transition active:scale-95 u-border-pale-slate u-bg-pale-slate u-text-pale-slate">
+                                            {{ profile.public ? 'Passer en privé' : 'Passer en public' }}
+                                        </button>
+                                    </form>
+                                </div>
                             {% endif %}
-                            <span data-visibility-badge="true" class="inline-flex items-center rounded-full border px-4 py-1.5 text-xs font-semibold tracking-wide {{ profile.public ? 'u-border-pale-green u-bg-pale-green u-text-pale-green' : 'u-border-pale-red u-bg-pale-red u-text-pale-red' }}">
+                            <span data-visibility-badge="true" class="inline-flex items-center whitespace-nowrap rounded-full border px-4 py-1.5 text-xs font-semibold tracking-wide {{ profile.public ? 'u-border-pale-green u-bg-pale-green u-text-pale-green' : 'u-border-pale-red u-bg-pale-red u-text-pale-red' }}">
                                 {{ profile.public ? 'Public' : 'Privé' }}
                             </span>
                         </div>
                     </div>
 
-                    {% if doneCount == 4 %}
-                        <div class="premium-divider mt-6 border-t pt-6">
-                            {% if portfolioGenerated|default(false) %}
-                                <a href="{{ path('app_public_profile_show', { slug: profile.slug }) }}" class="ui-button-primary inline-flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-bold active:scale-95">
-                                    Accéder à mon portfolio
+                    <div class="premium-divider mt-4 flex flex-1 flex-col justify-center gap-4 border-t pt-4">
+                        <p class="ui-text-secondary text-[15px] leading-relaxed">{{ dashboard.profileMessage }}</p>
+                        {% if doneCount == 4 %}
+                            <div class="flex flex-col gap-3 sm:flex-row">
+                                {% if portfolioGenerated|default(false) %}
+                                    <a href="{{ path('app_public_profile_show', { slug: profile.slug }) }}" class="ui-button-primary inline-flex flex-1 items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-bold active:scale-95">
+                                        Accéder à mon portfolio
+                                    </a>
+                                {% else %}
+                                    <a href="{{ path('app_applicant_portfolio_generate') }}" class="ui-button-primary inline-flex flex-1 items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-bold active:scale-95">
+                                        Générer mon portfolio
+                                    </a>
+                                {% endif %}
+                                <a href="{{ path('app_applicant_cv_generate') }}" class="ui-button-secondary inline-flex flex-1 items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-semibold active:scale-95">
+                                    {{ profile.cvPdfPath ? 'Régénérer mon CV (PDF)' : 'Générer mon CV (PDF)' }}
                                 </a>
-                            {% else %}
-                                <a href="{{ path('app_applicant_portfolio_generate') }}" class="ui-button-primary inline-flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-bold active:scale-95">
-                                    Générer mon portfolio
-                                </a>
-                            {% endif %}
-                            <a href="{{ path('app_applicant_cv_generate') }}" class="ui-button-secondary mt-4 inline-flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-semibold active:scale-95">
-                                {{ profile.cvPdfPath ? 'Régénérer mon CV (PDF)' : 'Générer mon CV (PDF)' }}
-                            </a>
-                        </div>
-                    {% endif %}
-                {% endif %}
-
-                {% if profile is not null %}
-                    <div class="mt-6 grid gap-4 lg:grid-cols-2">
-                        <article class="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
-                            <h3 class="text-lg font-semibold text-white">Demande de changement de rôle</h3>
-                            <p class="mt-2 text-sm text-slate-400">Transmets une demande aux administrateurs si tu souhaites basculer vers un compte recruteur depuis les paramètres.</p>
-                            <a href="{{ path('app_settings_role') }}" class="ui-button-secondary mt-4 inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold">
-                                Ouvrir le changement de rôle
-                            </a>
-                        </article>
-
-                        {% if app.user and app.user.applicantOnly %}
-                            <article class="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
-                                <h3 class="text-lg font-semibold text-white">Demande de changement de slug</h3>
-                                <p class="mt-2 text-sm text-slate-400">Propose un nouveau slug pour ton portfolio depuis la section paramètres dédiée.</p>
-                                <a href="{{ path('app_settings_slug') }}" class="ui-button-secondary mt-4 inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold">
-                                    Ouvrir le changement de slug
-                                </a>
-
-                                {# Compat tests: fallback non visible, l'UX principale reste via Paramètres. #}
-                                <form method="post" action="{{ path('app_account_request_slug') }}" class="hidden" aria-hidden="true">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('request_slug') }}">
-                                    <input type="text" name="desired_slug" value="{{ profile.slug }}">
-                                    <button type="submit" tabindex="-1">Envoyer la demande</button>
-                                </form>
-                            </article>
+                            </div>
                         {% endif %}
                     </div>
                 {% endif %}
             </div>
 
-            <aside class="space-y-6">
-                <div class="theme-settings-card rounded-[2.35rem] p-6">
-                    <div class="flex items-center justify-between gap-3">
-                        <h2 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Progression</h2>
+            <div class="theme-settings-card rounded-[2.35rem] p-6">
+                <div class="flex items-center justify-between gap-3">
+                    <h2 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Progression</h2>
+                    <div class="flex items-center gap-2">
+                        {% if profile is not null and checklist.step1.done %}
+                            <a href="{{ path('app_applicant_profile_step1') }}" class="dashboard-tooltip inline-flex h-9 w-9 items-center justify-center rounded-full border border-blue-300/60 bg-blue-500/10 text-blue-700 transition hover:bg-blue-500/15 active:scale-95" data-ui-tooltip="Modifier mon profil" aria-label="Modifier mon profil">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 0 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 7.125 16.875 4.5"></path>
+                                </svg>
+                            </a>
+                        {% endif %}
                         {% if not checklist.step1.done %}
                             <span class="ui-pill ui-pill-danger rounded-full px-2.5 py-1 text-xs font-semibold">À créer</span>
                         {% elseif doneCount < 4 %}
@@ -128,81 +220,191 @@
                             <span class="ui-pill ui-pill-success rounded-full px-2.5 py-1 text-xs font-semibold">Terminé</span>
                         {% endif %}
                     </div>
-                    <ul class="mt-5 space-y-3 text-[15px]">
-                        {% for key, item in checklist %}
-                            {% set index = loop.index %}
-                            <li class="premium-list-row rounded-[1.5rem] p-3">
-                                <div class="flex items-start gap-4">
-                                    <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold {{ item.done ? 'ui-step-badge-done' : 'ui-step-badge-pending' }}">
-                                        {% if item.done %}
-                                            ✓
-                                        {% else %}
-                                            {{ index }}
-                                        {% endif %}
-                                    </span>
-                                    <div class="min-w-0 flex-1 pt-0.5">
-                                        <p class="{{ item.done ? 'ui-title' : 'ui-text-muted' }} font-medium">{{ item.label }}</p>
+                </div>
+                {% if doneCount < 4 %}
+                    <div class="mt-5">
+                        <div class="ui-text-muted mb-3 flex items-center justify-between text-xs font-medium uppercase tracking-wider">
+                            <span>Profil complété</span>
+                            <span class="ui-title">{{ progressPercent }}%</span>
+                        </div>
+                        <div class="ui-progress-track h-2 w-full overflow-hidden rounded-full shadow-inner">
+                            <div class="ui-progress-value h-2 rounded-full transition-all duration-1000 ease-out" style="width: {{ progressPercent }}%;"></div>
+                        </div>
+                    </div>
+                {% endif %}
+                <ul class="mt-5 space-y-3 text-[15px]">
+                    {% for item in checklist %}
+                        <li class="premium-list-row rounded-[1.5rem] p-3">
+                            <div class="flex items-start gap-4">
+                                <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold {{ item.done ? 'ui-step-badge-done' : 'ui-step-badge-pending' }}">
+                                    {{ item.done ? '✓' : loop.index }}
+                                </span>
+                                <p class="{{ item.done ? 'ui-title' : 'ui-text-muted' }} pt-0.5 font-medium">{{ item.label }}</p>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        {% if dashboard.recommendations is not empty %}
+            <div class="theme-settings-card rounded-[2.35rem] p-6">
+                <h2 class="ui-title text-2xl font-semibold tracking-tight">Améliorations proposées</h2>
+                <div class="mt-5 grid gap-3 lg:grid-cols-2">
+                    {% for recommendation in dashboard.recommendations %}
+                        <a href="{{ path(recommendation.route) }}" class="premium-list-row block rounded-[1.5rem] p-4 text-sm font-medium text-slate-200 transition duration-300 hover:scale-[1.01]">
+                            {{ recommendation.label }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="theme-settings-card rounded-[2.35rem] p-6">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <h2 class="ui-title text-2xl font-semibold tracking-tight">Offres recommandées pour vous</h2>
+                    <p class="ui-text-muted mt-2 text-sm">Le score est un indicateur interne de compatibilité, pas une évaluation absolue.</p>
+                </div>
+                <span class="ui-pill ui-pill-success inline-flex w-fit whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold">{{ dashboard.compatibleOffersCount }} compatible{{ dashboard.compatibleOffersCount > 1 ? 's' : '' }}</span>
+            </div>
+
+            <div class="mt-5 grid gap-3 lg:grid-cols-3">
+                {% for offer in dashboard.recommendedOffers %}
+                    <article class="premium-list-row rounded-[1.5rem] p-4">
+                        <div class="flex h-full flex-col justify-between gap-4">
+                            <div class="min-w-0">
+                                <p class="ui-title text-base font-semibold">{{ offer.title }}</p>
+                                <p class="ui-text-muted mt-1 text-sm">{{ offer.company ?: 'Entreprise non renseignée' }}{% if offer.location %} · {{ offer.location }}{% endif %}</p>
+                                <p class="ui-text-muted mt-2 text-xs">{{ offer.contract }}</p>
+                            </div>
+                            <div>
+                                <span class="ui-pill {{ offer.score >= 70 ? 'ui-pill-success' : 'ui-pill-warning' }} inline-flex rounded-full px-3 py-1 text-xs font-semibold">{{ offer.scoreLabel }}</span>
+                                <p class="ui-title mt-2 text-sm font-semibold">{{ offer.score }} %</p>
+                                {% if offer.matchedSkills is not empty %}
+                                    <div class="mt-3 flex flex-wrap gap-2">
+                                        {% for skill in offer.matchedSkills %}
+                                            <span class="rounded-full border border-white/10 px-2.5 py-1 text-xs text-slate-300">{{ skill }}</span>
+                                        {% endfor %}
                                     </div>
-                                </div>
-                            </li>
-                        {% endfor %}
-                    </ul>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
+                {% else %}
+                    <div class="premium-list-row ui-text-muted col-span-full rounded-[1.5rem] p-5 text-sm">
+                        Aucune offre compatible détectée pour le moment. Le matching deviendra plus pertinent avec un profil plus complet.
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="grid items-stretch gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+            <div class="theme-settings-card flex h-full flex-col rounded-[2.35rem] p-6">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                        <h2 class="ui-title text-2xl font-semibold tracking-tight">Conversations recruteurs</h2>
+                        <p class="ui-text-muted mt-2 text-sm">Suivi des échanges et messages en attente.</p>
+                    </div>
+                    <a href="{{ path('app_applicant_messages') }}" class="ui-button-secondary inline-flex w-fit items-center justify-center whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold">
+                        Ouvrir la messagerie
+                    </a>
                 </div>
 
-                <div class="theme-settings-card rounded-[2.35rem] p-6">
-                    <h2 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Actions rapides</h2>
-
-                    {% set canStep2 = checklist.step1.done %}
-                    {% set canStep3 = checklist.step2.done or checklist.step3.done or checklist.step4.done %}
-                    {% set canStep4 = checklist.step3.done or checklist.step4.done %}
-
-                    <div class="mt-5 space-y-3">
-                        {% if doneCount == 4 %}
-                            <a href="{{ path('app_applicant_profile_step1') }}" class="ui-button-secondary flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-semibold active:scale-95">
-                                Modifier
-                            </a>
-                        {% else %}
-                            <a href="{{ path(checklist.step1.route) }}" class="flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-semibold transition-all duration-300 active:scale-95 {{ not checklist.step1.done ? 'ui-button-primary' : 'ui-button-secondary' }}">
-                                {{ not checklist.step1.done ? 'Créer mon profil' : 'Étape 1 : Infos générales' }}
-                            </a>
-
-                            {% if canStep2 %}
-                                <a href="{{ path('app_applicant_profile_step2') }}" class="ui-button-secondary flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-semibold active:scale-95">
-                                    Étape 2 : Expériences
-                                </a>
-                            {% else %}
-                                <div class="ui-button-disabled flex w-full cursor-not-allowed items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-medium opacity-50">
-                                    Étape 2 : Expériences
-                                </div>
-                            {% endif %}
-
-                            {% if canStep3 %}
-                                <a href="{{ path('app_applicant_profile_step3') }}" class="ui-button-secondary flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-semibold active:scale-95">
-                                    Étape 3 : Liens externes
-                                </a>
-                            {% else %}
-                                <div class="ui-button-disabled flex w-full cursor-not-allowed items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-medium opacity-50">
-                                    Étape 3 : Liens externes
-                                </div>
-                            {% endif %}
-
-                            {% if canStep4 %}
-                                <a href="{{ path('app_applicant_profile_step4') }}" class="ui-button-secondary flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-semibold active:scale-95">
-                                    Étape 4 : Postes
-                                </a>
-                            {% else %}
-                                <div class="ui-button-disabled flex w-full cursor-not-allowed items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-medium opacity-50">
-                                    Étape 4 : Postes
-                                </div>
-                            {% endif %}
-                        {% endif %}
+                <div class="mt-5 grid gap-3 sm:grid-cols-4">
+                    <div class="premium-list-row rounded-[1.25rem] p-4">
+                        <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Actives</p>
+                        <p class="ui-title mt-2 text-2xl font-semibold">{{ dashboard.activeConversationsCount }}</p>
+                    </div>
+                    <div class="premium-list-row rounded-[1.25rem] p-4">
+                        <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Non lus</p>
+                        <p class="ui-title mt-2 text-2xl font-semibold">{{ dashboard.unreadMessagesCount }}</p>
+                    </div>
+                    <div class="premium-list-row rounded-[1.25rem] p-4">
+                        <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Recruteurs</p>
+                        <p class="ui-title mt-2 text-2xl font-semibold">{{ dashboard.recruiterInteractionsCount }}</p>
+                    </div>
+                    <div class="premium-list-row rounded-[1.25rem] p-4">
+                        <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Dernier échange</p>
+                        <p class="ui-title mt-2 text-sm font-semibold">{{ dashboard.latestInteraction ? dashboard.latestInteraction|date('d/m/Y') : 'Aucun' }}</p>
                     </div>
                 </div>
-            </aside>
+
+                <div class="mt-5 flex-1 overflow-hidden rounded-[1.5rem] border border-white/10">
+                    <div class="hidden grid-cols-[1fr_1fr_1.3fr_0.7fr_0.6fr] gap-3 border-b border-white/10 bg-white/5 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 lg:grid">
+                        <span>Recruteur / Entreprise</span>
+                        <span>Offre concernée</span>
+                        <span>Dernier message</span>
+                        <span>Statut</span>
+                        <span>Action</span>
+                    </div>
+
+                    <div class="divide-y divide-white/10">
+                        {% for row in conversationRows|slice(0, 4) %}
+                            <div class="grid gap-3 px-4 py-4 text-sm lg:grid-cols-[1fr_1fr_1.3fr_0.7fr_0.6fr] lg:items-center">
+                                <div>
+                                    <p class="ui-title font-semibold">{{ row.recruiterName }}</p>
+                                    <p class="ui-text-muted text-xs">{{ row.recruiterCompany ?: 'Entreprise non renseignée' }}</p>
+                                </div>
+                                <p class="ui-text-muted">{{ row.conversation.subject ?: 'Échange direct' }}</p>
+                                <p class="ui-text-muted line-clamp-2">{{ row.lastMessagePreview ?: 'Message sans aperçu' }}</p>
+                                <div>
+                                    <span class="ui-pill {{ row.unreadCount > 0 ? 'ui-pill-danger' : 'ui-pill-success' }} inline-flex rounded-full px-2.5 py-1 text-xs font-semibold">
+                                        {{ row.unreadCount > 0 ? row.unreadCount ~ ' non lu' ~ (row.unreadCount > 1 ? 's' : '') : row.status }}
+                                    </span>
+                                </div>
+                                <a href="{{ path('app_applicant_message_show', { conversationId: row.conversation.id }) }}" class="ui-button-secondary inline-flex w-fit items-center justify-center rounded-full px-3 py-2 text-xs font-semibold">
+                                    Voir
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="ui-text-muted px-4 py-5 text-sm">
+                                Aucune conversation active.
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="theme-settings-card flex h-full flex-col rounded-[2.35rem] p-6">
+                <h2 class="ui-title text-2xl font-semibold tracking-tight">Visibilité du profil</h2>
+                <p class="ui-text-muted mt-2 text-sm">Estimation interne basée sur la complétion, le portfolio, la visibilité publique et les interactions.</p>
+
+                <div class="mt-5 grid flex-1 gap-3">
+                    <div class="premium-list-row flex items-center justify-between gap-4 rounded-[1.25rem] p-4">
+                        <div>
+                            <p class="ui-title text-sm font-semibold">Score de visibilité</p>
+                            <p class="ui-text-muted text-xs">{{ dashboard.visibilityLabel }}</p>
+                        </div>
+                        <p class="ui-title text-2xl font-semibold">{{ dashboard.visibilityScore }}%</p>
+                    </div>
+                    <div class="premium-list-row flex items-center justify-between gap-4 rounded-[1.25rem] p-4">
+                        <div>
+                            <p class="ui-title text-sm font-semibold">Consultations du profil</p>
+                            <p class="ui-text-muted text-xs">Prévu en V2</p>
+                        </div>
+                        <p class="ui-title text-xl font-semibold">-</p>
+                    </div>
+                    <div class="premium-list-row flex items-center justify-between gap-4 rounded-[1.25rem] p-4">
+                        <div>
+                            <p class="ui-title text-sm font-semibold">Ajouts en favori</p>
+                            <p class="ui-text-muted text-xs">Par des recruteurs</p>
+                        </div>
+                        <p class="ui-title text-xl font-semibold">{{ dashboard.favoriteRecruitersCount }}</p>
+                    </div>
+                    <div class="premium-list-row flex items-center justify-between gap-4 rounded-[1.25rem] p-4">
+                        <div>
+                            <p class="ui-title text-sm font-semibold">Contacts reçus</p>
+                            <p class="ui-text-muted text-xs">Conversations ouvertes</p>
+                        </div>
+                        <p class="ui-title text-xl font-semibold">{{ dashboard.contactsReceivedCount }}</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
-            Avance étape par étape, finalise ton profil et garde une vue claire sur ta progression développeur.
+            Les scores et indicateurs affichés sont internes à DevSpot et servent uniquement à aider le suivi du profil.
         </p>
     </section>
 {% endblock %}

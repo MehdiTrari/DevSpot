@@ -16,7 +16,7 @@ final class RecruiterFavoritesTest extends WebTestCase
 {
     private static bool $schemaInitialized = false;
 
-    public function testRecruiterCanAddFavoriteFromHomeDirectory(): void
+    public function testRecruiterCanAddFavoriteAfterHomeRedirectsToDashboard(): void
     {
         $client = static::createClient();
         $profile = $this->createProfileOwnerWithPortfolio(true, 'Alice', 'Martin');
@@ -24,11 +24,14 @@ final class RecruiterFavoritesTest extends WebTestCase
 
         $client->loginUser($recruiter);
 
-        $crawler = $client->request('GET', '/');
+        $client->request('GET', '/');
+        self::assertResponseRedirects('/recruiter/dashboard');
+
+        $crawler = $client->request('GET', '/profil/'.$profile->getSlug());
         $form = $crawler->filter(sprintf('form[action="/recruiter/favorites/%d/add"]', $profile->getId()))->first()->form();
         $client->submit($form);
 
-        self::assertResponseRedirects('/');
+        self::assertResponseRedirects('/profil/'.$profile->getSlug());
         $client->followRedirect();
         self::assertSelectorTextContains('body', 'Profil ajouté aux favoris.');
 

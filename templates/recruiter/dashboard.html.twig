@@ -16,6 +16,169 @@
             </div>
         </div>
 
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+            <article class="theme-settings-card rounded-[1.75rem] p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Contactés</p>
+                <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.contactedProfilesCount }}</p>
+                <p class="ui-text-muted mt-2 text-xs">Profils avec échange initié</p>
+            </article>
+
+            <article class="theme-settings-card rounded-[1.75rem] p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Réponses</p>
+                <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.repliedProfilesCount }}</p>
+                <p class="ui-text-muted mt-2 text-xs">Profils ayant répondu</p>
+            </article>
+
+            <article class="theme-settings-card rounded-[1.75rem] p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Favoris</p>
+                <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.favoriteProfilesCount }}</p>
+                <p class="ui-text-muted mt-2 text-xs">Profils sauvegardés</p>
+            </article>
+
+            <article class="theme-settings-card rounded-[1.75rem] p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Conversations</p>
+                <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.activeConversationsCount }}</p>
+                <p class="ui-text-muted mt-2 text-xs">Actives</p>
+            </article>
+
+            <article class="theme-settings-card rounded-[1.75rem] p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Sans réponse</p>
+                <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.unansweredConversationsCount }}</p>
+                <p class="ui-text-muted mt-2 text-xs">À relancer</p>
+            </article>
+
+            <article class="theme-settings-card rounded-[1.75rem] p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Taux réponse</p>
+                <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.responseRate }}%</p>
+                <p class="ui-text-muted mt-2 text-xs">{{ interactionDashboard.linkedProfilesCount }} lié{{ interactionDashboard.linkedProfilesCount > 1 ? 's' : '' }} à une offre</p>
+            </article>
+        </div>
+
+        <article class="theme-settings-card rounded-[2.35rem] p-6 sm:p-8">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Suivi des candidats</p>
+                    <h2 class="ui-title mt-2 text-2xl font-semibold tracking-tight">Suivi des interactions</h2>
+                    <p class="ui-text-secondary mt-2 max-w-3xl text-[15px] leading-relaxed">
+                        Le niveau d'intérêt est un indicateur interne calculé à partir des favoris, messages envoyés, réponses reçues, échanges multiples, lien avec une offre et activité récente.
+                    </p>
+                </div>
+                <a href="{{ path('app_recruiter_messages') }}" class="ui-button-secondary inline-flex w-fit items-center justify-center whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold">
+                    Ouvrir la messagerie
+                </a>
+            </div>
+
+            <div class="mt-6 space-y-3">
+                {% for row in interactionDashboard.rows %}
+                    <div class="premium-list-row grid gap-5 rounded-[1.5rem] p-5 lg:grid-cols-[1.05fr_0.9fr_0.95fr_0.8fr_0.55fr_0.85fr_auto] lg:items-center lg:gap-6">
+                        <div>
+                            <p class="ui-text-muted mb-1 text-xs font-semibold uppercase tracking-wider lg:hidden">Candidat</p>
+                            {% if row.profileSlug %}
+                                <a href="{{ path('app_public_profile_show', { slug: row.profileSlug }) }}" class="ui-title text-sm font-semibold hover:underline">{{ row.profileName }}</a>
+                            {% else %}
+                                <p class="ui-title text-sm font-semibold">{{ row.profileName }}</p>
+                            {% endif %}
+                            <p class="ui-text-muted mt-1 text-xs">{{ row.headline ?: 'Profil développeur' }}</p>
+                        </div>
+
+                        <div>
+                            <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Offre associée</p>
+                            <p class="ui-title mt-1 text-sm font-semibold">{{ row.linkedOfferTitle ?: 'Non liée' }}</p>
+                        </div>
+
+                        <div>
+                            <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Statut de l'échange</p>
+                            <div class="mt-2 rounded-[1.15rem] border border-white/10 bg-white/5 px-3 py-2">
+                                <p class="ui-title text-sm font-semibold">{{ row.exchangeStatus }}</p>
+                                <p class="ui-text-muted mt-1 text-xs">{{ row.lastSignal }}</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Dernière interaction</p>
+                            <div class="mt-2 rounded-[1.15rem] border border-white/10 bg-white/5 px-3 py-2">
+                                <p class="ui-title text-sm font-semibold">{{ row.lastActivityAt ? row.lastActivityAt|date('d/m/Y') : 'Aucune' }}</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Favori</p>
+                            {% if row.isFavorite %}
+                                <span class="mt-2 inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 text-red-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]" aria-label="Profil favori">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4.5 w-4.5">
+                                        <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z"></path>
+                                    </svg>
+                                </span>
+                            {% else %}
+                                <span class="ui-text-muted mt-2 block text-sm">Non</span>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Score intérêt</p>
+                            <div class="mt-2 flex min-h-10 items-center gap-2 rounded-[1.15rem] border border-white/10 bg-white/5 px-3 py-2">
+                                <span class="ui-pill {% if row.interestScore >= 75 %}ui-pill-success{% elseif row.interestScore >= 45 %}ui-pill-warning{% else %}ui-pill-info{% endif %} inline-flex rounded-full px-3 py-1 text-xs font-semibold">
+                                    {{ row.interestLabel }}
+                                </span>
+                                <span class="ui-title text-sm font-semibold">{{ row.interestScore }}%</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap justify-start gap-2 pt-1 lg:justify-end lg:pt-5">
+                            {% if row.conversationId %}
+                                <a href="{{ path('app_recruiter_message_show', { conversationId: row.conversationId }) }}" class="ui-button-secondary inline-flex items-center justify-center rounded-full px-3 py-2 text-xs font-semibold">
+                                    Voir
+                                </a>
+                            {% elseif row.profileSlug %}
+                                <a href="{{ path('app_public_profile_show', { slug: row.profileSlug }) }}" class="ui-button-secondary inline-flex items-center justify-center rounded-full px-3 py-2 text-xs font-semibold">
+                                    Profil
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="premium-list-row ui-text-muted rounded-[1.5rem] p-5 text-sm">
+                        Aucun profil suivi pour le moment. Les contacts, réponses et favoris apparaîtront ici dès que tu interagiras avec des candidats.
+                    </div>
+                {% endfor %}
+            </div>
+
+            <p class="ui-text-muted mt-5 text-xs leading-relaxed">
+                Cet indicateur est une aide au suivi interne DevSpot. Il ne constitue pas une évaluation absolue du candidat.
+            </p>
+        </article>
+
+        <article class="theme-settings-card rounded-[2.35rem] p-6 sm:p-8">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <h3 class="ui-title text-2xl font-semibold tracking-tight">Mes offres</h3>
+                    <p class="ui-text-muted mt-1 text-sm">Clique sur une offre pour ouvrir sa liste dédiée.</p>
+                </div>
+                <a href="{{ path('app_recruiter_offers') }}" class="ui-pill ui-pill-success inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-semibold">Voir mes offres</a>
+            </div>
+
+            <div class="mt-5 grid gap-3 lg:grid-cols-2">
+                {% for job in offerRows %}
+                    <a href="{{ path('app_recruiter_offer_detail', { id: job.id }) }}" class="premium-list-row block rounded-[1.4rem] px-4 py-4 transition duration-300 hover:scale-[1.01]">
+                        <p class="ui-title text-sm font-semibold">{{ job.title }}</p>
+                        <p class="ui-text-secondary mt-1 text-sm">{{ job.contract }}</p>
+                        {% if job.applicationDeadline %}
+                            <p class="ui-text-muted mt-2 text-xs">Date limite : {{ job.applicationDeadline|date('d/m/Y') }}</p>
+                        {% endif %}
+                        <p class="ui-text-muted mt-2 text-xs">{{ job.applicants }} candidature{{ job.applicants > 1 ? 's' : '' }} simulée{{ job.applicants > 1 ? 's' : '' }}</p>
+                        {% if job.topMatchPercentage is not null %}
+                            <p class="mt-2 text-xs font-semibold text-emerald-400">Top matching enrichi : {{ job.topMatchPercentage|number_format(1, '.', ' ') }}%</p>
+                        {% endif %}
+                        <span class="ui-pill {% if job.statusValue == 'published' %}ui-pill-success{% elseif job.statusValue == 'closed' %}ui-pill-danger{% else %}ui-pill-warning{% endif %} mt-3 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold">{{ job.status }}</span>
+                    </a>
+                {% else %}
+                    <div class="premium-list-row ui-text-muted rounded-[1.4rem] px-4 py-5 text-sm lg:col-span-2">
+                        Aucune offre recruteur pour le moment.
+                    </div>
+                {% endfor %}
+            </div>
+        </article>
+
         <div class="grid gap-6 sm:grid-cols-2">
             <div class="theme-settings-card flex flex-col rounded-[2.35rem] p-6">
                 <div class="flex items-center justify-between gap-3">
@@ -103,57 +266,6 @@
                         </a>
                     {% endif %}
                 </div>
-            </div>
-        </div>
-
-        <div class="theme-settings-card rounded-[2.35rem] p-8">
-            <div class="grid gap-6 xl:grid-cols-2">
-
-                <div class="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
-                    <h3 class="text-lg font-semibold text-white">Demande de changement de rôle</h3>
-                    <p class="mt-2 text-sm text-slate-400">Besoin de repasser sur un compte candidat ? Utilise la page paramètres dédiée.</p>
-                    <a href="{{ path('app_settings_role') }}" class="ui-button-secondary mt-4 inline-flex w-full items-center justify-center rounded-2xl px-5 py-3 text-sm font-semibold">
-                        Ouvrir le changement de rôle
-                    </a>
-
-                    {# Compat tests: fallback non visible, l'UX principale reste via Paramètres. #}
-                    <form method="post" action="{{ path('app_account_request_role') }}" class="hidden" aria-hidden="true">
-                        <input type="hidden" name="_token" value="{{ csrf_token('request_role') }}">
-                        <input type="hidden" name="role" value="ROLE_APPLICANT">
-                        <button type="submit" tabindex="-1">Demander le rôle candidat</button>
-                    </form>
-                </div>
-
-                <article class="premium-card rounded-[1.9rem] p-6">
-                    <div class="flex items-center justify-between gap-3">
-                        <div>
-                            <h3 class="ui-title text-lg font-semibold">Mes offres</h3>
-                            <p class="ui-text-muted mt-1 text-sm">Clique sur une offre pour ouvrir ta liste dédiée.</p>
-                        </div>
-                        <a href="{{ path('app_recruiter_offers') }}" class="ui-pill ui-pill-success inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">Voir mes offres</a>
-                    </div>
-
-                    <div class="mt-5 space-y-3">
-                        {% for job in offerRows %}
-                            <a href="{{ path('app_recruiter_offer_detail', { id: job.id }) }}" class="premium-list-row block rounded-[1.4rem] px-4 py-4 transition duration-300 hover:scale-[1.01]">
-                                <p class="ui-title text-sm font-semibold">{{ job.title }}</p>
-                                <p class="ui-text-secondary mt-1 text-sm">{{ job.contract }}</p>
-                                {% if job.applicationDeadline %}
-                                    <p class="ui-text-muted mt-2 text-xs">Date limite : {{ job.applicationDeadline|date('d/m/Y') }}</p>
-                                {% endif %}
-                                <p class="ui-text-muted mt-2 text-xs">{{ job.applicants }} candidature{{ job.applicants > 1 ? 's' : '' }} simulée{{ job.applicants > 1 ? 's' : '' }}</p>
-                                {% if job.topMatchPercentage is not null %}
-                                    <p class="mt-2 text-xs font-semibold text-emerald-400">Top matching enrichi : {{ job.topMatchPercentage|number_format(1, '.', ' ') }}%</p>
-                                {% endif %}
-                                <span class="ui-pill {% if job.statusValue == 'published' %}ui-pill-success{% elseif job.statusValue == 'closed' %}ui-pill-danger{% else %}ui-pill-warning{% endif %} mt-3 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold">{{ job.status }}</span>
-                            </a>
-                        {% else %}
-                            <div class="premium-list-row ui-text-muted rounded-[1.4rem] px-4 py-5 text-sm">
-                                Aucune offre recruteur pour le moment.
-                            </div>
-                        {% endfor %}
-                    </div>
-                </article>
             </div>
         </div>
 
