@@ -40,8 +40,9 @@ final class SecurityPagesTest extends WebTestCase
         $client->request('GET', '/');
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('h1', 'Trouvez les bons profils');
-        self::assertSelectorTextContains('body', 'Je suis développeur');
+        self::assertSelectorTextContains('h1', 'DevSpot');
+        self::assertSelectorTextContains('body', 'Le matching développeurs-recruteurs');
+        self::assertSelectorTextContains('body', 'Créer un compte');
         self::assertSelectorExists('a[href="/register"]');
         self::assertSelectorExists('a[href="/login"]');
         self::assertSelectorExists('a[href="#decouvrir"]');
