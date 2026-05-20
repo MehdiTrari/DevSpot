@@ -6,29 +6,137 @@
     {{ parent() }}
     <style>
         .landing-hero-full {
-            min-height: calc(100svh - 7.5rem);
+            min-height: min(42rem, calc(100svh - 7.5rem));
             align-items: center;
-            padding-block: clamp(2.5rem, 7vh, 5.5rem);
+            padding-block: clamp(2rem, 5vh, 4rem);
         }
 
         .landing-hero-title {
             color: var(--ui-heading);
-            font-size: clamp(1.9rem, 3.25vw, 3rem);
+            font-size: clamp(2.45rem, 5vw, 4.15rem);
+            font-weight: 700;
+            line-height: 0.98;
+            letter-spacing: 0;
+        }
+
+        .landing-hero-lead {
+            color: var(--ui-heading);
+            font-size: clamp(1.65rem, 2.5vw, 2.45rem);
             font-weight: 600;
-            line-height: 1.12;
+            line-height: 1.13;
             letter-spacing: 0;
         }
 
         .landing-hero-text {
-            max-width: 38rem;
+            max-width: 34rem;
+        }
+
+        .landing-hero-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .landing-hero-actions a {
+            min-width: max-content;
+            white-space: nowrap;
+        }
+
+        .landing-hero-actions .landing-hero-action-primary {
+            min-width: 12rem;
+        }
+
+        .landing-hero-actions .landing-hero-action-secondary {
+            min-width: 10.5rem;
+        }
+
+        .landing-hero-actions .landing-hero-action-link {
+            min-width: 11.5rem;
         }
 
         .landing-profile-card {
-            min-height: 27rem;
+            min-height: 25rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            overflow: hidden;
             box-shadow: 0 24px 64px rgba(var(--indeed-shadow-rgb), 0.16);
+        }
+
+        .landing-match-orbit {
+            position: relative;
+            min-height: 22rem;
+        }
+
+        .landing-match-line {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: min(16rem, 54%);
+            height: 2px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, rgba(37, 87, 214, 0), rgba(37, 87, 214, 0.52), rgba(16, 185, 129, 0));
+            transform: translate(-50%, -50%);
+            overflow: hidden;
+        }
+
+        .landing-match-line::after {
+            content: "";
+            position: absolute;
+            inset-block: 0;
+            width: 35%;
+            border-radius: inherit;
+            background: rgba(16, 185, 129, 0.8);
+            animation: landingPulseLine 2.8s ease-in-out infinite;
+        }
+
+        .landing-match-node {
+            position: absolute;
+            width: min(15.25rem, 45%);
+            border: 1px solid rgba(132, 162, 224, 0.42);
+            background: rgba(255, 255, 255, 0.82);
+            box-shadow: 0 18px 48px rgba(var(--indeed-shadow-rgb), 0.12);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .landing-match-node-left {
+            left: 0;
+            top: 1.25rem;
+            animation: landingFloatLeft 5.5s ease-in-out infinite;
+        }
+
+        .landing-match-node-right {
+            right: 0;
+            top: 7.25rem;
+            animation: landingFloatRight 6s ease-in-out infinite;
+        }
+
+        .landing-match-summary {
+            position: absolute;
+            left: 50%;
+            bottom: 0.5rem;
+            width: min(23rem, 100%);
+            transform: translateX(-50%);
+            border: 1px solid rgba(16, 185, 129, 0.24);
+            background: rgba(236, 253, 245, 0.78);
+            box-shadow: 0 18px 44px rgba(16, 185, 129, 0.12);
+        }
+
+        .landing-signal-bar {
+            height: 0.45rem;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(37, 87, 214, 0.12);
+        }
+
+        .landing-signal-value {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #2557d6, #10b981);
+            transform-origin: left;
+            animation: landingSignal 3.8s ease-in-out infinite;
         }
 
         .landing-process-band {
@@ -38,6 +146,61 @@
                 radial-gradient(circle at top left, rgba(37, 87, 214, 0.12), transparent 34%),
                 linear-gradient(180deg, var(--ui-note-bg), var(--ui-panel-subtle-bg));
             box-shadow: 0 18px 48px rgba(var(--indeed-shadow-rgb), 0.1);
+        }
+
+        @keyframes landingPulseLine {
+            0% {
+                transform: translateX(-110%);
+                opacity: 0;
+            }
+
+            20%, 80% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(310%);
+                opacity: 0;
+            }
+        }
+
+        @keyframes landingFloatLeft {
+            0%, 100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-0.65rem);
+            }
+        }
+
+        @keyframes landingFloatRight {
+            0%, 100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(0.55rem);
+            }
+        }
+
+        @keyframes landingSignal {
+            0%, 100% {
+                transform: scaleX(0.68);
+            }
+
+            50% {
+                transform: scaleX(0.92);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .landing-match-line::after,
+            .landing-match-node-left,
+            .landing-match-node-right,
+            .landing-signal-value {
+                animation: none;
+            }
         }
 
         @media (max-width: 1024px) {
@@ -51,13 +214,56 @@
             }
         }
 
+        @media (min-width: 640px) {
+            .landing-hero-actions {
+                flex-direction: row;
+                flex-wrap: nowrap;
+                justify-content: center;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .landing-hero-actions {
+                justify-content: flex-start;
+            }
+        }
+
         @media (max-width: 640px) {
             .landing-hero-title {
-                font-size: clamp(1.85rem, 7.2vw, 2.45rem);
+                font-size: clamp(2.35rem, 15vw, 3.4rem);
+            }
+
+            .landing-hero-lead {
+                font-size: clamp(1.45rem, 7.5vw, 2rem);
             }
 
             .landing-profile-card {
                 min-height: auto;
+            }
+
+            .landing-match-orbit {
+                min-height: 28rem;
+            }
+
+            .landing-match-node {
+                width: 100%;
+            }
+
+            .landing-match-node-left,
+            .landing-match-node-right,
+            .landing-match-summary {
+                position: relative;
+                inset: auto;
+                transform: none;
+            }
+
+            .landing-match-node-right,
+            .landing-match-summary {
+                margin-top: 0.85rem;
+            }
+
+            .landing-match-line {
+                display: none;
             }
         }
     </style>
@@ -65,51 +271,67 @@
 
 {% block body %}
     <section class="w-full max-w-6xl space-y-10 font-sans">
-        <article class="landing-hero-full favorite-showcase-hero mx-auto grid w-full gap-10 px-1 sm:px-2 lg:grid-cols-[1.05fr_0.95fr] lg:text-left">
-            <div class="mx-auto max-w-3xl text-center lg:mx-0 lg:text-left">
+        <article class="landing-hero-full favorite-showcase-hero mx-auto grid w-full gap-8 px-1 sm:px-2 lg:grid-cols-[0.9fr_1.1fr] lg:text-left">
+            <div class="mx-auto max-w-2xl text-center lg:mx-0 lg:text-left">
                 <p class="favorite-showcase-kicker">DevSpot</p>
-                <h1 class="landing-hero-title mt-6">
-                    Trouvez les bons profils développeurs ou les bonnes opportunités grâce à un matching intelligent.
-                </h1>
-                <p class="landing-hero-text ui-text-secondary mt-6 text-[15px] leading-relaxed sm:text-lg">
-                    DevSpot rapproche candidats et recruteurs avec une lecture plus fine des compétences, des expériences et des intentions de recherche.
+                <h1 class="landing-hero-title mt-6">DevSpot</h1>
+                <p class="landing-hero-lead mt-5">
+                    Le matching développeurs-recruteurs qui lit au-delà des mots-clés.
+                </p>
+                <p class="landing-hero-text ui-text-secondary mt-5 text-[15px] leading-relaxed sm:text-[17px]">
+                    Candidats et recruteurs gardent leurs profils, offres, scores et conversations au même endroit.
                 </p>
 
-                <div class="mt-9 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
-                    <a href="{{ path('app_register') }}" class="ui-button-primary inline-flex items-center justify-center rounded-full px-7 py-4 text-[15px] font-bold active:scale-95">
+                <div class="landing-hero-actions mt-8">
+                    <a href="{{ path('app_register') }}" class="landing-hero-action-primary ui-button-primary inline-flex items-center justify-center rounded-full px-7 py-3.5 text-[15px] font-bold active:scale-95">
                         Créer un compte
                     </a>
-                    <a href="{{ path('app_login') }}" class="ui-button-secondary inline-flex items-center justify-center rounded-full px-7 py-4 text-[15px] font-semibold active:scale-95">
+                    <a href="{{ path('app_login') }}" class="landing-hero-action-secondary ui-button-secondary inline-flex items-center justify-center rounded-full px-7 py-3.5 text-[15px] font-semibold active:scale-95">
                         Se connecter
                     </a>
-                    <a href="#decouvrir" class="ui-link-accent inline-flex items-center justify-center rounded-full px-5 py-4 text-[15px] font-semibold">
+                    <a href="#decouvrir" class="landing-hero-action-link ui-link-accent inline-flex items-center justify-center rounded-full px-6 py-3.5 text-[15px] font-semibold">
                         Découvrir DevSpot
                     </a>
                 </div>
             </div>
 
             <div class="landing-profile-card theme-settings-card rounded-[2.35rem] p-5 sm:p-6">
-                <div class="premium-card-soft rounded-[1.75rem] p-4">
-                    <div class="flex items-center gap-3">
-                        <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Aperçu de profil développeur" class="h-14 w-14 rounded-2xl border object-cover premium-divider">
-                        <div>
-                            <p class="ui-title text-sm font-semibold">Profil développeur</p>
-                            <p class="ui-text-muted mt-1 text-xs">Symfony, React, API Platform</p>
-                        </div>
-                        <span class="ui-pill ui-pill-success ml-auto rounded-full px-3 py-1 text-xs font-semibold">Match 92%</span>
-                    </div>
-                </div>
+                <div class="landing-match-orbit">
+                    <div class="landing-match-line" aria-hidden="true"></div>
 
-                <div class="mt-4 grid gap-3 sm:grid-cols-2">
-                    <div class="premium-list-row rounded-[1.35rem] p-4">
+                    <div class="landing-match-node landing-match-node-left rounded-[1.5rem] p-4">
                         <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Candidat</p>
-                        <p class="ui-title mt-2 text-lg font-semibold">Suivi profil</p>
-                        <p class="ui-text-muted mt-1 text-sm">Compétences, offres et échanges centralisés.</p>
+                        <div class="mt-4 flex items-center gap-3">
+                            <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Aperçu de profil développeur" class="h-12 w-12 rounded-2xl border object-cover premium-divider">
+                            <div class="min-w-0">
+                                <p class="ui-title truncate text-sm font-semibold">Profil Symfony React</p>
+                                <p class="ui-text-muted mt-1 text-xs">API, dashboard, UX</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 space-y-2">
+                            <div class="landing-signal-bar"><span class="landing-signal-value" style="width: 88%;"></span></div>
+                            <div class="landing-signal-bar"><span class="landing-signal-value" style="width: 73%; animation-delay: 600ms;"></span></div>
+                        </div>
                     </div>
-                    <div class="premium-list-row rounded-[1.35rem] p-4">
-                        <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Recruteur</p>
-                        <p class="ui-title mt-2 text-lg font-semibold">Sourcing ciblé</p>
-                        <p class="ui-text-muted mt-1 text-sm">Profils compatibles et conversations suivies.</p>
+
+                    <div class="landing-match-node landing-match-node-right rounded-[1.5rem] p-4">
+                        <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Offre</p>
+                        <p class="ui-title mt-4 text-sm font-semibold">Développeur full-stack</p>
+                        <p class="ui-text-muted mt-1 text-xs">Symfony, React, API Platform</p>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            <span class="ui-pill ui-pill-info rounded-full px-2.5 py-1 text-xs font-semibold">Remote</span>
+                            <span class="ui-pill ui-pill-success rounded-full px-2.5 py-1 text-xs font-semibold">CDI</span>
+                        </div>
+                    </div>
+
+                    <div class="landing-match-summary rounded-[1.5rem] p-4">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <p class="ui-title text-sm font-semibold">Matching enrichi</p>
+                                <p class="ui-text-muted mt-1 text-xs">Compétences, contexte et intention</p>
+                            </div>
+                            <span class="ui-pill ui-pill-success rounded-full px-3 py-1 text-xs font-semibold">92%</span>
+                        </div>
                     </div>
                 </div>
             </div>

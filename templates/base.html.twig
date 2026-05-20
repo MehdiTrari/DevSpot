@@ -900,10 +900,8 @@
                 {% elseif is_granted('ROLE_APPLICANT') %}
                     {% set dashboardPath = path('app_applicant_dashboard') %}
                     {% set profilePath = path('app_applicant_home') %}
-                    {% if app.user.developerProfile is not null and app.user.developerProfile.portfolioGeneratedAt is not null %}
-                        {% set messagesPath = path('app_applicant_messages') %}
-                        {% set chatUnreadCount = chat_unread_count(app.user) %}
-                    {% endif %}
+                    {% set messagesPath = path('app_applicant_messages') %}
+                    {% set chatUnreadCount = chat_unread_count(app.user) %}
                 {% elseif is_granted('ROLE_RECRUITER') %}
                     {% set dashboardPath = path('app_recruiter_dashboard') %}
                     {% set profilePath = path('app_recruiter_home') %}
@@ -973,7 +971,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M14.86 17.082a2 2 0 1 1-3.72 0M4.5 17.25h15a1.5 1.5 0 0 0 1.177-2.427l-1.53-1.92A5.98 5.98 0 0 1 18 9.166V8a6 6 0 1 0-12 0v1.166c0 1.352-.455 2.665-1.292 3.737l-1.53 1.92A1.5 1.5 0 0 0 4.5 17.25Z" />
                                 </svg>
                                 {% if unreadNotificationsCount > 0 %}
-                                    <span class="header-count-badge header-count-badge-notification absolute -right-1.5 -top-1.5">{{ unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount }}</span>
+                                    <span data-notification-unread-badge="true" class="header-count-badge header-count-badge-notification absolute -right-1.5 -top-1.5">{{ unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount }}</span>
                                 {% endif %}
                             </a>
 

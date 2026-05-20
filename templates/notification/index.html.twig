@@ -144,11 +144,72 @@
                 }
             };
 
+            const refreshUnreadIndicators = (unreadCount) => {
+                const label = container.querySelector('[data-notification-unread-label="true"]');
+                if (label) {
+                    label.textContent = `${unreadCount} notification(s) non lue(s)`;
+                }
+
+                const headerBadge = document.querySelector('[data-notification-unread-badge="true"]');
+                if (!headerBadge) {
+                    return;
+                }
+
+                if (unreadCount > 0) {
+                    headerBadge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+                    headerBadge.classList.remove('hidden');
+                } else {
+                    headerBadge.remove();
+                }
+            };
+
+            const markNotificationReadFromInteraction = async (trigger) => {
+                const url = trigger.dataset.notificationReadUrl || '';
+                const token = trigger.dataset.notificationReadToken || '';
+                const card = trigger.closest('[data-notification-card="true"]');
+
+                if (!url || !token || card?.dataset.notificationUnread !== 'true') {
+                    return;
+                }
+
+                const body = new FormData();
+                body.append('_token', token);
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body,
+                    credentials: 'same-origin',
+                });
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const payload = await response.json();
+                card.dataset.notificationUnread = 'false';
+                const stateBadge = card.querySelector('[data-notification-state-badge="true"]');
+                if (stateBadge) {
+                    stateBadge.textContent = 'Lue';
+                    stateBadge.classList.remove('ui-pill-danger', 'ui-pill-warning', 'ui-pill-info', 'ui-pill-success');
+                    stateBadge.classList.add('ui-pill-muted');
+                }
+                card.querySelector('[data-notification-read-form="true"]')?.remove();
+                trigger.removeAttribute('data-notification-interaction-read');
+                trigger.removeAttribute('data-notification-read-url');
+                trigger.removeAttribute('data-notification-read-token');
+                refreshUnreadIndicators(Number(payload.unreadCount || 0));
+            };
+
             document.addEventListener('click', (event) => {
                 const openModalButton = event.target.closest('[data-notification-modal-open="true"]');
                 if (openModalButton) {
                     event.preventDefault();
                     openMessageModal(openModalButton);
+                    markNotificationReadFromInteraction(openModalButton).catch(() => {});
 
                     return;
                 }
@@ -163,6 +224,18 @@
 
                 if (modal && event.target === modal) {
                     closeMessageModal();
+
+                    return;
+                }
+
+                const readInteractionLink = event.target.closest('a[data-notification-interaction-read="true"]');
+                if (readInteractionLink) {
+                    event.preventDefault();
+                    markNotificationReadFromInteraction(readInteractionLink)
+                        .catch(() => {})
+                        .finally(() => {
+                            window.location.href = readInteractionLink.href;
+                        });
 
                     return;
                 }
