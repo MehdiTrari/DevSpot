@@ -93,9 +93,9 @@
         .landing-match-node {
             position: absolute;
             width: min(15.25rem, 45%);
-            border: 1px solid rgba(132, 162, 224, 0.42);
-            background: rgba(255, 255, 255, 0.82);
-            box-shadow: 0 18px 48px rgba(var(--indeed-shadow-rgb), 0.12);
+            border: 1px solid var(--ui-panel-border, rgba(132, 162, 224, 0.42));
+            background: var(--ui-panel-bg, rgba(255, 255, 255, 0.82));
+            box-shadow: var(--ui-panel-shadow, 0 18px 48px rgba(var(--indeed-shadow-rgb), 0.12));
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
         }
@@ -118,9 +118,9 @@
             bottom: 0.5rem;
             width: min(23rem, 100%);
             transform: translateX(-50%);
-            border: 1px solid rgba(16, 185, 129, 0.24);
-            background: rgba(236, 253, 245, 0.78);
-            box-shadow: 0 18px 44px rgba(16, 185, 129, 0.12);
+            border: 1px solid var(--ui-note-border, rgba(16, 185, 129, 0.24));
+            background: var(--ui-note-bg, rgba(236, 253, 245, 0.78));
+            box-shadow: var(--ui-note-shadow, 0 18px 44px rgba(16, 185, 129, 0.12));
         }
 
         .landing-signal-bar {
@@ -271,7 +271,7 @@
 
 {% block body %}
     <section class="w-full max-w-6xl space-y-10 font-sans">
-        <article class="landing-hero-full favorite-showcase-hero mx-auto grid w-full gap-8 px-1 sm:px-2 lg:grid-cols-[0.9fr_1.1fr] lg:text-left">
+        <article class="landing-hero-full favorite-showcase-hero mx-auto grid w-full gap-8 md:grid-cols-2 md:items-center md:gap-x-20 md:text-left">
             <div class="mx-auto max-w-2xl text-center lg:mx-0 lg:text-left">
                 <p class="favorite-showcase-kicker">DevSpot</p>
                 <h1 class="landing-hero-title mt-6">DevSpot</h1>
@@ -288,9 +288,6 @@
                     </a>
                     <a href="{{ path('app_login') }}" class="landing-hero-action-secondary ui-button-secondary inline-flex items-center justify-center rounded-full px-7 py-3.5 text-[15px] font-semibold active:scale-95">
                         Se connecter
-                    </a>
-                    <a href="#decouvrir" class="landing-hero-action-link ui-link-accent inline-flex items-center justify-center rounded-full px-6 py-3.5 text-[15px] font-semibold">
-                        Découvrir DevSpot
                     </a>
                 </div>
             </div>
