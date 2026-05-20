@@ -4,11 +4,12 @@ Ce document regroupe les resultats les plus faciles a reutiliser dans un poster 
 
 ## Protocole commun
 
-1. dataset principal : `docs/matching-demo-dataset-v2-clean.json`
-2. taille : `90` offres, `192` profils publics demo
-3. modele semantique : `camembert-base`
-4. projection : `ml/models/devspot-matching-projection.pt`
-5. methodes comparees selon les cas : `baseline`, `semantic`, `enriched_proxy`
+1. dataset principal de cette campagne : `docs/matching-demo-dataset-v2-clean.json`
+2. taille de cette campagne : `90` offres, `192` profils publics demo
+3. des jeux plus recents existent maintenant dans le depot en `320` offres × `1000` profils (`v3 expanded` et `v4 hard negatives`), mais les chiffres ci-dessous correspondent bien a la coupe historique `v2`
+4. modele semantique : `camembert-base`
+5. projection : `ml/models/devspot-matching-projection.pt`
+6. methodes comparees selon les cas : `baseline`, `semantic`, `enriched_proxy`
 
 ## 1. Nettoyage du texte candidat : avant / apres
 

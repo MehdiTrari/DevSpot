@@ -61,7 +61,7 @@ Dans ce document, `enriched_proxy` designe la variante offline employee pour app
 ## Limites
 
 1. les mesures offline reposent sur un label heuristique `weak_relevance`, pas sur une annotation humaine exhaustive
-2. le dataset utilise ici reste un dataset demo de `90` offres et `192` profils publics
+2. le dataset utilise ici reste la coupe demo historique de `90` offres et `192` profils publics ; le depot contient maintenant aussi des jeux elargis en `320` offres et `1000` profils pour les evaluations plus recentes
 3. le benchmark top-k a ete lance localement avec `1` iteration
 4. le resultat nul sur `ecole` et `origine apparente` ne vient pas d'un manque de donnees : ces champs sont renseignes, mais ils ne sont pas injectes dans le signal de matching mesure ici
 5. la sensibilite residuelle a la localisation vient du `baseline` offline et non du pipeline runtime semantique principal

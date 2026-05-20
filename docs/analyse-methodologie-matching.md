@@ -751,14 +751,15 @@ Le corpus devait etre :
 Le depot contient bien un corpus de demonstration / experimentation nettoye.
 Il est de type **synthetique ou synthetise** et sert clairement a l'experimentation offline.
 
-Le corpus propre mentionne dans la documentation contient :
+Le depot contient aujourd'hui plusieurs coupes documentees du corpus :
 
-- 90 offres ;
-- 192 profils developpeurs.
+- un dataset historique `docs/matching-demo-dataset-v2-clean.json` avec `90` offres et `192` profils developpeurs ;
+- un dataset elargi `matching-demo-dataset-v3-expanded-bias-audit.json` avec `320` offres et `1000` profils ;
+- un dataset `matching-demo-dataset-v4-hard-negatives-bias-audit.json`, lui aussi en `320 x 1000`, enrichi avec hard negatives explicites.
 
 ### Ce qui a change
 
-La direction generale est restee proche de la cible :
+La direction generale est restee proche de la cible, avec un changement important d'echelle :
 
 - jeu de donnees maitrise ;
 - nettoyage offline ;

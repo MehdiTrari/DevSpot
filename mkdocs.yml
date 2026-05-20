@@ -7,9 +7,6 @@ exclude_docs: |
     README.md
     adr/README.md
     archive/README.md
-    matching-human-review-pack.md
-    matching-human-review-reranker-vs-baseline.md
-    memoire-devspot-draft.md
 
 theme:
   name: material

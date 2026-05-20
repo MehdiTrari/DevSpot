@@ -4,6 +4,8 @@
 
 Ce document sert de plan de travail incremental pour faire evoluer le matching sans casser le produit.
 
+Note de lecture : plusieurs mesures historiques de cette roadmap ont ete produites sur le dataset demo `docs/matching-demo-dataset-v2-clean.json` (`90` offres, `192` profils). Le depot contient maintenant aussi des jeux plus larges, `matching-demo-dataset-v3-expanded-bias-audit.json` et `matching-demo-dataset-v4-hard-negatives-bias-audit.json`, tous deux en `320` offres x `1000` profils.
+
 L'idee est de traiter les ameliorations **une par une**, avec un ordre de priorite compatible avec l'etat actuel du projet :
 
 1. reduire l'ecart sur le **nettoyage runtime** ;
@@ -264,7 +266,7 @@ python3 scripts/evaluate_matching_model.py \
   --projection ml/models/devspot-matching-projection.pt \
   --methods baseline,semantic,enriched_proxy \
   --output docs/matching-eval-phase3.json \
-  --review-output docs/matching-human-review-pack.md
+   --review-output docs/matching-human-review-summary.md
 ```
 
 Ce premier increment cloture la phase 3 pour le protocole actuel : il prepare puis analyse la revue humaine. Une note vide a ete exclue explicitement du calcul.
@@ -278,7 +280,7 @@ Une evaluation complete a ete generee avec :
 3. projection : `ml/models/devspot-matching-projection.pt` ;
 4. methodes : `baseline`, `semantic`, `enriched_proxy` ;
 5. sortie : `docs/matching-eval-phase3.json` ;
-6. pack humain : `docs/matching-human-review-pack.md`.
+6. synthese humaine : `docs/matching-human-review-summary.md`.
 
 Resultat des metriques faibles :
 
@@ -292,7 +294,7 @@ Interpretation :
 
 1. les labels faibles sont trop permissifs sur le dataset actuel ;
 2. les metriques IR ne discriminent plus les methodes ;
-3. la prochaine action utile est donc la **notation humaine du top 5** dans `docs/matching-human-review-pack.md`.
+3. la prochaine action utile est donc la **notation humaine du top 5**, dont la synthese est conservee dans `docs/matching-human-review-summary.md`.
 
 ### Revue humaine du 3 mai 2026
 
