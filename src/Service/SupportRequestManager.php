@@ -50,7 +50,7 @@ final class SupportRequestManager
             try {
                 $this->mailer->send(
                     (new TemplatedEmail())
-                        ->from(new Address('mailer@devspot.com', 'DevSpot Support Bot'))
+                        ->from(new Address('no-reply@devspot.software', 'DevSpot Support Bot'))
                         ->to((string) $admin->getEmail())
                         ->subject(sprintf('Nouvelle demande de support : %s', (string) ($supportRequest->getSubject() ?? 'Sans objet')))
                         ->htmlTemplate('emails/support_request_admin.html.twig')

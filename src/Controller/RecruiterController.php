@@ -440,10 +440,7 @@ final class RecruiterController extends AbstractController
         $item = $cache->getItem($cacheKey);
 
         if ($forceRefresh || !$item->isHit()) {
-            $publicDevelopers = array_values(array_filter(
-                $developerProfileRepository->findAllForMatching(),
-                static fn (DeveloperProfile $developer): bool => true === $developer->isPublic() && null !== $developer->getPortfolioGeneratedAt(),
-            ));
+            $publicDevelopers = $developerProfileRepository->findVisibleProfilesForMatching();
 
             $offerMatch = $offerMatchingService->buildSingleOfferMatch($offer, $publicDevelopers);
             $allMatches = $offerMatch['matches'] ?? [];

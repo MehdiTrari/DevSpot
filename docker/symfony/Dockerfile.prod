@@ -1,3 +1,9 @@
+FROM squidfunk/mkdocs-material AS docs
+WORKDIR /docs
+COPY mkdocs.yml ./
+COPY docs ./docs
+RUN mkdocs build --clean --site-dir /tmp/devspot-docs
+
 FROM php:8.3-apache
 
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
@@ -21,6 +27,7 @@ RUN apt-get update \
         opcache \
         pdo_pgsql \
         zip \
+    && sed -ri '/DocumentRoot/a\    FallbackResource /index.php' /etc/apache2/sites-available/000-default.conf \
     && a2enmod rewrite headers expires \
     && sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf \
     && rm -rf /var/lib/apt/lists/*
@@ -29,13 +36,18 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html
 
+COPY --from=docs /tmp/devspot-docs public/docs
 COPY composer.json composer.lock symfony.lock ./
 RUN composer install --prefer-dist --no-dev --optimize-autoloader --classmap-authoritative --no-interaction --no-scripts
 
 COPY . .
 COPY docker/symfony/entrypoint-prod.sh /usr/local/bin/devspot-entrypoint-prod
 
-RUN chmod +x /usr/local/bin/devspot-entrypoint-prod \
+RUN composer dump-autoload --no-dev --classmap-authoritative \
+    && chmod +x /usr/local/bin/devspot-entrypoint-prod \
+    && APP_ENV=prod APP_DEBUG=0 php bin/console importmap:install --no-interaction \
+    && APP_ENV=prod APP_DEBUG=0 php bin/console tailwind:build \
+    && APP_ENV=prod APP_DEBUG=0 php bin/console asset-map:compile \
     && mkdir -p var/cache var/log public/uploads var/share \
     && chown -R www-data:www-data var public/uploads
 
