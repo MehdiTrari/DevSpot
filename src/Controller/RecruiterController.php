@@ -239,6 +239,35 @@ final class RecruiterController extends AbstractController
         ]);
     }
 
+    #[Route('/recruiter/offers/{id}/edit', name: 'app_recruiter_offer_edit', requirements: ['id' => '\\d+'], methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_RECRUITER')]
+    public function editOffer(
+        JobOffer $offer,
+        Request $request,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $recruiterProfile = $this->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile || $offer->getRecruiterProfile()?->getId() !== $recruiterProfile->getId()) {
+            throw $this->createNotFoundException('Offre introuvable.');
+        }
+
+        $form = $this->createForm(JobOfferType::class, $offer);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $offer->setUpdatedAt(new \DateTimeImmutable());
+            $entityManager->flush();
+            $this->addFlash('success', 'Offre mise à jour avec succès !');
+
+            return $this->redirectToRoute('app_recruiter_offer_detail', ['id' => $offer->getId()]);
+        }
+
+        return $this->render('recruiter/edit_offer.html.twig', [
+            'form' => $form,
+            'offer' => $offer,
+        ]);
+    }
+
     #[Route('/recruiter/offers', name: 'app_recruiter_offers')]
     #[IsGranted('ROLE_RECRUITER')]
     public function offers(
@@ -638,6 +667,32 @@ final class RecruiterController extends AbstractController
             }
             $entityManager->flush();
         }
+
+        return $this->redirectToRoute('app_recruiter_offers');
+    }
+
+    #[Route('/recruiter/offers/{id}/delete', name: 'app_recruiter_offer_delete', requirements: ['id' => '\\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_RECRUITER')]
+    public function deleteOffer(
+        JobOffer $offer,
+        Request $request,
+        EntityManagerInterface $entityManager,
+    ): Response {
+        $recruiterProfile = $this->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile || $offer->getRecruiterProfile()?->getId() !== $recruiterProfile->getId()) {
+            throw $this->createNotFoundException('Offre introuvable.');
+        }
+
+        if (!$this->isCsrfTokenValid('offer_delete_' . $offer->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+
+            return $this->redirectToRoute('app_recruiter_offers');
+        }
+
+        $entityManager->remove($offer);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Offre supprimée.');
 
         return $this->redirectToRoute('app_recruiter_offers');
     }
