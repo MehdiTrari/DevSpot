@@ -236,7 +236,96 @@ final class RecruiterController extends AbstractController
 
         return $this->render('recruiter/create_offer.html.twig', [
             'form' => $form,
+            'pageTitle' => 'Créer une nouvelle offre',
+            'pageIntro' => 'Prépare une annonce claire, structurée et exploitable rapidement pour ton matching et ta diffusion.',
+            'submitLabel' => 'Créer l\'offre',
+            'isEdit' => false,
         ]);
+    }
+
+    #[Route('/recruiter/offers/{id}/edit', name: 'app_recruiter_offer_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_RECRUITER')]
+    public function editOffer(
+        JobOffer $offer,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        LoggerService $loggerService,
+        #[Autowire(service: 'cache.app')] CacheItemPoolInterface $cache,
+    ): Response {
+        $recruiterProfile = $this->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile || $offer->getRecruiterProfile()?->getId() !== $recruiterProfile->getId()) {
+            throw $this->createNotFoundException('Offre introuvable.');
+        }
+
+        $oldStatus = $offer->getStatus();
+        $form = $this->createForm(JobOfferType::class, $offer);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $offer->setUpdatedAt(new \DateTimeImmutable());
+
+            if (OfferStatus::PUBLISHED === $offer->getStatus() && $oldStatus !== $offer->getStatus()) {
+                $loggerService->log(
+                    LoggerService::OFFER_PUBLISHED,
+                    $recruiterProfile->getUser(),
+                    JobOffer::class,
+                    $offer->getId(),
+                    [
+                        'old_status' => $oldStatus->value,
+                        'new_status' => $offer->getStatus()->value,
+                        'title' => $offer->getTitle(),
+                    ],
+                    flush: false,
+                );
+            }
+
+            $entityManager->flush();
+            $cache->deleteItem($this->buildMatchingCacheKey((int) $offer->getId()));
+            $cache->deleteItem($this->buildMatchingSummaryCacheKey((int) $offer->getId()));
+
+            $this->addFlash('success', 'Offre modifiée avec succès.');
+
+            return $this->redirectToRoute('app_recruiter_offer_detail', ['id' => $offer->getId()]);
+        }
+
+        return $this->render('recruiter/create_offer.html.twig', [
+            'form' => $form,
+            'offer' => $offer,
+            'pageTitle' => 'Modifier l\'offre',
+            'pageIntro' => 'Mets à jour l\'annonce, sa date limite ou son statut. Pour réouvrir une offre fermée, choisis une date limite future puis repasse-la en publiée.',
+            'submitLabel' => 'Enregistrer les modifications',
+            'isEdit' => true,
+        ]);
+    }
+
+    #[Route('/recruiter/offers/{id}/delete', name: 'app_recruiter_offer_delete', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[IsGranted('ROLE_RECRUITER')]
+    public function deleteOffer(
+        JobOffer $offer,
+        Request $request,
+        EntityManagerInterface $entityManager,
+        #[Autowire(service: 'cache.app')] CacheItemPoolInterface $cache,
+    ): Response {
+        $recruiterProfile = $this->getRecruiterProfile();
+        if (!$recruiterProfile instanceof RecruiterProfile || $offer->getRecruiterProfile()?->getId() !== $recruiterProfile->getId()) {
+            throw $this->createNotFoundException('Offre introuvable.');
+        }
+
+        if (!$this->isCsrfTokenValid('offer_delete_' . $offer->getId(), (string) $request->request->get('_token'))) {
+            $this->addFlash('error', 'Token CSRF invalide.');
+
+            return $this->redirectToRoute('app_recruiter_offers');
+        }
+
+        $offerId = (int) $offer->getId();
+        $entityManager->remove($offer);
+        $entityManager->flush();
+        $cache->deleteItem($this->buildMatchingCacheKey($offerId));
+        $cache->deleteItem($this->buildMatchingSummaryCacheKey($offerId));
+
+        $this->addFlash('success', 'Offre supprimée.');
+
+        return $this->redirectToRoute('app_recruiter_offers');
     }
 
     #[Route('/recruiter/offers', name: 'app_recruiter_offers')]

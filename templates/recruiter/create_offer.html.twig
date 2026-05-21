@@ -2,7 +2,7 @@
 
 {% form_theme form 'form/my_theme.html.twig' %}
 
-{% block title %}Créer une offre | DevSpot{% endblock %}
+{% block title %}{{ pageTitle|default('Créer une offre') }} | DevSpot{% endblock %}
 
 {% block body %}
     <section class="w-full max-w-3xl rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:shadow-emerald-500/10 sm:p-10">
@@ -10,8 +10,8 @@
             <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-300">
                 Offre recruteur
             </p>
-            <h1 class="text-3xl font-semibold tracking-tight text-white">Créer une nouvelle offre</h1>
-            <p class="mt-2 text-[15px] text-slate-400">Prépare une annonce claire, structurée et exploitable rapidement pour ton matching et ta diffusion.</p>
+            <h1 class="text-3xl font-semibold tracking-tight text-white">{{ pageTitle|default('Créer une nouvelle offre') }}</h1>
+            <p class="mt-2 text-[15px] text-slate-400">{{ pageIntro|default('Prépare une annonce claire, structurée et exploitable rapidement pour ton matching et ta diffusion.') }}</p>
         </div>
 
         <div class="mb-8 flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
@@ -82,7 +82,7 @@
                             Retour aux offres
                         </a>
                         <button type="submit" class="inline-flex items-center justify-center rounded-full border px-6 py-3 text-center text-[13px] font-bold whitespace-nowrap transition dashboard-actions-next-success">
-                            Créer l'offre
+                            {{ submitLabel|default('Créer l\'offre') }}
                         </button>
                     </div>
                 </div>

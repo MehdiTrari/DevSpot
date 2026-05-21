@@ -23,14 +23,17 @@ class DeveloperProfileStep1Type extends AbstractType
     {
         $builder
             ->add('firstName', null, [
+                'required' => true,
                 'label' => 'Prénom',
                 'help' => 'Champ obligatoire.',
             ])
             ->add('lastName', null, [
+                'required' => true,
                 'label' => 'Nom',
                 'help' => 'Champ obligatoire.',
             ])
             ->add('headline', null, [
+                'required' => true,
                 'label' => 'Titre professionnel',
                 'help' => 'Champ obligatoire. Exemple : Développeur Symfony / React.',
             ])
