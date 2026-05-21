@@ -85,6 +85,7 @@
     {% set canStep2 = checklist.step1.done %}
     {% set canStep3 = checklist.step2.done or checklist.step3.done or checklist.step4.done %}
     {% set canStep4 = checklist.step3.done or checklist.step4.done %}
+    {% set nextChecklistItem = checklist|filter(item => not item.done)|first|default(null) %}
 
     <section class="w-full max-w-6xl space-y-8 font-sans">
         <div class="favorite-showcase-hero mx-auto w-full max-w-5xl px-1 py-2 text-center sm:px-2 sm:py-3">
@@ -97,32 +98,32 @@
             </div>
         </div>
 
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-            <article class="theme-settings-card rounded-[1.75rem] p-5">
+        <div class="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-5">
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
                 <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Compétences</p>
                 <p class="ui-title mt-3 text-3xl font-semibold">{{ dashboard.skillsCount }}</p>
                 <p class="ui-text-muted mt-2 text-xs">renseignée{{ dashboard.skillsCount > 1 ? 's' : '' }}</p>
             </article>
 
-            <article class="theme-settings-card rounded-[1.75rem] p-5">
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
                 <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Expériences</p>
                 <p class="ui-title mt-3 text-3xl font-semibold">{{ dashboard.experiencesCount }}</p>
                 <p class="ui-text-muted mt-2 text-xs">ajoutée{{ dashboard.experiencesCount > 1 ? 's' : '' }}</p>
             </article>
 
-            <article class="theme-settings-card rounded-[1.75rem] p-5">
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
                 <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Formations</p>
                 <p class="ui-title mt-3 text-3xl font-semibold">{{ dashboard.educationCount }}</p>
                 <p class="ui-text-muted mt-2 text-xs">ajoutée{{ dashboard.educationCount > 1 ? 's' : '' }}</p>
             </article>
 
-            <article class="theme-settings-card rounded-[1.75rem] p-5">
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
                 <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">CV</p>
                 <p class="ui-title mt-3 text-2xl font-semibold">{{ dashboard.hasCv ? 'Oui' : 'Non' }}</p>
                 <p class="ui-text-muted mt-2 text-xs">PDF généré</p>
             </article>
 
-            <article class="theme-settings-card rounded-[1.75rem] p-5">
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
                 <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Portfolio</p>
                 <p class="ui-title mt-3 text-2xl font-semibold">{{ dashboard.hasPortfolio ? 'Oui' : 'Non' }}</p>
                 <p class="ui-text-muted mt-2 text-xs">{{ profile and profile.public ? 'public' : 'privé ou absent' }}</p>
@@ -130,9 +131,9 @@
         </div>
 
         <div class="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
-            <div class="theme-settings-card flex h-full flex-col rounded-[2.35rem] p-6">
+            <div class="theme-settings-card flex h-full min-w-0 flex-col rounded-[2.35rem] p-5 sm:p-6">
                 {% if not checklist.step1.done %}
-                    <div class="flex items-start justify-between gap-5">
+                    <div class="flex flex-col items-start justify-between gap-5 sm:flex-row">
                         <div>
                             <span class="ui-pill ui-pill-danger inline-flex rounded-full px-3 py-1 text-xs font-semibold">À créer</span>
                             <h2 class="ui-title mt-4 text-2xl font-semibold tracking-tight">Créer votre profil développeur</h2>
@@ -147,20 +148,20 @@
                         </div>
                     </div>
                 {% else %}
-                    <div class="flex items-start justify-between gap-5">
-                        <div class="flex items-start gap-4 sm:gap-5">
+                    <div class="flex flex-col items-start justify-between gap-5 sm:flex-row">
+                        <div class="flex min-w-0 items-start gap-4 sm:gap-5">
                             {% if profile.avatarPath %}
                                 <img src="{{ asset(profile.avatarPath) }}" alt="Photo de profil de {{ profile.firstName }} {{ profile.lastName }}" class="h-20 w-20 shrink-0 rounded-2xl border object-cover premium-divider sm:h-24 sm:w-24">
                             {% else %}
                                 <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Photo de profil par défaut" class="h-20 w-20 shrink-0 rounded-2xl border object-cover premium-divider sm:h-24 sm:w-24">
                             {% endif %}
-                            <div>
-                                <h2 class="ui-title text-2xl font-semibold tracking-tight">{{ profile.firstName ?: 'Profil' }} {{ profile.lastName ?: '' }}</h2>
+                            <div class="min-w-0">
+                                <h2 class="ui-title break-words text-2xl font-semibold tracking-tight">{{ profile.firstName ?: 'Profil' }} {{ profile.lastName ?: '' }}</h2>
                                 <p class="ui-text-muted mt-2 text-[15px] font-semibold">{{ profile.headline ?: 'Headline non renseignée' }}</p>
                                 <p class="ui-text-muted mt-2 text-sm">{{ profile.city ?: 'Localisation non renseignée' }}{% if profile.country %}, {{ profile.country }}{% endif %}</p>
                             </div>
                         </div>
-                        <div class="flex shrink-0 flex-nowrap items-center gap-3 whitespace-nowrap">
+                        <div class="flex w-full shrink-0 flex-wrap items-center gap-3 sm:w-auto sm:flex-nowrap sm:whitespace-nowrap">
                             {% if profile.public or doneCount == 4 %}
                                 <div class="dashboard-tooltip" data-ui-tooltip="Changer la visibilité">
                                     <form method="post" action="{{ path('app_applicant_profile_visibility') }}" data-visibility-toggle="true" class="inline-flex">
@@ -179,7 +180,14 @@
                     </div>
 
                     <div class="premium-divider mt-4 flex flex-1 flex-col justify-center gap-4 border-t pt-4">
-                        <p class="ui-text-secondary text-[15px] leading-relaxed">{{ dashboard.profileMessage }}</p>
+                        <p class="ui-text-secondary text-center text-[15px] leading-relaxed">{{ dashboard.profileMessage }}</p>
+                        {% if doneCount < 4 and nextChecklistItem and nextChecklistItem.route is defined %}
+                            <div class="flex justify-center">
+                                <a href="{{ path(nextChecklistItem.route) }}" class="ui-button-primary inline-flex w-full max-w-md items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-bold active:scale-95">
+                                    Continuer
+                                </a>
+                            </div>
+                        {% endif %}
                         {% if doneCount == 4 %}
                             <div class="flex flex-col gap-3 sm:flex-row">
                                 {% if portfolioGenerated|default(false) %}
@@ -200,7 +208,7 @@
                 {% endif %}
             </div>
 
-            <div class="theme-settings-card rounded-[2.35rem] p-6">
+            <div class="theme-settings-card min-w-0 rounded-[2.35rem] p-5 sm:p-6">
                 <div class="flex items-center justify-between gap-3">
                     <h2 class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Progression</h2>
                     <div class="flex items-center gap-2">
@@ -234,12 +242,12 @@
                 {% endif %}
                 <ul class="mt-5 space-y-3 text-[15px]">
                     {% for item in checklist %}
-                        <li class="premium-list-row rounded-[1.5rem] p-3">
-                            <div class="flex items-start gap-4">
+                        <li class="premium-list-row min-w-0 rounded-[1.5rem] p-3">
+                            <div class="flex min-w-0 items-start gap-4">
                                 <span class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold {{ item.done ? 'ui-step-badge-done' : 'ui-step-badge-pending' }}">
                                     {{ item.done ? '✓' : loop.index }}
                                 </span>
-                                <p class="{{ item.done ? 'ui-title' : 'ui-text-muted' }} pt-0.5 font-medium">{{ item.label }}</p>
+                                <p class="{{ item.done ? 'ui-title' : 'ui-text-muted' }} min-w-0 break-words pt-0.5 font-medium">{{ item.label }}</p>
                             </div>
                         </li>
                     {% endfor %}
@@ -299,8 +307,8 @@
             </div>
         </div>
 
-        <div class="grid items-stretch gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-            <div class="theme-settings-card flex h-full flex-col rounded-[2.35rem] p-6">
+        <div class="grid min-w-0 items-stretch gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+            <div class="theme-settings-card flex h-full min-w-0 flex-col rounded-[2.35rem] p-5 sm:p-6">
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div>
                         <h2 class="ui-title text-2xl font-semibold tracking-tight">Conversations recruteurs</h2>
@@ -311,7 +319,7 @@
                     </a>
                 </div>
 
-                <div class="mt-5 grid gap-3 sm:grid-cols-4">
+                <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                     <div class="premium-list-row rounded-[1.25rem] p-4">
                         <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Actives</p>
                         <p class="ui-title mt-2 text-2xl font-semibold">{{ dashboard.activeConversationsCount }}</p>
@@ -366,7 +374,7 @@
                 </div>
             </div>
 
-            <div class="theme-settings-card flex h-full flex-col rounded-[2.35rem] p-6">
+            <div class="theme-settings-card flex h-full min-w-0 flex-col rounded-[2.35rem] p-5 sm:p-6">
                 <h2 class="ui-title text-2xl font-semibold tracking-tight">Visibilité du profil</h2>
                 <p class="ui-text-muted mt-2 text-sm">Estimation interne basée sur la complétion, le portfolio, la visibilité publique et les interactions.</p>
 

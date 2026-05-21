@@ -2,6 +2,17 @@
 
 {% block title %}Help | DevSpot{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        @media (max-width: 639px) {
+            .help-preview-aside {
+                display: none;
+            }
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
     {% set activeHelpRole = is_granted('ROLE_RECRUITER') ? 'recruiter' : 'applicant' %}
 
@@ -57,13 +68,13 @@
                             data-help-step="true"
                             data-preview-video="https://example.com/videos/applicant-step-2.mp4"
                             data-preview-title="Compléter le profil développeur"
-                            data-preview-text="Renseigne tes expériences, compétences et préférences pour améliorer le matching."
+                            data-preview-text="Remplis tes informations, tes expériences, tes compétences et tes préférences avant de publier ton portfolio."
                             tabindex="0"
                             role="button"
                             aria-pressed="false"
                         >
                             <h2 class="help-step-title">2. Compléter ton profil développeur</h2>
-                            <p class="help-step-text">Renseigner ton parcours, tes compétences et tes préférences.</p>
+                            <p class="help-step-text">Renseigner tes informations, ton parcours, tes compétences et tes préférences.</p>
                         </li>
 
                         <li
@@ -71,13 +82,13 @@
                             data-help-step="true"
                             data-preview-video="https://example.com/videos/applicant-step-3.mp4"
                             data-preview-title="Publication du portfolio"
-                            data-preview-text="Génère ton portfolio, vérifie son rendu puis publie-le pour gagner en visibilité."
+                            data-preview-text="Génère ton portfolio, vérifie son rendu puis passe-le en public pour obtenir de la visibilité."
                             tabindex="0"
                             role="button"
                             aria-pressed="false"
                         >
                             <h2 class="help-step-title">3. Publier ton portfolio</h2>
-                            <p class="help-step-text">Générer et rendre visible ton portfolio pour être découvert.</p>
+                            <p class="help-step-text">Publier ton portfolio après avoir rempli tes informations pour gagner en visibilité.</p>
                         </li>
 
                         <li
@@ -95,7 +106,7 @@
                         </li>
                     </ol>
 
-                    <aside class="space-y-4">
+                    <aside class="help-preview-aside space-y-4">
                         <article class="help-preview-card rounded-[2rem] p-4 sm:p-5">
                             <div class="help-preview-media rounded-[1.4rem] p-2 sm:p-2.5">
                                 <video data-help-preview-video="true" class="help-preview-video w-full rounded-[1rem]" controls preload="none">
@@ -190,7 +201,7 @@
                         </li>
                     </ol>
 
-                    <aside class="space-y-4">
+                    <aside class="help-preview-aside space-y-4">
                         <article class="help-preview-card rounded-[2rem] p-4 sm:p-5">
                             <div class="help-preview-media rounded-[1.4rem] p-2 sm:p-2.5">
                                 <video data-help-preview-video="true" class="help-preview-video w-full rounded-[1rem]" controls preload="none">

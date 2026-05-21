@@ -15,6 +15,7 @@ class EducationType extends AbstractType
     {
         $builder
             ->add('schoolName', null, [
+                'required' => true,
                 'label' => 'École',
             ])
             ->add('degree', null, [

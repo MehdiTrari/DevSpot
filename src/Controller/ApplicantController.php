@@ -997,9 +997,13 @@ final class ApplicantController extends AbstractController
             return 0;
         }
 
+        if (!$profile->isPublic()) {
+            return 0;
+        }
+
         $score = (int) round($completionPercent * 0.55);
         $score += $profile->getPortfolioGeneratedAt() instanceof \DateTimeImmutable ? 10 : 0;
-        $score += $profile->isPublic() ? 20 : 0;
+        $score += 20;
         $hasExternalLink = '' !== trim((string) $profile->getLinkedinUrl())
             || '' !== trim((string) $profile->getGithubUrl())
             || '' !== trim((string) $profile->getPortfolioUrl());
