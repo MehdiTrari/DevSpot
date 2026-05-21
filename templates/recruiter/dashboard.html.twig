@@ -255,8 +255,14 @@
                             </div>
                         </a>
                     {% else %}
-                        <div class="premium-list-row ui-text-muted rounded-[1.4rem] px-4 py-5 text-sm">
-                            Aucun profil favori pour le moment.
+                        <div class="favorite-showcase-empty rounded-[2.2rem] px-6 py-10 text-center sm:px-8">
+                            <p class="ui-title text-xl font-semibold">Aucun profil favori pour le moment.</p>
+                            <p class="ui-text-secondary mx-auto mt-3 max-w-2xl text-sm leading-relaxed sm:text-[15px]">
+                                Ajoute des profils depuis la page d'accueil ou depuis une fiche portfolio pour les retrouver ici.
+                            </p>
+                            <a href="{{ path('app_home') }}" class="favorite-showcase-primary-link mx-auto mt-6 max-w-xs">
+                                Explorer des profils
+                            </a>
                         </div>
                     {% endfor %}
 
