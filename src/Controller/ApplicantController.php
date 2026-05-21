@@ -1063,7 +1063,7 @@ final class ApplicantController extends AbstractController
     /**
      * @param array<string, array{done: bool, route: string, label: string}> $checklist
      *
-     * @return list<array{label: string, route: string}>
+     * @return list<array{label: string, route: string, condition: string}>
      */
     private function buildProfileRecommendations(?DeveloperProfile $profile, array $checklist): array
     {
@@ -1071,6 +1071,7 @@ final class ApplicantController extends AbstractController
             return [[
                 'label' => 'Créer le profil développeur pour débloquer le suivi candidat.',
                 'route' => 'app_applicant_profile_create',
+                'condition' => 'Proposé si aucun profil candidat n\'existe encore.',
             ]];
         }
 
@@ -1079,26 +1080,51 @@ final class ApplicantController extends AbstractController
             return [[
                 'label' => 'Compléter les informations générales du profil.',
                 'route' => 'app_applicant_profile_create',
+                'condition' => 'Proposé si prénom, nom, titre, localisation, niveau, années d\'expérience ou présentation sont incomplets.',
             ]];
         }
 
         if (0 === $profile->getProfileSkills()->count()) {
-            $recommendations[] = ['label' => 'Ajouter les compétences principales.', 'route' => 'app_applicant_profile_step2'];
+            $recommendations[] = [
+                'label' => 'Ajouter les compétences principales.',
+                'route' => 'app_applicant_profile_step2',
+                'condition' => 'Proposé si aucune compétence n\'est renseignée.',
+            ];
         }
         if (0 === $profile->getExperiences()->count()) {
-            $recommendations[] = ['label' => 'Renseigner au moins une expérience.', 'route' => 'app_applicant_profile_step2'];
+            $recommendations[] = [
+                'label' => 'Renseigner au moins une expérience.',
+                'route' => 'app_applicant_profile_step2',
+                'condition' => 'Proposé si aucune expérience professionnelle n\'est ajoutée.',
+            ];
         }
         if (0 === $profile->getEducation()->count()) {
-            $recommendations[] = ['label' => 'Ajouter une formation ou certification.', 'route' => 'app_applicant_profile_step2'];
+            $recommendations[] = [
+                'label' => 'Ajouter une formation ou certification.',
+                'route' => 'app_applicant_profile_step2',
+                'condition' => 'Proposé si aucune formation ou certification n\'est ajoutée.',
+            ];
         }
         if (($checklist['step2']['done'] || $checklist['step3']['done'] || $checklist['step4']['done']) && !$checklist['step3']['done']) {
-            $recommendations[] = ['label' => 'Ajouter un lien GitHub, LinkedIn ou portfolio.', 'route' => 'app_applicant_profile_step3'];
+            $recommendations[] = [
+                'label' => 'Ajouter un lien GitHub, LinkedIn ou portfolio.',
+                'route' => 'app_applicant_profile_step3',
+                'condition' => 'Proposé après le parcours et les skills si aucun lien externe n\'est renseigné.',
+            ];
         }
         if (($checklist['step3']['done'] || $checklist['step4']['done']) && !$checklist['step4']['done']) {
-            $recommendations[] = ['label' => 'Préciser les postes recherchés.', 'route' => 'app_applicant_profile_step4'];
+            $recommendations[] = [
+                'label' => 'Préciser les postes recherchés.',
+                'route' => 'app_applicant_profile_step4',
+                'condition' => 'Proposé après les liens si aucun poste recherché n\'est sélectionné.',
+            ];
         }
         if (!in_array(false, array_column($checklist, 'done'), true) && null === $profile->getPortfolioGeneratedAt()) {
-            $recommendations[] = ['label' => 'Générer le portfolio public.', 'route' => 'app_applicant_portfolio_generate'];
+            $recommendations[] = [
+                'label' => 'Générer le portfolio public.',
+                'route' => 'app_applicant_portfolio_generate',
+                'condition' => 'Proposé quand les 4 étapes du profil sont terminées mais que le portfolio n\'est pas encore généré.',
+            ];
         }
 
         return array_slice($recommendations, 0, 4);

@@ -256,12 +256,25 @@
         </div>
 
         {% if dashboard.recommendations is not empty %}
-            <div class="theme-settings-card rounded-[2.35rem] p-6">
-                <h2 class="ui-title text-2xl font-semibold tracking-tight">Améliorations proposées</h2>
+            <div class="theme-settings-card rounded-[2.35rem] p-5 sm:p-6">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                        <h2 class="ui-title mt-2 text-2xl font-semibold tracking-tight">Améliorations proposées</h2>
+                    </div>
+                </div>
+
                 <div class="mt-5 grid gap-3 lg:grid-cols-2">
                     {% for recommendation in dashboard.recommendations %}
-                        <a href="{{ path(recommendation.route) }}" class="premium-list-row block rounded-[1.5rem] p-4 text-sm font-medium text-slate-200 transition duration-300 hover:scale-[1.01]">
-                            {{ recommendation.label }}
+                        <a href="{{ path(recommendation.route) }}" class="premium-list-row block rounded-[1.5rem] p-4 transition duration-300 hover:scale-[1.01]">
+                            <div class="flex items-start gap-4">
+                                <span class="ui-pill ui-pill-info inline-flex shrink-0 rounded-full px-3 py-1 text-xs font-semibold">
+                                    Priorité {{ loop.index }}
+                                </span>
+                                <div class="min-w-0">
+                                    <p class="ui-title text-sm font-semibold">{{ recommendation.label }}</p>
+                                    <p class="ui-text-muted mt-2 text-xs leading-relaxed">{{ recommendation.condition }}</p>
+                                </div>
+                            </div>
                         </a>
                     {% endfor %}
                 </div>

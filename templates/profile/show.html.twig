@@ -99,7 +99,7 @@
                                     iconButtonClass: 'inline-flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95'
                                 } only %}
                             {% elseif app.user and not isOwner %}
-                            <a href="#report-form" class="inline-flex items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 px-6 py-3 text-[15px] font-bold text-red-300 shadow-lg shadow-red-500/10 transition-all duration-300 hover:scale-[1.02] hover:bg-red-500/15 active:scale-95">
+                            <a href="#report-form" class="ui-button-danger inline-flex items-center justify-center rounded-full px-6 py-3 text-[15px] font-bold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95">
                                 Signaler ce profil
                             </a>
                         {% endif %}
@@ -363,21 +363,21 @@
         {% endif %}
 
         {% if app.user and not isOwner %}
-            <article id="report-form" class="u-border-pale-red u-bg-pale-red u-text-pale-red scroll-mt-28 rounded-[2rem] border p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-7">
-                <h2 class="ui-title u-text-pale-red text-left text-xl font-semibold tracking-tight">Signaler ce profil</h2>
-                <p class="u-text-pale-red mt-2 text-sm">Les administrateurs seront notifiés pour examiner le signalement.</p>
+            <article id="report-form" class="ui-danger scroll-mt-28 rounded-[2rem] p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-7">
+                <h2 class="text-left text-xl font-semibold tracking-tight">Signaler ce profil</h2>
+                <p class="mt-2 text-sm">Les administrateurs seront notifiés pour examiner le signalement.</p>
                 <form method="post" action="{{ path('app_public_profile_report', {slug: profile.slug}) }}" class="mt-4 grid gap-3 sm:grid-cols-2">
                     <input type="hidden" name="_token" value="{{ csrf_token('report_profile_' ~ profile.id) }}">
                     <div>
-                        <label for="report-category" class="u-text-pale-red mb-2 block text-sm font-medium">Type de signalement</label>
-                        <select id="report-category" name="category" class="u-border-pale-red u-text-pale-red block w-full rounded-2xl border bg-slate-950 px-4 py-3 text-sm outline-none transition-all duration-300 focus:border-red-400 focus:ring-4 focus:ring-red-500/20">
+                        <label for="report-category" class="mb-2 block text-sm font-medium">Type de signalement</label>
+                        <select id="report-category" name="category" class="ui-input block w-full rounded-2xl px-4 py-3 text-sm transition-all duration-300">
                             <option value="profile">Profil signalé</option>
                             <option value="abusive_content">Contenu abusif</option>
                         </select>
                     </div>
                     <div class="sm:col-span-2">
-                        <label for="report-reason" class="u-text-pale-red mb-2 block text-sm font-medium">Motif</label>
-                        <textarea id="report-reason" name="reason" rows="4" minlength="10" class="u-border-pale-red u-text-pale-red block min-h-[140px] w-full rounded-2xl border bg-slate-950 px-4 py-3 text-sm outline-none transition-all duration-300 placeholder:text-red-200/45 focus:border-red-400 focus:ring-4 focus:ring-red-500/20" placeholder="Expliquez brièvement pourquoi ce profil doit être revu par un administrateur."></textarea>
+                        <label for="report-reason" class="mb-2 block text-sm font-medium">Motif</label>
+                        <textarea id="report-reason" name="reason" rows="4" minlength="10" class="ui-input block min-h-[140px] w-full rounded-2xl px-4 py-3 text-sm transition-all duration-300" placeholder="Expliquez brièvement pourquoi ce profil doit être revu par un administrateur."></textarea>
                     </div>
                     <div class="sm:col-span-2">
                         <button type="submit" class="ui-button-danger inline-flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-bold transition-all duration-300 hover:scale-[1.01] active:scale-95 sm:w-auto sm:px-7">
