@@ -997,19 +997,87 @@ final class ApplicantController extends AbstractController
             return 0;
         }
 
+        // Visibilité à 0% si profil privé
         if (!$profile->isPublic()) {
             return 0;
         }
 
-        $score = (int) round($completionPercent * 0.55);
-        $score += $profile->getPortfolioGeneratedAt() instanceof \DateTimeImmutable ? 10 : 0;
-        $score += 20;
+        // Visibilité à 0% si toutes les étapes ne sont pas complétées (profil incomplet)
+        // On considère que le portfolio doit être généré et toutes les étapes faites
+        // (on peut adapter selon la logique métier exacte)
+        if (
+            null === $profile->getPortfolioGeneratedAt() ||
+            empty(trim((string) $profile->getBio())) ||
+            $profile->getExperiences()->count() === 0 ||
+            $profile->getProfileSkills()->count() === 0 ||
+            $profile->getEducation()->count() === 0 ||
+            $profile->getDesiredPositions()->count() === 0
+        ) {
+            return 0;
+        }
+
+        $score = 0;
+
+        // Taille de la description (bio)
+        $bioLength = mb_strlen(trim((string) $profile->getBio()));
+        if ($bioLength >= 500) {
+            $score += 20;
+        } elseif ($bioLength >= 250) {
+            $score += 15;
+        } elseif ($bioLength >= 100) {
+            $score += 10;
+        } elseif ($bioLength > 0) {
+            $score += 5;
+        }
+
+        // Nombre d'expériences
+        $expCount = $profile->getExperiences()->count();
+        if ($expCount >= 4) {
+            $score += 20;
+        } elseif ($expCount >= 2) {
+            $score += 15;
+        } elseif ($expCount === 1) {
+            $score += 8;
+        }
+
+        // Nombre de compétences
+        $skillsCount = $profile->getProfileSkills()->count();
+        if ($skillsCount >= 8) {
+            $score += 20;
+        } elseif ($skillsCount >= 4) {
+            $score += 15;
+        } elseif ($skillsCount >= 1) {
+            $score += 8;
+        }
+
+        // Nombre de formations
+        $eduCount = $profile->getEducation()->count();
+        if ($eduCount >= 3) {
+            $score += 10;
+        } elseif ($eduCount >= 1) {
+            $score += 5;
+        }
+
+        // Nombre de postes recherchés
+        $positionsCount = $profile->getDesiredPositions()->count();
+        if ($positionsCount >= 3) {
+            $score += 10;
+        } elseif ($positionsCount >= 1) {
+            $score += 5;
+        }
+
+        // Présence de liens externes
         $hasExternalLink = '' !== trim((string) $profile->getLinkedinUrl())
             || '' !== trim((string) $profile->getGithubUrl())
             || '' !== trim((string) $profile->getPortfolioUrl());
-        $score += $hasExternalLink ? 5 : 0;
-        $score += min(10, ($interactionsCount + $activeConversationsCount) * 3);
+        if ($hasExternalLink) {
+            $score += 5;
+        }
 
+        // Interactions avec les recruteurs (messages, conversations)
+        $score += min(10, ($interactionsCount + $activeConversationsCount) * 2);
+
+        // Plafond à 100
         return min(100, $score);
     }
 

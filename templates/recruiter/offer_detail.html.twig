@@ -569,6 +569,9 @@
 {% block body %}
     <section class="w-full max-w-5xl space-y-8 font-sans">
 
+        {% set offerStatusValue = offer.status.value %}
+        {% set offerStatusLabel = offerStatusValue == 'published' ? 'Publiée' : (offerStatusValue == 'closed' ? 'Fermée' : 'Brouillon') %}
+
         {# ── Header ── #}
         <div class="rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl sm:p-10">
             <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -596,10 +599,17 @@
                         {% if offer.locationType %}
                             <span class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-slate-300">{{ offer.locationType.value|capitalize }}</span>
                         {% endif %}
-                        <span class="ui-pill inline-flex items-center rounded-full px-3 py-1 font-semibold {{ offer.isActive ? 'ui-pill-success' : 'ui-pill-warning' }}">{{ offer.isActive ? 'Publiée' : 'Brouillon' }}</span>
+                        <span class="ui-pill inline-flex items-center rounded-full px-3 py-1 font-semibold {{ offerStatusValue == 'published' ? 'ui-pill-success' : (offerStatusValue == 'closed' ? 'ui-pill-danger' : 'ui-pill-warning') }}">{{ offerStatusLabel }}</span>
                     </div>
                 </div>
-                <a href="{{ path('app_recruiter_offers') }}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10">Retour</a>
+                <div class="flex flex-wrap gap-2 sm:justify-end">
+                    <a href="{{ path('app_recruiter_offers') }}" class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10">Retour</a>
+                    <a href="{{ path('app_recruiter_offer_edit', { id: offer.id }) }}" class="ui-button-secondary inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold">Modifier</a>
+                    <form method="post" action="{{ path('app_recruiter_offer_delete', { id: offer.id }) }}" onsubmit="return confirm('Supprimer définitivement cette offre ?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('offer_delete_' ~ offer.id) }}">
+                        <button type="submit" class="ui-button-danger inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold">Supprimer</button>
+                    </form>
+                </div>
             </div>
         </div>
 

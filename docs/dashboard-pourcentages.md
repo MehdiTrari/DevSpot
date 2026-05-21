@@ -62,36 +62,49 @@ Interpretation des libelles :
 - `>= 40 %` : compatibilite moyenne
 - `< 40 %` : compatibilite a verifier
 
+
 ### Score de visibilite
 
-Le score de visibilite estime la qualite de presentation du profil et son exposition aux recruteurs.
+Le score de visibilité mesure l'exposition réelle du profil aux recruteurs.
 
-Formule :
+- **Si le profil est privé** :
+  - La visibilité est toujours de **0%**.
+  - Un message explicite est affiché :
+    > "Publiez votre portfolio afin d'obtenir de la visibilité."
+
+- **Si le profil est public** :
+  - La visibilité dépend de la complétude réelle du profil, et non plus des étapes.
+  - Les critères pris en compte sont :
+    - **Taille de la description** (plus la description est longue et détaillée, plus le score augmente)
+    - **Nombre d'expériences** renseignées
+    - **Nombre de compétences** renseignées
+    - **Nombre de formations** renseignées
+    - **Nombre de postes recherchés**
+    - **Présence de liens externes** (GitHub, LinkedIn, portfolio)
+    - **Interactions avec les recruteurs** (messages, réponses)
+
+Exemple de formule indicative :
 
 ```text
 score_visibilite =
-  round(profil_complete * 0.55)
-  + bonus_portfolio
-  + bonus_public
-  + bonus_lien_externe
-  + bonus_interactions
+  points_description
+  + points_experiences
+  + points_competences
+  + points_formations
+  + points_postes_recherches
+  + points_liens_externes
+  + points_interactions
 ```
 
-Details :
+Chaque critère apporte un certain nombre de points, le total étant plafonné à **100%**.
 
-- completion du profil : jusqu'a `55 points`
-- portfolio genere : `+10 points`
-- profil public : `+20 points`
-- au moins un lien GitHub, LinkedIn ou portfolio : `+5 points`
-- interactions recruteurs et conversations : `+3 points` par signal, plafonne a `10 points`
+**Remarque :** La visibilité n'est calculée que si le profil est public **et** que toutes les étapes du profil sont complétées. Sinon, la visibilité reste à 0%.
 
-Le score final est plafonne a `100 %`.
+Libellés :
 
-Libelles :
-
-- `>= 80 %` : elevee
+- `>= 80 %` : élevée
 - `>= 55 %` : bonne
-- `>= 30 %` : a renforcer
+- `>= 30 %` : à renforcer
 - `< 30 %` : faible
 
 ## Dashboard recruteur
