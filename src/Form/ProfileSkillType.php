@@ -24,6 +24,7 @@ class ProfileSkillType extends AbstractType
     {
         $builder
             ->add('skill', EntityType::class, [
+                'required' => true,
                 'label' => 'Compétence',
                 'class' => Skill::class,
                 'choice_label' => fn (Skill $skill) => $this->translateEntityName('skill', $skill->getName()),

@@ -23,12 +23,15 @@ class ExperienceType extends AbstractType
     {
         $builder
             ->add('companyName', null, [
+                'required' => true,
                 'label' => 'Entreprise',
             ])
             ->add('title', null, [
+                'required' => true,
                 'label' => 'Poste',
             ])
             ->add('startDate', DateType::class, [
+                'required' => true,
                 'label' => 'Date de début',
                 'widget' => 'single_text',
             ])

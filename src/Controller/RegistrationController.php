@@ -114,7 +114,7 @@ class RegistrationController extends AbstractController
                 'app_verify_email',
                 $user,
                 (new TemplatedEmail())
-                    ->from(new Address('mailer@devspot.com', 'DevSpot Mail Bot'))
+                    ->from(new Address('no-reply@devspot.software', 'DevSpot Mail Bot'))
                     ->to((string) $user->getEmail())
                     ->subject('Veuillez confirmer votre email')
                     ->htmlTemplate('registration/confirmation_email.html.twig')

@@ -997,15 +997,87 @@ final class ApplicantController extends AbstractController
             return 0;
         }
 
-        $score = (int) round($completionPercent * 0.55);
-        $score += $profile->getPortfolioGeneratedAt() instanceof \DateTimeImmutable ? 10 : 0;
-        $score += $profile->isPublic() ? 20 : 0;
+        // Visibilité à 0% si profil privé
+        if (!$profile->isPublic()) {
+            return 0;
+        }
+
+        // Visibilité à 0% si toutes les étapes ne sont pas complétées (profil incomplet)
+        // On considère que le portfolio doit être généré et toutes les étapes faites
+        // (on peut adapter selon la logique métier exacte)
+        if (
+            null === $profile->getPortfolioGeneratedAt() ||
+            empty(trim((string) $profile->getBio())) ||
+            $profile->getExperiences()->count() === 0 ||
+            $profile->getProfileSkills()->count() === 0 ||
+            $profile->getEducation()->count() === 0 ||
+            $profile->getDesiredPositions()->count() === 0
+        ) {
+            return 0;
+        }
+
+        $score = 0;
+
+        // Taille de la description (bio)
+        $bioLength = mb_strlen(trim((string) $profile->getBio()));
+        if ($bioLength >= 500) {
+            $score += 20;
+        } elseif ($bioLength >= 250) {
+            $score += 15;
+        } elseif ($bioLength >= 100) {
+            $score += 10;
+        } elseif ($bioLength > 0) {
+            $score += 5;
+        }
+
+        // Nombre d'expériences
+        $expCount = $profile->getExperiences()->count();
+        if ($expCount >= 4) {
+            $score += 20;
+        } elseif ($expCount >= 2) {
+            $score += 15;
+        } elseif ($expCount === 1) {
+            $score += 8;
+        }
+
+        // Nombre de compétences
+        $skillsCount = $profile->getProfileSkills()->count();
+        if ($skillsCount >= 8) {
+            $score += 20;
+        } elseif ($skillsCount >= 4) {
+            $score += 15;
+        } elseif ($skillsCount >= 1) {
+            $score += 8;
+        }
+
+        // Nombre de formations
+        $eduCount = $profile->getEducation()->count();
+        if ($eduCount >= 3) {
+            $score += 10;
+        } elseif ($eduCount >= 1) {
+            $score += 5;
+        }
+
+        // Nombre de postes recherchés
+        $positionsCount = $profile->getDesiredPositions()->count();
+        if ($positionsCount >= 3) {
+            $score += 10;
+        } elseif ($positionsCount >= 1) {
+            $score += 5;
+        }
+
+        // Présence de liens externes
         $hasExternalLink = '' !== trim((string) $profile->getLinkedinUrl())
             || '' !== trim((string) $profile->getGithubUrl())
             || '' !== trim((string) $profile->getPortfolioUrl());
-        $score += $hasExternalLink ? 5 : 0;
-        $score += min(10, ($interactionsCount + $activeConversationsCount) * 3);
+        if ($hasExternalLink) {
+            $score += 5;
+        }
 
+        // Interactions avec les recruteurs (messages, conversations)
+        $score += min(10, ($interactionsCount + $activeConversationsCount) * 2);
+
+        // Plafond à 100
         return min(100, $score);
     }
 
@@ -1059,7 +1131,7 @@ final class ApplicantController extends AbstractController
     /**
      * @param array<string, array{done: bool, route: string, label: string}> $checklist
      *
-     * @return list<array{label: string, route: string}>
+     * @return list<array{label: string, route: string, condition: string}>
      */
     private function buildProfileRecommendations(?DeveloperProfile $profile, array $checklist): array
     {
@@ -1067,6 +1139,7 @@ final class ApplicantController extends AbstractController
             return [[
                 'label' => 'Créer le profil développeur pour débloquer le suivi candidat.',
                 'route' => 'app_applicant_profile_create',
+                'condition' => 'Proposé si aucun profil candidat n\'existe encore.',
             ]];
         }
 
@@ -1075,26 +1148,51 @@ final class ApplicantController extends AbstractController
             return [[
                 'label' => 'Compléter les informations générales du profil.',
                 'route' => 'app_applicant_profile_create',
+                'condition' => 'Proposé si prénom, nom, titre, localisation, niveau, années d\'expérience ou présentation sont incomplets.',
             ]];
         }
 
         if (0 === $profile->getProfileSkills()->count()) {
-            $recommendations[] = ['label' => 'Ajouter les compétences principales.', 'route' => 'app_applicant_profile_step2'];
+            $recommendations[] = [
+                'label' => 'Ajouter les compétences principales.',
+                'route' => 'app_applicant_profile_step2',
+                'condition' => 'Proposé si aucune compétence n\'est renseignée.',
+            ];
         }
         if (0 === $profile->getExperiences()->count()) {
-            $recommendations[] = ['label' => 'Renseigner au moins une expérience.', 'route' => 'app_applicant_profile_step2'];
+            $recommendations[] = [
+                'label' => 'Renseigner au moins une expérience.',
+                'route' => 'app_applicant_profile_step2',
+                'condition' => 'Proposé si aucune expérience professionnelle n\'est ajoutée.',
+            ];
         }
         if (0 === $profile->getEducation()->count()) {
-            $recommendations[] = ['label' => 'Ajouter une formation ou certification.', 'route' => 'app_applicant_profile_step2'];
+            $recommendations[] = [
+                'label' => 'Ajouter une formation ou certification.',
+                'route' => 'app_applicant_profile_step2',
+                'condition' => 'Proposé si aucune formation ou certification n\'est ajoutée.',
+            ];
         }
         if (($checklist['step2']['done'] || $checklist['step3']['done'] || $checklist['step4']['done']) && !$checklist['step3']['done']) {
-            $recommendations[] = ['label' => 'Ajouter un lien GitHub, LinkedIn ou portfolio.', 'route' => 'app_applicant_profile_step3'];
+            $recommendations[] = [
+                'label' => 'Ajouter un lien GitHub, LinkedIn ou portfolio.',
+                'route' => 'app_applicant_profile_step3',
+                'condition' => 'Proposé après le parcours et les skills si aucun lien externe n\'est renseigné.',
+            ];
         }
         if (($checklist['step3']['done'] || $checklist['step4']['done']) && !$checklist['step4']['done']) {
-            $recommendations[] = ['label' => 'Préciser les postes recherchés.', 'route' => 'app_applicant_profile_step4'];
+            $recommendations[] = [
+                'label' => 'Préciser les postes recherchés.',
+                'route' => 'app_applicant_profile_step4',
+                'condition' => 'Proposé après les liens si aucun poste recherché n\'est sélectionné.',
+            ];
         }
         if (!in_array(false, array_column($checklist, 'done'), true) && null === $profile->getPortfolioGeneratedAt()) {
-            $recommendations[] = ['label' => 'Générer le portfolio public.', 'route' => 'app_applicant_portfolio_generate'];
+            $recommendations[] = [
+                'label' => 'Générer le portfolio public.',
+                'route' => 'app_applicant_portfolio_generate',
+                'condition' => 'Proposé quand les 4 étapes du profil sont terminées mais que le portfolio n\'est pas encore généré.',
+            ];
         }
 
         return array_slice($recommendations, 0, 4);

@@ -1200,6 +1200,12 @@ details[open] > .site-header-account-button {
     background: var(--ui-danger-bg);
 }
 
+.ui-danger {
+    border: 1px solid var(--ui-danger-border);
+    background: var(--ui-danger-bg);
+    color: var(--ui-danger-text);
+}
+
 .ui-panel-accent-hover {
     transition: border-color 0.2s ease, background-color 0.2s ease;
 }

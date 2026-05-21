@@ -16,38 +16,38 @@
             </div>
         </div>
 
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
-            <article class="theme-settings-card rounded-[1.75rem] p-5">
+        <div class="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-6">
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
                 <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Contactés</p>
                 <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.contactedProfilesCount }}</p>
                 <p class="ui-text-muted mt-2 text-xs">Profils avec échange initié</p>
             </article>
 
-            <article class="theme-settings-card rounded-[1.75rem] p-5">
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
                 <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Réponses</p>
                 <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.repliedProfilesCount }}</p>
                 <p class="ui-text-muted mt-2 text-xs">Profils ayant répondu</p>
             </article>
 
-            <article class="theme-settings-card rounded-[1.75rem] p-5">
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
                 <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Favoris</p>
                 <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.favoriteProfilesCount }}</p>
                 <p class="ui-text-muted mt-2 text-xs">Profils sauvegardés</p>
             </article>
 
-            <article class="theme-settings-card rounded-[1.75rem] p-5">
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
                 <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Conversations</p>
                 <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.activeConversationsCount }}</p>
                 <p class="ui-text-muted mt-2 text-xs">Actives</p>
             </article>
 
-            <article class="theme-settings-card rounded-[1.75rem] p-5">
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
                 <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Sans réponse</p>
                 <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.unansweredConversationsCount }}</p>
                 <p class="ui-text-muted mt-2 text-xs">À relancer</p>
             </article>
 
-            <article class="theme-settings-card rounded-[1.75rem] p-5">
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
                 <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Taux réponse</p>
                 <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.responseRate }}%</p>
                 <p class="ui-text-muted mt-2 text-xs">{{ interactionDashboard.linkedProfilesCount }} lié{{ interactionDashboard.linkedProfilesCount > 1 ? 's' : '' }} à une offre</p>
@@ -255,8 +255,14 @@
                             </div>
                         </a>
                     {% else %}
-                        <div class="premium-list-row ui-text-muted rounded-[1.4rem] px-4 py-5 text-sm">
-                            Aucun profil favori pour le moment.
+                        <div class="favorite-showcase-empty rounded-[2.2rem] px-6 py-10 text-center sm:px-8">
+                            <p class="ui-title text-xl font-semibold">Aucun profil favori pour le moment.</p>
+                            <p class="ui-text-secondary mx-auto mt-3 max-w-2xl text-sm leading-relaxed sm:text-[15px]">
+                                Ajoute des profils depuis la page d'accueil ou depuis une fiche portfolio pour les retrouver ici.
+                            </p>
+                            <a href="{{ path('app_home') }}" class="favorite-showcase-primary-link mx-auto mt-6 max-w-xs">
+                                Explorer des profils
+                            </a>
                         </div>
                     {% endfor %}
 

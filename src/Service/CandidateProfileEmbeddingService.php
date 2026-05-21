@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\DeveloperProfile;
+use App\Repository\DeveloperProfileRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 final class CandidateProfileEmbeddingService
@@ -14,6 +15,7 @@ final class CandidateProfileEmbeddingService
     public function __construct(
         private readonly AiMatchingClientInterface $aiMatchingClient,
         private readonly CandidateTextPreprocessor $candidateTextPreprocessor,
+        private readonly DeveloperProfileRepository $developerProfileRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly int $batchSize = self::DEFAULT_BATCH_SIZE,
     ) {
@@ -92,10 +94,10 @@ final class CandidateProfileEmbeddingService
 
                 ++$stats['refreshed'];
             }
-        }
 
-        if ($flush && $stats['refreshed'] > 0) {
-            $this->entityManager->flush();
+            if ($flush && $stats['refreshed'] > 0) {
+                $this->entityManager->flush();
+            }
         }
 
         return $stats;
@@ -109,16 +111,30 @@ final class CandidateProfileEmbeddingService
     public function storedEmbeddingsForProfiles(array $profiles): array
     {
         $embeddings = [];
+        $profileIds = array_values(array_filter(
+            array_map(static fn (DeveloperProfile $profile): int => (int) ($profile->getId() ?? 0), $profiles),
+            static fn (int $id): bool => $id > 0,
+        ));
+        $storedEmbeddingsById = $this->developerProfileRepository->findStoredMatchingEmbeddingsByProfileIds($profileIds);
 
         foreach ($profiles as $profile) {
-            $matchingText = $this->candidateTextPreprocessor->buildCandidateText($profile);
-            $textHash = hash('sha256', $matchingText);
-
-            if (!$this->hasFreshStoredEmbedding($profile, $textHash)) {
+            $profileId = (int) ($profile->getId() ?? 0);
+            if ($profileId <= 0) {
                 continue;
             }
 
-            $normalizedEmbedding = $this->normalizeStoredEmbedding($profile);
+            $matchingText = $this->candidateTextPreprocessor->buildCandidateText($profile);
+            $textHash = hash('sha256', $matchingText);
+            $storedEmbedding = $storedEmbeddingsById[$profileId] ?? null;
+
+            if (!is_array($storedEmbedding) || $storedEmbedding['textHash'] !== $textHash) {
+                continue;
+            }
+
+            $normalizedEmbedding = $this->normalizeEmbeddingPayload([
+                'embedding' => $storedEmbedding['embedding'],
+                'dimension' => $storedEmbedding['dimension'],
+            ]);
             if (null === $normalizedEmbedding) {
                 continue;
             }
