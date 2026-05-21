@@ -101,14 +101,14 @@ final class SeedMatchingDemoCommandTest extends TestCase
 
         $passwordHasher = $this->createMock(UserPasswordHasherInterface::class);
         $passwordHasher
-            ->expects(self::exactly(2))
+            ->expects(self::once())
             ->method('hashPassword')
             ->willReturnCallback(static fn (): string => 'hashed-password');
 
         $tester = new CommandTester(new SeedMatchingDemoCommand($projectDir, $entityManager, $passwordHasher));
 
         self::assertSame(Command::SUCCESS, $tester->execute(['dataset' => 'dataset.json']));
-        self::assertStringContainsString('Dataset de matching importé: 1 développeurs, 1 offres', $tester->getDisplay());
+        self::assertStringContainsString('Dataset de matching importé: 1 développeurs, 1 offres, recruteur recruiter.demo@demo.devspot.local.', $tester->getDisplay());
         self::assertCount(5, $persisted);
         self::assertContainsOnlyInstancesOf(User::class, array_filter($persisted, static fn (object $entity): bool => $entity instanceof User));
         self::assertCount(1, array_filter($persisted, static fn (object $entity): bool => $entity instanceof RecruiterProfile));

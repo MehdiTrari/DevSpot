@@ -17,6 +17,7 @@ use App\Enum\LocationType;
 use App\Matching\Service\CvAnonymizer;
 use App\Matching\Service\FairnessAuditor;
 use App\Matching\Service\SkillMatcher;
+use App\Repository\DeveloperProfileRepository;
 use App\Repository\PositionRepository;
 use App\Repository\SkillRepository;
 use App\Repository\TechnologyRepository;
@@ -38,6 +39,7 @@ final class OfferMatchingServiceTest extends TestCase
         $skillRepository = $this->createMock(SkillRepository::class);
         $technologyRepository = $this->createMock(TechnologyRepository::class);
         $positionRepository = $this->createMock(PositionRepository::class);
+        $developerProfileRepository = $this->createStub(DeveloperProfileRepository::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('flush');
 
@@ -46,7 +48,7 @@ final class OfferMatchingServiceTest extends TestCase
             new FairnessAuditor(),
             new CvAnonymizer(),
             new CandidateTextPreprocessor(),
-            new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $entityManager),
+            new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $developerProfileRepository, $entityManager),
             new SemanticMatchingService($client),
             new EnrichedMatchingService(new CandidateSkillInferenceService($client), new SemanticMatchingService($client)),
             $skillRepository,
@@ -157,6 +159,7 @@ final class OfferMatchingServiceTest extends TestCase
         $skillRepository = $this->createMock(SkillRepository::class);
         $technologyRepository = $this->createMock(TechnologyRepository::class);
         $positionRepository = $this->createMock(PositionRepository::class);
+        $developerProfileRepository = $this->createStub(DeveloperProfileRepository::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::never())->method('flush');
 
@@ -165,7 +168,7 @@ final class OfferMatchingServiceTest extends TestCase
             new FairnessAuditor(),
             new CvAnonymizer(),
             new CandidateTextPreprocessor(),
-            new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $entityManager),
+            new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $developerProfileRepository, $entityManager),
             new SemanticMatchingService($client),
             new EnrichedMatchingService(new CandidateSkillInferenceService($client), new SemanticMatchingService($client)),
             $skillRepository,
@@ -196,6 +199,7 @@ final class OfferMatchingServiceTest extends TestCase
         $skillRepository = $this->createMock(SkillRepository::class);
         $technologyRepository = $this->createMock(TechnologyRepository::class);
         $positionRepository = $this->createMock(PositionRepository::class);
+        $developerProfileRepository = $this->createStub(DeveloperProfileRepository::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('flush');
 
@@ -204,7 +208,7 @@ final class OfferMatchingServiceTest extends TestCase
             new FairnessAuditor(),
             new CvAnonymizer(),
             new CandidateTextPreprocessor(),
-            new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $entityManager),
+            new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $developerProfileRepository, $entityManager),
             new SemanticMatchingService($client),
             new EnrichedMatchingService(new CandidateSkillInferenceService($client), new SemanticMatchingService($client)),
             $skillRepository,
@@ -321,12 +325,14 @@ final class OfferMatchingServiceTest extends TestCase
         $entityManager->expects(self::never())->method('flush');
         $preprocessor = new CandidateTextPreprocessor();
 
+        $developerProfileRepository = $this->createStub(DeveloperProfileRepository::class);
+
         $service = new OfferMatchingService(
             new SkillMatcher(),
             new FairnessAuditor(),
             new CvAnonymizer(),
             $preprocessor,
-            new CandidateProfileEmbeddingService($client, $preprocessor, $entityManager),
+            new CandidateProfileEmbeddingService($client, $preprocessor, $developerProfileRepository, $entityManager),
             new SemanticMatchingService($client),
             new EnrichedMatchingService(new CandidateSkillInferenceService($client), new SemanticMatchingService($client)),
             $skillRepository,
