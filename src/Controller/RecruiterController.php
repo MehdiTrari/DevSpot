@@ -728,32 +728,6 @@ final class RecruiterController extends AbstractController
         return $this->redirectToRoute('app_recruiter_offers');
     }
 
-    #[Route('/recruiter/offers/{id}/delete', name: 'app_recruiter_offer_delete', requirements: ['id' => '\\d+'], methods: ['POST'])]
-    #[IsGranted('ROLE_RECRUITER')]
-    public function deleteOffer(
-        JobOffer $offer,
-        Request $request,
-        EntityManagerInterface $entityManager,
-    ): Response {
-        $recruiterProfile = $this->getRecruiterProfile();
-        if (!$recruiterProfile instanceof RecruiterProfile || $offer->getRecruiterProfile()?->getId() !== $recruiterProfile->getId()) {
-            throw $this->createNotFoundException('Offre introuvable.');
-        }
-
-        if (!$this->isCsrfTokenValid('offer_delete_' . $offer->getId(), (string) $request->request->get('_token'))) {
-            $this->addFlash('error', 'Token CSRF invalide.');
-
-            return $this->redirectToRoute('app_recruiter_offers');
-        }
-
-        $entityManager->remove($offer);
-        $entityManager->flush();
-
-        $this->addFlash('success', 'Offre supprimée.');
-
-        return $this->redirectToRoute('app_recruiter_offers');
-    }
-
     #[Route('/recruiter/messages', name: 'app_recruiter_messages')]
     #[IsGranted('ROLE_RECRUITER')]
     public function messages(

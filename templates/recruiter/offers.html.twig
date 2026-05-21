@@ -655,7 +655,7 @@
                             {# Status toggle buttons #}
                             {% set offerDeadlineExpired = job.applicationDeadline and job.applicationDeadline < date('today') %}
                             {% if not (offerDeadlineExpired and job.statusValue in ['draft', 'closed']) %}
-                                <a href="{{ path('app_recruiter_offer_edit', { id: job.id }) }}" class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3.5 py-2 text-xs font-semibold text-slate-200 transition hover:bg-white/10">
+                                <a href="{{ path('app_recruiter_offer_edit', { id: job.id }) }}" class="ui-button-secondary inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold">
                                     Modifier
                                 </a>
                             {% endif %}
@@ -669,7 +669,7 @@
                                 </form>
                             {% elseif job.statusValue == 'draft' %}
                                 {% if offerDeadlineExpired %}
-                                    <a href="{{ path('app_recruiter_offer_edit', { id: job.id }) }}" class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20">
+                                    <a href="{{ path('app_recruiter_offer_edit', { id: job.id }) }}" class="ui-button-secondary inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold">
                                         Modifier pour publier
                                     </a>
                                 {% else %}
@@ -684,7 +684,7 @@
                                 {% endif %}
                             {% elseif job.statusValue == 'closed' %}
                                 {% if offerDeadlineExpired %}
-                                    <a href="{{ path('app_recruiter_offer_edit', { id: job.id }) }}" class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3.5 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/20">
+                                    <a href="{{ path('app_recruiter_offer_edit', { id: job.id }) }}" class="ui-button-secondary inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold">
                                         Modifier pour réouvrir
                                     </a>
                                 {% else %}
