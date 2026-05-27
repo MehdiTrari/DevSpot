@@ -48,7 +48,7 @@ final class ContentSecurityPolicySubscriber implements EventSubscriberInterface
             "font-src 'self' data:",
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
             "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://npmcdn.com",
-            'connect-src '.implode(' ', $connectSources),
+            'connect-src ' . implode(' ', $connectSources),
         ]);
 
         $response->headers->set('Content-Security-Policy', $policy);
@@ -65,9 +65,9 @@ final class ContentSecurityPolicySubscriber implements EventSubscriberInterface
             return null;
         }
 
-        $source = $parts['scheme'].'://'.$parts['host'];
+        $source = $parts['scheme'] . '://' . $parts['host'];
         if (isset($parts['port'])) {
-            $source .= ':'.$parts['port'];
+            $source .= ':' . $parts['port'];
         }
 
         return $source;
