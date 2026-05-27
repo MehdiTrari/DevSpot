@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Changement de slug | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-4xl self-start space-y-6">
+        <div class="theme-settings-card rounded-[2rem] p-6 sm:p-8">
+            <a href="{{ path('app_settings_index') }}" class="ui-button-secondary inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm font-semibold">
+                &larr; Retour aux paramètres
+            </a>
+
+            <div class="max-w-2xl">
+                <span class="inline-flex rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-emerald-300">
+                    Portfolio
+                </span>
+                <h1 class="ui-title mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Changement de slug</h1>
+                <p class="ui-text-secondary mt-3 text-[15px] leading-relaxed">
+                    Propose une nouvelle URL de portfolio. La demande sera validée par un administrateur.
+                </p>
+            </div>
+
+            <div class="mt-6">
+                {% include 'settings/_menu.html.twig' with { current: 'slug' } %}
+            </div>
+
+            <div class="mt-8 rounded-[1.75rem] border border-white/10 bg-white/5 p-6 sm:p-7">
+                {% if profile is null %}
+                    <p class="ui-text-secondary text-sm">Aucun profil développeur associé à ton compte pour le moment.</p>
+                {% else %}
+                    <p class="ui-text-muted text-sm">Slug actuel: <span class="ui-title">{{ profile.slug }}</span></p>
+                    <form method="post" action="{{ path('app_account_request_slug') }}" class="mt-4 space-y-3">
+                        <input type="hidden" name="_token" value="{{ csrf_token('request_slug') }}">
+                        <input type="hidden" name="_redirect_route" value="app_settings_slug">
+                        <input type="text" name="desired_slug" value="{{ profile.slug }}" class="block w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-sm text-white outline-none transition-all duration-300 placeholder:text-slate-500 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20" placeholder="mon-nouveau-slug">
+                        <button type="submit" class="ui-button-secondary inline-flex w-full items-center justify-center rounded-full px-5 py-3 text-sm font-semibold">
+                            Envoyer la demande
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+{% endblock %}

@@ -1,5 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
 
-body {
-    background-color: skyblue;
-}
+@source "../../templates";
+@source "../";

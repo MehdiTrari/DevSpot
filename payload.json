@@ -1,0 +1,60 @@
+{
+  "offer": {
+    "id": "offer-1",
+    "title": "Junior Symfony Developer",
+    "requiredHardSkills": [
+      "php",
+      "symfony",
+      "sql"
+    ],
+    "desiredSoftSkills": [
+      "communication",
+      "teamwork"
+    ],
+    "description": "Poste backend Symfony junior avec integration API, maintenance applicative et collaboration produit."
+  },
+  "candidates": [
+    {
+      "id": "cand-1",
+      "yearsOfExperience": 1,
+      "hardSkills": [
+        "php",
+        "symfony",
+        "mysql"
+      ],
+      "softSkills": [
+        "communication",
+        "teamwork"
+      ],
+      "rawCv": "Alice Martin, alice.martin@example.com, 06 12 34 56 78. Developpeuse PHP/Symfony junior. 1 an d'experience sur des APIs REST et bases SQL."
+    },
+    {
+      "id": "cand-2",
+      "yearsOfExperience": 4,
+      "hardSkills": [
+        "php",
+        "laravel",
+        "postgresql"
+      ],
+      "softSkills": [
+        "autonomie",
+        "communication"
+      ],
+      "rawCv": "Karim Benali, karim.benali@example.com, 07 98 76 54 32. Developpeur backend confirme en PHP, Laravel et PostgreSQL."
+    },
+    {
+      "id": "cand-3",
+      "yearsOfExperience": 0,
+      "hardSkills": [
+        "php",
+        "symfony",
+        "sql"
+      ],
+      "softSkills": [
+        "teamwork",
+        "adaptabilite"
+      ],
+      "rawCv": "Lucie Bernard, lucie.bernard@example.com, 06 44 55 66 77. Stage de 6 mois sur Symfony, SQL et administration d'API internes."
+    }
+  ]
+}

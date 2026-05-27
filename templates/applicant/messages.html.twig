@@ -1,0 +1,277 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Conversations | DevSpot{% endblock %}
+
+{% block body %}
+    <section
+        class="grid h-full w-full max-w-none min-h-0 self-stretch grid-cols-1 gap-4 font-sans xl:grid-cols-[380px_minmax(0,1fr)]"
+        data-chat-root="true"
+        data-chat-inline-managed="true"
+        data-chat-mercure-url="{{ mercure(mercureTopics, mercureNeedsCredentials ? {subscribe: mercureTopics} : {}) }}"
+        data-chat-mercure-credentials="{{ mercureNeedsCredentials ? 'true' : 'false' }}"
+        {% if selectedConversation %}
+            data-chat-poll-url="{{ path('app_applicant_message_poll', {conversationId: selectedConversation.id}) }}"
+            data-chat-seen-url="{{ path('app_applicant_message_mark_read', {conversationId: selectedConversation.id}) }}"
+            data-chat-seen-token="{{ csrf_token('chat_read_' ~ selectedConversation.id) }}"
+        {% endif %}
+    >
+            <aside class="ui-message-panel {{ selectedConversation ? 'hidden md:flex' : 'flex' }} h-full min-h-0 flex-col rounded-2xl p-3">
+                <div class="ui-message-divider mb-3 flex items-center justify-between gap-3 border-b px-2 pb-3">
+                    <h1 class="ui-title text-base font-semibold">Messages privés</h1>
+                </div>
+
+                <div
+                    id="conversation-list"
+                    data-conversation-list="true"
+                    data-selected-conversation-id="{{ selectedConversation ? selectedConversation.id : '' }}"
+                    class="flex-1 space-y-2 overflow-y-auto pr-1"
+                >
+                    {% if conversations is empty %}
+                        <p data-conversation-empty-state="true" class="ui-message-empty-box rounded-xl px-3 py-2 text-sm">Aucune conversation active.</p>
+                    {% else %}
+                        {% for row in conversations %}
+                            {% include 'applicant/_conversation_row.html.twig' with {
+                                row: row,
+                                selectedConversationId: selectedConversation ? selectedConversation.id : null
+                            } only %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </aside>
+
+            <div class="ui-message-panel {{ selectedConversation ? 'flex' : 'hidden md:flex' }} h-full min-h-0 flex-col overflow-hidden rounded-2xl">
+                {% if selectedConversation %}
+                    <header class="ui-message-divider flex items-center justify-between border-b px-5 py-3">
+                        <div class="flex items-center gap-3">
+                            <a href="{{ path('app_applicant_messages') }}" class="ui-message-back inline-flex h-8 w-8 items-center justify-center rounded-full md:hidden" aria-label="Retour à la liste des conversations">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </a>
+                            <div>
+                                <h2 class="ui-title text-base font-semibold">{{ selectedRecruiterName }}</h2>
+                            </div>
+                        </div>
+                    </header>
+
+                    {% set lastMessageId = selectedMessages is not empty ? selectedMessages|last.id : 0 %}
+                    <div
+                        id="chat-messages"
+                        data-chat-messages="true"
+                        data-last-message-id="{{ lastMessageId }}"
+                        class="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4"
+                    >
+                        {% for message in selectedMessages %}
+                            {% include 'applicant/_chat_message.html.twig' with {
+                                message: message,
+                                mine: message.senderUser and app.user and message.senderUser.id == app.user.id
+                            } only %}
+                        {% endfor %}
+                    </div>
+
+                    {% if replyForm %}
+                        <div class="ui-message-panel-alt ui-message-divider border-t p-3">
+                            {{ form_start(replyForm, {attr: {class: 'space-y-2', id: 'chat-form', 'data-chat-form': 'true'}}) }}
+                                <div class="relative">
+                                    {{ form_widget(replyForm.content, {attr: {class: 'ui-message-input h-11 w-full rounded-full py-2 pl-4 pr-14 text-sm', placeholder: 'Envoyer un message...'}}) }}
+                                    <button type="submit" class="ui-message-send absolute right-1.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full transition" aria-label="Envoyer le message">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m5 12 14-7-4 7 4 7-14-7Z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                {{ form_errors(replyForm.content) }}
+                            {{ form_end(replyForm) }}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="ui-message-empty flex h-full min-h-[420px] items-center justify-center px-6 text-center">
+                        Sélectionnez une conversation à gauche.
+                    </div>
+                {% endif %}
+            </div>
+
+        {% if selectedConversation %}
+            <script>
+                (() => {
+                    const script = document.currentScript;
+                    const root = script.closest('[data-chat-root="true"]');
+                    if (!root || root.dataset.chatInlineBooted === 'true') {
+                        return;
+                    }
+
+                    root.dataset.chatInlineBooted = 'true';
+
+                    const chatMessages = root.querySelector('[data-chat-messages="true"]');
+                    const chatForm = root.querySelector('[data-chat-form="true"]');
+                    const pollUrl = root.dataset.chatPollUrl;
+                    const seenUrl = root.dataset.chatSeenUrl;
+                    const seenToken = root.dataset.chatSeenToken;
+                    const mercureUrl = root.dataset.chatMercureUrl;
+                    const mercureWithCredentials = root.dataset.chatMercureCredentials === 'true';
+
+                    if (!chatMessages) {
+                        return;
+                    }
+
+                    const escapeSelector = (value) => {
+                        if (window.CSS && typeof window.CSS.escape === 'function') {
+                            return window.CSS.escape(String(value));
+                        }
+
+                        return String(value);
+                    };
+
+                    const scrollToBottom = () => {
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    };
+
+                    const setLastIdFromDom = () => {
+                        const all = chatMessages.querySelectorAll('.js-chat-message[data-message-id]');
+                        const last = all.length ? Number(all[all.length - 1].dataset.messageId || 0) : 0;
+                        chatMessages.dataset.lastMessageId = String(last);
+                    };
+
+                    const getLastId = () => Number(chatMessages.dataset.lastMessageId || 0);
+
+                    const appendMissingMessages = (html) => {
+                        if (!html) {
+                            return;
+                        }
+
+                        const template = document.createElement('template');
+                        template.innerHTML = html.trim();
+
+                        Array.from(template.content.children).forEach((child) => {
+                            const messageId = child.getAttribute('data-message-id');
+                            if (messageId && chatMessages.querySelector(`[data-message-id="${escapeSelector(messageId)}"]`)) {
+                                return;
+                            }
+
+                            chatMessages.appendChild(child);
+                        });
+
+                        setLastIdFromDom();
+                        scrollToBottom();
+                    };
+
+                    const markRead = async () => {
+                        if (!seenUrl || !seenToken) {
+                            return;
+                        }
+
+                        try {
+                            await fetch(seenUrl, {
+                                method: 'POST',
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json',
+                                },
+                                body: new URLSearchParams({_token: seenToken}),
+                                credentials: 'same-origin',
+                            });
+                        } catch (_error) {
+                        }
+                    };
+
+                    scrollToBottom();
+                    setLastIdFromDom();
+
+                    if (chatForm) {
+                        chatForm.addEventListener('submit', async (event) => {
+                            event.preventDefault();
+
+                            const input = chatForm.querySelector('input[name$="[content]"]');
+                            const submit = chatForm.querySelector('button[type="submit"]');
+                            if (!input || !submit || !input.value.trim()) {
+                                return;
+                            }
+
+                            submit.disabled = true;
+                            try {
+                                const response = await fetch(chatForm.action, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json',
+                                    },
+                                    body: new FormData(chatForm),
+                                    credentials: 'same-origin',
+                                });
+
+                                const payload = await response.json().catch(() => null);
+                                if (!response.ok || !payload || !payload.ok) {
+                                    return;
+                                }
+
+                                input.value = '';
+                                appendMissingMessages(payload.html || '');
+                                await markRead();
+                            } finally {
+                                submit.disabled = false;
+                            }
+                        });
+                    }
+
+                    if (mercureUrl && window.Turbo && typeof window.Turbo.renderStreamMessage === 'function') {
+                        const eventSource = new EventSource(mercureUrl, {
+                            withCredentials: mercureWithCredentials,
+                        });
+
+                        eventSource.onmessage = (event) => {
+                            if (!event.data) {
+                                return;
+                            }
+
+                            window.Turbo.renderStreamMessage(event.data);
+                        };
+
+                        const closeMercure = () => eventSource.close();
+                        window.addEventListener('beforeunload', closeMercure, {once: true});
+                        document.addEventListener('turbo:before-cache', closeMercure, {once: true});
+                    }
+
+                    if (!pollUrl) {
+                        return;
+                    }
+
+                    let polling = false;
+                    const poll = async () => {
+                        if (polling) {
+                            return;
+                        }
+
+                        polling = true;
+                        try {
+                            const response = await fetch(`${pollUrl}?sinceId=${encodeURIComponent(getLastId())}`, {
+                                headers: {
+                                    'X-Requested-With': 'XMLHttpRequest',
+                                    'Accept': 'application/json',
+                                },
+                                credentials: 'same-origin',
+                            });
+
+                            const payload = await response.json().catch(() => null);
+                            if (!response.ok || !payload || !payload.ok) {
+                                return;
+                            }
+
+                            appendMissingMessages(payload.html || '');
+                            if (payload.html) {
+                                await markRead();
+                            }
+                        } finally {
+                            polling = false;
+                        }
+                    };
+
+                    poll();
+                    const pollTimer = window.setInterval(poll, 1000);
+                    const stopPolling = () => window.clearInterval(pollTimer);
+                    window.addEventListener('beforeunload', stopPolling, {once: true});
+                    document.addEventListener('turbo:before-cache', stopPolling, {once: true});
+                })();
+            </script>
+        {% endif %}
+    </section>
+{% endblock %}

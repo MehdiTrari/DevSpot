@@ -1,0 +1,185 @@
+{% use 'tailwind_2_layout.html.twig' %}
+
+{# --- ROW (Conteneur principal de chaque champ) --- #}
+{% block form_row %}
+    <div class="mb-5 space-y-1.5">
+        {{ form_label(form) }}
+        {{ form_widget(form) }}
+        {{ form_errors(form) }}
+        {{ form_help(form) }}
+    </div>
+{% endblock %}
+
+{# --- LABEL --- #}
+{% block form_label %}
+    {% if label is not same as(false) %}
+        {% set is_required = (required|default(false)) or (form.vars.required|default(false)) or (label_attr['data-required-label']|default(false) in [true, 'true', '1']) %}
+        {% if not compound %}
+            {% set label_attr = label_attr|merge({for: id}) %}
+        {% endif %}
+        {% if is_required %}
+            {% set label_attr = label_attr|merge({'class': (label_attr.class|default('') ~ ' required')|trim}) %}
+        {% endif %}
+        {% set label_attr = label_attr|merge({'class': (label_attr.class|default('') ~ ' block pl-1 text-[15px] font-medium text-slate-200')|trim}) %}
+        <label {% with { attr: label_attr } %}{{ block('attributes') }}{% endwith %}>
+            {{- block('form_label_content') -}}
+            {%- if is_required -%}
+                <span class="ml-1 text-rose-300" aria-hidden="true">*</span>
+            {%- endif -%}
+        </label>
+    {% endif %}
+{% endblock %}
+
+{# --- INPUT TEXT / EMAIL / PASSWORD --- #}
+{% block form_widget_simple %}
+    {% set type = type|default('text') %}
+    {% set attr = attr|merge({
+        'class': (attr.class|default('') ~ ' block w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 text-[15px] text-white outline-none transition-all duration-300 placeholder:text-slate-500 focus:border-emerald-500 focus:bg-white/10 focus:ring-4 focus:ring-emerald-500/20 shadow-inner')|trim
+    }) %}
+    <input type="{{ type }}" {{ block('widget_attributes') }} {% if value is not empty %}value="{{ value }}"{% endif %}/>
+{% endblock %}
+
+{# --- TEXTAREA --- #}
+{% block textarea_widget %}
+    {% set attr = attr|merge({
+        'class': (attr.class|default('') ~ ' block w-full min-h-[120px] rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 text-[15px] text-white outline-none transition-all duration-300 placeholder:text-slate-500 focus:border-emerald-500 focus:bg-white/10 focus:ring-4 focus:ring-emerald-500/20 shadow-inner')|trim
+    }) %}
+    <textarea {{ block('widget_attributes') }}>{{ value }}</textarea>
+{% endblock %}
+
+{# --- SELECT (Choice) --- #}
+{% block choice_widget_collapsed %}
+    {% if multiple %}
+        {% set native_attr = attr|merge({
+            'class': (attr.class|default('') ~ ' block w-full min-h-[12rem] rounded-[1.65rem] border border-white/10 bg-white/5 px-4 py-3.5 text-[15px] text-white outline-none transition-all duration-300 focus:border-emerald-500 focus:bg-white/10 focus:ring-4 focus:ring-emerald-500/20 shadow-inner')|trim,
+            'size': attr.size|default(8)
+        }) %}
+        {% set selection_placeholder = attr['data-multiselect-selection-placeholder']|default('Sélectionner une ou plusieurs options') %}
+        {% set search_placeholder = attr['data-multiselect-search-placeholder']|default('Rechercher...') %}
+        {% set empty_label = attr['data-multiselect-empty']|default('Aucun résultat.') %}
+
+        <div class="space-y-3" data-ui-multiselect="true">
+            <div data-ui-multiselect-native="true">
+                {% set attr = native_attr %}
+                <select {{ block('widget_attributes') }} multiple="multiple">
+                    {% if placeholder is not none %}
+                        <option value="" {% if required and value is empty %} selected="selected"{% endif %} class="bg-slate-900">{{ placeholder|trans }}</option>
+                    {% endif %}
+                    {% if preferred_choices|length > 0 %}
+                        {% set options = preferred_choices %}
+                        {{ block('choice_widget_options') }}
+                        <option disabled="disabled" class="bg-slate-900">{{ separator }}</option>
+                    {% endif %}
+                    {% set options = choices %}
+                    {{ block('choice_widget_options') }}
+                </select>
+            </div>
+
+            <div data-ui-multiselect-enhanced="true" class="hidden space-y-3">
+                <div data-ui-multiselect-control="true" class="rounded-[1.65rem] border border-white/10 bg-white/5 px-4 py-3.5 shadow-inner transition-all duration-300">
+                    <div data-ui-multiselect-tags="true" class="flex flex-wrap gap-2"></div>
+
+                    <div data-ui-multiselect-search-shell="true" class="mt-3 flex items-center gap-3 rounded-[1.1rem] border border-white/10 bg-slate-950/40 px-3 py-2.5 transition-all duration-200">
+                        <svg data-ui-multiselect-search-icon="true" class="h-[18px] w-[18px] shrink-0 text-slate-400 transition-colors duration-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <path stroke-linecap="round" d="m20 20-3.5-3.5"></path>
+                        </svg>
+
+                        <input
+                            type="search"
+                            placeholder="{{ search_placeholder }}"
+                            autocomplete="off"
+                            spellcheck="false"
+                            class="w-full bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
+                            data-ui-multiselect-search="true"
+                        >
+
+                        <span data-ui-multiselect-count="true" class="inline-flex shrink-0 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-semibold text-slate-300">
+                            0
+                        </span>
+                    </div>
+                </div>
+
+                <div data-ui-multiselect-dropdown="true" class="overflow-hidden rounded-[1.65rem] border border-white/10 bg-slate-950/78 shadow-2xl shadow-black/30 backdrop-blur-md">
+                    <div data-ui-multiselect-options="true" class="max-h-72 space-y-2 overflow-y-auto p-2"></div>
+                    <p data-ui-multiselect-empty-state="true" class="hidden px-4 pb-4 pt-2 text-sm text-slate-400">{{ empty_label }}</p>
+                    <span data-ui-multiselect-selection-placeholder="true" class="hidden">{{ selection_placeholder }}</span>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        {% set attr = attr|merge({
+            'class': (attr.class|default('') ~ ' block w-full appearance-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 pr-10 text-[15px] text-white outline-none transition-all duration-300 focus:border-emerald-500 focus:bg-white/10 focus:ring-4 focus:ring-emerald-500/20 shadow-inner cursor-pointer relative z-10')|trim
+        }) %}
+        <div class="relative group">
+            <select {{ block('widget_attributes') }}>
+                {% if placeholder is not none %}
+                    <option value="" {% if required and value is empty %} selected="selected"{% endif %} class="bg-slate-900">{{ placeholder|trans }}</option>
+                {% endif %}
+                {% if preferred_choices|length > 0 %}
+                    {% set options = preferred_choices %}
+                    {{ block('choice_widget_options') }}
+                    <option disabled="disabled" class="bg-slate-900">{{ separator }}</option>
+                {% endif %}
+                {% set options = choices %}
+                {{ block('choice_widget_options') }}
+            </select>
+
+            {# Flèche iOS style pour le select #}
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-500 group-focus-within:text-emerald-500 transition-colors duration-300">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                </svg>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{# --- OPTIONS DU SELECT (Pour éviter qu'elles soient invisibles sur fond sombre) --- #}
+{% block choice_widget_options %}
+    {% for group_label, choice in options %}
+        {% if choice is iterable %}
+            <optgroup label="{{ choice_translation_domain is same as(false) ? group_label : group_label|trans({}, choice_translation_domain) }}" class="bg-slate-900 font-semibold">
+                {% set options = choice %}
+                {{ block('choice_widget_options') }}
+            </optgroup>
+        {% else %}
+            <option value="{{ choice.value }}" {% if choice.attr %}{% with { attr: choice.attr } %}{{ block('attributes') }}{% endwith %}{% endif %}{% if choice is selectedchoice(value) %} selected="selected"{% endif %} class="bg-slate-900 text-slate-100">{{ choice_translation_domain is same as(false) ? choice.label : choice.label|trans({}, choice_translation_domain) }}</option>
+        {% endif %}
+    {% endfor %}
+{% endblock %}
+
+{# --- DATE PICKER (Flatpickr) --- #}
+{% block date_widget %}
+    {% set attr = attr|merge({
+        'class': (attr.class|default('') ~ ' block w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 pr-10 text-[15px] text-white outline-none transition-all duration-300 placeholder:text-slate-500 focus:border-emerald-500 focus:bg-white/10 focus:ring-4 focus:ring-emerald-500/20 shadow-inner js-datepicker cursor-pointer')|trim,
+        'placeholder': 'Sélectionner une date...',
+        'readonly': 'readonly'
+    }) %}
+    <div class="relative group">
+        <input type="text" {{ block('widget_attributes') }} {% if value is not empty %}value="{{ value }}"{% endif %}/>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-slate-500 group-focus-within:text-emerald-500 transition-colors duration-300">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+        </div>
+    </div>
+{% endblock %}
+
+{# --- ERRORS --- #}
+{% block form_errors %}
+    {% if errors|length > 0 %}
+        <p class="pl-1 mt-1.5 text-sm font-medium text-red-400 animate-fade-in-down">
+            {{ errors[0].message }}
+        </p>
+    {% endif %}
+{% endblock %}
+
+{# --- HELP TEXT --- #}
+{% block form_help %}
+    {% if help is not empty %}
+        <p class="pl-1 mt-1.5 text-[13px] text-slate-400">{{ help }}</p>
+    {% elseif form.vars.disabled %}
+        <p class="pl-1 mt-1.5 text-[13px] text-amber-300">Ce champ n'est pas modifiable.</p>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="ui-shell ui-shell-hover w-full max-w-md rounded-[2.5rem] p-8 backdrop-blur-2xl sm:p-10">
+        <div class="mb-8 text-center">
+            <h1 class="ui-title text-3xl font-semibold tracking-tight">Connexion</h1>
+            <p class="ui-text-muted mt-2 text-[15px]">Accède à ton espace DevSpot.</p>
+        </div>
+
+        <div class="mb-6 space-y-3">
+            {% if error %}
+                <div class="ui-error-box rounded-2xl px-5 py-3.5 text-[15px] font-medium animate-fade-in-down">
+                    <div class="flex items-start justify-between gap-4">
+                        <p class="leading-relaxed">{{ error.messageKey|trans(error.messageData, 'security') }}</p>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if app.user %}
+                <div class="ui-panel rounded-2xl px-5 py-3.5 text-[15px] font-medium ui-text-primary animate-fade-in-down">
+                    Connecté en tant que {{ app.user.userIdentifier }}.
+                    <a class="ui-link-accent ml-1 font-semibold hover:underline" href="{{ logout_path() }}">Se déconnecter</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <form method="post" class="space-y-5">
+            <div class="space-y-1.5">
+                <label for="inputEmail" class="ui-input-label block pl-1 text-[15px] font-medium">Email</label>
+                <input
+                    type="email"
+                    value="{{ last_username }}"
+                    name="email"
+                    id="inputEmail"
+                    class="ui-input block w-full rounded-2xl px-5 py-3.5 text-[15px] transition-all duration-300"
+                    placeholder="nom@exemple.com"
+                    autocomplete="email"
+                    required
+                    autofocus
+                >
+            </div>
+
+            <div class="space-y-1.5">
+                <label for="inputPassword" class="ui-input-label block pl-1 text-[15px] font-medium">Mot de passe</label>
+                <input
+                    type="password"
+                    name="password"
+                    id="inputPassword"
+                    class="ui-input block w-full rounded-2xl px-5 py-3.5 text-[15px] transition-all duration-300"
+                    placeholder="••••••••"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+
+            <input type="hidden" name="_csrf_token" data-controller="csrf-protection" value="{{ csrf_token('authenticate') }}">
+
+            <div class="pt-1">
+                <label class="group inline-flex cursor-pointer items-center gap-3">
+                    <div class="relative flex items-center">
+                        <input type="checkbox" name="_remember_me" class="ui-check peer h-5 w-5 cursor-pointer appearance-none rounded-md shadow-inner transition-all">
+                        <svg class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 ui-title opacity-0 transition-opacity peer-checked:opacity-100" width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 5L4.5 8.5L11 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <span class="ui-text-muted ui-hover-heading text-[15px] font-medium transition-colors">Se souvenir de moi</span>
+                </label>
+            </div>
+
+            <button class="ui-button-primary mt-4 w-full rounded-full px-5 py-4 text-[15px] font-bold active:scale-95 focus:outline-none" type="submit">
+                Se connecter
+            </button>
+        </form>
+
+        <p class="ui-text-muted mt-8 text-center text-[15px]">
+            Pas encore de compte ?
+            <a href="{{ path('app_register') }}" class="ui-link-accent font-semibold hover:underline">Créer un compte</a>
+        </p>
+    </section>
+{% endblock %}

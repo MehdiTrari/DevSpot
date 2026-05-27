@@ -1,0 +1,14 @@
+http://{$APP_DOMAIN} {
+    encode zstd gzip
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options SAMEORIGIN
+        Referrer-Policy strict-origin-when-cross-origin
+    }
+    reverse_proxy app:80
+}
+
+http://{$MERCURE_PUBLIC_HOST} {
+    encode zstd gzip
+    reverse_proxy mercure:80
+}

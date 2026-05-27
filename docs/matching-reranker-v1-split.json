@@ -1,0 +1,44 @@
+{
+  "dataset": "matching-demo-dataset-v4-hard-negatives-bias-audit.json",
+  "output": "C:\\Users\\mehdi\\DevSpot\\ml\\models\\devspot-matching-reranker-v1.pkl",
+  "offers": 320,
+  "developers": 1000,
+  "featureNames": [
+    "semantic_score",
+    "enriched_score",
+    "baseline_core_score",
+    "keyword_overlap_count",
+    "keyword_overlap_ratio",
+    "family_overlap_count",
+    "best_specific_overlap",
+    "proximity_hits",
+    "compatible_primary_family",
+    "blocking_role_mismatch",
+    "fullstack_backend_overlap",
+    "fullstack_frontend_overlap",
+    "fullstack_two_sided_coverage",
+    "role_template_grade",
+    "title_alignment_ratio",
+    "exact_title_match",
+    "years_experience",
+    "required_years",
+    "experience_gap",
+    "experience_fit"
+  ],
+  "splits": {
+    "train": 224,
+    "validation": 48,
+    "test": 48
+  },
+  "juniorPositiveWeight": 2.0,
+  "validationMetrics": {
+    "rocAuc": 0.9833,
+    "averagePrecision": 0.4456,
+    "positiveRate": 0.012
+  },
+  "testMetrics": {
+    "rocAuc": 0.9808,
+    "averagePrecision": 0.4361,
+    "positiveRate": 0.012
+  }
+}

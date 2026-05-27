@@ -1,0 +1,117 @@
+{
+  "model": "camembert-base",
+  "projectionPath": "ml/models/devspot-matching-projection.pt",
+  "offersEvaluated": 90,
+  "recall@1": 1.0,
+  "recall@3": 1.0,
+  "recall@5": 1.0,
+  "mrr": 1.0,
+  "ndcg@5": 0.9991,
+  "sampleOffers": [
+    {
+      "title": "Developpeur Full Stack React / Symfony",
+      "positiveCandidates": 191,
+      "top3": [
+        {
+          "fullName": "Tom Moulin",
+          "score": 0.9586,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Mael Boyer",
+          "score": 0.9364,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Samir Richard",
+          "score": 0.934,
+          "weakRelevance": 3
+        }
+      ]
+    },
+    {
+      "title": "Developpeur Full Stack React / Symfony",
+      "positiveCandidates": 191,
+      "top3": [
+        {
+          "fullName": "Tom Moulin",
+          "score": 0.9586,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Mael Boyer",
+          "score": 0.9364,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Samir Richard",
+          "score": 0.934,
+          "weakRelevance": 3
+        }
+      ]
+    },
+    {
+      "title": "DevOps Engineer",
+      "positiveCandidates": 143,
+      "top3": [
+        {
+          "fullName": "Salome Fournier",
+          "score": 0.9422,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Chloe Mercier",
+          "score": 0.9036,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Marius Dubois",
+          "score": 0.8957,
+          "weakRelevance": 3
+        }
+      ]
+    },
+    {
+      "title": "Developpeur Android Kotlin",
+      "positiveCandidates": 83,
+      "top3": [
+        {
+          "fullName": "Mael Lopez",
+          "score": 0.8215,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Chloe Bernard",
+          "score": 0.8022,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Marius Blanc",
+          "score": 0.7621,
+          "weakRelevance": 3
+        }
+      ]
+    },
+    {
+      "title": "Developpeur Android Kotlin",
+      "positiveCandidates": 83,
+      "top3": [
+        {
+          "fullName": "Mael Lopez",
+          "score": 0.8775,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Chloe Bernard",
+          "score": 0.8573,
+          "weakRelevance": 3
+        },
+        {
+          "fullName": "Marius Blanc",
+          "score": 0.8241,
+          "weakRelevance": 3
+        }
+      ]
+    }
+  ]
+}

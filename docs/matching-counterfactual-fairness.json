@@ -1,0 +1,118 @@
+{
+  "model": "camembert-base",
+  "projectionPath": "ml/models/devspot-matching-projection.pt",
+  "offers": 90,
+  "developers": 192,
+  "methods": [
+    "baseline",
+    "semantic",
+    "enriched_proxy"
+  ],
+  "variants": {
+    "location": {
+      "baseline": {
+        "changed_pairs_rate": 0.9886,
+        "top1_changed_rate": 0.6333,
+        "avg_top5_overlap": 0.46,
+        "score_delta": {
+          "junior_avg_delta": -0.0125,
+          "junior_avg_abs_delta": 0.0397,
+          "non_junior_avg_delta": -0.0062,
+          "non_junior_avg_abs_delta": 0.0395
+        }
+      },
+      "semantic": {
+        "changed_pairs_rate": 0.0,
+        "top1_changed_rate": 0.0,
+        "avg_top5_overlap": 1.0,
+        "score_delta": {
+          "junior_avg_delta": 0.0,
+          "junior_avg_abs_delta": 0.0,
+          "non_junior_avg_delta": 0.0,
+          "non_junior_avg_abs_delta": 0.0
+        }
+      },
+      "enriched_proxy": {
+        "changed_pairs_rate": 0.0,
+        "top1_changed_rate": 0.0,
+        "avg_top5_overlap": 1.0,
+        "score_delta": {
+          "junior_avg_delta": 0.0,
+          "junior_avg_abs_delta": 0.0,
+          "non_junior_avg_delta": 0.0,
+          "non_junior_avg_abs_delta": 0.0
+        }
+      }
+    },
+    "school": {
+      "baseline": {
+        "changed_pairs_rate": 0.0,
+        "top1_changed_rate": 0.0,
+        "avg_top5_overlap": 1.0,
+        "score_delta": {
+          "junior_avg_delta": 0.0,
+          "junior_avg_abs_delta": 0.0,
+          "non_junior_avg_delta": 0.0,
+          "non_junior_avg_abs_delta": 0.0
+        }
+      },
+      "semantic": {
+        "changed_pairs_rate": 0.0,
+        "top1_changed_rate": 0.0,
+        "avg_top5_overlap": 1.0,
+        "score_delta": {
+          "junior_avg_delta": 0.0,
+          "junior_avg_abs_delta": 0.0,
+          "non_junior_avg_delta": 0.0,
+          "non_junior_avg_abs_delta": 0.0
+        }
+      },
+      "enriched_proxy": {
+        "changed_pairs_rate": 0.0,
+        "top1_changed_rate": 0.0,
+        "avg_top5_overlap": 1.0,
+        "score_delta": {
+          "junior_avg_delta": 0.0,
+          "junior_avg_abs_delta": 0.0,
+          "non_junior_avg_delta": 0.0,
+          "non_junior_avg_abs_delta": 0.0
+        }
+      }
+    },
+    "apparent_origin": {
+      "baseline": {
+        "changed_pairs_rate": 0.0,
+        "top1_changed_rate": 0.0,
+        "avg_top5_overlap": 1.0,
+        "score_delta": {
+          "junior_avg_delta": 0.0,
+          "junior_avg_abs_delta": 0.0,
+          "non_junior_avg_delta": 0.0,
+          "non_junior_avg_abs_delta": 0.0
+        }
+      },
+      "semantic": {
+        "changed_pairs_rate": 0.0,
+        "top1_changed_rate": 0.0,
+        "avg_top5_overlap": 1.0,
+        "score_delta": {
+          "junior_avg_delta": 0.0,
+          "junior_avg_abs_delta": 0.0,
+          "non_junior_avg_delta": 0.0,
+          "non_junior_avg_abs_delta": 0.0
+        }
+      },
+      "enriched_proxy": {
+        "changed_pairs_rate": 0.0,
+        "top1_changed_rate": 0.0,
+        "avg_top5_overlap": 1.0,
+        "score_delta": {
+          "junior_avg_delta": 0.0,
+          "junior_avg_abs_delta": 0.0,
+          "non_junior_avg_delta": 0.0,
+          "non_junior_avg_abs_delta": 0.0
+        }
+      }
+    }
+  }
+}

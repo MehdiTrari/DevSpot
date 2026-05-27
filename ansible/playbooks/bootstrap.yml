@@ -1,0 +1,86 @@
+---
+- name: Bootstrap DevSpot production host
+  hosts: devspot
+  become: true
+  vars:
+    docker_apt_arch_map:
+      x86_64: amd64
+      aarch64: arm64
+    docker_apt_arch: "{{ docker_apt_arch_map.get(ansible_architecture, ansible_architecture) }}"
+    docker_packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+      - rsync
+
+  pre_tasks:
+    - name: Ensure a Debian-family host is used
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == 'Debian'
+        fail_msg: This bootstrap currently supports Debian and Ubuntu hosts only.
+
+    - name: Ensure the SSH user is available to own the deployment directory
+      ansible.builtin.assert:
+        that:
+          - ansible_user is defined
+          - ansible_user | length > 0
+        fail_msg: Define ansible_user in the inventory before running bootstrap.
+
+  tasks:
+    - name: Install prerequisite packages
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - git
+          - gnupg
+          - python3
+        update_cache: true
+        state: present
+
+    - name: Ensure apt keyring directory exists
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Install Docker apt key
+      ansible.builtin.get_url:
+        url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+
+    - name: Configure Docker apt repository
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ docker_apt_arch }} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+
+    - name: Install Docker engine and compose plugin
+      ansible.builtin.apt:
+        name: "{{ docker_packages }}"
+        update_cache: true
+        state: present
+
+    - name: Ensure Docker service is enabled
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Add deployment user to docker group
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: true
+
+    - name: Create application directory
+      ansible.builtin.file:
+        path: "{{ devspot_app_root }}"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'

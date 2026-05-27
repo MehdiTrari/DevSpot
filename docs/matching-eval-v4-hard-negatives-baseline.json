@@ -1,0 +1,204 @@
+{
+  "model": "camembert-base",
+  "projectionPath": null,
+  "methodsRequested": [
+    "baseline"
+  ],
+  "offers": 320,
+  "developers": 1000,
+  "labelSource": "explicit sparse labels generated for hard-negative offline evaluation; non-listed candidates are relevance 0",
+  "methods": {
+    "baseline": {
+      "method": "baseline",
+      "offersEvaluated": 320,
+      "recall@1": 0.1406,
+      "recall@3": 0.2156,
+      "recall@5": 0.2875,
+      "mrr": 0.2164,
+      "ndcg@5": 0.1021,
+      "sampleOffers": [
+        {
+          "title": "Developpeur Full Stack React / Symfony",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "yasmine-rossi-4-demo-v2",
+              "fullName": "Yasmine Rossi",
+              "score": 1.0,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "marius-rossi-9-demo-v2",
+              "fullName": "Marius Rossi",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "camille-lopez-14-demo-v2",
+              "fullName": "Camille Lopez",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "ilyes-guerin-37-demo-v2",
+              "fullName": "Ilyes Guerin",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "yanis-fournier-42-demo-v2",
+              "fullName": "Yanis Fournier",
+              "score": 1.0,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Full Stack React / Symfony",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "yasmine-rossi-4-demo-v2",
+              "fullName": "Yasmine Rossi",
+              "score": 1.0,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "marius-rossi-9-demo-v2",
+              "fullName": "Marius Rossi",
+              "score": 1.0,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "camille-lopez-14-demo-v2",
+              "fullName": "Camille Lopez",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "ilyes-guerin-50-demo-v2",
+              "fullName": "Ilyes Guerin",
+              "score": 1.0,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "camille-richard-105-demo-v2",
+              "fullName": "Camille Richard",
+              "score": 1.0,
+              "weakRelevance": 3
+            }
+          ]
+        },
+        {
+          "title": "DevOps Engineer",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "loris-thomas-102-demo-v2",
+              "fullName": "Loris Thomas",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "assia-francois-345-demo-v3",
+              "fullName": "Assia Francois",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "ines-faure-395-demo-v3",
+              "fullName": "Ines Faure",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "abdoulaye-gauthier-401-demo-v3",
+              "fullName": "Abdoulaye Gauthier",
+              "score": 1.0,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "olena-gauthier-445-demo-v3",
+              "fullName": "Olena Gauthier",
+              "score": 1.0,
+              "weakRelevance": 0
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "noa-robert-58-demo-v2",
+              "fullName": "Noa Robert",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "aya-robin-78-demo-v2",
+              "fullName": "Aya Robin",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "samir-faure-103-demo-v2",
+              "fullName": "Samir Faure",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "chloe-morel-181-demo-v2",
+              "fullName": "Chloe Morel",
+              "score": 0.87,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "sofia-robin-183-demo-v2",
+              "fullName": "Sofia Robin",
+              "score": 0.87,
+              "weakRelevance": 3
+            }
+          ]
+        },
+        {
+          "title": "Developpeur Android Kotlin",
+          "positiveCandidates": 12,
+          "top5": [
+            {
+              "candidateId": "noa-robert-58-demo-v2",
+              "fullName": "Noa Robert",
+              "score": 0.87,
+              "weakRelevance": 3
+            },
+            {
+              "candidateId": "aya-robin-78-demo-v2",
+              "fullName": "Aya Robin",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "samir-faure-103-demo-v2",
+              "fullName": "Samir Faure",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "chloe-morel-181-demo-v2",
+              "fullName": "Chloe Morel",
+              "score": 0.87,
+              "weakRelevance": 0
+            },
+            {
+              "candidateId": "sofia-robin-183-demo-v2",
+              "fullName": "Sofia Robin",
+              "score": 0.87,
+              "weakRelevance": 0
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "deltas": {}
+}

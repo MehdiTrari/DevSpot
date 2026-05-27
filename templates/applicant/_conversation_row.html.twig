@@ -1,0 +1,29 @@
+{% set conversation = row.conversation %}
+{% set recruiterUser = row.recruiterUser %}
+{% set recruiterName = recruiterUser and recruiterUser.recruiterProfile ? (recruiterUser.recruiterProfile.firstName ~ ' ' ~ recruiterUser.recruiterProfile.lastName) : '' %}
+{% if recruiterName|trim == '' %}
+    {% set recruiterName = recruiterUser ? recruiterUser.email : 'Recruteur' %}
+{% endif %}
+{% set active = selectedConversationId is defined and selectedConversationId == conversation.id %}
+
+<div id="conversation-row-{{ conversation.id }}" data-conversation-id="{{ conversation.id }}">
+    <a
+        href="{{ path('app_applicant_message_show', {conversationId: conversation.id}) }}"
+        data-turbo="false"
+        data-chat-conversation-link="true"
+        data-chat-active-class="ui-conversation-link-active"
+        data-chat-inactive-class="ui-conversation-link"
+        class="block rounded-xl px-3 py-2.5 {{ active ? 'ui-conversation-link-active' : 'ui-conversation-link' }}"
+    >
+        <div class="flex items-start justify-between gap-2">
+            <p class="ui-title truncate text-sm font-semibold">{{ recruiterName }}</p>
+            {% if row.unreadCount > 0 %}
+                <span class="ui-conversation-badge inline-flex min-h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[11px] font-bold">{{ row.unreadCount }}</span>
+            {% endif %}
+        </div>
+        <div class="mt-1 flex items-end justify-between gap-2">
+            <p class="ui-text-primary min-w-0 truncate text-xs">{{ row.lastMessage.content|replace({'\n': ' '}) }}</p>
+            <span class="ui-text-muted shrink-0 text-[11px]">{{ row.lastMessage.createdAt|date('H:i') }}</span>
+        </div>
+    </a>
+</div>

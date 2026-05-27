@@ -1,0 +1,361 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Notifications | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-6xl self-start space-y-8 font-sans" aria-labelledby="notifications-title">
+        <div id="notifications-dynamic-content">
+            {% include 'notification/_dynamic_content.html.twig' with {
+                notifications: notifications,
+                currentFilter: currentFilter,
+                unreadCount: unreadCount
+            } %}
+        </div>
+
+        <div class="fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/55 p-4 backdrop-blur-[2px]" data-notification-message-modal="true" aria-hidden="true">
+            <div class="theme-settings-card w-full max-w-2xl rounded-[2.35rem] p-6 sm:p-8" role="dialog" aria-modal="true" aria-labelledby="notification-message-modal-title">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="favorite-showcase-kicker">Moderation</p>
+                        <h2 id="notification-message-modal-title" class="ui-title mt-3 text-2xl font-semibold tracking-tight">Message de modération</h2>
+                    </div>
+                    <button type="button" data-notification-message-close="true" class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 text-slate-300 transition hover:bg-white/10 hover:text-white" aria-label="Fermer la modale">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mt-6 rounded-[1.75rem] p-5 ui-panel-warning">
+                    <h3 data-notification-message-title="true" class="ui-title text-lg font-semibold"></h3>
+                    <p data-notification-message-content="true" class="ui-text-secondary mt-3 whitespace-pre-line text-sm leading-relaxed"></p>
+                </div>
+
+                <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+                    <p data-notification-message-date="true" class="ui-text-soft text-xs"></p>
+                    <a data-notification-message-link="true" href="#" class="ui-link-accent hidden items-center gap-1 text-xs font-semibold">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-3.5 w-3.5">
+                            <path fill-rule="evenodd" d="M5.22 14.78a.75.75 0 0 0 1.06 0l7.22-7.22v5.69a.75.75 0 0 0 1.5 0v-7.5a.75.75 0 0 0-.75-.75h-7.5a.75.75 0 0 0 0 1.5h5.69l-7.22 7.22a.75.75 0 0 0 0 1.06Z" clip-rule="evenodd"/>
+                        </svg>
+                        Voir la page
+                    </a>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button type="button" data-notification-message-close="true" class="u-border-pale-slate u-bg-pale-slate u-text-pale-slate inline-flex items-center justify-center rounded-full border px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90">
+                        Fermer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        const initNotificationsFilters = () => {
+            const container = document.getElementById('notifications-dynamic-content');
+            if (!container || container.dataset.filtersInitialized === 'true') {
+                return;
+            }
+            container.dataset.filtersInitialized = 'true';
+
+            const modal = document.querySelector('[data-notification-message-modal="true"]');
+            const modalTitle = modal?.querySelector('[data-notification-message-title="true"]');
+            const modalContent = modal?.querySelector('[data-notification-message-content="true"]');
+            const modalDate = modal?.querySelector('[data-notification-message-date="true"]');
+            const modalLink = modal?.querySelector('[data-notification-message-link="true"]');
+            let pendingController = null;
+
+            const closeMessageModal = () => {
+                if (!modal) {
+                    return;
+                }
+
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('overflow-hidden');
+            };
+
+            const openMessageModal = (trigger) => {
+                if (!modal || !modalTitle || !modalContent || !modalDate || !modalLink) {
+                    return;
+                }
+
+                modalTitle.textContent = trigger.dataset.notificationModalTitle || 'Message de modération';
+                modalContent.textContent = trigger.dataset.notificationModalContent || '';
+                modalDate.textContent = trigger.dataset.notificationModalDate || '';
+
+                const link = trigger.dataset.notificationModalLink || '';
+                if (link !== '') {
+                    modalLink.href = link;
+                    modalLink.classList.remove('hidden');
+                    modalLink.classList.add('inline-flex');
+                } else {
+                    modalLink.href = '#';
+                    modalLink.classList.add('hidden');
+                    modalLink.classList.remove('inline-flex');
+                }
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('overflow-hidden');
+            };
+
+            const loadNotifications = async (url) => {
+                if (pendingController) {
+                    pendingController.abort();
+                }
+
+                pendingController = new AbortController();
+                container.setAttribute('aria-busy', 'true');
+                container.classList.add('opacity-60', 'pointer-events-none');
+
+                try {
+                    const response = await fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/html',
+                        },
+                        credentials: 'same-origin',
+                        signal: pendingController.signal,
+                    });
+
+                    if (!response.ok) {
+                        window.location.href = url;
+
+                        return;
+                    }
+
+                    const html = await response.text();
+                    container.innerHTML = html;
+                    window.history.replaceState({}, '', url);
+                    closeMessageModal();
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        window.location.href = url;
+                    }
+                } finally {
+                    container.removeAttribute('aria-busy');
+                    container.classList.remove('opacity-60', 'pointer-events-none');
+                }
+            };
+
+            const refreshUnreadIndicators = (unreadCount) => {
+                const label = container.querySelector('[data-notification-unread-label="true"]');
+                if (label) {
+                    label.textContent = `${unreadCount} notification(s) non lue(s)`;
+                }
+
+                const headerBadge = document.querySelector('[data-notification-unread-badge="true"]');
+                if (!headerBadge) {
+                    return;
+                }
+
+                if (unreadCount > 0) {
+                    headerBadge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+                    headerBadge.classList.remove('hidden');
+                } else {
+                    headerBadge.remove();
+                }
+            };
+
+            const markNotificationReadFromInteraction = async (trigger) => {
+                const url = trigger.dataset.notificationReadUrl || '';
+                const token = trigger.dataset.notificationReadToken || '';
+                const card = trigger.closest('[data-notification-card="true"]');
+
+                if (!url || !token || card?.dataset.notificationUnread !== 'true') {
+                    return;
+                }
+
+                const body = new FormData();
+                body.append('_token', token);
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body,
+                    credentials: 'same-origin',
+                });
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const payload = await response.json();
+                card.dataset.notificationUnread = 'false';
+                const stateBadge = card.querySelector('[data-notification-state-badge="true"]');
+                if (stateBadge) {
+                    stateBadge.textContent = 'Lue';
+                    stateBadge.classList.remove('ui-pill-danger', 'ui-pill-warning', 'ui-pill-info', 'ui-pill-success');
+                    stateBadge.classList.add('ui-pill-muted');
+                }
+                card.querySelector('[data-notification-read-form="true"]')?.remove();
+                trigger.removeAttribute('data-notification-interaction-read');
+                trigger.removeAttribute('data-notification-read-url');
+                trigger.removeAttribute('data-notification-read-token');
+                refreshUnreadIndicators(Number(payload.unreadCount || 0));
+            };
+
+            document.addEventListener('click', (event) => {
+                const openModalButton = event.target.closest('[data-notification-modal-open="true"]');
+                if (openModalButton) {
+                    event.preventDefault();
+                    openMessageModal(openModalButton);
+                    markNotificationReadFromInteraction(openModalButton).catch(() => {});
+
+                    return;
+                }
+
+                const closeModalButton = event.target.closest('[data-notification-message-close="true"]');
+                if (closeModalButton) {
+                    event.preventDefault();
+                    closeMessageModal();
+
+                    return;
+                }
+
+                if (modal && event.target === modal) {
+                    closeMessageModal();
+
+                    return;
+                }
+
+                const readInteractionLink = event.target.closest('a[data-notification-interaction-read="true"]');
+                if (readInteractionLink) {
+                    event.preventDefault();
+                    markNotificationReadFromInteraction(readInteractionLink)
+                        .catch(() => {})
+                        .finally(() => {
+                            window.location.href = readInteractionLink.href;
+                        });
+
+                    return;
+                }
+
+                const target = event.target.closest('[data-notification-filter="true"]');
+                if (!target) {
+                    return;
+                }
+
+                event.preventDefault();
+                const url = target.getAttribute('href');
+                if (!url) {
+                    return;
+                }
+
+                loadNotifications(url);
+            });
+
+            document.addEventListener('submit', async (event) => {
+                const form = event.target.closest('form[data-notification-async="true"]');
+                if (!form) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                const article = form.closest('article');
+                const isMarkAllRead = !article;
+
+                const submitButton = form.querySelector('button[type="submit"]');
+                if (submitButton) {
+                    submitButton.setAttribute('disabled', 'disabled');
+                    submitButton.classList.add('opacity-70', 'cursor-not-allowed');
+                }
+
+                if (article) {
+                    article.style.transition = 'opacity 0.35s ease, transform 0.35s ease, max-height 0.4s ease 0.1s, padding 0.4s ease 0.1s, margin 0.4s ease 0.1s';
+                    article.style.maxHeight = article.scrollHeight + 'px';
+                    article.style.overflow = 'hidden';
+
+                    requestAnimationFrame(() => {
+                        article.style.opacity = '0';
+                        article.style.transform = 'translateX(30px) scale(0.97)';
+                    });
+                } else {
+                    container.setAttribute('aria-busy', 'true');
+                    container.classList.add('opacity-60', 'pointer-events-none');
+                }
+
+                const delay = article ? 380 : 0;
+                await new Promise(r => setTimeout(r, delay));
+
+                if (article) {
+                    article.style.maxHeight = '0';
+                    article.style.paddingTop = '0';
+                    article.style.paddingBottom = '0';
+                    article.style.marginTop = '0';
+                    article.style.marginBottom = '0';
+                }
+
+                await new Promise(r => setTimeout(r, article ? 300 : 0));
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'text/html',
+                        },
+                        body: new FormData(form),
+                        credentials: 'same-origin',
+                    });
+
+                    if (!response.ok) {
+                        window.location.href = form.action;
+
+                        return;
+                    }
+
+                    const html = await response.text();
+                    const tmp = document.createElement('div');
+                    tmp.innerHTML = html;
+
+                    const newArticles = tmp.querySelectorAll('article');
+                    newArticles.forEach(a => {
+                        a.style.opacity = '0';
+                        a.style.transform = 'translateY(8px)';
+                    });
+
+                    container.innerHTML = html;
+                    closeMessageModal();
+
+                    const articles = container.querySelectorAll('article');
+                    requestAnimationFrame(() => {
+                        articles.forEach((a, i) => {
+                            a.style.transition = `opacity 0.35s ease ${i * 0.04}s, transform 0.35s ease ${i * 0.04}s`;
+                            a.style.opacity = '0';
+                            a.style.transform = 'translateY(8px)';
+                            requestAnimationFrame(() => {
+                                a.style.opacity = '1';
+                                a.style.transform = 'translateY(0)';
+                            });
+                        });
+                    });
+                } catch (_error) {
+                    window.location.href = form.action;
+                } finally {
+                    container.removeAttribute('aria-busy');
+                    container.classList.remove('opacity-60', 'pointer-events-none');
+                }
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeMessageModal();
+                }
+            });
+        };
+
+        document.addEventListener('DOMContentLoaded', initNotificationsFilters);
+        document.addEventListener('turbo:load', initNotificationsFilters);
+    </script>
+{% endblock %}

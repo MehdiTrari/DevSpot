@@ -1,0 +1,545 @@
+{% extends 'base.html.twig' %}
+
+{% if contactForm is not null %}
+    {% form_theme contactForm 'form/my_theme.html.twig' %}
+{% endif %}
+
+{% block title %}{{ profile.firstName }} {{ profile.lastName }} | Portfolio{% endblock %}
+
+{% block body %}
+    {% set locationTypeLabels = {
+        'remote': 'Remote',
+        'hybrid': 'Hybride',
+        'onsite': 'Sur site'
+    } %}
+    {% set experienceLevelLabels = {
+        'intern': 'Stagiaire',
+        'junior': 'Junior',
+        'mid': 'Intermédiaire',
+        'senior': 'Senior',
+        'lead': 'Lead'
+    } %}
+    {% set skillLevelLabels = {
+        'beginner': 'Débutant',
+        'intermediate': 'Intermédiaire',
+        'advanced': 'Avancé',
+        'expert': 'Expert'
+    } %}
+
+    <section class="w-full max-w-7xl space-y-6 font-sans">
+        <div class="overflow-hidden rounded-[2.5rem] border border-white/10 bg-slate-900/60 shadow-2xl shadow-black/40 backdrop-blur-2xl">
+            <div class="p-7 sm:p-10">
+                <div class="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-start gap-5">
+                            {% if profile.avatarPath %}
+                                <img src="{{ asset(profile.avatarPath) }}" alt="Avatar de {{ profile.firstName }} {{ profile.lastName }}" class="h-20 w-20 rounded-2xl border border-white/15 object-cover shadow-xl shadow-black/20 sm:h-24 sm:w-24">
+                            {% else %}
+                                <img src="{{ asset('uploads/avatars/profil_vide.jpg') }}" alt="Photo de profil par défaut" class="h-20 w-20 rounded-2xl border border-white/15 object-cover shadow-xl shadow-black/20 sm:h-24 sm:w-24">
+                            {% endif %}
+
+                            <div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider {{ profile.public ? 'ui-pill ui-pill-success' : 'u-border-pale-slate u-bg-pale-slate u-text-pale-slate' }}">
+                                        {{ profile.public ? 'Public' : 'Privé' }}
+                                    </span>
+                                    {% if isOwner and not profile.public %}
+                                        <span class="inline-flex items-center rounded-full border border-yellow-400/25 bg-yellow-400/10 px-3 py-1 text-xs font-semibold text-yellow-300">Visible par toi uniquement</span>
+                                    {% endif %}
+                                </div>
+                                <h1 class="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">{{ profile.firstName }} {{ profile.lastName }}</h1>
+                                <p class="mt-2 text-lg font-medium text-slate-200">{{ profile.headline ?: 'Headline non renseignée' }}</p>
+                                <p class="mt-2 text-sm text-slate-400">
+                                    {{ profile.city ?: 'Ville non renseignée' }}, {{ profile.country ?: 'Pays non renseigné' }}
+                                    {% if profile.locationType %}
+                                        · {{ locationTypeLabels[profile.locationType.value] ?? profile.locationType.value }}
+                                    {% endif %}
+                                </p>
+                                <div class="mt-5 flex flex-wrap gap-2">
+                                    <span class="u-border-pale-orange u-bg-pale-orange u-text-pale-orange inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold">
+                                        {{ experienceLevelLabels[profile.experienceLevel.value|default('')] ?? 'Niveau non renseigné' }}
+                                    </span>
+                                    {% if profile.yearsExperience is not null %}
+                                        <span class="ui-pill ui-pill-info inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold">
+                                            {{ profile.yearsExperience }} année{{ profile.yearsExperience > 1 ? 's' : '' }} d'expérience
+                                        </span>
+                                    {% endif %}
+                                    {% if technologyNames is not empty %}
+                                        <span class="u-border-pale-pink u-bg-pale-pink u-text-pale-pink inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold">
+                                            {{ technologyNames|slice(0, 3)|join(' · ') }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="shrink-0 pt-1">
+                        <div class="flex flex-wrap items-center justify-end gap-3">
+                            {% if profile.public and is_granted('ROLE_RECRUITER') and contactForm is not null %}
+                                <a href="#contact-form" data-contact-scroll="true" class="inline-flex items-center justify-center rounded-full bg-emerald-500 px-6 py-3 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-400 active:scale-95">
+                                    Contacter
+                                </a>
+                            {% elseif profile.public and contactRequiresLogin|default(false) %}
+                                <a href="{{ path('app_login') }}" class="inline-flex items-center justify-center rounded-full border border-yellow-400/20 bg-yellow-400/10 px-6 py-3 text-[15px] font-bold text-yellow-300 shadow-lg shadow-yellow-400/10 transition-all duration-300 hover:scale-[1.02] hover:bg-yellow-400/15 active:scale-95">
+                                    Se connecter pour contacter
+                                </a>
+                            {% elseif profile.public and contactRequiresRecruiterRole|default(false) %}
+                                <span class="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-6 py-3 text-[15px] font-semibold text-slate-300">
+                                    Contact réservé aux recruteurs
+                                </span>
+                            {% endif %}
+
+                            {% if profile.public and is_granted('ROLE_RECRUITER') %}
+                                {% include 'recruiter/_favorite_toggle.html.twig' with {
+                                    profile: profile,
+                                    isFavorite: isFavorite|default(false),
+                                    redirectPath: app.request.requestUri,
+                                    iconOnly: true,
+                                    iconButtonClass: 'inline-flex h-12 w-12 items-center justify-center rounded-full border shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95'
+                                } only %}
+                            {% elseif app.user and not isOwner %}
+                            <a href="#report-form" class="ui-button-danger inline-flex items-center justify-center rounded-full px-6 py-3 text-[15px] font-bold shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-95">
+                                Signaler ce profil
+                            </a>
+                        {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <nav class="sticky top-20 z-10 rounded-full border border-white/10 bg-slate-950/80 px-4 py-3 shadow-xl shadow-black/20 backdrop-blur-xl">
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+                <button data-filter="all" class="portfolio-filter active rounded-full border border-emerald-400/40 bg-emerald-500/20 px-3 py-1.5 text-emerald-300 transition-all duration-300">Tout</button>
+                <button data-filter="profil" class="portfolio-filter rounded-full border border-white/10 px-3 py-1.5 text-slate-300 transition-all duration-300 hover:border-emerald-400/30 hover:text-emerald-300">Profil</button>
+                <button data-filter="competences" class="portfolio-filter rounded-full border border-white/10 px-3 py-1.5 text-slate-300 transition-all duration-300 hover:border-emerald-400/30 hover:text-emerald-300">Compétences</button>
+                <button data-filter="experiences" class="portfolio-filter rounded-full border border-white/10 px-3 py-1.5 text-slate-300 transition-all duration-300 hover:border-emerald-400/30 hover:text-emerald-300">Expériences</button>
+                <button data-filter="formations" class="portfolio-filter rounded-full border border-white/10 px-3 py-1.5 text-slate-300 transition-all duration-300 hover:border-emerald-400/30 hover:text-emerald-300">Formations</button>
+                <button data-filter="liens" class="portfolio-filter rounded-full border border-white/10 px-3 py-1.5 text-slate-300 transition-all duration-300 hover:border-emerald-400/30 hover:text-emerald-300">Liens</button>
+            </div>
+        </nav>
+
+        <div data-portfolio-grid class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+            <div class="space-y-6">
+                <article id="profil" data-section="profil" class="scroll-mt-28 rounded-[2rem] border border-white/10 bg-slate-900/60 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-7">
+                    <h2 class="flex items-center gap-3 text-xl font-semibold tracking-tight text-white">
+                        <span class="h-6 w-1 rounded-full bg-emerald-500"></span>
+                        Présentation
+                    </h2>
+                    <p class="mt-5 text-[15px] leading-relaxed text-slate-200 whitespace-pre-line">{{ profile.bio ?: 'Bio non renseignée.' }}</p>
+                </article>
+
+                <article id="experiences" data-section="experiences" class="scroll-mt-28 rounded-[2rem] border border-white/10 bg-slate-900/60 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-7">
+                    <h2 class="flex items-center gap-3 text-xl font-semibold tracking-tight text-white">
+                        <span class="h-6 w-1 rounded-full bg-emerald-500"></span>
+                        Expériences
+                    </h2>
+                    {% if experiences is empty %}
+                        <p class="mt-4 text-sm text-slate-400">Aucune expérience renseignée.</p>
+                    {% else %}
+                        <div class="mt-5 space-y-5">
+                            {% for experience in experiences %}
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                    <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                                        <div>
+                                            <h3 class="text-[15px] font-semibold text-white">{{ experience.title }}</h3>
+                                            <p class="text-sm text-slate-400">{{ experience.companyName }}</p>
+                                        </div>
+                                        <p class="text-xs font-medium text-slate-400">
+                                            {{ experience.startDate ? experience.startDate|date('m/Y') : 'N/A' }} -
+                                            {{ experience.isCurrent ? 'Aujourd\'hui' : (experience.endDate ? experience.endDate|date('m/Y') : 'N/A') }}
+                                        </p>
+                                    </div>
+
+                                    <p class="mt-3 text-sm leading-relaxed text-slate-300 whitespace-pre-line">{{ experience.description }}</p>
+
+                                    {% if experience.technologies|length > 0 %}
+                                        <div class="mt-3 flex flex-wrap gap-2">
+                                            {% for technology in experience.technologies %}
+                                                <span class="u-border-pale-pink u-bg-pale-pink u-text-pale-pink rounded-full border px-2.5 py-1 text-xs font-semibold">{{ technology.name }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </article>
+
+                <article id="formations" data-section="formations" class="scroll-mt-28 rounded-[2rem] border border-white/10 bg-slate-900/60 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-7">
+                    <h2 class="flex items-center gap-3 text-xl font-semibold tracking-tight text-white">
+                        <span class="h-6 w-1 rounded-full bg-emerald-500"></span>
+                        Formations
+                    </h2>
+                    {% if education is empty %}
+                        <p class="mt-4 text-sm text-slate-400">Aucune formation renseignée.</p>
+                    {% else %}
+                        <div class="mt-5 space-y-4">
+                            {% for item in education %}
+                                <div class="rounded-2xl border border-white/10 bg-white/5 p-4">
+                                    <div class="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                                        <div>
+                                            <h3 class="text-[15px] font-semibold text-white">{{ item.schoolName }}</h3>
+                                            <p class="text-sm text-slate-400">
+                                                {{ item.degree ?: 'Diplôme non renseigné' }}
+                                                {% if item.field %} · {{ item.field }}{% endif %}
+                                            </p>
+                                        </div>
+                                        <p class="text-xs font-medium text-slate-400">
+                                            {{ item.startDate ? item.startDate|date('m/Y') : 'N/A' }} - {{ item.endDate ? item.endDate|date('m/Y') : 'N/A' }}
+                                        </p>
+                                    </div>
+                                    {% if item.description %}
+                                        <p class="mt-3 text-sm leading-relaxed text-slate-300 whitespace-pre-line">{{ item.description }}</p>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </article>
+            </div>
+
+            <aside class="space-y-6">
+                <article id="competences" data-section="competences" class="scroll-mt-28 rounded-[2rem] border border-white/10 bg-slate-900/60 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
+                    <h2 class="flex items-center gap-3 text-xl font-semibold tracking-tight text-white">
+                        <span class="h-6 w-1 rounded-full bg-emerald-500"></span>
+                        Compétences
+                    </h2>
+                    {% if profile.profileSkills|length > 0 %}
+                        <ul class="mt-5 space-y-2">
+                            {% for profileSkill in profile.profileSkills %}
+                                <li class="flex items-center justify-between rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm">
+                                    <span class="font-medium text-white">{{ profileSkill.skill.name }}</span>
+                                    <span class="text-xs text-slate-400">
+                                        {{ skillLevelLabels[profileSkill.level.value|default('')] ?? 'Niveau non renseigné' }}
+                                        {% if profileSkill.years is not null %}
+                                            · {{ profileSkill.years }} an{{ profileSkill.years > 1 ? 's' : '' }}
+                                        {% endif %}
+                                    </span>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="mt-4 text-sm text-slate-400">Aucune compétence renseignée.</p>
+                    {% endif %}
+                </article>
+
+                <article data-section="competences" class="rounded-[2rem] border border-white/10 bg-slate-900/60 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
+                    <h2 class="flex items-center gap-3 text-xl font-semibold tracking-tight text-white">
+                        <span class="h-6 w-1 rounded-full bg-emerald-500"></span>
+                        Technologies
+                    </h2>
+                    {% if technologyNames is not empty %}
+                        <div class="mt-5 flex flex-wrap gap-2">
+                            {% for name in technologyNames %}
+                                <span class="u-border-pale-pink u-bg-pale-pink u-text-pale-pink rounded-full border px-2.5 py-1 text-xs font-semibold">{{ name }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="mt-4 text-sm text-slate-400">Aucune technologie renseignée.</p>
+                    {% endif %}
+                </article>
+
+                <article data-section="competences" class="rounded-[2rem] border border-white/10 bg-slate-900/60 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
+                    <h2 class="flex items-center gap-3 text-xl font-semibold tracking-tight text-white">
+                        <span class="h-6 w-1 rounded-full bg-emerald-500"></span>
+                        Postes recherchés
+                    </h2>
+                    {% if profile.desiredPositions|length > 0 %}
+                        <div class="mt-5 flex flex-wrap gap-2">
+                            {% for position in profile.desiredPositions %}
+                                <span class="u-border-pale-green u-bg-pale-green u-text-pale-green rounded-full border px-2.5 py-1 text-xs font-semibold">{{ position.name }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="mt-4 text-sm text-slate-400">Aucun poste renseigné.</p>
+                    {% endif %}
+                </article>
+
+                <article id="liens" data-section="liens" class="scroll-mt-28 rounded-[2rem] border border-white/10 bg-slate-900/60 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
+                    <h2 class="flex items-center gap-3 text-xl font-semibold tracking-tight text-white">
+                        <span class="h-6 w-1 rounded-full bg-emerald-500"></span>
+                        Liens
+                    </h2>
+                    <ul class="mt-5 space-y-2 text-sm">
+                        {% if profile.githubUrl %}
+                            <li><a href="{{ profile.githubUrl }}" target="_blank" rel="noopener noreferrer" class="text-emerald-300 hover:text-emerald-200">GitHub</a></li>
+                        {% endif %}
+                        {% if profile.linkedinUrl %}
+                            <li><a href="{{ profile.linkedinUrl }}" target="_blank" rel="noopener noreferrer" class="text-emerald-300 hover:text-emerald-200">LinkedIn</a></li>
+                        {% endif %}
+                        {% if profile.portfolioUrl %}
+                            <li><a href="{{ profile.portfolioUrl }}" target="_blank" rel="noopener noreferrer" class="text-emerald-300 hover:text-emerald-200">Portfolio externe</a></li>
+                        {% endif %}
+                        {% if not profile.githubUrl and not profile.linkedinUrl and not profile.portfolioUrl %}
+                            <li class="text-slate-400">Aucun lien renseigné.</li>
+                        {% endif %}
+                    </ul>
+                </article>
+            </aside>
+        </div>
+
+        {% if profile.public and is_granted('ROLE_RECRUITER') and alreadyContactedDeveloper|default(false) %}
+            <article class="rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-5 py-3.5 text-[15px] font-medium text-yellow-300 shadow-xl backdrop-blur-md">
+                <h2 class="font-semibold uppercase tracking-wider text-yellow-300">Contact déjà établi</h2>
+                <p class="mt-2 text-sm text-yellow-300">Vous avez déjà contacté ce développeur.</p>
+            </article>
+        {% elseif profile.public and contactRequiresLogin|default(false) %}
+            <article class="rounded-2xl border border-yellow-400/20 bg-yellow-400/10 px-5 py-3.5 text-[15px] font-medium text-yellow-300 shadow-xl backdrop-blur-md">
+                <h2 class="font-semibold uppercase tracking-wider text-yellow-300">Connexion requise</h2>
+                <p class="mt-2 text-sm text-yellow-300">Vous devez vous connecter pour entrer en contact avec ce développeur.</p>
+                <a href="{{ path('app_login') }}" class="mt-4 inline-flex items-center justify-center rounded-full border border-yellow-300/20 bg-yellow-300/10 px-4 py-2 text-sm font-semibold text-yellow-200 transition-all duration-300 hover:bg-yellow-300/15 active:scale-95">
+                    Se connecter
+                </a>
+            </article>
+        {% elseif profile.public and contactRequiresRecruiterRole|default(false) %}
+            <article class="u-border-pale-slate u-bg-pale-slate u-text-pale-slate rounded-2xl border px-5 py-3.5 text-[15px] font-medium shadow-xl backdrop-blur-md">
+                <h2 class="font-semibold uppercase tracking-wider">Accès recruteur uniquement</h2>
+                <p class="mt-2 text-sm">Le formulaire de contact est disponible uniquement pour les comptes recruteurs.</p>
+            </article>
+        {% elseif profile.public and is_granted('ROLE_RECRUITER') and contactForm is not null %}
+            <article id="contact-form" class="scroll-mt-28 overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900/60 shadow-2xl shadow-black/40 backdrop-blur-xl">
+                <button type="button" data-contact-toggle class="group flex w-full items-center justify-between p-6 text-left sm:p-7">
+                    <h2 class="flex items-center gap-3 text-xl font-semibold tracking-tight text-white">
+                        <span class="h-6 w-1 rounded-full bg-emerald-500"></span>
+                        Contacter ce développeur
+                    </h2>
+                    <svg data-contact-chevron xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-5 w-5 shrink-0 text-slate-400 transition-transform duration-300 group-hover:text-white">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                </button>
+                <div data-contact-body class="contact-collapse">
+                    <div class="contact-inner">
+                        <div class="px-6 pb-6 sm:px-7 sm:pb-7">
+                            <p class="text-sm text-slate-400">Présentez votre opportunité et laissez vos coordonnées.</p>
+
+                            {% if contactForm.vars.errors|length > 0 %}
+                                <div class="mt-5 rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-300">
+                                    {{ form_errors(contactForm) }}
+                                </div>
+                            {% endif %}
+
+                            {{ form_start(contactForm, {attr: {class: 'mt-5 grid gap-3 sm:grid-cols-2'}}) }}
+                                <div>
+                                    {{ form_row(contactForm.recruiterName, {
+                                        attr: {placeholder: 'Votre nom'}
+                                    }) }}
+                                </div>
+
+                                <div>
+                                    {{ form_row(contactForm.recruiterEmail, {
+                                        attr: {placeholder: 'vous@entreprise.com'}
+                                    }) }}
+                                </div>
+
+                                <div class="sm:col-span-2">
+                                    {{ form_row(contactForm.subject, {
+                                        attr: {placeholder: 'Sujet (optionnel)'}
+                                    }) }}
+                                </div>
+
+                                <div class="sm:col-span-2">
+                                    {{ form_row(contactForm.message, {
+                                        attr: {
+                                            class: 'min-h-[160px]',
+                                            maxlength: '5000',
+                                            placeholder: 'Bonjour, je souhaite vous contacter pour une opportunité...'
+                                        }
+                                    }) }}
+                                    <p class="mt-2 text-sm text-slate-400">Maximum 5000 caractères pour votre message.</p>
+                                </div>
+
+                                <div class="sm:col-span-2">
+                                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-2xl bg-emerald-500 px-5 py-3.5 text-[15px] font-bold text-slate-950 shadow-lg shadow-emerald-500/20 transition-all duration-300 hover:scale-[1.01] hover:bg-emerald-400 active:scale-95 sm:w-auto sm:px-7">
+                                        Envoyer le message
+                                    </button>
+                                </div>
+                            {{ form_end(contactForm) }}
+                        </div>
+                    </div>
+                </div>
+            </article>
+        {% endif %}
+
+        {% if app.user and not isOwner %}
+            <article id="report-form" class="ui-danger scroll-mt-28 rounded-[2rem] p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:p-7">
+                <h2 class="text-left text-xl font-semibold tracking-tight">Signaler ce profil</h2>
+                <p class="mt-2 text-sm">Les administrateurs seront notifiés pour examiner le signalement.</p>
+                <form method="post" action="{{ path('app_public_profile_report', {slug: profile.slug}) }}" class="mt-4 grid gap-3 sm:grid-cols-2">
+                    <input type="hidden" name="_token" value="{{ csrf_token('report_profile_' ~ profile.id) }}">
+                    <div>
+                        <label for="report-category" class="mb-2 block text-sm font-medium">Type de signalement</label>
+                        <select id="report-category" name="category" class="ui-input block w-full rounded-2xl px-4 py-3 text-sm transition-all duration-300">
+                            <option value="profile">Profil signalé</option>
+                            <option value="abusive_content">Contenu abusif</option>
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label for="report-reason" class="mb-2 block text-sm font-medium">Motif</label>
+                        <textarea id="report-reason" name="reason" rows="4" minlength="10" class="ui-input block min-h-[140px] w-full rounded-2xl px-4 py-3 text-sm transition-all duration-300" placeholder="Expliquez brièvement pourquoi ce profil doit être revu par un administrateur."></textarea>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <button type="submit" class="ui-button-danger inline-flex w-full items-center justify-center rounded-2xl px-5 py-3.5 text-[15px] font-bold transition-all duration-300 hover:scale-[1.01] active:scale-95 sm:w-auto sm:px-7">
+                            Envoyer le signalement
+                        </button>
+                    </div>
+                </form>
+            </article>
+        {% endif %}
+    </section>
+
+    <style>
+        /* ── Card-stack transitions ── */
+        [data-section] {
+            transition: opacity .3s ease, transform .3s ease;
+            transform-origin: center top;
+        }
+
+        /* ── Contact form collapse ── */
+        .contact-collapse {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows .4s ease;
+        }
+        .contact-collapse.open {
+            grid-template-rows: 1fr;
+        }
+        .contact-inner {
+            overflow: hidden;
+        }
+    </style>
+
+    <script>
+        const initPortfolio = () => {
+            const buttons  = document.querySelectorAll('.portfolio-filter');
+            const sections = document.querySelectorAll('[data-section]');
+            const grid     = document.querySelector('[data-portfolio-grid]');
+            if (!grid || !buttons.length) return;
+
+            const leftCol  = grid.querySelector(':scope > div');
+            const rightCol = grid.querySelector(':scope > aside');
+            const allNames = [...new Set([...sections].map(s => s.dataset.section))];
+            const active   = new Set();
+            const timers   = new Map();
+
+            const isAll = () => active.size === 0;
+
+            /* ── button styles ── */
+            const paintButtons = () => {
+                buttons.forEach(btn => {
+                    const f  = btn.dataset.filter;
+                    const on = f === 'all' ? isAll() : active.has(f);
+                    btn.classList.toggle('bg-emerald-500/20',     on);
+                    btn.classList.toggle('border-emerald-400/40', on);
+                    btn.classList.toggle('text-emerald-300',      on);
+                    btn.classList.toggle('border-white/10',      !on);
+                    btn.classList.toggle('text-slate-300',       !on);
+                });
+            };
+
+            /* ── grid columns ── */
+            const refreshGrid = () => {
+                let lv = false, rv = false;
+                sections.forEach(s => {
+                    if (s.style.display === 'none') return;
+                    if (leftCol  && leftCol.contains(s))  lv = true;
+                    if (rightCol && rightCol.contains(s)) rv = true;
+                });
+                if (leftCol)  leftCol.classList.toggle('hidden',  !lv);
+                if (rightCol) rightCol.classList.toggle('hidden', !rv);
+                grid.classList.toggle('lg:grid-cols-[1.2fr_0.8fr]', lv && rv);
+                grid.classList.toggle('lg:grid-cols-1', !lv || !rv);
+            };
+
+            /* ── show / hide helpers ── */
+            const showCard = (el) => {
+                if (timers.has(el)) { clearTimeout(timers.get(el)); timers.delete(el); }
+                el.style.display = '';
+                el.style.opacity = '0';
+                el.style.transform = 'scale(0.94) translateY(10px)';
+                refreshGrid();
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    el.style.opacity = '1';
+                    el.style.transform = '';
+                }));
+            };
+
+            const hideCard = (el) => {
+                if (timers.has(el)) { clearTimeout(timers.get(el)); timers.delete(el); }
+                el.style.opacity = '0';
+                el.style.transform = 'scale(0.94) translateY(10px)';
+                timers.set(el, setTimeout(() => {
+                    el.style.display = 'none';
+                    el.style.transform = '';
+                    el.style.opacity = '';
+                    timers.delete(el);
+                    refreshGrid();
+                }, 300));
+            };
+
+            /* ── apply filter ── */
+            const apply = () => {
+                const all = isAll();
+                sections.forEach(s => {
+                    const match = all || active.has(s.dataset.section);
+                    const hidden = s.style.display === 'none';
+                    if (match && hidden)      showCard(s);
+                    else if (!match && !hidden) hideCard(s);
+                });
+                paintButtons();
+            };
+
+            /* ── click handlers ── */
+            buttons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const f = btn.dataset.filter;
+                    if (f === 'all') {
+                        active.clear();
+                    } else if (active.has(f)) {
+                        active.delete(f);
+                    } else {
+                        active.add(f);
+                    }
+                    if (active.size === allNames.length) active.clear();
+                    apply();
+                });
+            });
+
+            /* ── contact form toggle ── */
+            const cToggle  = document.querySelector('[data-contact-toggle]');
+            const cBody    = document.querySelector('[data-contact-body]');
+            const cChevron = document.querySelector('[data-contact-chevron]');
+
+            const openContact = () => {
+                if (cBody) cBody.classList.add('open');
+                if (cChevron) cChevron.style.transform = 'rotate(180deg)';
+            };
+
+            if (cToggle && cBody) {
+                cToggle.addEventListener('click', () => {
+                    const opening = cBody.classList.toggle('open');
+                    if (cChevron) cChevron.style.transform = opening ? 'rotate(180deg)' : '';
+                });
+            }
+
+            /* ── hero CTA scroll + auto-open contact ── */
+            document.querySelectorAll('[data-contact-scroll="true"]').forEach(trigger => {
+                if (trigger.dataset.bound === '1') return;
+                trigger.dataset.bound = '1';
+                trigger.addEventListener('click', e => {
+                    const sel = trigger.getAttribute('href');
+                    if (!sel || !sel.startsWith('#')) return;
+                    const el = document.querySelector(sel);
+                    if (!el) return;
+                    e.preventDefault();
+                    openContact();
+                    setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+                });
+            });
+        };
+
+        document.addEventListener('DOMContentLoaded', initPortfolio);
+        document.addEventListener('turbo:load', initPortfolio);
+    </script>
+{% endblock %}

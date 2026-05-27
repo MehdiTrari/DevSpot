@@ -1,0 +1,86 @@
+---
+- name: Deploy DevSpot application
+  hosts: devspot
+  gather_facts: false
+  vars:
+    devspot_local_repo_root: "{{ playbook_dir }}/../.."
+
+  pre_tasks:
+    - name: Ensure a production env file path is provided
+      ansible.builtin.assert:
+        that:
+          - devspot_env_file_src | length > 0
+        fail_msg: Set DEVSPOT_ENV_FILE or pass -e devspot_env_file_src=/path/to/.env.prod.
+
+    - name: Ensure the production env file exists on the control node
+      delegate_to: localhost
+      become: false
+      ansible.builtin.stat:
+        path: "{{ devspot_env_file_src }}"
+      register: devspot_env_file
+
+    - name: Stop when the env file is missing
+      ansible.builtin.assert:
+        that:
+          - devspot_env_file.stat.exists
+        fail_msg: The env file referenced by devspot_env_file_src does not exist.
+
+  tasks:
+    - name: Synchronize repository to the target host
+      ansible.posix.synchronize:
+        src: "{{ devspot_local_repo_root }}/"
+        dest: "{{ devspot_app_root }}/"
+        archive: true
+        compress: true
+        delete: true
+        rsync_opts: "{{ devspot_sync_excludes | map('regex_replace', '^(.*)$', '--exclude=\\1') | list }}"
+
+    - name: Upload production environment file
+      ansible.builtin.copy:
+        src: "{{ devspot_env_file_src }}"
+        dest: "{{ devspot_app_root }}/.env.prod"
+        mode: '0600'
+
+    - name: Build and start the production stack
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ devspot_compose_file }}"
+          - --env-file
+          - .env.prod
+          - up
+          - -d
+          - --build
+      args:
+        chdir: "{{ devspot_app_root }}"
+
+    - name: Run database migrations
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ devspot_compose_file }}"
+          - --env-file
+          - .env.prod
+          - exec
+          - -T
+          - app
+          - php
+          - bin/console
+          - doctrine:migrations:migrate
+          - --no-interaction
+      args:
+        chdir: "{{ devspot_app_root }}"
+      when: devspot_run_migrations | bool
+
+    - name: Remove unused Docker images
+      ansible.builtin.command:
+        argv:
+          - docker
+          - image
+          - prune
+          - --force
+      when: devspot_prune_images | bool

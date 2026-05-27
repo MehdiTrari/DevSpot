@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Conversation | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-6xl space-y-8 font-sans">
+        <div class="theme-settings-card rounded-[2.75rem] p-8 sm:p-10">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <p class="premium-kicker mb-4 inline-flex rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.24em]">
+                        Conversation
+                    </p>
+                    <h1 class="ui-title text-3xl font-semibold tracking-tight">{{ recruiterName }}</h1>
+                    <p class="ui-text-secondary mt-2 text-[15px]">{{ conversation.subject ?: 'Conversation' }}</p>
+                    <p class="ui-text-muted mt-1 text-[15px]">{{ recruiterEmail }}</p>
+                </div>
+
+                <a href="{{ path('app_applicant_messages') }}" class="ui-button-secondary inline-flex items-center justify-center rounded-full px-4 py-2 text-[15px] font-semibold tracking-tight">
+                    Retour aux messages
+                </a>
+            </div>
+        </div>
+
+        <article class="theme-settings-card rounded-[2.35rem] p-6 sm:p-8">
+            <div class="space-y-4">
+                {% for message in messages %}
+                    {% set isApplicantMessage = message.senderUser and app.user and message.senderUser.id == app.user.id %}
+                    <div class="flex {{ isApplicantMessage ? 'justify-end' : 'justify-start' }}">
+                        <div class="max-w-[85%] rounded-2xl px-4 py-3 {{ isApplicantMessage ? 'ui-chat-bubble-me' : 'ui-chat-bubble-other' }}">
+                            <p class="text-xs font-semibold uppercase tracking-wider {{ isApplicantMessage ? 'ui-chat-meta-me' : 'ui-chat-meta-other' }}">{{ isApplicantMessage ? 'Vous' : recruiterName }}</p>
+                            <p class="mt-2 whitespace-pre-line text-sm leading-relaxed">{{ message.content }}</p>
+                            <p class="mt-2 text-right text-xs {{ isApplicantMessage ? 'ui-chat-meta-me' : 'ui-chat-meta-other' }}">{{ message.createdAt|date('d/m/Y H:i') }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="premium-divider mt-6 border-t pt-6">
+                {{ form_start(replyForm, {attr: {class: 'space-y-3'}}) }}
+                    {{ form_row(replyForm.content, {
+                        attr: {
+                            class: 'min-h-[120px]',
+                            placeholder: 'Écrivez votre réponse...'
+                        }
+                    }) }}
+                    <div class="flex justify-end">
+                        <button type="submit" class="ui-button-primary inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-bold">
+                            Envoyer
+                        </button>
+                    </div>
+                {{ form_end(replyForm) }}
+            </div>
+        </article>
+    </section>
+{% endblock %}

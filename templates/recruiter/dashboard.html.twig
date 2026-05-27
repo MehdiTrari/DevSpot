@@ -1,0 +1,282 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon espace | DevSpot{% endblock %}
+
+{% block body %}
+    {% set draftCount = offersCount - activeOffersCount - closedOffersCount %}
+
+    <section class="w-full max-w-6xl space-y-8 font-sans" data-controller="matching-preview" data-matching-preview-endpoint-value="{{ matchingPreviewEndpoint }}">
+        <div class="favorite-showcase-hero mx-auto w-full max-w-5xl px-1 py-2 text-center sm:px-2 sm:py-3">
+            <div class="mx-auto max-w-3xl">
+                <p class="favorite-showcase-kicker">
+                    Espace recruteur
+                </p>
+                <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Mon dashboard.</h1>
+                <p class="ui-text-secondary mx-auto mt-4 max-w-2xl text-[15px]">Gère tes recherches de profils, tes offres et tes interactions depuis un espace dédié.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-6">
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Contactés</p>
+                <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.contactedProfilesCount }}</p>
+                <p class="ui-text-muted mt-2 text-xs">Profils avec échange initié</p>
+            </article>
+
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Réponses</p>
+                <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.repliedProfilesCount }}</p>
+                <p class="ui-text-muted mt-2 text-xs">Profils ayant répondu</p>
+            </article>
+
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Favoris</p>
+                <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.favoriteProfilesCount }}</p>
+                <p class="ui-text-muted mt-2 text-xs">Profils sauvegardés</p>
+            </article>
+
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Conversations</p>
+                <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.activeConversationsCount }}</p>
+                <p class="ui-text-muted mt-2 text-xs">Actives</p>
+            </article>
+
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Sans réponse</p>
+                <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.unansweredConversationsCount }}</p>
+                <p class="ui-text-muted mt-2 text-xs">À relancer</p>
+            </article>
+
+            <article class="theme-settings-card min-w-0 rounded-[1.75rem] p-4 sm:p-5">
+                <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Taux réponse</p>
+                <p class="ui-title mt-3 text-3xl font-semibold">{{ interactionDashboard.responseRate }}%</p>
+                <p class="ui-text-muted mt-2 text-xs">{{ interactionDashboard.linkedProfilesCount }} lié{{ interactionDashboard.linkedProfilesCount > 1 ? 's' : '' }} à une offre</p>
+            </article>
+        </div>
+
+        <article class="theme-settings-card rounded-[2.35rem] p-6 sm:p-8">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Suivi des candidats</p>
+                    <h2 class="ui-title mt-2 text-2xl font-semibold tracking-tight">Suivi des interactions</h2>
+                    <p class="ui-text-secondary mt-2 max-w-3xl text-[15px] leading-relaxed">
+                        Le niveau d'intérêt est un indicateur interne calculé à partir des favoris, messages envoyés, réponses reçues, échanges multiples, lien avec une offre et activité récente.
+                    </p>
+                </div>
+                <a href="{{ path('app_recruiter_messages') }}" class="ui-button-secondary inline-flex w-fit items-center justify-center whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold">
+                    Ouvrir la messagerie
+                </a>
+            </div>
+
+            <div class="mt-6 space-y-3">
+                {% for row in interactionDashboard.rows %}
+                    <div class="premium-list-row grid gap-5 rounded-[1.5rem] p-5 lg:grid-cols-[1.05fr_0.9fr_0.95fr_0.8fr_0.55fr_0.85fr_auto] lg:items-center lg:gap-6">
+                        <div>
+                            <p class="ui-text-muted mb-1 text-xs font-semibold uppercase tracking-wider lg:hidden">Candidat</p>
+                            {% if row.profileSlug %}
+                                <a href="{{ path('app_public_profile_show', { slug: row.profileSlug }) }}" class="ui-title text-sm font-semibold hover:underline">{{ row.profileName }}</a>
+                            {% else %}
+                                <p class="ui-title text-sm font-semibold">{{ row.profileName }}</p>
+                            {% endif %}
+                            <p class="ui-text-muted mt-1 text-xs">{{ row.headline ?: 'Profil développeur' }}</p>
+                        </div>
+
+                        <div>
+                            <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Offre associée</p>
+                            <p class="ui-title mt-1 text-sm font-semibold">{{ row.linkedOfferTitle ?: 'Non liée' }}</p>
+                        </div>
+
+                        <div>
+                            <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Statut de l'échange</p>
+                            <div class="mt-2 rounded-[1.15rem] border border-white/10 bg-white/5 px-3 py-2">
+                                <p class="ui-title text-sm font-semibold">{{ row.exchangeStatus }}</p>
+                                <p class="ui-text-muted mt-1 text-xs">{{ row.lastSignal }}</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Dernière interaction</p>
+                            <div class="mt-2 rounded-[1.15rem] border border-white/10 bg-white/5 px-3 py-2">
+                                <p class="ui-title text-sm font-semibold">{{ row.lastActivityAt ? row.lastActivityAt|date('d/m/Y') : 'Aucune' }}</p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Favori</p>
+                            {% if row.isFavorite %}
+                                <span class="mt-2 inline-flex h-9 w-9 items-center justify-center rounded-full border border-red-500/30 bg-red-500/10 text-red-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]" aria-label="Profil favori">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4.5 w-4.5">
+                                        <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z"></path>
+                                    </svg>
+                                </span>
+                            {% else %}
+                                <span class="ui-text-muted mt-2 block text-sm">Non</span>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Score intérêt</p>
+                            <div class="mt-2 flex min-h-10 items-center gap-2 rounded-[1.15rem] border border-white/10 bg-white/5 px-3 py-2">
+                                <span class="ui-pill {% if row.interestScore >= 75 %}ui-pill-success{% elseif row.interestScore >= 45 %}ui-pill-warning{% else %}ui-pill-info{% endif %} inline-flex rounded-full px-3 py-1 text-xs font-semibold">
+                                    {{ row.interestLabel }}
+                                </span>
+                                <span class="ui-title text-sm font-semibold">{{ row.interestScore }}%</span>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap justify-start gap-2 pt-1 lg:justify-end lg:pt-5">
+                            {% if row.conversationId %}
+                                <a href="{{ path('app_recruiter_message_show', { conversationId: row.conversationId }) }}" class="ui-button-secondary inline-flex items-center justify-center rounded-full px-3 py-2 text-xs font-semibold">
+                                    Voir
+                                </a>
+                            {% elseif row.profileSlug %}
+                                <a href="{{ path('app_public_profile_show', { slug: row.profileSlug }) }}" class="ui-button-secondary inline-flex items-center justify-center rounded-full px-3 py-2 text-xs font-semibold">
+                                    Profil
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="premium-list-row ui-text-muted rounded-[1.5rem] p-5 text-sm">
+                        Aucun profil suivi pour le moment. Les contacts, réponses et favoris apparaîtront ici dès que tu interagiras avec des candidats.
+                    </div>
+                {% endfor %}
+            </div>
+
+            <p class="ui-text-muted mt-5 text-xs leading-relaxed">
+                Cet indicateur est une aide au suivi interne DevSpot. Il ne constitue pas une évaluation absolue du candidat.
+            </p>
+        </article>
+
+        <article class="theme-settings-card rounded-[2.35rem] p-6 sm:p-8">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                    <h3 class="ui-title text-2xl font-semibold tracking-tight">Mes offres</h3>
+                    <p class="ui-text-muted mt-1 text-sm">Clique sur une offre pour ouvrir sa liste dédiée.</p>
+                </div>
+                <a href="{{ path('app_recruiter_offers') }}" class="ui-pill ui-pill-success inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-semibold">Voir mes offres</a>
+            </div>
+
+            <div class="mt-5 grid gap-3 lg:grid-cols-2">
+                {% for job in offerRows %}
+                    <a href="{{ path('app_recruiter_offer_detail', { id: job.id }) }}" class="premium-list-row block rounded-[1.4rem] px-4 py-4 transition duration-300 hover:scale-[1.01]">
+                        <p class="ui-title text-sm font-semibold">{{ job.title }}</p>
+                        <p class="ui-text-secondary mt-1 text-sm">{{ job.contract }}</p>
+                        {% if job.applicationDeadline %}
+                            <p class="ui-text-muted mt-2 text-xs">Date limite : {{ job.applicationDeadline|date('d/m/Y') }}</p>
+                        {% endif %}
+                        <p class="ui-text-muted mt-2 text-xs">{{ job.applicants }} candidature{{ job.applicants > 1 ? 's' : '' }} simulée{{ job.applicants > 1 ? 's' : '' }}</p>
+                        {% if job.topMatchPercentage is not null %}
+                            <p class="mt-2 text-xs font-semibold text-emerald-400">Top matching enrichi : {{ job.topMatchPercentage|number_format(1, '.', ' ') }}%</p>
+                        {% endif %}
+                        <span class="ui-pill {% if job.statusValue == 'published' %}ui-pill-success{% elseif job.statusValue == 'closed' %}ui-pill-danger{% else %}ui-pill-warning{% endif %} mt-3 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold">{{ job.status }}</span>
+                    </a>
+                {% else %}
+                    <div class="premium-list-row ui-text-muted rounded-[1.4rem] px-4 py-5 text-sm lg:col-span-2">
+                        Aucune offre recruteur pour le moment.
+                    </div>
+                {% endfor %}
+            </div>
+        </article>
+
+        <div class="grid gap-6 sm:grid-cols-2">
+            <div class="theme-settings-card flex flex-col rounded-[2.35rem] p-6">
+                <div class="flex items-center justify-between gap-3">
+                    <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Mes offres</p>
+                    <a href="{{ path('app_recruiter_offers') }}" class="ui-pill ui-pill-success inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">Voir tout</a>
+                </div>
+
+                <div class="mt-4 flex-1 space-y-3">
+                    <div class="premium-list-row flex items-center gap-3 rounded-[1.4rem] px-4 py-3">
+                        <svg class="h-9 w-9 shrink-0 rounded-xl p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" style="border:1px solid rgba(52,211,153,0.35);background:rgba(16,185,129,0.16);color:#34d399;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
+                        </svg>
+                        <div>
+                            <p class="ui-title text-sm font-semibold">{{ activeOffersCount }} offre{{ activeOffersCount > 1 ? 's' : '' }} publiée{{ activeOffersCount > 1 ? 's' : '' }}</p>
+                            <p class="ui-text-muted text-xs">Visible{{ activeOffersCount > 1 ? 's' : '' }} par les candidats</p>
+                        </div>
+                    </div>
+
+                    <div class="premium-list-row flex items-center gap-3 rounded-[1.4rem] px-4 py-3">
+                        <svg class="h-9 w-9 shrink-0 rounded-xl border border-amber-400/30 bg-amber-500/15 p-2 text-amber-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16.862 4.487 18.55 2.8a1.875 1.875 0 0 1 2.652 2.651L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"></path>
+                        </svg>
+                        <div>
+                            <p class="ui-title text-sm font-semibold">{{ draftCount }} brouillon{{ draftCount > 1 ? 's' : '' }}</p>
+                            <p class="ui-text-muted text-xs">En attente de publication</p>
+                        </div>
+                    </div>
+
+                    <div class="premium-list-row flex items-center gap-3 rounded-[1.4rem] px-4 py-3">
+                        <svg class="h-9 w-9 shrink-0 rounded-xl border border-rose-400/30 bg-rose-500/15 p-2 text-rose-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"></path>
+                        </svg>
+                        <div>
+                            <p class="ui-title text-sm font-semibold">{{ closedOffersCount }} offre{{ closedOffersCount > 1 ? 's' : '' }} fermée{{ closedOffersCount > 1 ? 's' : '' }}</p>
+                            <p class="ui-text-muted text-xs">Retirées de la recherche</p>
+                        </div>
+                    </div>
+
+                    <div class="premium-list-row flex items-center gap-3 rounded-[1.4rem] px-4 py-3">
+                        <svg class="h-9 w-9 shrink-0 rounded-xl border border-blue-400/30 bg-blue-500/15 p-2 text-blue-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"></path>
+                        </svg>
+                        <div>
+                            <p class="ui-title text-sm font-semibold">{{ offersCount }} offre{{ offersCount > 1 ? 's' : '' }} au total</p>
+                            <p class="ui-text-muted text-xs">Créées depuis ton espace</p>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="{{ path('app_recruiter_offer_create') }}" class="premium-action-card mt-4 inline-flex items-center justify-center gap-2 rounded-[1.2rem] px-5 py-3.5 text-sm font-semibold">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+                    </svg>
+                    Créer une offre
+                </a>
+            </div>
+
+            <div class="theme-settings-card flex flex-col rounded-[2.35rem] p-6">
+                <div class="flex items-center justify-between gap-3">
+                    <p class="ui-text-muted text-xs font-semibold uppercase tracking-wider">Mes profils favoris</p>
+                    <a href="{{ path('app_recruiter_favorites') }}" class="ui-pill ui-pill-success inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold">Voir tout</a>
+                </div>
+
+                <div class="mt-4 flex-1 space-y-3">
+                    {% set maxFavorites = 3 %}
+                    {% for favorite in favoriteRows|slice(0, maxFavorites) %}
+                        <a href="{{ path('app_public_profile_show', { slug: favorite.slug }) }}" class="premium-list-row block rounded-[1.4rem] px-4 py-3 transition duration-300 hover:scale-[1.01]">
+                            <p class="ui-title text-sm font-semibold">{{ favorite.fullName }}</p>
+                            <p class="ui-text-secondary mt-1 text-sm">{{ favorite.headline }}</p>
+                            <div class="ui-text-muted mt-2 flex flex-wrap gap-2 text-xs">
+                                <span>{{ favorite.location ?: 'Localisation Non renseignée' }}</span>
+                                <span>•</span>
+                                <span>{{ favorite.yearsExperience }} an(s) d'expérience</span>
+                            </div>
+                        </a>
+                    {% else %}
+                        <div class="favorite-showcase-empty rounded-[2.2rem] px-6 py-10 text-center sm:px-8">
+                            <p class="ui-title text-xl font-semibold">Aucun profil favori pour le moment.</p>
+                            <p class="ui-text-secondary mx-auto mt-3 max-w-2xl text-sm leading-relaxed sm:text-[15px]">
+                                Ajoute des profils depuis la page d'accueil ou depuis une fiche portfolio pour les retrouver ici.
+                            </p>
+                            <a href="{{ path('app_home') }}" class="favorite-showcase-primary-link mx-auto mt-6 max-w-xs">
+                                Explorer des profils
+                            </a>
+                        </div>
+                    {% endfor %}
+
+                    {% if favoriteRows|length > maxFavorites %}
+                        <a href="{{ path('app_recruiter_favorites') }}" class="ui-pill ui-pill-success mt-1 flex items-center justify-center gap-2 rounded-[1.2rem] px-4 py-2.5 text-sm font-semibold">
+                            Voir les {{ favoriteRows|length }} profils favoris ->
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
+            Pilote tes recherches, garde tes favoris à portée de main et structure ton suivi recruteur au même endroit.
+        </p>
+    </section>
+{% endblock %}

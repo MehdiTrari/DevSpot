@@ -1,0 +1,51 @@
+{
+  "model": "camembert-base",
+  "projectionPath": "ml/models/devspot-matching-projection.pt",
+  "offers": 90,
+  "developers": 192,
+  "candidateTextVariants": [
+    "cleaned",
+    "legacy_raw"
+  ],
+  "semanticFairness": {
+    "cleaned": {
+      "junior_avg_score": 0.4437,
+      "non_junior_avg_score": 0.4707,
+      "disparate_impact_ratio": 0.9427,
+      "junior_count": 3150,
+      "non_junior_count": 14130,
+      "junior_selection_rate": 0.066,
+      "non_junior_selection_rate": 0.0714,
+      "selection_rate_ratio": 0.9247,
+      "score_gap": -0.027,
+      "assessment": "balanced_selection_rate"
+    },
+    "legacy_raw": {
+      "junior_avg_score": 0.2425,
+      "non_junior_avg_score": 0.2884,
+      "disparate_impact_ratio": 0.8408,
+      "junior_count": 3150,
+      "non_junior_count": 14130,
+      "junior_selection_rate": 0.081,
+      "non_junior_selection_rate": 0.1008,
+      "selection_rate_ratio": 0.8027,
+      "score_gap": -0.0459,
+      "assessment": "balanced_selection_rate"
+    },
+    "delta_cleaned_vs_legacy": {
+      "junior_avg_score": 0.2012,
+      "non_junior_avg_score": 0.1823,
+      "disparate_impact_ratio": 0.1019,
+      "junior_selection_rate": -0.015,
+      "non_junior_selection_rate": -0.0294,
+      "selection_rate_ratio": 0.122,
+      "score_gap": 0.0189
+    },
+    "score_delta": {
+      "junior_avg_delta": 0.2013,
+      "junior_avg_abs_delta": 0.2655,
+      "non_junior_avg_delta": 0.1824,
+      "non_junior_avg_abs_delta": 0.2585
+    }
+  }
+}

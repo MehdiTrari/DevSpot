@@ -1,0 +1,39 @@
+{# Step progress indicator — include with { current_step: N, total_steps: 4 } only #}
+{% set step_routes = {
+    1: 'app_applicant_profile_step1',
+    2: 'app_applicant_profile_step2',
+    3: 'app_applicant_profile_step3',
+    4: 'app_applicant_profile_step4'
+} %}
+<nav class="mb-8" aria-label="Progression du profil">
+    <div class="flex items-center justify-center gap-1">
+        {% for i in 1..total_steps %}
+            <div class="flex items-center {% if not loop.last %}gap-1{% endif %}">
+                {% if i < current_step %}
+                    <a href="{{ path(step_routes[i]) }}"
+                       title="Retour à l'étape {{ i }}"
+                       class="flex h-10 w-10 items-center justify-center rounded-full border text-[var(--ui-success-text-muted)] shadow-lg transition-all duration-300 hover:scale-110"
+                       style="background: var(--ui-success-bg); border-color: var(--ui-success-border); box-shadow: 0 10px 22px rgba(16, 185, 129, 0.24);"
+                    >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    </a>
+                {% elseif i == current_step %}
+                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-slate-950 shadow-lg shadow-emerald-500/25">
+                        {{ i }}
+                    </div>
+                {% else %}
+                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-sm font-bold text-slate-500 ring-1 ring-white/10">
+                        {{ i }}
+                    </div>
+                {% endif %}
+                {% if not loop.last %}
+                    {% if i < current_step %}
+                        <div class="h-px w-8 sm:w-14 transition-all duration-300" style="background: var(--ui-success-border);"></div>
+                    {% else %}
+                        <div class="h-px w-8 sm:w-14 bg-white/10 transition-all duration-300"></div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</nav>

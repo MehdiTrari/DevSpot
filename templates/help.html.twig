@@ -1,0 +1,332 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Help | DevSpot{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        @media (max-width: 639px) {
+            .help-preview-aside {
+                display: none;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% set activeHelpRole = is_granted('ROLE_RECRUITER') ? 'recruiter' : 'applicant' %}
+
+    <section class="help-quickstart-page w-full max-w-6xl space-y-8 font-sans">
+        <div class="favorite-showcase-hero mx-auto w-full max-w-5xl px-1 py-2 sm:px-2 sm:py-3">
+            <div class="mx-auto max-w-4xl text-center">
+                <div class="help-role-switch" data-help-switcher="true">
+                    <button
+                        type="button"
+                        class="help-role-button {{ activeHelpRole == 'applicant' ? 'is-active' : '' }}"
+                        data-help-role-button="applicant"
+                        aria-pressed="{{ activeHelpRole == 'applicant' ? 'true' : 'false' }}"
+                    >
+                        Applicant
+                    </button>
+                    <button
+                        type="button"
+                        class="help-role-button {{ activeHelpRole == 'recruiter' ? 'is-active' : '' }}"
+                        data-help-role-button="recruiter"
+                        aria-pressed="{{ activeHelpRole == 'recruiter' ? 'true' : 'false' }}"
+                    >
+                        Recruteur
+                    </button>
+                </div>
+                <h1 class="ui-title mt-6 text-2xl font-semibold tracking-tight sm:text-3xl">Utilise DevSpot en quelques étapes.</h1>
+                <p class="ui-text-secondary mx-auto mt-4 max-w-3xl text-sm leading-relaxed sm:text-[15px]">
+                    Choisis un parcours puis suis les étapes. Tu peux basculer entre Applicant et Recruteur à tout moment.
+                </p>
+            </div>
+        </div>
+
+        <div data-help-panel="applicant" class="{{ activeHelpRole == 'applicant' ? '' : 'hidden ' }}">
+            <article class="help-quickstart-shell rounded-[2.35rem] p-5 sm:p-8">
+                <div class="help-quickstart-grid">
+                    <ol class="help-steps" data-help-steps="true" aria-label="Parcours applicant">
+                        <li
+                            class="help-step help-step-active"
+                            data-help-step="true"
+                            data-preview-video="https://example.com/videos/applicant-step-1.mp4"
+                            data-preview-title="Création du compte"
+                            data-preview-text="Crée ton compte DevSpot pour accéder à ton espace candidat et démarrer ton parcours."
+                            tabindex="0"
+                            role="button"
+                            aria-pressed="true"
+                        >
+                            <h2 class="help-step-title">1. Création du compte</h2>
+                            <p class="help-step-text">Créer ton compte pour accéder à ton espace candidat.</p>
+                            <a href="{{ path('app_register') }}" class="help-step-link">S'inscrire</a>
+                        </li>
+
+                        <li
+                            class="help-step"
+                            data-help-step="true"
+                            data-preview-video="https://example.com/videos/applicant-step-2.mp4"
+                            data-preview-title="Compléter le profil développeur"
+                            data-preview-text="Remplis tes informations, tes expériences, tes compétences et tes préférences avant de publier ton portfolio."
+                            tabindex="0"
+                            role="button"
+                            aria-pressed="false"
+                        >
+                            <h2 class="help-step-title">2. Compléter ton profil développeur</h2>
+                            <p class="help-step-text">Renseigner tes informations, ton parcours, tes compétences et tes préférences.</p>
+                        </li>
+
+                        <li
+                            class="help-step"
+                            data-help-step="true"
+                            data-preview-video="https://example.com/videos/applicant-step-3.mp4"
+                            data-preview-title="Publication du portfolio"
+                            data-preview-text="Génère ton portfolio, vérifie son rendu puis passe-le en public pour obtenir de la visibilité."
+                            tabindex="0"
+                            role="button"
+                            aria-pressed="false"
+                        >
+                            <h2 class="help-step-title">3. Publier ton portfolio</h2>
+                            <p class="help-step-text">Publier ton portfolio après avoir rempli tes informations pour gagner en visibilité.</p>
+                        </li>
+
+                        <li
+                            class="help-step"
+                            data-help-step="true"
+                            data-preview-video="https://example.com/videos/applicant-step-4.mp4"
+                            data-preview-title="Échanges avec les recruteurs"
+                            data-preview-text="Réponds aux messages reçus et engage les discussions avec les recruteurs intéressés."
+                            tabindex="0"
+                            role="button"
+                            aria-pressed="false"
+                        >
+                            <h2 class="help-step-title">4. Échanger avec les recruteurs intéressés</h2>
+                            <p class="help-step-text">Répondre aux messages et démarrer les discussions avec les recruteurs.</p>
+                        </li>
+                    </ol>
+
+                    <aside class="help-preview-aside space-y-4">
+                        <article class="help-preview-card rounded-[2rem] p-4 sm:p-5">
+                            <div class="help-preview-media rounded-[1.4rem] p-2 sm:p-2.5">
+                                <video data-help-preview-video="true" class="help-preview-video w-full rounded-[1rem]" controls preload="none">
+                                    <source src="https://example.com/videos/applicant-step-1.mp4" type="video/mp4">
+                                    Votre navigateur ne supporte pas la vidéo.
+                                </video>
+                            </div>
+
+                            <div class="mt-4">
+                                <h3 data-help-preview-title="true" class="ui-title text-xl font-semibold tracking-tight sm:text-2xl">Création du compte</h3>
+                                <p data-help-preview-text="true" class="ui-text-muted mt-2 text-sm leading-relaxed sm:text-[15px]">Crée ton compte DevSpot pour accéder à ton espace candidat et démarrer ton parcours.</p>
+                            </div>
+                        </article>
+                    </aside>
+                </div>
+            </article>
+        </div>
+
+        <div data-help-panel="recruiter" class="{{ activeHelpRole == 'recruiter' ? '' : 'hidden ' }}">
+            <article class="help-quickstart-shell rounded-[2.35rem] p-5 sm:p-8">
+                <div class="help-quickstart-grid">
+                    <ol class="help-steps" data-help-steps="true" aria-label="Parcours recruteur">
+                        <li
+                            class="help-step help-step-active"
+                            data-help-step="true"
+                            data-preview-video="https://example.com/videos/recruiter-step-1.mp4"
+                            data-preview-title="Création du compte"
+                            data-preview-text="Crée ton compte recruteur pour débloquer ton dashboard et commencer ton sourcing."
+                            tabindex="0"
+                            role="button"
+                            aria-pressed="true"
+                        >
+                            <h2 class="help-step-title">1. Création du compte</h2>
+                            <p class="help-step-text">Créer ton compte pour ouvrir ton espace recruteur.</p>
+                            <a href="{{ path('app_register') }}" class="help-step-link">S'inscrire</a>
+                        </li>
+
+                        <li
+                            class="help-step"
+                            data-help-step="true"
+                            data-preview-video="https://example.com/videos/recruiter-step-2.mp4"
+                            data-preview-title="Création des offres"
+                            data-preview-text="Prépare tes offres avec les compétences et le contexte nécessaires pour attirer les bons profils."
+                            tabindex="0"
+                            role="button"
+                            aria-pressed="false"
+                        >
+                            <h2 class="help-step-title">2. Création des offres</h2>
+                            <p class="help-step-text">Structurer tes besoins pour lancer tes premières offres.</p>
+                        </li>
+
+                        <li
+                            class="help-step"
+                            data-help-step="true"
+                            data-preview-video="https://example.com/videos/recruiter-step-3.mp4"
+                            data-preview-title="Trouver des profils intéressants"
+                            data-preview-text="Parcours les portfolios et identifie rapidement les candidats alignés avec tes besoins."
+                            tabindex="0"
+                            role="button"
+                            aria-pressed="false"
+                        >
+                            <h2 class="help-step-title">3. Trouver des profils intéressants</h2>
+                            <p class="help-step-text">Explorer les profils publics et constituer ta short-list.</p>
+                        </li>
+
+                        <li
+                            class="help-step"
+                            data-help-step="true"
+                            data-preview-video="https://example.com/videos/recruiter-step-4.mp4"
+                            data-preview-title="Échanges avec les applicants"
+                            data-preview-text="Lance la discussion avec les candidats retenus pour avancer dans ton processus de recrutement."
+                            tabindex="0"
+                            role="button"
+                            aria-pressed="false"
+                        >
+                            <h2 class="help-step-title">4. Échanger avec les applicants</h2>
+                            <p class="help-step-text">Contacter les candidats pertinents et avancer dans ton recrutement.</p>
+                        </li>
+
+                        <li
+                            class="help-step"
+                            data-help-step="true"
+                            data-preview-video="https://example.com/videos/recruiter-step-5.mp4"
+                            data-preview-title="Trouver votre nouvelle recrue"
+                            data-preview-text="Priorise les profils engagés, finalise tes échanges et conclus ton recrutement avec le candidat retenu."
+                            tabindex="0"
+                            role="button"
+                            aria-pressed="false"
+                        >
+                            <h2 class="help-step-title">5. Trouver ta nouvelle recrue</h2>
+                            <p class="help-step-text">Prioriser les profils les plus engageants et conclure ton recrutement.</p>
+                        </li>
+                    </ol>
+
+                    <aside class="help-preview-aside space-y-4">
+                        <article class="help-preview-card rounded-[2rem] p-4 sm:p-5">
+                            <div class="help-preview-media rounded-[1.4rem] p-2 sm:p-2.5">
+                                <video data-help-preview-video="true" class="help-preview-video w-full rounded-[1rem]" controls preload="none">
+                                    <source src="https://example.com/videos/recruiter-step-1.mp4" type="video/mp4">
+                                    Votre navigateur ne supporte pas la vidéo.
+                                </video>
+                            </div>
+
+                            <div class="mt-4">
+                                <h3 data-help-preview-title="true" class="ui-title text-xl font-semibold tracking-tight sm:text-2xl">Création du compte</h3>
+                                <p data-help-preview-text="true" class="ui-text-muted mt-2 text-sm leading-relaxed sm:text-[15px]">Crée ton compte recruteur pour débloquer ton dashboard et commencer ton sourcing.</p>
+                            </div>
+                        </article>
+                    </aside>
+                </div>
+            </article>
+        </div>
+
+        <script>
+            (() => {
+                const initHelpSwitcher = () => {
+                    const switcherRoot = document.querySelector('[data-help-switcher="true"]');
+                    if (!switcherRoot || switcherRoot.dataset.helpSwitcherInitialized === 'true') {
+                        return;
+                    }
+
+                    switcherRoot.dataset.helpSwitcherInitialized = 'true';
+
+                    const buttons = Array.from(document.querySelectorAll('[data-help-role-button]'));
+                    const panels = Array.from(document.querySelectorAll('[data-help-panel]'));
+                    const stepLists = Array.from(document.querySelectorAll('[data-help-steps="true"]'));
+
+                    const initStepTimeline = (stepListElement) => {
+                        if (stepListElement.dataset.helpStepsInitialized === 'true') {
+                            return;
+                        }
+
+                        stepListElement.dataset.helpStepsInitialized = 'true';
+                        const stepItems = Array.from(stepListElement.querySelectorAll('[data-help-step="true"]'));
+                        if (!stepItems.length) {
+                            return;
+                        }
+
+                        const previewContainer = stepListElement.closest('.help-quickstart-grid');
+                        const previewVideo = previewContainer ? previewContainer.querySelector('[data-help-preview-video="true"]') : null;
+                        const previewSource = previewVideo ? previewVideo.querySelector('source') : null;
+                        const previewTitle = previewContainer ? previewContainer.querySelector('[data-help-preview-title="true"]') : null;
+                        const previewText = previewContainer ? previewContainer.querySelector('[data-help-preview-text="true"]') : null;
+
+                        const setActiveStep = (activeIndex) => {
+                            const boundedIndex = Math.max(0, Math.min(activeIndex, stepItems.length - 1));
+                            const progressPercent = ((boundedIndex + 1) / stepItems.length) * 100;
+                            const activeStep = stepItems[boundedIndex];
+
+                            stepItems.forEach((stepItem, index) => {
+                                const isActive = index === boundedIndex;
+                                stepItem.classList.toggle('help-step-active', isActive);
+                                stepItem.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+                            });
+
+                            stepListElement.style.setProperty('--help-progress', `${progressPercent}%`);
+
+                            if (previewSource && previewVideo && activeStep.dataset.previewVideo) {
+                                previewSource.src = activeStep.dataset.previewVideo;
+                                previewVideo.load();
+                            }
+
+                            if (previewTitle && activeStep.dataset.previewTitle) {
+                                previewTitle.textContent = activeStep.dataset.previewTitle;
+                            }
+
+                            if (previewText && activeStep.dataset.previewText) {
+                                previewText.textContent = activeStep.dataset.previewText;
+                            }
+                        };
+
+                        const initialIndex = stepItems.findIndex((stepItem) => stepItem.classList.contains('help-step-active'));
+                        setActiveStep(initialIndex >= 0 ? initialIndex : 0);
+
+                        stepItems.forEach((stepItem, index) => {
+                            stepItem.addEventListener('click', () => setActiveStep(index));
+                            stepItem.addEventListener('keydown', (event) => {
+                                if (event.key !== 'Enter' && event.key !== ' ') {
+                                    return;
+                                }
+                                event.preventDefault();
+                                setActiveStep(index);
+                            });
+                        });
+                    };
+
+                    const activateRole = (role) => {
+                        buttons.forEach((button) => {
+                            const isActive = button.dataset.helpRoleButton === role;
+                            button.classList.toggle('is-active', isActive);
+                            button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+                        });
+
+                        panels.forEach((panel) => {
+                            const isActive = panel.dataset.helpPanel === role;
+                            panel.classList.toggle('hidden', !isActive);
+                        });
+                    };
+
+                    buttons.forEach((button) => {
+                        button.addEventListener('click', () => {
+                            const role = button.dataset.helpRoleButton;
+                            if (!role) {
+                                return;
+                            }
+
+                            activateRole(role);
+                        });
+                    });
+
+                    stepLists.forEach((stepList) => initStepTimeline(stepList));
+                };
+
+                document.addEventListener('DOMContentLoaded', initHelpSwitcher);
+                document.addEventListener('turbo:load', initHelpSwitcher);
+            })();
+        </script>
+
+        <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
+            Une mise en route simple, claire et rapide pour rester focus sur l'essentiel.
+        </p>
+    </section>
+{% endblock %}

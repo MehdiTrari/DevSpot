@@ -1,0 +1,221 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord Admin | DevSpot{% endblock %}
+
+{% block body %}
+    {% set activationRate = stats.totalUsers > 0 ? ((stats.totalApplicants + stats.totalRecruiters) / stats.totalUsers * 100)|round : 0 %}
+
+    <section class="w-full max-w-7xl space-y-8 font-sans">
+        <div class="favorite-showcase-hero mx-auto w-full max-w-5xl px-1 py-2 text-center sm:px-2 sm:py-3">
+            <div class="mx-auto max-w-3xl">
+                <p class="favorite-showcase-kicker">Administration</p>
+                <h1 class="ui-title mt-6 text-3xl font-semibold tracking-tight sm:text-4xl">Tableau de bord administrateur</h1>
+                <p class="ui-text-secondary mt-4 text-[15px]">Bienvenue sur votre espace d'administration.</p>
+            </div>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <article class="premium-stat-card rounded-[1.9rem] p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="ui-text-muted text-sm font-medium">Utilisateurs totaux</p>
+                        <p class="ui-title mt-2 text-3xl font-bold">{{ stats.totalUsers }}</p>
+                    </div>
+                    <svg class="h-9 w-9 shrink-0 rounded-xl border p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" style="border-color: var(--premium-icon-success-border); background: var(--premium-icon-success-bg); color: var(--premium-icon-success-text);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 20v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 8v6"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M23 11h-6"></path>
+                    </svg>
+                </div>
+                <p class="ui-text-muted mt-4 text-xs">Tous les comptes de la plateforme.</p>
+            </article>
+
+            <article class="premium-stat-card rounded-[1.9rem] p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="ui-text-muted text-sm font-medium">Candidats</p>
+                        <p class="ui-title mt-2 text-3xl font-bold">{{ stats.totalApplicants }}</p>
+                    </div>
+                    <svg class="admin-dashboard-icon premium-icon premium-icon-info h-9 w-9 shrink-0 rounded-xl p-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m13 2-8 12h6l-1 8 9-13h-6z"></path>
+                    </svg>
+                </div>
+                <p class="ui-text-muted mt-4 text-xs">Développeurs actifs et visibles.</p>
+            </article>
+
+            <article class="premium-stat-card rounded-[1.9rem] p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="ui-text-muted text-sm font-medium">Recruteurs</p>
+                        <p class="ui-title mt-2 text-3xl font-bold">{{ stats.totalRecruiters }}</p>
+                    </div>
+                    <svg class="h-9 w-9 shrink-0 rounded-xl border border-purple-400/30 bg-purple-500/15 p-2 text-purple-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V5a4 4 0 1 1 8 0v2"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 7h16l-1 12H5z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 11v4"></path>
+                    </svg>
+                </div>
+                <p class="ui-text-muted mt-4 text-xs">Entreprises et équipes RH.</p>
+            </article>
+
+            <article class="premium-stat-card rounded-[1.9rem] p-6">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <p class="ui-text-muted text-sm font-medium">Messages</p>
+                        <p class="ui-title mt-2 text-3xl font-bold">{{ stats.unreadMessages }}</p>
+                    </div>
+                    <svg class="h-9 w-9 shrink-0 rounded-xl border border-amber-400/30 bg-amber-500/15 p-2 text-amber-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 6h18v12H3z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="m3 7 9 6 9-6"></path>
+                    </svg>
+                </div>
+                <p class="ui-text-muted mt-4 text-xs">Messages non lus à traiter.</p>
+            </article>
+        </div>
+
+        <div class="grid gap-6 xl:grid-cols-[1.35fr_0.95fr]">
+            <div class="space-y-6">
+                <div class="theme-settings-card rounded-[2.35rem] p-6 sm:p-8">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <h2 class="ui-title text-2xl font-semibold tracking-tight">Gestion de la plateforme</h2>
+                            <p class="ui-text-muted mt-2 max-w-2xl text-[15px]">Accédez rapidement aux modules de supervision et aux espaces de modération les plus utilisés.</p>
+                        </div>
+                        <span class="premium-kicker rounded-full px-3 py-1.5 text-xs font-semibold">Pilotage</span>
+                    </div>
+
+                    <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <a href="{{ path('app_admin_users') }}" class="premium-action-card group rounded-[1.75rem] p-6">
+                            <svg class="admin-dashboard-icon premium-icon premium-icon-success h-9 w-9 shrink-0 rounded-xl p-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <h3 class="ui-title mt-4 font-semibold">Gérer les utilisateurs</h3>
+                            <p class="ui-text-muted mt-2 text-sm">{{ stats.totalUsers }} utilisateurs enregistrés.</p>
+                        </a>
+
+                        <a href="{{ path('app_admin_profiles') }}" class="premium-action-card group rounded-[1.75rem] p-6">
+                            <svg class="admin-dashboard-icon premium-icon premium-icon-info h-9 w-9 shrink-0 rounded-xl p-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 5h18v14H3z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 9h8"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 13h5"></path>
+                            </svg>
+                            <h3 class="ui-title mt-4 font-semibold">Profils développeur</h3>
+                            <p class="ui-text-muted mt-2 text-sm">{{ stats.totalProfiles }} profils à superviser.</p>
+                        </a>
+
+                        <a href="{{ path('app_admin_companies') }}" class="premium-action-card group rounded-[1.75rem] p-6">
+                            <svg class="h-9 w-9 shrink-0 rounded-xl border border-purple-400/30 bg-purple-500/15 p-2 text-purple-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 21h18"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 21V7l7-4 7 4v14"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 10h6"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 14h6"></path>
+                            </svg>
+                            <h3 class="ui-title mt-4 font-semibold">Gérer les entreprises</h3>
+                            <p class="ui-text-muted mt-2 text-sm">{{ stats.totalCompanies }} entreprises suivies.</p>
+                        </a>
+
+                        <a href="{{ path('app_admin_messages') }}" class="premium-action-card group rounded-[1.75rem] p-6">
+                            <svg class="h-9 w-9 shrink-0 rounded-xl border border-amber-400/30 bg-amber-500/15 p-2 text-amber-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            <h3 class="ui-title mt-4 font-semibold">Messages de contact</h3>
+                            <p class="ui-text-muted mt-2 text-sm">{{ stats.totalMessages }} messages recus.</p>
+                        </a>
+
+                        <a href="{{ path('app_admin_support_requests') }}" class="premium-action-card group rounded-[1.75rem] p-6">
+                            <svg class="h-9 w-9 shrink-0 rounded-xl border border-cyan-400/30 bg-cyan-500/15 p-2 text-cyan-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10h8"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 14h5"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-4 3v-3H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"></path>
+                            </svg>
+                            <h3 class="ui-title mt-4 font-semibold">Demandes de support</h3>
+                            <p class="ui-text-muted mt-2 text-sm">{{ stats.totalSupportRequests }} demandes utilisateur.</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="space-y-6">
+                <div class="theme-settings-card rounded-[2.35rem] p-6">
+                    <h3 class="ui-title text-lg font-semibold">Statistiques clés</h3>
+                    <div class="mt-4 space-y-3">
+                        <div class="premium-divider flex items-center justify-between gap-3 border-b py-2">
+                            <span class="ui-text-muted text-sm">Utilisateurs</span>
+                            <span class="ui-title font-semibold">{{ stats.totalUsers }}</span>
+                        </div>
+                        <div class="premium-divider flex items-center justify-between gap-3 border-b py-2">
+                            <span class="ui-text-muted text-sm">Profils complets</span>
+                            <span class="ui-title font-semibold">{{ stats.totalProfiles }}</span>
+                        </div>
+                        <div class="premium-divider flex items-center justify-between gap-3 border-b py-2">
+                            <span class="ui-text-muted text-sm">Entreprises</span>
+                            <span class="ui-title font-semibold">{{ stats.totalCompanies }}</span>
+                        </div>
+                        <div class="premium-divider flex items-center justify-between gap-3 border-b py-2">
+                            <span class="ui-text-muted text-sm">Messages de contact</span>
+                            <span class="ui-title font-semibold">{{ stats.totalMessages }}</span>
+                        </div>
+                        <div class="premium-divider flex items-center justify-between gap-3 border-b py-2">
+                            <span class="ui-text-muted text-sm">Demandes de support</span>
+                            <span class="ui-title font-semibold">{{ stats.totalSupportRequests }}</span>
+                        </div>
+                        <div class="flex items-center justify-between gap-3 py-2">
+                            <span class="ui-text-muted text-sm">Taux d activation</span>
+                            <span class="ui-pill ui-pill-success rounded-full px-2.5 py-1 text-xs font-semibold">{{ activationRate }}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="theme-settings-card rounded-[2.35rem] p-6">
+                    <h3 class="ui-title text-lg font-semibold">Actions rapides</h3>
+                    <div class="mt-4 space-y-3">
+                        <a href="{{ path('app_settings_admin_colors') }}" class="premium-action-card flex w-full items-center gap-3 rounded-[1.4rem] p-4 text-left">
+                            <svg class="admin-dashboard-icon premium-icon premium-icon-success h-9 w-9 shrink-0 rounded-xl p-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 19h16"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 15h12"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 11h8"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10 7h4"></path>
+                            </svg>
+                            <span>
+                                <span class="ui-title block text-sm font-semibold">Générer rapport</span>
+                                <span class="ui-text-muted block text-xs">Créer un export récapitulatif.</span>
+                            </span>
+                        </a>
+
+                        <a href="{{ path('app_admin_user_messages_compose') }}" class="premium-action-card flex w-full items-center gap-3 rounded-[1.4rem] p-4 text-left">
+                            <svg class="h-9 w-9 shrink-0 rounded-xl border border-blue-400/30 bg-blue-500/15 p-2 text-blue-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 12h10"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 18h8"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 10l4 4-4 4"></path>
+                            </svg>
+                            <span>
+                                <span class="ui-title block text-sm font-semibold">Envoyer un message</span>
+                                <span class="ui-text-muted block text-xs">Contacter un ou plusieurs utilisateurs.</span>
+                            </span>
+                        </a>
+
+                        <a href="{{ path('app_admin_logs') }}" class="premium-action-card flex w-full items-center gap-3 rounded-[1.4rem] p-4 text-left">
+                            <svg class="h-9 w-9 shrink-0 rounded-xl border border-purple-400/30 bg-purple-500/15 p-2 text-purple-300 shadow-[inset_0_1px_0_rgba(255,255,255,0.14)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
+                            </svg>
+                            <span>
+                                <span class="ui-title block text-sm font-semibold">Logs admin</span>
+                                <span class="ui-text-muted block text-xs">Consulter l'historique des actions d'administration.</span>
+                            </span>
+                        </a>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <p class="favorite-showcase-footnote mt-10 text-center text-sm sm:text-[15px]">
+            Supervisez les espaces clés, suivez les indicateurs essentiels et gardez la plateforme sous contrôle en continu.
+        </p>
+    </section>
+{% endblock %}

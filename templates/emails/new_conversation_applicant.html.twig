@@ -1,0 +1,16 @@
+<h2>Bonjour{{ applicantName ? ' ' ~ applicantName : '' }},</h2>
+
+<p>Vous avez reçu un nouveau message d'un recruteur sur DevSpot.</p>
+
+<p><strong>Sujet :</strong> {{ conversationSubject }}</p>
+<p><strong>Recruteur :</strong> {{ recruiterName }}</p>
+<p><strong>Email recruteur :</strong> {{ recruiterEmail }}</p>
+
+<p><strong>Message :</strong></p>
+<p style="white-space: pre-line;">{{ messagePreview }}</p>
+
+<p>
+    <a href="{{ messagesUrl }}">Ouvrir la conversation dans DevSpot</a>
+</p>
+
+<p>À bientôt,<br>L'équipe DevSpot</p>

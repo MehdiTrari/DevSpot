@@ -10,6 +10,7 @@
         "doctrine/doctrine-bundle": "^2.18",
         "doctrine/doctrine-migrations-bundle": "^3.7",
         "doctrine/orm": "^3.6",
+        "dompdf/dompdf": "^3.1",
         "phpdocumentor/reflection-docblock": "^5.6",
         "phpstan/phpdoc-parser": "^2.3",
         "symfony/asset": "7.4.*",
@@ -21,9 +22,11 @@
         "symfony/flex": "^2",
         "symfony/form": "7.4.*",
         "symfony/framework-bundle": "7.4.*",
+        "symfony/html-sanitizer": "7.4.*",
         "symfony/http-client": "7.4.*",
         "symfony/intl": "7.4.*",
         "symfony/mailer": "7.4.*",
+        "symfony/mercure-bundle": "^0.4.2",
         "symfony/mime": "7.4.*",
         "symfony/monolog-bundle": "^3.0|^4.0",
         "symfony/notifier": "7.4.*",
@@ -42,6 +45,7 @@
         "symfony/web-link": "7.4.*",
         "symfony/yaml": "7.4.*",
         "symfonycasts/tailwind-bundle": "^0.12.0",
+        "symfonycasts/verify-email-bundle": "^1.18",
         "twig/extra-bundle": "^2.12|^3.0",
         "twig/twig": "^2.12|^3.0"
     },
@@ -80,6 +84,15 @@
             "assets:install %PUBLIC_DIR%": "symfony-cmd",
             "importmap:install": "symfony-cmd"
         },
+        "lint:cs": "php-cs-fixer fix --dry-run --diff --verbose",
+        "lint:cs:fix": "php-cs-fixer fix --verbose",
+        "lint:stan": "phpstan analyse --configuration=phpstan.neon.dist --memory-limit=1G",
+        "reset:front": "php bin/console app:frontend:reset",
+        "test": "php bin/phpunit --testsuite=app",
+        "test:coverage": "php -d xdebug.mode=coverage bin/phpunit --testsuite=app --coverage-clover=var/coverage/clover.xml --coverage-html=var/coverage/html",
+        "test:parallel": "paratest --testsuite=app --processes=4",
+        "test:e2e": "php bin/phpunit --testsuite=e2e",
+        "test:e2e:debug": "PANTHER_NO_HEADLESS=1 php bin/phpunit --testsuite=e2e --debug",
         "post-install-cmd": [
             "@auto-scripts"
         ],
@@ -97,11 +110,16 @@
         }
     },
     "require-dev": {
+        "brianium/paratest": "^7.8",
+        "dbrekelmans/bdi": "^1.4",
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^12.5",
         "symfony/browser-kit": "7.4.*",
         "symfony/css-selector": "7.4.*",
         "symfony/debug-bundle": "7.4.*",
         "symfony/maker-bundle": "^1.0",
+        "symfony/panther": "^2.4",
         "symfony/stopwatch": "7.4.*",
         "symfony/web-profiler-bundle": "7.4.*"
     }

@@ -1,0 +1,25 @@
+{% set isActive = isActive|default(false) %}
+
+{% if is_granted('ROLE_APPLICANT') %}
+    <div id="chat-entry-point">
+        <a href="{{ path('app_applicant_messages') }}" data-turbo="false" class="site-header-icon-button {{ isActive ? 'site-header-icon-button-active' : '' }}" aria-label="Acc&eacute;der &agrave; la messagerie">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" />
+            </svg>
+            {% if unreadCount > 0 %}
+                <span class="header-count-badge header-count-badge-notification absolute -right-1 -top-1">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+            {% endif %}
+        </a>
+    </div>
+{% elseif is_granted('ROLE_RECRUITER') %}
+    <div id="chat-entry-point">
+        <a href="{{ path('app_recruiter_messages') }}" data-turbo="false" class="site-header-icon-button {{ isActive ? 'site-header-icon-button-active' : '' }}" aria-label="Acc&eacute;der &agrave; la messagerie recruteur">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" />
+            </svg>
+            {% if unreadCount > 0 %}
+                <span class="header-count-badge header-count-badge-notification absolute -right-1 -top-1">{{ unreadCount > 99 ? '99+' : unreadCount }}</span>
+            {% endif %}
+        </a>
+    </div>
+{% endif %}

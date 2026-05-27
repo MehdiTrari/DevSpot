@@ -1,0 +1,297 @@
+{% extends 'base.html.twig' %}
+
+{% form_theme profileForm 'form/my_theme.html.twig' _self %}
+
+{% block title %}Étape 2 | DevSpot{% endblock %}
+
+{% block body %}
+    <section class="w-full max-w-4xl rounded-[2.5rem] border border-white/10 bg-slate-900/50 p-8 shadow-2xl shadow-black/40 backdrop-blur-2xl transition-all duration-500 hover:shadow-emerald-500/10 sm:p-10">
+        
+        <div class="mb-8">
+            <p class="mb-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-slate-300">
+                Profil développeur
+            </p>
+            <h1 class="text-3xl font-semibold tracking-tight text-white">Étape 2 - Parcours & Compétences</h1>
+            <p class="mt-2 text-[15px] text-slate-400">Ajoute au moins une formation et une compétence.</p>
+        </div>
+
+        {% include 'applicant/_step_indicator.html.twig' with { current_step: 2, total_steps: 4 } only %}
+
+        <div class="mb-8 flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-5 py-4">
+            <svg class="mt-0.5 h-5 w-5 shrink-0 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
+            <p class="text-sm leading-relaxed text-slate-400">Les années d'expérience ne peuvent pas être négatives. Les champs sont regroupés par logique métier.</p>
+        </div>
+
+        {% if profileForm.vars.errors|length > 0 %}
+            <div class="mb-6 rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3.5 text-[15px] font-medium text-red-400 animate-fade-in-down">
+                {{ form_errors(profileForm) }}
+            </div>
+        {% endif %}
+
+        {{ form_start(profileForm, {attr: {class: 'space-y-8', novalidate: 'novalidate', id: 'profile-step2-form'}}) }}
+            
+            <div class="space-y-8">
+                
+                {# --- SECTION SKILLS --- #}
+                <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 sm:p-8">
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold tracking-tight text-white">Compétences techniques & soft skills</h2>
+                        <p class="mt-1 text-[15px] text-slate-400">Langages, frameworks, outils et qualités humaines.</p>
+                    </div>
+                    
+                    <div id="profile-skills-list" class="grid grid-cols-1 gap-4 sm:grid-cols-2" data-collection-list data-empty-text="Aucune compétence ajoutée." data-index="{{ profileForm.profileSkills|length }}" data-prototype="{{ form_widget(profileForm.profileSkills.vars.prototype)|e('html_attr') }}">
+                        {% for item in profileForm.profileSkills %}
+                            <div class="group relative rounded-2xl border border-white/10 bg-slate-800/50 p-5 shadow-sm transition-all duration-300 hover:bg-slate-800/80" data-collection-item>
+                                <button type="button" class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-slate-400 shadow-sm opacity-0 ring-1 ring-white/10 transition-all duration-300 hover:bg-red-500 hover:text-white hover:ring-red-500 group-hover:opacity-100" data-collection-remove title="Supprimer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                                <div class="space-y-2">
+                                    {{ form_widget(item) }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <button type="button" class="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/20 bg-white/5 py-4 text-[15px] font-medium text-slate-400 transition-all duration-300 hover:border-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-500" data-collection-add="#profile-skills-list">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" /></svg>
+                        Ajouter une compétence
+                    </button>
+                    {{ form_errors(profileForm.profileSkills) }}
+                </div>
+
+                {# --- SECTION EXPERIENCES --- #}
+                <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 sm:p-8">
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold tracking-tight text-white">Expériences Professionnelles</h2>
+                        <p class="mt-1 text-[15px] text-slate-400">Détaille tes expériences passées et les technologies utilisées.</p>
+                    </div>
+
+                    <div id="experiences-list" class="space-y-4" data-collection-list data-empty-text="Aucune expérience ajoutée." data-index="{{ profileForm.experiences|length }}" data-prototype="{{ form_widget(profileForm.experiences.vars.prototype)|e('html_attr') }}">
+                        {% for item in profileForm.experiences %}
+                            <div class="group relative rounded-2xl border border-white/10 bg-slate-800/50 p-6 shadow-sm transition-all duration-300 hover:bg-slate-800/80 sm:p-8" data-collection-item>
+                                <button type="button" class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-slate-400 shadow-sm opacity-0 ring-1 ring-white/10 transition-all duration-300 hover:bg-red-500 hover:text-white hover:ring-red-500 group-hover:opacity-100" data-collection-remove title="Supprimer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                                <div>
+                                    {{ form_widget(item) }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="button" class="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/20 bg-white/5 py-4 text-[15px] font-medium text-slate-400 transition-all duration-300 hover:border-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-500" data-collection-add="#experiences-list">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" /></svg>
+                        Ajouter une expérience
+                    </button>
+                    {{ form_errors(profileForm.experiences) }}
+                </div>
+
+                {# --- SECTION EDUCATION --- #}
+                <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 sm:p-8">
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold tracking-tight text-white">Formation & Éducation</h2>
+                        <p class="mt-1 text-[15px] text-slate-400">Indique tes diplômes et certifications.</p>
+                    </div>
+
+                    <div id="education-list" class="space-y-4" data-collection-list data-empty-text="Aucune formation ajoutée." data-index="{{ profileForm.education|length }}" data-prototype="{{ form_widget(profileForm.education.vars.prototype)|e('html_attr') }}">
+                        {% for item in profileForm.education %}
+                            <div class="group relative rounded-2xl border border-white/10 bg-slate-800/50 p-6 shadow-sm transition-all duration-300 hover:bg-slate-800/80 sm:p-8" data-collection-item>
+                                <button type="button" class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-slate-400 shadow-sm opacity-0 ring-1 ring-white/10 transition-all duration-300 hover:bg-red-500 hover:text-white hover:ring-red-500 group-hover:opacity-100" data-collection-remove title="Supprimer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                </button>
+                                <div>
+                                    {{ form_widget(item) }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="button" class="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-white/20 bg-white/5 py-4 text-[15px] font-medium text-slate-400 transition-all duration-300 hover:border-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-500" data-collection-add="#education-list">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="h-5 w-5"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" /></svg>
+                        Ajouter une formation
+                    </button>
+                    {{ form_errors(profileForm.education) }}
+                </div>
+            </div>
+
+            {% do profileForm.profileSkills.setRendered() %}
+            {% do profileForm.experiences.setRendered() %}
+            {% do profileForm.education.setRendered() %}
+
+            {% include 'applicant/_profile_form_actions.html.twig' with {
+                form_id: 'profile-step2-form',
+                dialog_id: 'profile-step2-dialog',
+                next_label: 'Étape suivante'
+            } only %}
+        {{ form_end(profileForm) }}
+    </section>
+
+    {# JAVASCRIPT POUR LES COLLECTIONS #}
+    <script>
+        (() => {
+            const makeItem = (list) => {
+                const index = Number(list.dataset.index || '0');
+                const prototype = (list.dataset.prototype || '').replaceAll('__name__', String(index));
+                list.dataset.index = String(index + 1);
+
+                const empty = list.querySelector('[data-collection-empty]');
+                if (empty) empty.remove();
+
+                const item = document.createElement('div');
+                // Mise à jour des classes Dark Mode pour les éléments générés via JS
+                item.className = 'group relative rounded-2xl border border-white/10 bg-slate-800/50 p-6 shadow-sm transition-all duration-300 hover:bg-slate-800/80 sm:p-8 animate-fade-in-down';
+                item.setAttribute('data-collection-item', '');
+                
+                // Icône de suppression adaptée au Dark Mode
+                const deleteBtn = `<button type="button" class="absolute -right-2 -top-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-slate-400 shadow-sm opacity-0 ring-1 ring-white/10 transition-all duration-300 hover:bg-red-500 hover:text-white hover:ring-red-500 group-hover:opacity-100" data-collection-remove title="Supprimer">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                  </button>`;
+                
+                item.innerHTML = deleteBtn + '<div>' + prototype + '</div>';
+                list.appendChild(item);
+
+                if (window.DevSpotMultiSelect && typeof window.DevSpotMultiSelect.refresh === 'function') {
+                    window.DevSpotMultiSelect.refresh(item);
+                }
+                
+                if (typeof flatpickr !== 'undefined') {
+                    flatpickr(item.querySelectorAll('.js-datepicker'), {
+                        locale: "fr",
+                        dateFormat: "Y-m-d",
+                        altInput: true,
+                        altFormat: "d/m/Y",
+                        allowInput: true,
+                        disableMobile: "true"
+                    });
+                }
+            };
+
+            const ensureEmptyState = (list) => {
+                if (list.querySelector('[data-collection-item]')) {
+                    const empty = list.querySelector('[data-collection-empty]');
+                    if (empty) empty.remove();
+                    return;
+                }
+                if (list.querySelector('[data-collection-empty]')) return;
+                
+                const empty = document.createElement('p');
+                empty.className = 'text-[15px] text-slate-500 italic py-3 text-center';
+                empty.dataset.collectionEmpty = '';
+                empty.textContent = list.dataset.emptyText || 'Aucun élément ajouté.';
+                list.appendChild(empty);
+            };
+
+            document.querySelectorAll('[data-collection-list]').forEach(ensureEmptyState);
+
+            if (window.__profileStep2CollectionClickHandler) {
+                document.removeEventListener('click', window.__profileStep2CollectionClickHandler);
+            }
+
+            window.__profileStep2CollectionClickHandler = (event) => {
+                const addButton = event.target.closest('[data-collection-add]');
+                if (addButton) {
+                    const selector = addButton.getAttribute('data-collection-add');
+                    const list = selector ? document.querySelector(selector) : null;
+                    if (list) makeItem(list);
+                    return;
+                }
+
+                const removeButton = event.target.closest('[data-collection-remove]');
+                if (!removeButton) return;
+                const item = removeButton.closest('[data-collection-item]');
+                const list = item ? item.closest('[data-collection-list]') : null;
+                if (item) {
+                    item.style.opacity = '0';
+                    item.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        item.remove();
+                        if (list) ensureEmptyState(list);
+                    }, 300);
+                }
+            };
+
+            document.addEventListener('click', window.__profileStep2CollectionClickHandler);
+        })();
+
+        // Gestion du toggle "Poste actuel" pour masquer/afficher endDate
+        function initializeExperienceToggle() {
+            const experiences = document.querySelectorAll('[data-collection-item]');
+            
+            experiences.forEach((item) => {
+                const isCurrentToggle = item.querySelector('[data-is-current-toggle]');
+                if (!isCurrentToggle) return;
+                
+                // Chercher le champ endDate en remontant le DOM
+                const endDateInput = item.querySelector('[data-end-date-field]');
+                if (!endDateInput) return;
+                
+                // Trouver le conteneur parent immédiat du champ endDate
+                const endDateContainer = endDateInput.closest('div[class*="mb-"]') || endDateInput.closest('div');
+                if (!endDateContainer) return;
+                
+                const toggleVisibility = () => {
+                    if (isCurrentToggle.checked) {
+                        endDateContainer.style.display = 'none';
+                    } else {
+                        endDateContainer.style.display = '';
+                    }
+                };
+                
+                // Initialiser l'état au chargement
+                toggleVisibility();
+                
+                // Ajouter un listener au checkbox
+                isCurrentToggle.addEventListener('change', toggleVisibility);
+            });
+        }
+
+        // Initialiser au chargement de la page
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeExperienceToggle);
+        } else {
+            initializeExperienceToggle();
+        }
+
+        // Réinitialiser lors de chaque ajout d'expérience
+        document.addEventListener('click', (event) => {
+            if (event.target.closest('[data-collection-add="#experiences-list"]')) {
+                setTimeout(initializeExperienceToggle, 100);
+            }
+        });
+
+        // Réinitialiser au chargement Turbo
+        document.addEventListener('turbo:load', initializeExperienceToggle);
+    </script>
+{% endblock %}
+
+{# --- LAYOUTS DES SOUS-FORMULAIRES --- #}
+
+{% block _developer_profile_experiences_entry_widget %}
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+        {% for child in form %}
+            <div class="{{ child.vars.name in ['description', 'bio'] ? 'md:col-span-2' : '' }}">
+                {{ form_row(child) }}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block _developer_profile_education_entry_widget %}
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+        {% for child in form %}
+            <div class="{{ child.vars.name in ['description', 'bio'] ? 'md:col-span-2' : '' }}">
+                {{ form_row(child) }}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}
+
+{% block _developer_profile_profileSkills_entry_widget %}
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        {% for child in form %}
+            <div class="{{ child.vars.name == 'years' ? 'sm:col-span-1' : '' }}">
+                {{ form_row(child) }}
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{
+  "dataset": "matching-demo-dataset-v4-hard-negatives-bias-audit.json",
+  "split": "all",
+  "methods": {
+    "baseline": {
+      "junior_avg_score": 0.6001,
+      "non_junior_avg_score": 0.6636,
+      "disparate_impact_ratio": 0.9043,
+      "junior_count": 105920,
+      "non_junior_count": 214080,
+      "junior_selection_rate": 0.1031,
+      "non_junior_selection_rate": 0.1498,
+      "selection_rate_ratio": 0.6878,
+      "score_gap": -0.0635,
+      "assessment": "junior_under_selected"
+    },
+    "semantic": {
+      "junior_avg_score": 0.5255,
+      "non_junior_avg_score": 0.5334,
+      "disparate_impact_ratio": 0.9853,
+      "junior_count": 105920,
+      "non_junior_count": 214080,
+      "junior_selection_rate": 0.1123,
+      "non_junior_selection_rate": 0.1077,
+      "selection_rate_ratio": 1.043,
+      "score_gap": -0.0078,
+      "assessment": "balanced_selection_rate"
+    },
+    "enriched_proxy": {
+      "junior_avg_score": 0.5596,
+      "non_junior_avg_score": 0.588,
+      "disparate_impact_ratio": 0.9518,
+      "junior_count": 105920,
+      "non_junior_count": 214080,
+      "junior_selection_rate": 0.1818,
+      "non_junior_selection_rate": 0.2091,
+      "selection_rate_ratio": 0.8693,
+      "score_gap": -0.0283,
+      "assessment": "balanced_selection_rate"
+    },
+    "reranker": {
+      "junior_avg_score": 0.0306,
+      "non_junior_avg_score": 0.0662,
+      "disparate_impact_ratio": 0.4617,
+      "junior_count": 105920,
+      "non_junior_count": 214080,
+      "junior_selection_rate": 0.0184,
+      "non_junior_selection_rate": 0.0218,
+      "selection_rate_ratio": 0.8442,
+      "score_gap": -0.0356,
+      "assessment": "balanced_selection_rate"
+    }
+  }
+}

@@ -1,17 +1,1322 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr" class="scroll-smooth">
     <head>
         <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+        <meta name="turbo-cache-control" content="no-preview">
+        <title>{% block title %}DevSpot{% endblock %}</title>
+        <script>
+            (() => {
+                if (window.DevSpotTheme) {
+                    return;
+                }
+
+                const storageKey = 'devspot-theme';
+                const defaultTheme = 'light';
+                const themeLabels = {
+                    light: 'Mode jour',
+                    dark: 'Mode nuit',
+                };
+
+                const isThemeValue = (value) => value === 'light' || value === 'dark';
+
+                const readStoredTheme = () => {
+                    try {
+                        const storedTheme = window.localStorage.getItem(storageKey);
+
+                        return isThemeValue(storedTheme) ? storedTheme : defaultTheme;
+                    } catch (_error) {
+                        return defaultTheme;
+                    }
+                };
+
+                const getCurrentTheme = () => {
+                    const currentTheme = document.documentElement.dataset.theme;
+
+                    return isThemeValue(currentTheme) ? currentTheme : readStoredTheme();
+                };
+
+                const refreshThemeControls = (theme) => {
+                    document.querySelectorAll('[data-theme-label="true"]').forEach((element) => {
+                        element.textContent = themeLabels[theme] ?? themeLabels[defaultTheme];
+                    });
+
+                    document.querySelectorAll('[data-theme-choice]').forEach((button) => {
+                        const isActive = button.dataset.themeChoice === theme;
+
+                        button.classList.toggle('is-active', isActive);
+                        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+                    });
+
+                };
+
+                const applyTheme = (theme) => {
+                    const resolvedTheme = isThemeValue(theme) ? theme : defaultTheme;
+
+                    document.documentElement.dataset.theme = resolvedTheme;
+                    document.documentElement.style.colorScheme = resolvedTheme;
+
+                    if (document.body) {
+                        document.body.dataset.theme = resolvedTheme;
+                    }
+
+                    refreshThemeControls(resolvedTheme);
+
+                    return resolvedTheme;
+                };
+
+                const setTheme = (theme, {persist = true} = {}) => {
+                    const resolvedTheme = applyTheme(theme);
+
+                    if (persist) {
+                        try {
+                            window.localStorage.setItem(storageKey, resolvedTheme);
+                        } catch (_error) {
+                        }
+                    }
+
+                    return resolvedTheme;
+                };
+
+                const initThemeControls = () => {
+                    applyTheme(getCurrentTheme());
+                };
+
+                document.addEventListener('click', (event) => {
+                    if (!(event.target instanceof Element)) {
+                        return;
+                    }
+
+                    const themeChoiceButton = event.target.closest('[data-theme-choice]');
+                    if (themeChoiceButton) {
+                        event.preventDefault();
+                        const theme = themeChoiceButton.dataset.themeChoice;
+                        if (isThemeValue(theme)) {
+                            setTheme(theme);
+                        }
+
+                        return;
+                    }
+                });
+
+                document.addEventListener('DOMContentLoaded', initThemeControls);
+                document.addEventListener('turbo:load', initThemeControls);
+
+                window.DevSpotTheme = {
+                    applyTheme,
+                    getCurrentTheme,
+                    refreshThemeControls,
+                    setTheme,
+                };
+
+                applyTheme(readStoredTheme());
+            })();
+        </script>
+        
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><rect width=%22128%22 height=%22128%22 rx=%2228%22 fill=%22%23f8fafc%22/><path d=%22M48 36L22 64l26 28%22 stroke=%22%232563eb%22 stroke-width=%229%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 fill=%22none%22/><path d=%22M80 36l26 28-26 28%22 stroke=%22%232563eb%22 stroke-width=%229%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 fill=%22none%22/><line x1=%2270%22 y1=%2228%22 x2=%2258%22 y2=%22100%22 stroke=%22%233b82f6%22 stroke-width=%227%22 stroke-linecap=%22round%22 opacity=%22.6%22/></svg>">
+        
         {% block stylesheets %}
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+            <link rel="stylesheet" href="{{ asset('styles/base-theme.css') }}">
         {% endblock %}
 
         {% block javascripts %}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
+            {% if app.environment != 'test' %}
+                {% block importmap %}{{ importmap('app') }}{% endblock %}
+            {% endif %}
+            <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+            <script src="https://npmcdn.com/flatpickr/dist/l10n/fr.js"></script>
+            <script>
+                const initUiBehaviors = () => {
+                    const notificationStack = document.querySelector('[data-notification-stack="true"]');
+
+                    const buildNotificationElement = (message, type = 'info') => {
+                        const styles = {
+                            success: 'ui-notification-success u-border-success u-bg-success u-text-success',
+                            info: 'ui-notification-info u-border-info u-bg-info u-text-info',
+                            error: 'border-red-500/20 bg-red-500/10 text-red-300',
+                        };
+
+                        const closeStyles = {
+                            success: 'u-text-success-muted',
+                            info: 'u-text-info-muted',
+                            error: 'text-red-200/90 hover:text-red-100',
+                        };
+
+                        const element = document.createElement('div');
+                        const styleKey = styles[type] ? type : 'info';
+                        element.setAttribute('data-notification-autodismiss', 'true');
+                        element.setAttribute('data-notification-duration', '4000');
+                        element.className = `pointer-events-auto rounded-2xl border px-5 py-3.5 text-[15px] font-medium shadow-xl backdrop-blur-md transition-all duration-300 ease-out ${styles[styleKey]}`;
+                        element.innerHTML = `
+                            <div class="flex items-start justify-between gap-4">
+                                <p class="leading-relaxed"></p>
+                                <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 transition ${closeStyles[styleKey]}">×</button>
+                            </div>
+                        `;
+                        element.querySelector('p').textContent = message;
+
+                        return element;
+                    };
+
+                    const pushNotification = (message, type = 'info') => {
+                        if (!notificationStack) {
+                            return;
+                        }
+
+                        notificationStack.prepend(buildNotificationElement(message, type));
+                        initUiBehaviors();
+                    };
+
+                    flatpickr(".js-datepicker", {
+                        locale: "fr",
+                        dateFormat: "Y-m-d",
+                        altInput: true,
+                        altFormat: "d/m/Y",
+                        allowInput: true,
+                        disableMobile: "true",
+                    });
+
+                    const flashElements = document.querySelectorAll('[data-notification-autodismiss="true"]');
+
+                    flashElements.forEach((flashElement) => {
+                        if (flashElement.dataset.notificationInitialized === 'true') {
+                            return;
+                        }
+                        flashElement.dataset.notificationInitialized = 'true';
+
+                        let dismissed = false;
+                        const duration = Number.parseInt(flashElement.dataset.notificationDuration ?? '4000', 10);
+
+                        const dismiss = () => {
+                            if (dismissed) {
+                                return;
+                            }
+
+                            dismissed = true;
+                            flashElement.style.pointerEvents = 'none';
+                            flashElement.style.overflow = 'hidden';
+
+                            const computedStyle = window.getComputedStyle(flashElement);
+                            const currentHeight = flashElement.offsetHeight;
+
+                            flashElement.style.maxHeight = `${currentHeight}px`;
+                            flashElement.style.marginTop = computedStyle.marginTop;
+                            flashElement.style.marginBottom = computedStyle.marginBottom;
+                            flashElement.style.paddingTop = computedStyle.paddingTop;
+                            flashElement.style.paddingBottom = computedStyle.paddingBottom;
+                            flashElement.style.borderTopWidth = computedStyle.borderTopWidth;
+                            flashElement.style.borderBottomWidth = computedStyle.borderBottomWidth;
+                            flashElement.style.transition = 'max-height 420ms cubic-bezier(0.16, 1, 0.3, 1), margin 420ms cubic-bezier(0.16, 1, 0.3, 1), padding 420ms cubic-bezier(0.16, 1, 0.3, 1), border-width 420ms cubic-bezier(0.16, 1, 0.3, 1), opacity 300ms ease, transform 300ms ease';
+
+                            requestAnimationFrame(() => {
+                                requestAnimationFrame(() => {
+                                    flashElement.style.opacity = '0';
+                                    flashElement.style.transform = 'translateY(6px)';
+                                    flashElement.style.maxHeight = '0px';
+                                    flashElement.style.marginTop = '0px';
+                                    flashElement.style.marginBottom = '0px';
+                                    flashElement.style.paddingTop = '0px';
+                                    flashElement.style.paddingBottom = '0px';
+                                    flashElement.style.borderTopWidth = '0px';
+                                    flashElement.style.borderBottomWidth = '0px';
+                                });
+                            });
+
+                            flashElement.setAttribute('aria-hidden', 'true');
+                        };
+
+                        const closeButton = flashElement.querySelector('[data-notification-close="true"]');
+                        if (closeButton) {
+                            closeButton.addEventListener('click', dismiss);
+                        }
+
+                        window.setTimeout(dismiss, Number.isNaN(duration) ? 4000 : duration);
+                    });
+
+                    const outlinedHeartIcon = `
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-.32-.17C9.24 18.8 3 15.37 3 9.75A4.5 4.5 0 0 1 7.5 5.25c1.74 0 3.16.81 4.5 2.09 1.34-1.28 2.76-2.09 4.5-2.09A4.5 4.5 0 0 1 21 9.75c0 5.62-6.24 9.05-8.68 10.33L12 20.25Z" />
+                        </svg>
+                    `.trim();
+
+                    const filledHeartIcon = `
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+                            <path d="M11.645 20.91a.75.75 0 0 0 .71 0c1.055-.518 9.145-4.707 9.145-11.41A5.25 5.25 0 0 0 12 6.084 5.25 5.25 0 0 0 2.5 9.5c0 6.703 8.09 10.892 9.145 11.41Z" />
+                        </svg>
+                    `.trim();
+
+                    const selectorEscape = (value) => {
+                        if (window.CSS && typeof window.CSS.escape === 'function') {
+                            return window.CSS.escape(String(value));
+                        }
+
+                        return String(value);
+                    };
+
+                    const getFavoriteForms = (profileId) => document.querySelectorAll(
+                        `[data-favorite-toggle="true"][data-favorite-profile-id="${selectorEscape(profileId)}"]`
+                    );
+
+                    const setFavoriteFormLoading = (formElement, isLoading) => {
+                        const button = formElement.querySelector('[data-favorite-button="true"]');
+                        if (!button) {
+                            return;
+                        }
+
+                        if (isLoading) {
+                            button.setAttribute('disabled', 'disabled');
+                            button.classList.add('opacity-70', 'cursor-not-allowed');
+                            return;
+                        }
+
+                        button.removeAttribute('disabled');
+                        button.classList.remove('opacity-70', 'cursor-not-allowed');
+                    };
+
+                    const updateFavoriteButtonState = (formElement, isFavorite) => {
+                        const button = formElement.querySelector('[data-favorite-button="true"]');
+                        const tokenInput = formElement.querySelector('[data-favorite-token="true"]');
+
+                        if (!button || !tokenInput) {
+                            return;
+                        }
+
+                        const content = formElement.querySelector('[data-favorite-content="true"]');
+
+                        const label = isFavorite
+                            ? (formElement.dataset.favoriteRemoveLabel ?? 'Retirer des favoris')
+                            : (formElement.dataset.favoriteAddLabel ?? 'Ajouter aux favoris');
+
+                        formElement.action = isFavorite
+                            ? (formElement.dataset.favoriteRemoveUrl ?? formElement.action)
+                            : (formElement.dataset.favoriteAddUrl ?? formElement.action);
+                        tokenInput.value = isFavorite
+                            ? (formElement.dataset.favoriteRemoveToken ?? tokenInput.value)
+                            : (formElement.dataset.favoriteAddToken ?? tokenInput.value);
+                        button.dataset.favoriteAction = isFavorite ? 'remove' : 'add';
+                        button.className = isFavorite
+                            ? (formElement.dataset.favoriteRemoveButtonClass ?? button.className)
+                            : (formElement.dataset.favoriteAddButtonClass ?? button.className);
+                        button.setAttribute('aria-label', label);
+                        button.setAttribute('title', label);
+
+                        if (formElement.dataset.favoriteIconOnly === '1') {
+                            button.innerHTML = isFavorite ? filledHeartIcon : outlinedHeartIcon;
+                        } else {
+                            if (content) {
+                                content.textContent = label;
+                            } else {
+                                button.textContent = label;
+                            }
+                        }
+                    };
+
+                    const updateFavoriteCount = (favoriteCount) => {
+                        if (!Number.isFinite(favoriteCount)) {
+                            return;
+                        }
+
+                        document.querySelectorAll('[data-favorite-count-value="true"]').forEach((element) => {
+                            element.textContent = String(favoriteCount);
+                        });
+                    };
+
+                    const refreshFavoriteListState = () => {
+                        const list = document.querySelector('[data-favorite-list="true"]');
+                        if (!list) {
+                            return;
+                        }
+
+                        const emptyState = list.querySelector('[data-favorite-empty-state="true"]');
+                        if (!emptyState) {
+                            return;
+                        }
+
+                        const hasEntries = list.querySelectorAll('[data-favorite-entry="true"]').length > 0;
+                        emptyState.classList.toggle('hidden', hasEntries);
+                    };
+
+                    const syncFavoriteForms = (profileId, isFavorite) => {
+                        getFavoriteForms(profileId).forEach((formElement) => {
+                            if (!isFavorite && formElement.dataset.favoriteRemoveCardOnRemove === '1') {
+                                const entry = formElement.closest('[data-favorite-entry="true"]');
+                                if (entry) {
+                                    entry.remove();
+                                    return;
+                                }
+                            }
+
+                            updateFavoriteButtonState(formElement, isFavorite);
+                        });
+
+                        refreshFavoriteListState();
+                    };
+
+                    const favoriteForms = document.querySelectorAll('[data-favorite-toggle="true"]');
+
+                    favoriteForms.forEach((formElement) => {
+                        if (formElement.dataset.favoriteInitialized === 'true') {
+                            return;
+                        }
+                        formElement.dataset.favoriteInitialized = 'true';
+
+                        const initialIsFavorite = formElement.querySelector('[data-favorite-button="true"]')?.dataset.favoriteAction === 'remove';
+                        updateFavoriteButtonState(formElement, initialIsFavorite);
+
+                        formElement.addEventListener('submit', async (event) => {
+                            event.preventDefault();
+
+                            const profileId = formElement.dataset.favoriteProfileId;
+                            if (!profileId) {
+                                formElement.submit();
+                                return;
+                            }
+
+                            const relatedForms = Array.from(getFavoriteForms(profileId));
+                            relatedForms.forEach((relatedForm) => setFavoriteFormLoading(relatedForm, true));
+
+                            try {
+                                const response = await fetch(formElement.action, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json',
+                                    },
+                                    body: new FormData(formElement),
+                                    credentials: 'same-origin',
+                                });
+
+                                const payload = await response.json().catch(() => ({}));
+
+                                if (!response.ok || !payload.success) {
+                                    pushNotification(payload?.message ?? 'Action impossible, merci de réessayer.', payload?.type ?? 'error');
+                                    return;
+                                }
+
+                                syncFavoriteForms(profileId, payload.isFavorite === true);
+
+                                const favoriteCount = Number.parseInt(String(payload.favoriteCount ?? ''), 10);
+                                if (!Number.isNaN(favoriteCount)) {
+                                    updateFavoriteCount(favoriteCount);
+                                }
+
+                                pushNotification(payload.message ?? 'Favoris mis à jour.', payload.type ?? 'success');
+                            } catch (_error) {
+                                pushNotification('Erreur réseau, merci de réessayer.', 'error');
+                            } finally {
+                                relatedForms.forEach((relatedForm) => setFavoriteFormLoading(relatedForm, false));
+                            }
+                        });
+                    });
+
+                    const visibilityForms = document.querySelectorAll('[data-visibility-toggle="true"]');
+
+                    visibilityForms.forEach((formElement) => {
+                        if (formElement.dataset.visibilityInitialized === 'true') {
+                            return;
+                        }
+                        formElement.dataset.visibilityInitialized = 'true';
+
+                        formElement.addEventListener('submit', async (event) => {
+                            event.preventDefault();
+
+                            const submitButton = formElement.querySelector('[data-visibility-button="true"]');
+                            const hiddenVisibilityInput = formElement.querySelector('[data-visibility-value="true"]');
+                            const badge = formElement.parentElement?.querySelector('[data-visibility-badge="true"]');
+
+                            if (!submitButton || !hiddenVisibilityInput || !badge) {
+                                formElement.submit();
+                                return;
+                            }
+
+                            submitButton.setAttribute('disabled', 'disabled');
+                            submitButton.classList.add('opacity-70', 'cursor-not-allowed');
+
+                            try {
+                                const response = await fetch(formElement.action, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json',
+                                    },
+                                    body: new FormData(formElement),
+                                    credentials: 'same-origin',
+                                });
+
+                                const payload = await response.json();
+
+                                if (!response.ok || !payload.success) {
+                                    const errorMessage = payload?.message ?? 'Action impossible, merci de réessayer.';
+                                    if (notificationStack) {
+                                        notificationStack.prepend(buildNotificationElement(errorMessage, payload?.type ?? 'error'));
+                                        initUiBehaviors();
+                                    }
+                                    return;
+                                }
+
+                                const isPublic = payload.isPublic === true;
+                                badge.textContent = isPublic ? 'Public' : 'Privé';
+                                badge.classList.remove('u-border-pale-green', 'u-bg-pale-green', 'u-text-pale-green', 'u-border-pale-red', 'u-bg-pale-red', 'u-text-pale-red');
+                                if (isPublic) {
+                                    badge.classList.add('u-border-pale-green', 'u-bg-pale-green', 'u-text-pale-green');
+                                } else {
+                                    badge.classList.add('u-border-pale-red', 'u-bg-pale-red', 'u-text-pale-red');
+                                }
+
+                                hiddenVisibilityInput.value = isPublic ? '0' : '1';
+                                submitButton.textContent = isPublic ? 'Passer en privé' : 'Passer en public';
+
+                                if (notificationStack) {
+                                    notificationStack.prepend(buildNotificationElement(payload.message ?? 'Visibilité mise à jour.', payload.type ?? 'success'));
+                                    initUiBehaviors();
+                                }
+                            } catch (_error) {
+                                if (notificationStack) {
+                                    notificationStack.prepend(buildNotificationElement('Erreur réseau, merci de réessayer.', 'error'));
+                                    initUiBehaviors();
+                                }
+                            } finally {
+                                submitButton.removeAttribute('disabled');
+                                submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
+                            }
+                        });
+                    });
+
+                    const cardLinks = document.querySelectorAll('[data-card-clickable="true"][data-card-href]');
+
+                    cardLinks.forEach((cardElement) => {
+                        if (cardElement.dataset.cardLinkInitialized === 'true') {
+                            return;
+                        }
+                        cardElement.dataset.cardLinkInitialized = 'true';
+
+                        const goToCardHref = () => {
+                            const targetHref = cardElement.dataset.cardHref;
+                            if (!targetHref) {
+                                return;
+                            }
+                            window.location.href = targetHref;
+                        };
+
+                        cardElement.addEventListener('click', (event) => {
+                            const eventTarget = event.target;
+                            if (eventTarget instanceof Element && eventTarget.closest('a, button, input, textarea, select, label, form, [data-card-ignore="true"]')) {
+                                return;
+                            }
+                            goToCardHref();
+                        });
+
+                        cardElement.addEventListener('keydown', (event) => {
+                            if (event.key !== 'Enter' && event.key !== ' ') {
+                                return;
+                            }
+                            event.preventDefault();
+                            goToCardHref();
+                        });
+                    });
+
+                    const profileMenus = document.querySelectorAll('[data-profile-menu="true"]');
+
+                    profileMenus.forEach((menuElement) => {
+                        if (menuElement.dataset.profileMenuInitialized === 'true') {
+                            return;
+                        }
+                        menuElement.dataset.profileMenuInitialized = 'true';
+
+                        let closeTimeoutId;
+                        const closeDelayMs = 220;
+
+                        const openMenu = () => {
+                            window.clearTimeout(closeTimeoutId);
+                            menuElement.setAttribute('open', 'open');
+                        };
+
+                        const closeMenu = () => {
+                            window.clearTimeout(closeTimeoutId);
+                            menuElement.removeAttribute('open');
+                        };
+
+                        const scheduleCloseMenu = (delay = closeDelayMs) => {
+                            window.clearTimeout(closeTimeoutId);
+                            closeTimeoutId = window.setTimeout(closeMenu, delay);
+                        };
+
+                        menuElement.addEventListener('mouseenter', openMenu);
+                        menuElement.addEventListener('mouseleave', () => scheduleCloseMenu());
+
+                        menuElement.addEventListener('focusin', openMenu);
+                        menuElement.addEventListener('focusout', (event) => {
+                            const nextFocusedElement = event.relatedTarget;
+
+                            if (nextFocusedElement instanceof Node && menuElement.contains(nextFocusedElement)) {
+                                return;
+                            }
+
+                            scheduleCloseMenu(0);
+                        });
+                    });
+                };
+
+                document.addEventListener('DOMContentLoaded', initUiBehaviors);
+                document.addEventListener('turbo:load', initUiBehaviors);
+            </script>
+            <script>
+                (() => {
+                    if (window.DevSpotMultiSelect) {
+                        return;
+                    }
+
+                    const accentThemes = {
+                        emerald: {
+                            control: ['focus-within:border-emerald-500/45', 'focus-within:bg-white/10', 'focus-within:ring-4', 'focus-within:ring-emerald-500/20'],
+                            searchShell: ['focus-within:border-emerald-400/35'],
+                            count: ['u-border-success', 'u-bg-success', 'u-text-success'],
+                            chip: ['u-border-success', 'u-bg-success', 'u-text-success'],
+                            selectedOption: ['border-emerald-400/35', 'bg-emerald-500/15', 'shadow-lg', 'shadow-emerald-950/20'],
+                            indicator: ['u-border-success', 'u-bg-success', 'u-text-success'],
+                            searchIcon: 'u-text-success',
+                            badge: 'u-border-success u-bg-success u-text-success',
+                        },
+                        blue: {
+                            control: ['focus-within:border-blue-500/45', 'focus-within:bg-white/10', 'focus-within:ring-4', 'focus-within:ring-blue-500/20'],
+                            searchShell: ['focus-within:border-blue-400/35'],
+                            count: ['u-border-info', 'u-bg-info', 'u-text-info'],
+                            chip: ['u-border-info', 'u-bg-info', 'u-text-info'],
+                            selectedOption: ['border-blue-400/35', 'bg-blue-500/15', 'shadow-lg', 'shadow-blue-950/20'],
+                            indicator: ['u-border-info', 'u-bg-info', 'u-text-info'],
+                            searchIcon: 'u-text-info',
+                            badge: 'u-border-info u-bg-info u-text-info',
+                        },
+                    };
+
+                    const badgeThemes = {
+                        admin: 'u-border-pale-red u-bg-pale-red u-text-pale-red',
+                        recruiter: 'u-border-pale-purple u-bg-pale-purple u-text-pale-purple',
+                        applicant: 'u-border-pale-pink u-bg-pale-pink u-text-pale-pink',
+                        rose: 'u-border-pale-red u-bg-pale-red u-text-pale-red',
+                        violet: 'u-border-pale-purple u-bg-pale-purple u-text-pale-purple',
+                        blue: 'u-border-info u-bg-info u-text-info',
+                        emerald: 'u-border-success u-bg-success u-text-success',
+                    };
+
+                    const escapeHtml = (value) => String(value)
+                        .replaceAll('&', '&amp;')
+                        .replaceAll('<', '&lt;')
+                        .replaceAll('>', '&gt;')
+                        .replaceAll('"', '&quot;')
+                        .replaceAll("'", '&#039;');
+
+                    const resolveRoots = (scope) => {
+                        if (!(scope instanceof Document) && !(scope instanceof Element)) {
+                            return [];
+                        }
+
+                        const roots = [];
+                        if (scope instanceof Element && scope.matches('[data-ui-multiselect="true"]')) {
+                            roots.push(scope);
+                        }
+
+                        roots.push(...scope.querySelectorAll('[data-ui-multiselect="true"]'));
+
+                        return roots;
+                    };
+
+                    const resolveTheme = (accent) => accentThemes[accent] ?? accentThemes.emerald;
+
+                    const resolveBadgeTheme = (tone, theme) => badgeThemes[tone] ?? theme.badge;
+
+                    const formatSelectedCount = (select, count) => {
+                        const singular = select.dataset.multiselectSelectedSingular || 'élément';
+                        const plural = select.dataset.multiselectSelectedPlural || 'éléments';
+
+                        return `${count} ${count === 1 ? singular : plural}`;
+                    };
+
+                    const dispatchChange = (select) => {
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                    };
+
+                    const init = (scope = document) => {
+                        resolveRoots(scope).forEach((root) => {
+                            if (root.dataset.multiselectInitialized === 'true') {
+                                return;
+                            }
+
+                            const nativeWrapper = root.querySelector('[data-ui-multiselect-native="true"]');
+                            const enhancedWrapper = root.querySelector('[data-ui-multiselect-enhanced="true"]');
+                            const select = nativeWrapper?.querySelector('select[multiple]');
+                            const control = root.querySelector('[data-ui-multiselect-control="true"]');
+                            const tagsContainer = root.querySelector('[data-ui-multiselect-tags="true"]');
+                            const searchShell = root.querySelector('[data-ui-multiselect-search-shell="true"]');
+                            const searchIcon = root.querySelector('[data-ui-multiselect-search-icon="true"]');
+                            const searchInput = root.querySelector('[data-ui-multiselect-search="true"]');
+                            const countBadge = root.querySelector('[data-ui-multiselect-count="true"]');
+                            const optionsContainer = root.querySelector('[data-ui-multiselect-options="true"]');
+                            const emptyState = root.querySelector('[data-ui-multiselect-empty-state="true"]');
+                            const placeholderElement = root.querySelector('[data-ui-multiselect-selection-placeholder="true"]');
+
+                            if (!nativeWrapper || !enhancedWrapper || !select || !control || !tagsContainer || !searchShell || !searchInput || !countBadge || !optionsContainer || !emptyState || !placeholderElement) {
+                                return;
+                            }
+
+                            root.dataset.multiselectInitialized = 'true';
+
+                            const theme = resolveTheme(select.dataset.multiselectAccent);
+                            const selectableOptions = Array.from(select.options).filter((option) => !option.disabled && option.value !== '');
+                            const selectionPlaceholder = placeholderElement.textContent?.trim() || select.dataset.multiselectSelectionPlaceholder || 'Sélectionner une ou plusieurs options';
+                            const hideEmptySelection = select.dataset.multiselectHideEmptySelection === 'true';
+
+                            control.classList.add(...theme.control);
+                            searchShell.classList.add(...theme.searchShell);
+                            countBadge.classList.add(...theme.count);
+                            if (searchIcon) {
+                                searchIcon.classList.add(theme.searchIcon);
+                            }
+
+                            const renderTags = () => {
+                                const selectedOptions = selectableOptions.filter((option) => option.selected);
+                                tagsContainer.innerHTML = '';
+
+                                if (selectedOptions.length === 0) {
+                                    if (hideEmptySelection) {
+                                        tagsContainer.classList.add('hidden');
+                                        searchShell.classList.remove('mt-3');
+
+                                        return;
+                                    }
+
+                                    tagsContainer.classList.remove('hidden');
+                                    searchShell.classList.add('mt-3');
+
+                                    const placeholder = document.createElement('span');
+                                    placeholder.className = 'py-1 text-sm text-slate-500';
+                                    placeholder.textContent = selectionPlaceholder;
+                                    tagsContainer.appendChild(placeholder);
+
+                                    return;
+                                }
+
+                                tagsContainer.classList.remove('hidden');
+                                searchShell.classList.add('mt-3');
+
+                                selectedOptions.forEach((option) => {
+                                    const label = option.dataset.optionTagLabel || option.dataset.optionTitle || option.textContent?.trim() || 'Option';
+                                    const tag = document.createElement('button');
+                                    tag.type = 'button';
+                                    tag.className = `inline-flex max-w-full items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition ${theme.chip.join(' ')}`;
+                                    tag.innerHTML = `
+                                        <span class="truncate max-w-[15rem]">${escapeHtml(label)}</span>
+                                        <span aria-hidden="true" class="text-base leading-none opacity-70">×</span>
+                                    `;
+                                    tag.setAttribute('aria-label', `Retirer ${label}`);
+                                    tag.addEventListener('click', () => {
+                                        option.selected = false;
+                                        render();
+                                        dispatchChange(select);
+                                        searchInput.focus();
+                                    });
+                                    tagsContainer.appendChild(tag);
+                                });
+                            };
+
+                            const renderOptions = () => {
+                                const query = searchInput.value.trim().toLowerCase();
+                                optionsContainer.innerHTML = '';
+
+                                let visibleCount = 0;
+
+                                selectableOptions.forEach((option) => {
+                                    const title = option.dataset.optionTitle || option.textContent?.trim() || 'Option';
+                                    const description = option.dataset.optionDescription || '';
+                                    const badge = option.dataset.optionBadge || '';
+                                    const badgeTone = option.dataset.optionBadgeTone || '';
+                                    const searchText = [
+                                        option.dataset.optionSearch || '',
+                                        option.textContent || '',
+                                        title,
+                                        description,
+                                        badge,
+                                    ].join(' ').toLowerCase();
+
+                                    if (query && !searchText.includes(query)) {
+                                        return;
+                                    }
+
+                                    visibleCount += 1;
+
+                                    const optionButton = document.createElement('button');
+                                    optionButton.type = 'button';
+                                    optionButton.className = [
+                                        'w-full',
+                                        'rounded-[1.25rem]',
+                                        'border',
+                                        'px-3.5',
+                                        'py-3',
+                                        'text-left',
+                                        'transition-all',
+                                        'duration-200',
+                                        option.selected
+                                            ? ['text-white', ...theme.selectedOption].join(' ')
+                                            : 'border-white/5 bg-transparent text-slate-200 hover:border-white/10 hover:bg-white/5',
+                                    ].join(' ');
+                                    optionButton.setAttribute('aria-pressed', option.selected ? 'true' : 'false');
+
+                                    const indicator = option.selected ? '✓' : '+';
+                                    const badgeMarkup = badge !== ''
+                                        ? `<span class="inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${resolveBadgeTheme(badgeTone, theme)}">${escapeHtml(badge)}</span>`
+                                        : '';
+                                    const descriptionMarkup = description !== ''
+                                        ? `<span class="mt-1 block text-xs text-slate-400">${escapeHtml(description)}</span>`
+                                        : '';
+
+                                    optionButton.innerHTML = `
+                                        <span class="flex items-start justify-between gap-3">
+                                            <span class="min-w-0">
+                                                <span class="block truncate text-sm font-semibold">${escapeHtml(title)}</span>
+                                                ${descriptionMarkup}
+                                            </span>
+                                            <span class="flex shrink-0 items-center gap-2">
+                                                ${badgeMarkup}
+                                                <span class="inline-flex h-7 w-7 items-center justify-center rounded-full border text-sm font-semibold ${theme.indicator.join(' ')}">${indicator}</span>
+                                            </span>
+                                        </span>
+                                    `;
+
+                                    optionButton.addEventListener('click', () => {
+                                        option.selected = !option.selected;
+                                        render();
+                                        dispatchChange(select);
+                                        searchInput.focus();
+                                    });
+
+                                    optionsContainer.appendChild(optionButton);
+                                });
+
+                                emptyState.classList.toggle('hidden', visibleCount > 0);
+                            };
+
+                            const render = () => {
+                                countBadge.textContent = formatSelectedCount(select, selectableOptions.filter((option) => option.selected).length);
+                                renderTags();
+                                renderOptions();
+                            };
+
+                            searchInput.setAttribute('aria-label', select.labels?.[0]?.textContent?.trim() || select.name || 'Recherche');
+                            searchInput.addEventListener('input', renderOptions);
+                            searchInput.addEventListener('keydown', (event) => {
+                                if (event.key !== 'Backspace' || searchInput.value !== '') {
+                                    return;
+                                }
+
+                                const lastSelectedOption = [...selectableOptions].reverse().find((option) => option.selected);
+                                if (!lastSelectedOption) {
+                                    return;
+                                }
+
+                                lastSelectedOption.selected = false;
+                                render();
+                                dispatchChange(select);
+                                event.preventDefault();
+                            });
+
+                            select.addEventListener('change', render);
+
+                            nativeWrapper.classList.add('hidden');
+                            enhancedWrapper.classList.remove('hidden');
+                            render();
+                        });
+                    };
+
+                    let observerStarted = false;
+
+                    const startObserver = () => {
+                        if (observerStarted || !document.body) {
+                            return;
+                        }
+
+                        observerStarted = true;
+
+                        const observer = new MutationObserver((mutations) => {
+                            mutations.forEach((mutation) => {
+                                mutation.addedNodes.forEach((node) => {
+                                    if (node instanceof Element) {
+                                        init(node);
+                                    }
+                                });
+                            });
+                        });
+
+                        observer.observe(document.body, {
+                            childList: true,
+                            subtree: true,
+                        });
+                    };
+
+                    document.addEventListener('DOMContentLoaded', () => {
+                        init();
+                        startObserver();
+                    });
+                    document.addEventListener('turbo:load', () => {
+                        init();
+                        startObserver();
+                    });
+
+                    window.DevSpotMultiSelect = {
+                        init,
+                        refresh: init,
+                    };
+                })();
+            </script>
         {% endblock %}
     </head>
-    <body>
-        {% block body %}{% endblock %}
+    
+    {# Theme global blanc/bleu #}
+    <body
+        class="indeed-theme min-h-screen font-sans antialiased selection:bg-blue-600 selection:text-white"
+        {% if app.user and mercureTopics is defined and mercureTopics is not empty %}
+            data-global-mercure-url="{{ mercure(mercureTopics, (mercureNeedsCredentials|default(false)) ? {subscribe: mercureTopics} : {}) }}"
+            data-global-mercure-credentials="{{ (mercureNeedsCredentials|default(false)) ? 'true' : 'false' }}"
+        {% endif %}
+    >
+        <div class="site-page-shell relative min-h-screen overflow-hidden">
+            
+            {# Les blobs avec la classe apple-fade (Opacité et taille augmentées pour bien ressortir) #}
+            <div class="site-background-blob site-background-blob-1 apple-fade pointer-events-none absolute -top-32 -left-20 h-[500px] w-[500px]"></div>
+            <div class="site-background-blob site-background-blob-2 apple-fade pointer-events-none absolute -right-32 top-1/4 h-[500px] w-[500px]" style="animation-delay: 0.2s;"></div>
+            <div class="site-background-blob site-background-blob-3 apple-fade pointer-events-none absolute bottom-0 left-1/4 h-[600px] w-[600px]" style="animation-delay: 0.4s;"></div>
+
+            {% set currentRoute = app.request.attributes.get('_route')|default('') %}
+            {% set dashboardPath = null %}
+            {% set messagesPath = null %}
+            {% set chatUnreadCount = 0 %}
+            {% set unreadNotificationsCount = 0 %}
+            {% set profilePath = path('app_home') %}
+            {% if app.user %}
+                {% set unreadNotificationsCount = unread_notifications_count(app.user) %}
+                {% if is_granted('ROLE_ADMIN') %}
+                    {% set dashboardPath = path('app_admin_dashboard_alias') %}
+                    {% set profilePath = path('app_admin_dashboard_alias') %}
+                {% elseif is_granted('ROLE_APPLICANT') %}
+                    {% set dashboardPath = path('app_applicant_dashboard') %}
+                    {% set profilePath = path('app_applicant_home') %}
+                    {% set messagesPath = path('app_applicant_messages') %}
+                    {% set chatUnreadCount = chat_unread_count(app.user) %}
+                {% elseif is_granted('ROLE_RECRUITER') %}
+                    {% set dashboardPath = path('app_recruiter_dashboard') %}
+                    {% set profilePath = path('app_recruiter_home') %}
+                    {% set messagesPath = path('app_recruiter_messages') %}
+                    {% set chatUnreadCount = chat_unread_count(app.user) %}
+                {% endif %}
+            {% endif %}
+            {% set isHomeRoute = currentRoute == 'app_home' %}
+            {% set isDashboardRoute = currentRoute in ['app_admin_dashboard', 'app_admin_dashboard_alias', 'app_applicant_home', 'app_applicant_dashboard', 'app_recruiter_home', 'app_recruiter_dashboard', 'app_dashboard'] %}
+            {% set isNotificationsRoute = currentRoute starts with 'app_notifications' %}
+            {% set isFavoritesRoute = currentRoute == 'app_recruiter_favorites' or currentRoute starts with 'app_recruiter_favorite_' %}
+            {% set isRecruiterOffersRoute = currentRoute == 'app_recruiter_offers' or currentRoute starts with 'app_recruiter_offer_' %}
+            {% set isAdminWideRoute = currentRoute in ['app_admin_profiles', 'app_admin_companies', 'app_admin_users', 'app_admin_messages', 'app_admin_support_requests', 'app_admin_user_messages_compose'] %}
+            {% set isMessagesRoute = currentRoute in ['app_applicant_messages', 'app_applicant_message_show', 'app_recruiter_messages', 'app_recruiter_message_show'] %}
+            {% set isHelpRoute = currentRoute == 'app_help' %}
+            {% set isFaqRoute = currentRoute == 'app_faq' %}
+            {% set helpPath = path('app_help') %}
+            {% set faqPath = path('app_faq') %}
+
+            {# HEADER stable (sans animation) #}
+            <header class="relative z-[70]">
+                <div class="mx-auto w-full max-w-[84rem] px-3 pt-3 sm:px-4 lg:px-5">
+                    <nav class="site-header-shell {{ isFavoritesRoute ? 'site-header-shell-favorites' : '' }} rounded-[2rem] px-3.5 py-1.5 sm:px-4.5 sm:py-2">
+                        <div class="site-header-layout">
+                        <div class="site-header-left">
+                            <a href="{{ path('app_home') }}" class="site-header-brand" aria-label="Aller à l'accueil de DevSpot">
+                                <span class="site-header-brand-mark">
+                                    <svg class="h-5 w-5" viewBox="0 0 128 128" fill="none" aria-hidden="true">
+                                        <path d="M48 36L22 64l26 28" stroke="#2557d6" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M80 36l26 28-26 28" stroke="#2557d6" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <line x1="70" y1="28" x2="58" y2="100" stroke="#4f83ff" stroke-width="9" stroke-linecap="round" opacity=".6"/>
+                                    </svg>
+                                </span>
+                            </a>
+
+                            <div class="site-header-nav site-header-nav-desktop" aria-label="Navigation principale">
+                                {% if dashboardPath %}
+                                    <a href="{{ dashboardPath }}" class="site-header-link {{ isDashboardRoute ? 'site-header-link-active' : '' }}" {% if isDashboardRoute %}aria-current="page"{% endif %}>
+                                        Dashboard
+                                    </a>
+                                {% endif %}
+                                {% if app.user and not is_granted('ROLE_ADMIN') and (is_granted('ROLE_RECRUITER') or is_granted('ROLE_APPLICANT')) %}
+                                    <a href="{{ helpPath }}" class="site-header-link {{ isHelpRoute ? 'site-header-link-active' : '' }}" {% if isHelpRoute %}aria-current="page"{% endif %}>
+                                        Aide
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="site-header-actions site-header-actions-desktop">
+                        {% if app.user %}
+                            {% set profilePath = path('app_home') %}
+                            {% set accountRoleLabel = 'Utilisateur' %}
+                            {% if is_granted('ROLE_ADMIN') %}
+                                {% set profilePath = path('app_admin_dashboard_alias') %}
+                                {% set accountRoleLabel = 'Administrateur' %}
+                            {% elseif is_granted('ROLE_RECRUITER') %}
+                                {% set profilePath = path('app_recruiter_home') %}
+                                {% set accountRoleLabel = 'Recruteur' %}
+                            {% elseif is_granted('ROLE_APPLICANT') %}
+                                {% set profilePath = path('app_applicant_home') %}
+                                {% set accountRoleLabel = 'Candidat' %}
+                            {% endif %}
+
+                            <a href="{{ path('app_notifications_index') }}" class="site-header-icon-button {{ isNotificationsRoute ? 'site-header-icon-button-active' : '' }}" aria-label="Accéder aux notifications">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.86 17.082a2 2 0 1 1-3.72 0M4.5 17.25h15a1.5 1.5 0 0 0 1.177-2.427l-1.53-1.92A5.98 5.98 0 0 1 18 9.166V8a6 6 0 1 0-12 0v1.166c0 1.352-.455 2.665-1.292 3.737l-1.53 1.92A1.5 1.5 0 0 0 4.5 17.25Z" />
+                                </svg>
+                                {% if unreadNotificationsCount > 0 %}
+                                    <span data-notification-unread-badge="true" class="header-count-badge header-count-badge-notification absolute -right-1.5 -top-1.5">{{ unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount }}</span>
+                                {% endif %}
+                            </a>
+
+                            {% if not is_granted('ROLE_ADMIN') %}
+                                {% if is_granted('ROLE_RECRUITER') %}
+                                    <a href="{{ path('app_recruiter_favorites') }}" class="site-header-icon-button {{ isFavoritesRoute ? 'site-header-icon-button-active' : '' }}" aria-label="Accéder aux favoris">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m12 20.25-.32-.17C9.24 18.8 3 15.37 3 9.75A4.5 4.5 0 0 1 7.5 5.25c1.74 0 3.16.81 4.5 2.09 1.34-1.28 2.76-2.09 4.5-2.09A4.5 4.5 0 0 1 21 9.75c0 5.62-6.24 9.05-8.68 10.33L12 20.25Z" />
+                                        </svg>
+                                    </a>
+                                {% endif %}
+
+                                {% if is_granted('ROLE_APPLICANT') or is_granted('ROLE_RECRUITER') %}
+                                    <div
+                                        data-chat-entry-point-poll="true"
+                                        data-chat-entry-point-poll-url="{{ path('app_chat_entry_point') }}"
+                                    >
+                                        {% include '_chat_entry_point.html.twig' with {
+                                            user: app.user,
+                                            unreadCount: chatUnreadCount,
+                                            isActive: isMessagesRoute
+                                        } only %}
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+
+                            <details class="relative z-50" data-profile-menu="true">
+                                <summary class="site-header-account-button inline-flex cursor-pointer list-none items-center justify-center" aria-label="Ouvrir le menu du compte">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+                                        <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0Zm-1.53 9.47A6.75 6.75 0 0 1 12 12.75a6.75 6.75 0 0 1 6.03 2.72A4.5 4.5 0 0 1 21 19.5a.75.75 0 0 1-.75.75H3.75A.75.75 0 0 1 3 19.5a4.5 4.5 0 0 1 2.97-4.03Z" clip-rule="evenodd" />
+                                    </svg>
+                                </summary>
+                                <div class="account-menu-panel absolute right-0 top-14 z-[999] w-96 overflow-hidden rounded-2xl">
+                                    <div class="account-menu-divider border-b px-5 py-4">
+                                        <p class="account-menu-title truncate text-xl font-semibold">{{ app.user.email }}</p>
+                                        <p class="account-menu-subtitle mt-1">Connecté en tant que {{ accountRoleLabel }}.</p>
+                                    </div>
+                                    <div class="space-y-1 px-3 py-3">
+                                        {# <a href="#" onclick="return false;" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 19.5h16.5M6.75 19.5V8.25m5.25 11.25V4.5m5.25 15V11.25"/>
+                                                </svg>
+                                            </span>
+                                            Ma démographie
+                                        </a> #}
+                                        <a href="{{ path('app_settings_index') }}" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h3M3 12h3m12 0h3M10.5 18h3"/>
+                                                    <circle cx="12" cy="12" r="3"/>
+                                                </svg>
+                                            </span>
+                                            Paramètres
+                                        </a>
+                                        <a href="{{ helpPath }}" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 6.75C4.168 5.917 5.754 5.5 7.5 5.5c1.902 0 3.615.495 4.8 1.483a.3.3 0 0 0 .384 0C13.885 5.995 15.598 5.5 17.5 5.5c1.746 0 3.332.417 4.5 1.25v11.5c-1.168-.833-2.754-1.25-4.5-1.25-1.902 0-3.615.495-4.8 1.483a.3.3 0 0 1-.384 0C11.115 17.495 9.402 17 7.5 17 5.754 17 4.168 17.417 3 18.25V6.75Z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12.5 7.25V18"/>
+                                                </svg>
+                                            </span>
+                                            Aide
+                                        </a>
+                                        <a href="{{ faqPath }}" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.09 9a3 3 0 1 1 5.82 1c0 2-3 2-3 4"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 17h.01"/>
+                                                </svg>
+                                            </span>
+                                            Support
+                                        </a>
+                                        <a href="#" onclick="return false;" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V7.875a4.5 4.5 0 0 0-9 0V10.5"/>
+                                                    <rect x="4.5" y="10.5" width="15" height="9" rx="1.5"/>
+                                                </svg>
+                                            </span>
+                                            Centre de confidentialité
+                                        </a>
+                                    </div>
+                                    <div class="account-menu-divider border-t px-4 py-3">
+                                        <a href="{{ logout_path() }}" class="account-menu-item account-menu-item-hover account-menu-logout justify-center text-[1.72rem] leading-none">
+                                            Déconnexion
+                                        </a>
+                                    </div>
+                                </div>
+                            </details>
+                        {% else %}
+                            <details class="relative z-50" data-profile-menu="true">
+                                <summary class="site-header-account-button inline-flex cursor-pointer list-none items-center justify-center" aria-label="Ouvrir le menu du compte">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+                                        <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0Zm-1.53 9.47A6.75 6.75 0 0 1 12 12.75a6.75 6.75 0 0 1 6.03 2.72A4.5 4.5 0 0 1 21 19.5a.75.75 0 0 1-.75.75H3.75A.75.75 0 0 1 3 19.5a4.5 4.5 0 0 1 2.97-4.03Z" clip-rule="evenodd" />
+                                    </svg>
+                                </summary>
+                                <div class="account-menu-panel absolute right-0 top-14 z-[999] w-72 overflow-hidden rounded-2xl">
+                                    <div class="space-y-1 px-3 py-3">
+                                        <a href="{{ path('app_login') }}" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6A2.25 2.25 0 0 0 5.25 5.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M18 15l3-3m0 0-3-3m3 3H9"/>
+                                                </svg>
+                                            </span>
+                                            Connexion
+                                        </a>
+                                        <a href="{{ path('app_register') }}" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/>
+                                                </svg>
+                                            </span>
+                                            Créer un compte
+                                        </a>
+                                        <a href="{{ helpPath }}" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 6.75C4.168 5.917 5.754 5.5 7.5 5.5c1.902 0 3.615.495 4.8 1.483a.3.3 0 0 0 .384 0C13.885 5.995 15.598 5.5 17.5 5.5c1.746 0 3.332.417 4.5 1.25v11.5c-1.168-.833-2.754-1.25-4.5-1.25-1.902 0-3.615.495-4.8 1.483a.3.3 0 0 1-.384 0C11.115 17.495 9.402 17 7.5 17 5.754 17 4.168 17.417 3 18.25V6.75Z"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12.5 7.25V18"/>
+                                                </svg>
+                                            </span>
+                                            Aide
+                                        </a>
+                                        <a href="{{ faqPath }}" class="account-menu-item account-menu-item-hover">
+                                            <span class="account-menu-icon" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.09 9a3 3 0 1 1 5.82 1c0 2-3 2-3 4"/>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 17h.01"/>
+                                                </svg>
+                                            </span>
+                                            Support
+                                        </a>
+                                    </div>
+                                </div>
+                            </details>
+                        {% endif %}
+                        </div>
+
+                        <details class="site-mobile-menu">
+                            <summary class="site-mobile-menu-trigger" aria-label="Ouvrir le menu principal">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" class="h-5 w-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 7h16M4 12h16M4 17h16" />
+                                </svg>
+                            </summary>
+                            <div class="site-mobile-menu-panel">
+                                <div class="site-mobile-menu-links">
+                                    {% if dashboardPath %}
+                                        <a href="{{ dashboardPath }}" class="site-mobile-menu-link {{ isDashboardRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isDashboardRoute %}aria-current="page"{% endif %}>Dashboard</a>
+                                    {% endif %}
+                                    {% if app.user and not is_granted('ROLE_ADMIN') and (is_granted('ROLE_RECRUITER') or is_granted('ROLE_APPLICANT')) %}
+                                        <a href="{{ helpPath }}" class="site-mobile-menu-link {{ isHelpRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isHelpRoute %}aria-current="page"{% endif %}>Aide</a>
+                                        <a href="{{ faqPath }}" class="site-mobile-menu-link {{ isFaqRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isFaqRoute %}aria-current="page"{% endif %}>Support</a>
+                                    {% endif %}
+                                    {% if app.user %}
+                                        <a href="{{ path('app_notifications_index') }}" class="site-mobile-menu-link {{ isNotificationsRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isNotificationsRoute %}aria-current="page"{% endif %}>
+                                            Notifications
+                                            {% if unreadNotificationsCount > 0 %}
+                                                <span class="header-count-badge header-count-badge-notification">{{ unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount }}</span>
+                                            {% endif %}
+                                        </a>
+                                        {% if is_granted('ROLE_RECRUITER') and not is_granted('ROLE_ADMIN') %}
+                                            <a href="{{ path('app_recruiter_favorites') }}" class="site-mobile-menu-link {{ isFavoritesRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isFavoritesRoute %}aria-current="page"{% endif %}>Favoris</a>
+                                        {% endif %}
+
+                                        {% if messagesPath %}
+                                            <a href="{{ messagesPath }}" class="site-mobile-menu-link {{ isMessagesRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isMessagesRoute %}aria-current="page"{% endif %}>
+                                                Messages
+                                                {% if chatUnreadCount > 0 %}
+                                                    <span class="header-count-badge header-count-badge-notification">{{ chatUnreadCount > 99 ? '99+' : chatUnreadCount }}</span>
+                                                {% endif %}
+                                            </a>
+                                        {% endif %}
+
+                                        {# <a href="#" onclick="return false;" class="site-mobile-menu-link">Ma démographie</a> #}
+                                        <a href="{{ path('app_settings_index') }}" class="site-mobile-menu-link">Paramètres</a>
+                                        <a href="#" onclick="return false;" class="site-mobile-menu-link">Centre de confidentialité</a>
+                                        <a href="{{ logout_path() }}" class="site-mobile-menu-link site-mobile-menu-link-logout">Déconnexion</a>
+                                    {% else %}
+                                        <a href="{{ path('app_login') }}" class="site-mobile-menu-link">Connexion</a>
+                                        <a href="{{ helpPath }}" class="site-mobile-menu-link {{ isHelpRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isHelpRoute %}aria-current="page"{% endif %}>Aide</a>
+                                        <a href="{{ faqPath }}" class="site-mobile-menu-link {{ isFaqRoute ? 'site-mobile-menu-link-active' : '' }}" {% if isFaqRoute %}aria-current="page"{% endif %}>Support</a>
+                                        <a href="{{ path('app_register') }}" class="site-mobile-menu-link">Créer un compte</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </details>
+                        </div>
+                    </nav>
+                </div>
+            </header>
+
+            {% set flashAutoDismiss = app.environment != 'test' %}
+            {% set flashDuration = flashAutoDismiss ? '4000' : null %}
+            <div class="pointer-events-none fixed right-3 top-16 z-[60] w-[calc(100%-1.5rem)] max-w-sm sm:right-4 sm:top-20 sm:w-[calc(100%-2rem)] lg:right-6">
+                    <div data-notification-stack="true" class="flex w-full flex-col gap-3">
+                        {% for message in app.flashes('success') %}
+                            <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border px-5 py-3.5 text-[15px] font-medium shadow-xl backdrop-blur-md transition-all duration-300 ease-out ui-notification-success u-border-success u-bg-success u-text-success">
+                                <div class="flex items-start justify-between gap-4">
+                                    <p class="leading-relaxed">{{ message }}</p>
+                                    <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 text-emerald-200/90 transition hover:text-emerald-100">×</button>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                        {% for message in app.flashes('info') %}
+                            <div data-notification-autodismiss="true" data-notification-duration="4000" class="pointer-events-auto rounded-2xl border px-5 py-3.5 text-[15px] font-medium shadow-xl backdrop-blur-md transition-all duration-300 ease-out ui-notification-info u-border-info u-bg-info u-text-info">
+                                <div class="flex items-start justify-between gap-4">
+                                    <p class="leading-relaxed">{{ message }}</p>
+                                    <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 text-emerald-200/90 transition hover:text-emerald-100">×</button>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                        {% for message in app.flashes('verify_email_error') %}
+                            <div{% if flashAutoDismiss %} data-notification-autodismiss="true" data-notification-duration="{{ flashDuration }}"{% endif %} class="pointer-events-auto rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3.5 text-[15px] font-medium text-red-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
+                                <div class="flex items-start justify-between gap-4">
+                                    <p class="leading-relaxed">{{ message }}</p>
+                                    <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 text-red-200/90 transition hover:text-red-100">×</button>
+                                </div>
+                            </div>
+                        {% endfor %}
+
+                        {% for message in app.flashes('error') %}
+                            <div{% if flashAutoDismiss %} data-notification-autodismiss="true" data-notification-duration="{{ flashDuration }}"{% endif %} class="pointer-events-auto rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-3.5 text-[15px] font-medium text-red-300 shadow-xl backdrop-blur-md transition-all duration-300 ease-out">
+                                <div class="flex items-start justify-between gap-4">
+                                    <p class="leading-relaxed">{{ message }}</p>
+                                    <button type="button" data-notification-close="true" aria-label="Fermer la notification" class="shrink-0 text-red-200/90 transition hover:text-red-100">×</button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+            </div>
+
+            {# MAIN avec apple-slide-up-delay-1 #}
+            <main class="apple-slide-up-delay-1 relative z-0 mx-auto flex {{ isMessagesRoute ? 'h-[calc(100vh-84px)]' : 'min-h-[calc(100vh-84px)]' }} w-full {{ isMessagesRoute ? 'max-w-none' : ((isFavoritesRoute or isRecruiterOffersRoute or isAdminWideRoute) ? 'max-w-[88rem]' : 'max-w-6xl') }} {{ isMessagesRoute ? 'items-stretch justify-stretch px-3 pb-3 pt-3 sm:px-4 sm:pb-4 sm:pt-4 lg:px-5' : 'items-center justify-center px-3 pb-12 pt-8 sm:px-4 sm:pt-10 lg:px-5' }}">
+                {% block body %}{% endblock %}
+            </main>
+            
+        </div>
+
+        <script>
+            (() => {
+                const initGlobalMercure = () => {
+                    const body = document.body;
+                    if (!body || body.dataset.globalMercureInitialized === 'true') {
+                        return;
+                    }
+
+                    const mercureUrl = body.dataset.globalMercureUrl;
+                    if (!mercureUrl || !window.Turbo || typeof window.Turbo.renderStreamMessage !== 'function') {
+                        return;
+                    }
+
+                    // Conversation pages already open a dedicated EventSource for the same topics.
+                    if (document.querySelector('[data-chat-messages="true"]')) {
+                        return;
+                    }
+
+                    body.dataset.globalMercureInitialized = 'true';
+
+                    const eventSource = new EventSource(mercureUrl, {
+                        withCredentials: body.dataset.globalMercureCredentials === 'true',
+                    });
+
+                    eventSource.onmessage = (event) => {
+                        if (!event.data) {
+                            return;
+                        }
+
+                        window.Turbo.renderStreamMessage(event.data);
+                    };
+
+                    const closeMercure = () => {
+                        eventSource.close();
+                        delete body.dataset.globalMercureInitialized;
+                    };
+
+                    window.addEventListener('beforeunload', closeMercure, {once: true});
+                    document.addEventListener('turbo:before-cache', closeMercure, {once: true});
+                };
+
+                const initChatEntryPointPolling = () => {
+                    document.querySelectorAll('[data-chat-entry-point-poll="true"]').forEach((root) => {
+                        if (root.dataset.chatEntryPointPollInitialized === 'true') {
+                            return;
+                        }
+
+                        const pollUrl = root.dataset.chatEntryPointPollUrl;
+                        if (!pollUrl) {
+                            return;
+                        }
+
+                        root.dataset.chatEntryPointPollInitialized = 'true';
+
+                        let polling = false;
+                        let previousHtml = root.innerHTML;
+
+                        const poll = async () => {
+                            if (polling) {
+                                return;
+                            }
+
+                            polling = true;
+                            try {
+                                const response = await fetch(pollUrl, {
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json',
+                                    },
+                                    credentials: 'same-origin',
+                                });
+
+                                const payload = await response.json().catch(() => null);
+                                if (!response.ok || !payload || !payload.ok || typeof payload.html !== 'string') {
+                                    return;
+                                }
+
+                                if (payload.html !== previousHtml) {
+                                    root.innerHTML = payload.html;
+                                    previousHtml = payload.html;
+                                }
+                            } catch (_error) {
+                            } finally {
+                                polling = false;
+                            }
+                        };
+
+                        const pollTimer = window.setInterval(poll, 15000);
+                        const stopPolling = () => {
+                            window.clearInterval(pollTimer);
+                            delete root.dataset.chatEntryPointPollInitialized;
+                        };
+
+                        window.addEventListener('beforeunload', stopPolling, {once: true});
+                        document.addEventListener('turbo:before-cache', stopPolling, {once: true});
+                    });
+                };
+
+                document.addEventListener('DOMContentLoaded', initGlobalMercure);
+                document.addEventListener('turbo:load', initGlobalMercure);
+                document.addEventListener('DOMContentLoaded', initChatEntryPointPolling);
+                document.addEventListener('turbo:load', initChatEntryPointPolling);
+            })();
+        </script>
     </body>
 </html>

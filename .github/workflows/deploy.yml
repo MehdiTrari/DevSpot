@@ -1,0 +1,82 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - Tests
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      (github.event.workflow_run.head_branch == 'main' || github.event.workflow_run.head_branch == 'master'))
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT != '' && secrets.DEPLOY_PORT || '22' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Ansible
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ansible
+          ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: Prepare SSH access
+        run: |
+          install -m 700 -d ~/.ssh
+          cat <<'EOF' > ~/.ssh/devspot_deploy_key
+          ${{ secrets.DEPLOY_SSH_KEY }}
+          EOF
+          chmod 600 ~/.ssh/devspot_deploy_key
+          ssh-keyscan -p "$DEPLOY_PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      - name: Write production inventory
+        run: |
+          cat <<EOF > ansible/inventory/production.ini
+          [devspot]
+          production ansible_host=$DEPLOY_HOST ansible_user=$DEPLOY_USER ansible_port=$DEPLOY_PORT
+
+          [devspot:vars]
+          ansible_python_interpreter=/usr/bin/python3
+          devspot_domain=devspot.software
+          devspot_mercure_domain=mercure.devspot.software
+          devspot_app_root=/opt/devspot
+          EOF
+
+      - name: Write production env file
+        run: |
+          cat <<'EOF' > /tmp/devspot.env
+          ${{ secrets.PROD_ENV_FILE }}
+          EOF
+
+      - name: Deploy application
+        env:
+          DEVSPOT_ENV_FILE: /tmp/devspot.env
+        run: |
+          ansible-playbook \
+            -i ansible/inventory/production.ini \
+            --private-key ~/.ssh/devspot_deploy_key \
+            ansible/playbooks/deploy.yml
