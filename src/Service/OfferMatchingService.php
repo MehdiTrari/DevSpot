@@ -21,8 +21,10 @@ use Symfony\Component\String\UnicodeString;
 
 final class OfferMatchingService
 {
-    private const DEFAULT_SEMANTIC_RERANK_LIMIT = 50;
-    private const DEFAULT_VECTOR_RETRIEVAL_LIMIT = 100;
+    private const DEFAULT_SEMANTIC_RERANK_LIMIT = 20;
+    private const DEFAULT_VECTOR_RETRIEVAL_LIMIT = 40;
+    private const DEFAULT_LIVE_SEMANTIC_FALLBACK_LIMIT = 8;
+    private const DEFAULT_ENRICHED_RERANK_LIMIT = 12;
 
     /** @var list<Skill>|null */
     private ?array $skills = null;
@@ -32,6 +34,21 @@ final class OfferMatchingService
 
     /** @var list<Position>|null */
     private ?array $positions = null;
+
+    /** @var list<string>|null */
+    private ?array $hardSkillNames = null;
+
+    /** @var list<string>|null */
+    private ?array $softSkillNames = null;
+
+    /** @var list<string>|null */
+    private ?array $technologyNames = null;
+
+    /** @var list<string>|null */
+    private ?array $positionNames = null;
+
+    /** @var array<string, string> */
+    private array $normalizedTermCache = [];
 
     public function __construct(
         private readonly SkillMatcher $skillMatcher,
@@ -45,6 +62,8 @@ final class OfferMatchingService
         private readonly TechnologyRepository $technologyRepository,
         private readonly PositionRepository $positionRepository,
         private readonly int $semanticRerankLimit = self::DEFAULT_SEMANTIC_RERANK_LIMIT,
+        private readonly int $liveSemanticFallbackLimit = self::DEFAULT_LIVE_SEMANTIC_FALLBACK_LIMIT,
+        private readonly int $enrichedRerankLimit = self::DEFAULT_ENRICHED_RERANK_LIMIT,
     ) {
     }
 
@@ -392,7 +411,6 @@ final class OfferMatchingService
             ];
         }
 
-        $this->candidateProfileEmbeddingService->refreshEmbeddings($rerankDevelopers);
         $storedEmbeddings = $this->candidateProfileEmbeddingService->storedEmbeddingsForProfiles($rerankDevelopers);
 
         $semanticMatches = [
@@ -410,6 +428,12 @@ final class OfferMatchingService
             $rerankCandidates,
             static fn (CandidateProfile $candidate): bool => !array_key_exists($candidate->id, $storedEmbeddings),
         ));
+        $fallbackLimit = $this->liveSemanticFallbackLimit > 0
+            ? $this->liveSemanticFallbackLimit
+            : self::DEFAULT_LIVE_SEMANTIC_FALLBACK_LIMIT;
+        if (count($fallbackCandidates) > $fallbackLimit) {
+            $fallbackCandidates = array_slice($fallbackCandidates, 0, $fallbackLimit);
+        }
         $fallbackMatches = [
             'available' => false,
             'scores' => [],
@@ -461,8 +485,25 @@ final class OfferMatchingService
             ];
         }
 
+        $eligibleCandidates = array_values(array_filter(
+            $rerankCandidates,
+            static fn (CandidateProfile $candidate): bool => is_numeric($semanticScores[$candidate->id]['score'] ?? null),
+        ));
+        $enrichedLimit = $this->enrichedRerankLimit > 0
+            ? $this->enrichedRerankLimit
+            : self::DEFAULT_ENRICHED_RERANK_LIMIT;
+        if (count($eligibleCandidates) > $enrichedLimit) {
+            $eligibleCandidates = array_slice($eligibleCandidates, 0, $enrichedLimit);
+        }
+        if ([] === $eligibleCandidates) {
+            return [
+                'available' => false,
+                'scores' => $scores,
+            ];
+        }
+
         $semanticScoresForRerank = [];
-        foreach ($rerankCandidates as $candidate) {
+        foreach ($eligibleCandidates as $candidate) {
             $semanticScoresForRerank[$candidate->id] = $semanticScores[$candidate->id] ?? [
                 'score' => null,
                 'percentage' => null,
@@ -470,7 +511,7 @@ final class OfferMatchingService
             ];
         }
 
-        $enrichedMatches = $this->enrichedMatchingService->scoreCandidates($offer, $rerankCandidates, $semanticScoresForRerank);
+        $enrichedMatches = $this->enrichedMatchingService->scoreCandidates($offer, $eligibleCandidates, $semanticScoresForRerank);
 
         foreach ($enrichedMatches['scores'] as $candidateId => $candidateScore) {
             $scores[$candidateId] = $candidateScore;
@@ -542,28 +583,22 @@ final class OfferMatchingService
     private function extractHardSkills(string $text): array
     {
         $matches = [];
+        $normalizedText = $this->normalize($text);
 
-        foreach ($this->allSkills() as $skill) {
-            if ('Soft Skills' === $skill->getCategory()) {
-                continue;
-            }
-
-            $name = (string) $skill->getName();
-            if ('' !== $name && $this->containsTerm($text, $name)) {
+        foreach ($this->hardSkillNames() as $name) {
+            if ($this->containsNormalizedTerm($normalizedText, $name)) {
                 $matches[] = $name;
             }
         }
 
-        foreach ($this->allTechnologies() as $technology) {
-            $name = (string) $technology->getName();
-            if ('' !== $name && $this->containsTerm($text, $name)) {
+        foreach ($this->technologyNames() as $name) {
+            if ($this->containsNormalizedTerm($normalizedText, $name)) {
                 $matches[] = $name;
             }
         }
 
-        foreach ($this->allPositions() as $position) {
-            $name = (string) $position->getName();
-            if ('' !== $name && $this->containsTerm($text, $name)) {
+        foreach ($this->positionNames() as $name) {
+            if ($this->containsNormalizedTerm($normalizedText, $name)) {
                 $matches[] = $name;
             }
         }
@@ -577,14 +612,10 @@ final class OfferMatchingService
     private function extractSoftSkills(string $text): array
     {
         $matches = [];
+        $normalizedText = $this->normalize($text);
 
-        foreach ($this->allSkills() as $skill) {
-            if ('Soft Skills' !== $skill->getCategory()) {
-                continue;
-            }
-
-            $name = (string) $skill->getName();
-            if ('' !== $name && $this->containsTerm($text, $name)) {
+        foreach ($this->softSkillNames() as $name) {
+            if ($this->containsNormalizedTerm($normalizedText, $name)) {
                 $matches[] = $name;
             }
         }
@@ -592,9 +623,8 @@ final class OfferMatchingService
         return $this->uniqueValues($matches);
     }
 
-    private function containsTerm(string $haystack, string $needle): bool
+    private function containsNormalizedTerm(string $normalizedHaystack, string $needle): bool
     {
-        $normalizedHaystack = $this->normalize($haystack);
         $normalizedNeedle = $this->normalize($needle);
 
         return '' !== $normalizedNeedle && str_contains($normalizedHaystack, $normalizedNeedle);
@@ -602,7 +632,12 @@ final class OfferMatchingService
 
     private function normalize(string $value): string
     {
-        return (new UnicodeString($value))
+        $cacheKey = $value;
+        if (isset($this->normalizedTermCache[$cacheKey])) {
+            return $this->normalizedTermCache[$cacheKey];
+        }
+
+        return $this->normalizedTermCache[$cacheKey] = (new UnicodeString($value))
             ->ascii()
             ->lower()
             ->collapseWhitespace()
@@ -659,5 +694,87 @@ final class OfferMatchingService
     private function allPositions(): array
     {
         return $this->positions ??= $this->positionRepository->findAll();
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function hardSkillNames(): array
+    {
+        if (null !== $this->hardSkillNames) {
+            return $this->hardSkillNames;
+        }
+
+        $names = [];
+        foreach ($this->allSkills() as $skill) {
+            if ('Soft Skills' === $skill->getCategory()) {
+                continue;
+            }
+
+            $name = trim((string) $skill->getName());
+            if ('' !== $name) {
+                $names[] = $name;
+            }
+        }
+
+        return $this->hardSkillNames = $this->uniqueValues($names);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function softSkillNames(): array
+    {
+        if (null !== $this->softSkillNames) {
+            return $this->softSkillNames;
+        }
+
+        $names = [];
+        foreach ($this->allSkills() as $skill) {
+            if ('Soft Skills' !== $skill->getCategory()) {
+                continue;
+            }
+
+            $name = trim((string) $skill->getName());
+            if ('' !== $name) {
+                $names[] = $name;
+            }
+        }
+
+        return $this->softSkillNames = $this->uniqueValues($names);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function technologyNames(): array
+    {
+        if (null !== $this->technologyNames) {
+            return $this->technologyNames;
+        }
+
+        $names = array_map(
+            static fn (Technology $technology): string => trim((string) $technology->getName()),
+            $this->allTechnologies(),
+        );
+
+        return $this->technologyNames = $this->uniqueValues($names);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function positionNames(): array
+    {
+        if (null !== $this->positionNames) {
+            return $this->positionNames;
+        }
+
+        $names = array_map(
+            static fn (Position $position): string => trim((string) $position->getName()),
+            $this->allPositions(),
+        );
+
+        return $this->positionNames = $this->uniqueValues($names);
     }
 }

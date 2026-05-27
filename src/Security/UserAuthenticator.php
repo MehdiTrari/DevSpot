@@ -86,15 +86,15 @@ class UserAuthenticator extends AbstractLoginFormAuthenticator
 
         $roles = $token->getRoleNames();
         if (in_array('ROLE_ADMIN', $roles, true)) {
-            return new RedirectResponse($this->urlGenerator->generate('app_admin_dashboard'));
+            return new RedirectResponse($this->urlGenerator->generate('app_admin_dashboard_alias'));
         }
 
         if (in_array('ROLE_RECRUITER', $roles, true)) {
-            return new RedirectResponse($this->urlGenerator->generate('app_recruiter_home'));
+            return new RedirectResponse($this->urlGenerator->generate('app_recruiter_dashboard'));
         }
 
         if (in_array('ROLE_APPLICANT', $roles, true)) {
-            return new RedirectResponse($this->urlGenerator->generate('app_applicant_home'));
+            return new RedirectResponse($this->urlGenerator->generate('app_applicant_dashboard'));
         }
 
         return new RedirectResponse($this->urlGenerator->generate('app_home'));

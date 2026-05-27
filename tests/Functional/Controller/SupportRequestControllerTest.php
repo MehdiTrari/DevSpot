@@ -24,6 +24,8 @@ final class SupportRequestControllerTest extends WebTestCase
         $client->loginUser($user);
         $client->request('GET', '/');
 
+        self::assertResponseRedirects('/applicant/dashboard');
+        $client->followRedirect();
         self::assertResponseIsSuccessful();
         self::assertSelectorExists('a[href="/help"]');
         self::assertSelectorExists('a[href="/faq"]');

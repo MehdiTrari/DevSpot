@@ -13,10 +13,17 @@
 {# --- LABEL --- #}
 {% block form_label %}
     {% if label is not same as(false) %}
+        {% set is_required = (required|default(false)) or (form.vars.required|default(false)) or (label_attr['data-required-label']|default(false) in [true, 'true', '1']) %}
+        {% if not compound %}
+            {% set label_attr = label_attr|merge({for: id}) %}
+        {% endif %}
+        {% if is_required %}
+            {% set label_attr = label_attr|merge({'class': (label_attr.class|default('') ~ ' required')|trim}) %}
+        {% endif %}
         {% set label_attr = label_attr|merge({'class': (label_attr.class|default('') ~ ' block pl-1 text-[15px] font-medium text-slate-200')|trim}) %}
         <label {% with { attr: label_attr } %}{{ block('attributes') }}{% endwith %}>
-            {{- label|trans -}}
-            {%- if required -%}
+            {{- block('form_label_content') -}}
+            {%- if is_required -%}
                 <span class="ml-1 text-rose-300" aria-hidden="true">*</span>
             {%- endif -%}
         </label>

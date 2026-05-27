@@ -12,9 +12,11 @@ use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\PositiveOrZero;
 
@@ -113,7 +115,6 @@ class JobOfferType extends AbstractType
                 'help' => 'Au lendemain de cette date, l’offre passe automatiquement en expirée/fermée.',
                 'constraints' => [
                     new NotBlank(message: 'La date limite est obligatoire.'),
-                    new GreaterThanOrEqual('today', message: 'La date limite doit être aujourd\'hui ou dans le futur.'),
                 ],
             ])
             ->add('status', EnumType::class, [
@@ -126,6 +127,22 @@ class JobOfferType extends AbstractType
                 },
             ])
         ;
+
+        $builder->addEventListener(FormEvents::POST_SUBMIT, static function (FormEvent $event): void {
+            $offer = $event->getData();
+            if (!$offer instanceof JobOffer) {
+                return;
+            }
+
+            $deadline = $offer->getApplicationDeadline();
+            if (
+                OfferStatus::PUBLISHED === $offer->getStatus()
+                && null !== $deadline
+                && $deadline < new \DateTimeImmutable('today')
+            ) {
+                $event->getForm()->get('applicationDeadline')->addError(new FormError('La date limite doit être aujourd\'hui ou dans le futur pour publier l\'offre.'));
+            }
+        });
     }
 
     public function configureOptions(OptionsResolver $resolver): void

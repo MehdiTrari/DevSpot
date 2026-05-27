@@ -23,10 +23,7 @@ final class MatchingDemoController extends AbstractController
         OfferMatchingService $offerMatchingService,
         #[Autowire('%kernel.project_dir%')] string $projectDir,
     ): Response {
-        $developers = array_values(array_filter(
-            $developerProfileRepository->findAllForMatching(),
-            static fn ($developer): bool => str_ends_with((string) $developer->getUser()?->getEmail(), '@demo.devspot.local'),
-        ));
+        $developers = $developerProfileRepository->findVisibleProfilesForMatching('@demo.devspot.local');
         $offers = array_values(array_filter(
             $jobOfferRepository->findActiveForMatching(),
             static fn ($offer): bool => str_ends_with((string) $offer->getRecruiterProfile()?->getUser()?->getEmail(), '@demo.devspot.local'),

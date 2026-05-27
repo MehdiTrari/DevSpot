@@ -46,6 +46,9 @@ final class SeedMatchingDemoCommand extends Command
     /** @var array<string, Position> */
     private array $positionCache = [];
 
+    /** @var array<string, string> */
+    private array $passwordHashCache = [];
+
     public function __construct(
         #[Autowire('%kernel.project_dir%')]
         private readonly string $projectDir,
@@ -236,7 +239,7 @@ final class SeedMatchingDemoCommand extends Command
             ->setRoles(array_values(array_map('strval', $userData['roles'] ?? ['ROLE_RECRUITER'])))
             ->setIsVerified((bool) ($userData['isVerified'] ?? true))
             ->setStatus($this->userStatus((string) ($userData['status'] ?? 'active')))
-            ->setPassword($this->passwordHasher->hashPassword(new User(), (string) $userData['password']));
+            ->setPassword($this->hashPassword((string) $userData['password']));
 
         $profile = (new RecruiterProfile())
             ->setFirstName((string) $profileData['firstName'])
@@ -265,7 +268,7 @@ final class SeedMatchingDemoCommand extends Command
             ->setRoles(array_values(array_map('strval', $userData['roles'] ?? ['ROLE_APPLICANT'])))
             ->setIsVerified((bool) ($userData['isVerified'] ?? true))
             ->setStatus($this->userStatus((string) ($userData['status'] ?? 'active')))
-            ->setPassword($this->passwordHasher->hashPassword(new User(), (string) $userData['password']));
+            ->setPassword($this->hashPassword((string) $userData['password']));
 
         $profile = (new DeveloperProfile())
             ->setFirstName((string) $profileData['firstName'])
@@ -466,5 +469,14 @@ final class SeedMatchingDemoCommand extends Command
         $trimmed = trim($value);
 
         return '' === $trimmed ? null : $trimmed;
+    }
+
+    private function hashPassword(string $plainPassword): string
+    {
+        if (!isset($this->passwordHashCache[$plainPassword])) {
+            $this->passwordHashCache[$plainPassword] = $this->passwordHasher->hashPassword(new User(), $plainPassword);
+        }
+
+        return $this->passwordHashCache[$plainPassword];
     }
 }

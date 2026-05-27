@@ -1,6 +1,6 @@
 {% set isActive = isActive|default(false) %}
 
-{% if is_granted('ROLE_APPLICANT') and user.developerProfile is not null and user.developerProfile.portfolioGeneratedAt is not null %}
+{% if is_granted('ROLE_APPLICANT') %}
     <div id="chat-entry-point">
         <a href="{{ path('app_applicant_messages') }}" data-turbo="false" class="site-header-icon-button {{ isActive ? 'site-header-icon-button-active' : '' }}" aria-label="Acc&eacute;der &agrave; la messagerie">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-5 w-5">

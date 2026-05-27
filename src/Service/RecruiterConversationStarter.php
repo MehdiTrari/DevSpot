@@ -96,7 +96,7 @@ final class RecruiterConversationStarter
         try {
             $this->mailer->send(
                 (new TemplatedEmail())
-                    ->from(new Address('mailer@devspot.com', 'DevSpot Mail Bot'))
+                    ->from(new Address('no-reply@devspot.software', 'DevSpot Mail Bot'))
                     ->to((string) $applicantUser->getEmail())
                     ->subject(sprintf('Nouveau message recruteur: %s', (string) $conversation->getSubject()))
                     ->htmlTemplate('emails/new_conversation_applicant.html.twig')

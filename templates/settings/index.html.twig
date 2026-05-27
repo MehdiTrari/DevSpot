@@ -20,7 +20,7 @@
             </div>
 
             <div class="mt-8 grid gap-4 sm:grid-cols-2">
-                <a href="{{ path('app_settings_preferences') }}" class="premium-action-card flex items-start gap-3 rounded-[1.4rem] p-5 text-left">
+                <a href="{{ path('app_settings_preferences') }}" class="premium-action-card flex items-start gap-3 rounded-[1.4rem] p-5 text-left sm:col-span-2">
                     <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-emerald-300">P</span>
                     <span>
                         <span class="ui-title block text-base font-semibold">Préférences</span>
@@ -29,7 +29,7 @@
                 </a>
 
                 {% if app.user and app.user.canRequestRoleChange %}
-                    <a href="{{ path('app_settings_role') }}" class="premium-action-card flex items-start gap-3 rounded-[1.4rem] p-5 text-left">
+                    <a href="{{ path('app_settings_role') }}" class="premium-action-card flex items-start gap-3 rounded-[1.4rem] p-5 text-left sm:col-span-2">
                         <span class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/15 bg-white/10 text-amber-300">R</span>
                         <span>
                             <span class="ui-title block text-base font-semibold">Changement de rôle</span>

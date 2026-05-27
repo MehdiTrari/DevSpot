@@ -13,6 +13,7 @@ use App\Enum\OfferStatus;
 use App\Enum\UserStatus;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
+use Facebook\WebDriver\Exception\StaleElementReferenceException;
 use Facebook\WebDriver\WebDriverBy;
 use Facebook\WebDriver\WebDriverSelect;
 use Symfony\Component\Panther\Client;
@@ -222,6 +223,18 @@ abstract class PantherWebTestCase extends PantherTestCase
 
     protected function click(Client $client, string $cssSelector): void
     {
+        $deadline = microtime(true) + 2;
+
+        while (microtime(true) < $deadline) {
+            try {
+                $client->getWebDriver()->findElement(WebDriverBy::cssSelector($cssSelector))->click();
+
+                return;
+            } catch (StaleElementReferenceException) {
+                usleep(100000);
+            }
+        }
+
         $client->getWebDriver()->findElement(WebDriverBy::cssSelector($cssSelector))->click();
     }
 

@@ -23,12 +23,12 @@ final class AdminNotificationRequestsTest extends WebTestCase
         $admin = $this->createAdmin();
 
         $client->loginUser($applicant);
-        $crawler = $client->request('GET', '/applicant');
+        $crawler = $client->request('GET', '/settings/slug');
         $client->submit($crawler->selectButton('Envoyer la demande')->form([
             'desired_slug' => 'nouveau-slug-admin-test',
         ]));
 
-        self::assertResponseRedirects('/applicant');
+        self::assertResponseRedirects('/settings/slug');
 
         $notification = $this->findNotificationFor($admin, NotificationType::SLUG_CHANGE_REQUEST);
         self::assertNotNull($notification);
@@ -42,10 +42,10 @@ final class AdminNotificationRequestsTest extends WebTestCase
         $admin = $this->createAdmin();
 
         $client->loginUser($recruiter);
-        $crawler = $client->request('GET', '/recruiter');
+        $crawler = $client->request('GET', '/settings/role');
         $client->submit($crawler->selectButton('Demander le rôle candidat')->form());
 
-        self::assertResponseRedirects('/recruiter');
+        self::assertResponseRedirects('/settings/role');
 
         $notification = $this->findNotificationFor($admin, NotificationType::ROLE_REQUEST);
         self::assertNotNull($notification);

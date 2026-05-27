@@ -2,6 +2,17 @@
 
 {% block title %}Help | DevSpot{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        @media (max-width: 639px) {
+            .help-preview-aside {
+                display: none;
+            }
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
     {% set activeHelpRole = is_granted('ROLE_RECRUITER') ? 'recruiter' : 'applicant' %}
 
@@ -48,7 +59,7 @@
                             aria-pressed="true"
                         >
                             <h2 class="help-step-title">1. Création du compte</h2>
-                            <p class="help-step-text">Crée ton compte pour accéder à ton espace candidat.</p>
+                            <p class="help-step-text">Créer ton compte pour accéder à ton espace candidat.</p>
                             <a href="{{ path('app_register') }}" class="help-step-link">S'inscrire</a>
                         </li>
 
@@ -57,13 +68,13 @@
                             data-help-step="true"
                             data-preview-video="https://example.com/videos/applicant-step-2.mp4"
                             data-preview-title="Compléter le profil développeur"
-                            data-preview-text="Renseigne tes expériences, compétences et préférences pour améliorer le matching."
+                            data-preview-text="Remplis tes informations, tes expériences, tes compétences et tes préférences avant de publier ton portfolio."
                             tabindex="0"
                             role="button"
                             aria-pressed="false"
                         >
-                            <h2 class="help-step-title">2. Complète ton profil développeur</h2>
-                            <p class="help-step-text">Renseigne ton parcours, tes compétences et tes préférences.</p>
+                            <h2 class="help-step-title">2. Compléter ton profil développeur</h2>
+                            <p class="help-step-text">Renseigner tes informations, ton parcours, tes compétences et tes préférences.</p>
                         </li>
 
                         <li
@@ -71,13 +82,13 @@
                             data-help-step="true"
                             data-preview-video="https://example.com/videos/applicant-step-3.mp4"
                             data-preview-title="Publication du portfolio"
-                            data-preview-text="Génère ton portfolio, vérifie son rendu puis publie-le pour gagner en visibilité."
+                            data-preview-text="Génère ton portfolio, vérifie son rendu puis passe-le en public pour obtenir de la visibilité."
                             tabindex="0"
                             role="button"
                             aria-pressed="false"
                         >
-                            <h2 class="help-step-title">3. Publie ton portfolio</h2>
-                            <p class="help-step-text">Génère et rends visible ton portfolio pour être découvert.</p>
+                            <h2 class="help-step-title">3. Publier ton portfolio</h2>
+                            <p class="help-step-text">Publier ton portfolio après avoir rempli tes informations pour gagner en visibilité.</p>
                         </li>
 
                         <li
@@ -90,12 +101,12 @@
                             role="button"
                             aria-pressed="false"
                         >
-                            <h2 class="help-step-title">4. Échange avec les recruteurs intéressés</h2>
-                            <p class="help-step-text">Réponds aux messages et démarre les discussions avec les recruteurs.</p>
+                            <h2 class="help-step-title">4. Échanger avec les recruteurs intéressés</h2>
+                            <p class="help-step-text">Répondre aux messages et démarrer les discussions avec les recruteurs.</p>
                         </li>
                     </ol>
 
-                    <aside class="space-y-4">
+                    <aside class="help-preview-aside space-y-4">
                         <article class="help-preview-card rounded-[2rem] p-4 sm:p-5">
                             <div class="help-preview-media rounded-[1.4rem] p-2 sm:p-2.5">
                                 <video data-help-preview-video="true" class="help-preview-video w-full rounded-[1rem]" controls preload="none">
@@ -129,7 +140,7 @@
                             aria-pressed="true"
                         >
                             <h2 class="help-step-title">1. Création du compte</h2>
-                            <p class="help-step-text">Crée ton compte pour ouvrir ton espace recruteur.</p>
+                            <p class="help-step-text">Créer ton compte pour ouvrir ton espace recruteur.</p>
                             <a href="{{ path('app_register') }}" class="help-step-link">S'inscrire</a>
                         </li>
 
@@ -144,7 +155,7 @@
                             aria-pressed="false"
                         >
                             <h2 class="help-step-title">2. Création des offres</h2>
-                            <p class="help-step-text">Structure tes besoins pour lancer tes premières offres.</p>
+                            <p class="help-step-text">Structurer tes besoins pour lancer tes premières offres.</p>
                         </li>
 
                         <li
@@ -157,8 +168,8 @@
                             role="button"
                             aria-pressed="false"
                         >
-                            <h2 class="help-step-title">3. Trouves des profils intéressants</h2>
-                            <p class="help-step-text">Explore les profils publics et constitue ta short-list.</p>
+                            <h2 class="help-step-title">3. Trouver des profils intéressants</h2>
+                            <p class="help-step-text">Explorer les profils publics et constituer ta short-list.</p>
                         </li>
 
                         <li
@@ -171,12 +182,26 @@
                             role="button"
                             aria-pressed="false"
                         >
-                            <h2 class="help-step-title">4. Échange avec les applicants</h2>
-                            <p class="help-step-text">Contacte les candidats pertinents et avance dans ton recrutement.</p>
+                            <h2 class="help-step-title">4. Échanger avec les applicants</h2>
+                            <p class="help-step-text">Contacter les candidats pertinents et avancer dans ton recrutement.</p>
+                        </li>
+
+                        <li
+                            class="help-step"
+                            data-help-step="true"
+                            data-preview-video="https://example.com/videos/recruiter-step-5.mp4"
+                            data-preview-title="Trouver votre nouvelle recrue"
+                            data-preview-text="Priorise les profils engagés, finalise tes échanges et conclus ton recrutement avec le candidat retenu."
+                            tabindex="0"
+                            role="button"
+                            aria-pressed="false"
+                        >
+                            <h2 class="help-step-title">5. Trouver ta nouvelle recrue</h2>
+                            <p class="help-step-text">Prioriser les profils les plus engageants et conclure ton recrutement.</p>
                         </li>
                     </ol>
 
-                    <aside class="space-y-4">
+                    <aside class="help-preview-aside space-y-4">
                         <article class="help-preview-card rounded-[2rem] p-4 sm:p-5">
                             <div class="help-preview-media rounded-[1.4rem] p-2 sm:p-2.5">
                                 <video data-help-preview-video="true" class="help-preview-video w-full rounded-[1rem]" controls preload="none">
