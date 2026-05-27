@@ -17,6 +17,7 @@ use App\Enum\LocationType;
 use App\Matching\Service\CvAnonymizer;
 use App\Matching\Service\FairnessAuditor;
 use App\Matching\Service\SkillMatcher;
+use App\Repository\DeveloperProfileRepository;
 use App\Repository\PositionRepository;
 use App\Repository\SkillRepository;
 use App\Repository\TechnologyRepository;
@@ -38,15 +39,17 @@ final class OfferMatchingServiceTest extends TestCase
         $skillRepository = $this->createMock(SkillRepository::class);
         $technologyRepository = $this->createMock(TechnologyRepository::class);
         $positionRepository = $this->createMock(PositionRepository::class);
+        $developerProfileRepository = $this->createMock(DeveloperProfileRepository::class);
+        $developerProfileRepository->expects(self::exactly(2))->method('findStoredMatchingEmbeddingsByProfileIds')->willReturn([]);
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects(self::once())->method('flush');
+        $entityManager->expects(self::never())->method('flush');
 
         $service = new OfferMatchingService(
             new SkillMatcher(),
             new FairnessAuditor(),
             new CvAnonymizer(),
             new CandidateTextPreprocessor(),
-            new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $entityManager),
+            new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $developerProfileRepository, $entityManager),
             new SemanticMatchingService($client),
             new EnrichedMatchingService(new CandidateSkillInferenceService($client), new SemanticMatchingService($client)),
             $skillRepository,
@@ -87,17 +90,17 @@ final class OfferMatchingServiceTest extends TestCase
             ]);
 
         $client
-            ->expects(self::exactly(2))
+            ->expects(self::once())
             ->method('embedBatch')
             ->willReturnCallback(static function (array $texts): array {
-                if (1 === count($texts)) {
-                    return [
-                        ['embedding' => [1.0, 0.0], 'dimension' => 256, 'normalizedText' => 'offer'],
-                    ];
-                }
+                self::assertCount(3, $texts);
 
                 return array_map(static function (string $text): array {
-                    if (str_contains($text, 'Alice') || str_contains($text, 'communication')) {
+                    if ('Développeur Symfony React Communication et API development à Paris' === $text) {
+                        return ['embedding' => [1.0, 0.0], 'dimension' => 256, 'normalizedText' => 'offer'];
+                    }
+
+                    if (str_contains($text, 'Alice')) {
                         return ['embedding' => [0.875, 0.4841229183], 'dimension' => 256, 'normalizedText' => 'alice'];
                     }
 
@@ -132,21 +135,21 @@ final class OfferMatchingServiceTest extends TestCase
         self::assertSame(['Symfony', 'React', 'API development'], $payload['extractedRequirements']['hardSkills']);
         self::assertSame(['Communication'], $payload['extractedRequirements']['softSkills']);
         self::assertCount(2, $payload['matches']);
-        self::assertSame('Bob Martin', $payload['matches'][0]['fullName']);
+        self::assertSame('Alice Dupont', $payload['matches'][0]['fullName']);
         self::assertSame(100.0, $payload['matches'][0]['semanticEnrichedPercentage']);
         self::assertSame(100.0, $payload['matches'][0]['semanticPercentage']);
-        self::assertSame('Alice Dupont', $payload['matches'][1]['fullName']);
-        self::assertSame(['communication'], $payload['matches'][1]['matchedSoftSkills']);
-        self::assertSame(['Leadership'], $payload['matches'][1]['inferredTransferableSkills']);
-        self::assertStringContainsString('Core skills:', $payload['matches'][1]['anonymizedCv']);
-        self::assertStringContainsString('Experience:', $payload['matches'][1]['anonymizedCv']);
-        self::assertStringContainsString('Education:', $payload['matches'][1]['anonymizedCv']);
-        self::assertStringNotContainsString('alice@example.com', $payload['matches'][1]['anonymizedCv']);
-        self::assertStringNotContainsString('DevSpot', $payload['matches'][1]['anonymizedCv']);
-        self::assertStringNotContainsString('Supinfo', $payload['matches'][1]['anonymizedCv']);
-        self::assertStringNotContainsString('Alice', $payload['matches'][1]['anonymizedCv']);
-        self::assertStringNotContainsString('Dupont', $payload['matches'][1]['anonymizedCv']);
-        self::assertStringNotContainsString('alice', $payload['matches'][1]['anonymizedCv']);
+        self::assertSame(['communication'], $payload['matches'][0]['matchedSoftSkills']);
+        self::assertSame(['Leadership'], $payload['matches'][0]['inferredTransferableSkills']);
+        self::assertStringContainsString('Experience:', $payload['matches'][0]['anonymizedCv']);
+        self::assertStringContainsString('Education:', $payload['matches'][0]['anonymizedCv']);
+        self::assertStringNotContainsString('alice@example.com', $payload['matches'][0]['anonymizedCv']);
+        self::assertStringNotContainsString('DevSpot', $payload['matches'][0]['anonymizedCv']);
+        self::assertStringNotContainsString('Supinfo', $payload['matches'][0]['anonymizedCv']);
+        self::assertStringNotContainsString('Alice', $payload['matches'][0]['anonymizedCv']);
+        self::assertStringNotContainsString('Dupont', $payload['matches'][0]['anonymizedCv']);
+        self::assertStringNotContainsString('alice', $payload['matches'][0]['anonymizedCv']);
+        self::assertSame('Bob Martin', $payload['matches'][1]['fullName']);
+        self::assertStringContainsString('Headline:', $payload['matches'][1]['anonymizedCv']);
         self::assertTrue($payload['semantic']['available']);
         self::assertTrue($payload['enriched']['available']);
     }
@@ -157,6 +160,8 @@ final class OfferMatchingServiceTest extends TestCase
         $skillRepository = $this->createMock(SkillRepository::class);
         $technologyRepository = $this->createMock(TechnologyRepository::class);
         $positionRepository = $this->createMock(PositionRepository::class);
+        $developerProfileRepository = $this->createMock(DeveloperProfileRepository::class);
+        $developerProfileRepository->expects(self::never())->method('findStoredMatchingEmbeddingsByProfileIds');
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::never())->method('flush');
 
@@ -165,7 +170,7 @@ final class OfferMatchingServiceTest extends TestCase
             new FairnessAuditor(),
             new CvAnonymizer(),
             new CandidateTextPreprocessor(),
-            new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $entityManager),
+            new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $developerProfileRepository, $entityManager),
             new SemanticMatchingService($client),
             new EnrichedMatchingService(new CandidateSkillInferenceService($client), new SemanticMatchingService($client)),
             $skillRepository,
@@ -196,15 +201,17 @@ final class OfferMatchingServiceTest extends TestCase
         $skillRepository = $this->createMock(SkillRepository::class);
         $technologyRepository = $this->createMock(TechnologyRepository::class);
         $positionRepository = $this->createMock(PositionRepository::class);
+        $developerProfileRepository = $this->createMock(DeveloperProfileRepository::class);
+        $developerProfileRepository->expects(self::exactly(2))->method('findStoredMatchingEmbeddingsByProfileIds')->willReturn([]);
         $entityManager = $this->createMock(EntityManagerInterface::class);
-        $entityManager->expects(self::once())->method('flush');
+        $entityManager->expects(self::never())->method('flush');
 
         $service = new OfferMatchingService(
             new SkillMatcher(),
             new FairnessAuditor(),
             new CvAnonymizer(),
             new CandidateTextPreprocessor(),
-            new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $entityManager),
+            new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $developerProfileRepository, $entityManager),
             new SemanticMatchingService($client),
             new EnrichedMatchingService(new CandidateSkillInferenceService($client), new SemanticMatchingService($client)),
             $skillRepository,
@@ -256,26 +263,17 @@ final class OfferMatchingServiceTest extends TestCase
         $this->setEntityId($low, 203);
 
         $client
-            ->expects(self::exactly(2))
+            ->expects(self::once())
             ->method('embedBatch')
             ->willReturnCallback(function (array $texts): array {
-                if (1 === count($texts)) {
-                    if (str_starts_with($texts[0], 'Headline: ')) {
-                        self::assertStringContainsString('Headline: Développeur React', $texts[0]);
+                self::assertCount(2, $texts);
+                self::assertSame('Développeur React React et communication', $texts[0]);
+                self::assertStringContainsString('Headline: Développeur React', $texts[1]);
 
-                        return [
-                            ['embedding' => [1.0, 0.0], 'dimension' => 64, 'normalizedText' => 'top'],
-                        ];
-                    }
-
-                    self::assertSame('Développeur React React et communication', $texts[0]);
-
-                    return [
-                        ['embedding' => [1.0, 0.0], 'dimension' => 64, 'normalizedText' => 'offer'],
-                    ];
-                }
-
-                self::fail('Unexpected embedBatch payload shape.');
+                return [
+                    ['embedding' => [1.0, 0.0], 'dimension' => 64, 'normalizedText' => 'offer'],
+                    ['embedding' => [1.0, 0.0], 'dimension' => 64, 'normalizedText' => 'top'],
+                ];
             });
 
         $client
@@ -317,6 +315,7 @@ final class OfferMatchingServiceTest extends TestCase
         $skillRepository = $this->createMock(SkillRepository::class);
         $technologyRepository = $this->createMock(TechnologyRepository::class);
         $positionRepository = $this->createMock(PositionRepository::class);
+        $developerProfileRepository = $this->createMock(DeveloperProfileRepository::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::never())->method('flush');
         $preprocessor = new CandidateTextPreprocessor();
@@ -326,7 +325,7 @@ final class OfferMatchingServiceTest extends TestCase
             new FairnessAuditor(),
             new CvAnonymizer(),
             $preprocessor,
-            new CandidateProfileEmbeddingService($client, $preprocessor, $entityManager),
+            new CandidateProfileEmbeddingService($client, $preprocessor, $developerProfileRepository, $entityManager),
             new SemanticMatchingService($client),
             new EnrichedMatchingService(new CandidateSkillInferenceService($client), new SemanticMatchingService($client)),
             $skillRepository,
@@ -378,6 +377,40 @@ final class OfferMatchingServiceTest extends TestCase
             ->setMatchingEmbeddingDimension(2)
             ->setMatchingEmbeddingTextHash(hash('sha256', $preprocessor->buildCandidateText($retrievalTop)))
             ->setMatchingEmbeddingUpdatedAt(new \DateTimeImmutable());
+
+        $developerProfileRepository
+            ->expects(self::exactly(2))
+            ->method('findStoredMatchingEmbeddingsByProfileIds')
+            ->willReturnCallback(function (array $profileIds) use ($baselineTop, $retrievalTop, $preprocessor): array {
+                sort($profileIds);
+
+                if ([301, 302] === $profileIds) {
+                    return [
+                        301 => [
+                            'embedding' => [0.0, 1.0],
+                            'dimension' => 2,
+                            'textHash' => hash('sha256', $preprocessor->buildCandidateText($baselineTop)),
+                        ],
+                        302 => [
+                            'embedding' => [1.0, 0.0],
+                            'dimension' => 2,
+                            'textHash' => hash('sha256', $preprocessor->buildCandidateText($retrievalTop)),
+                        ],
+                    ];
+                }
+
+                if ([302] === $profileIds) {
+                    return [
+                        302 => [
+                            'embedding' => [1.0, 0.0],
+                            'dimension' => 2,
+                            'textHash' => hash('sha256', $preprocessor->buildCandidateText($retrievalTop)),
+                        ],
+                    ];
+                }
+
+                self::fail('Unexpected profile ids for stored embedding lookup.');
+            });
 
         $client
             ->expects(self::exactly(2))
