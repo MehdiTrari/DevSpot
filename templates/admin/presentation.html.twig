@@ -1,4 +1,4 @@
-{#
+﻿{#
     admin/presentation.html.twig
     Support de présentation DevSpot pour soutenance.
 #}
@@ -233,23 +233,23 @@
                 <div class="grid gap-5 lg:grid-cols-3">
                     <div class="presentation-card rounded-[1.4rem] p-6">
                         <div class="presentation-number">01</div>
-                        <h3 class="mt-4 text-2xl font-extrabold">Technologique</h3>
+                        <h3 class="mt-4 text-2xl font-extrabold">Plateforme métier</h3>
                         <p class="presentation-muted mt-3 leading-relaxed">
-                            Dépasser la recherche par mots-clés avec un score de pertinence basé sur les compétences, les expériences et la proximité sémantique.
+                            Créer une application complète avec des parcours distincts pour candidats, recruteurs et administrateurs : profils, offres, favoris, messages, notifications et supervision.
                         </p>
                     </div>
                     <div class="presentation-card rounded-[1.4rem] p-6">
                         <div class="presentation-number">02</div>
-                        <h3 class="mt-4 text-2xl font-extrabold">Éthique</h3>
+                        <h3 class="mt-4 text-2xl font-extrabold">Matching et pertinence</h3>
                         <p class="presentation-muted mt-3 leading-relaxed">
-                            Réduire l’exposition initiale des données personnelles et recentrer l’évaluation sur le contenu professionnel du profil.
+                            Aider les recruteurs à identifier les profils les plus adaptés grâce aux compétences, à l’expérience et à la proximité sémantique.
                         </p>
                     </div>
                     <div class="presentation-card rounded-[1.4rem] p-6">
                         <div class="presentation-number">03</div>
-                        <h3 class="mt-4 text-2xl font-extrabold">Métier</h3>
+                        <h3 class="mt-4 text-2xl font-extrabold">Organisation et exploitation</h3>
                         <p class="presentation-muted mt-3 leading-relaxed">
-                            Donner aux recruteurs un vrai outil de suivi : offres, favoris, conversations, réponses, notifications et dashboard.
+                            Construire un projet maintenable : Docker, PostgreSQL, sécurité par rôles, CI/CD, documentation, tests et préparation au déploiement.
                         </p>
                     </div>
                 </div>
@@ -270,7 +270,7 @@
                         <div class="presentation-card rounded-xl p-5">
                             <p class="presentation-number">01</p>
                             <h3 class="mt-3 text-lg font-extrabold">Backlog et tickets</h3>
-                            <p class="presentation-muted mt-2 text-sm">Les fonctionnalités ont été suivies via les issues GitHub, puis découpées par parcours : candidat, recruteur, administrateur, temps réel et matching IA.</p>
+                            <p class="presentation-muted mt-2 text-sm">Les fonctionnalités ont été suivies via les issues GitHub.</p>
                         </div>
                         <div class="presentation-card rounded-xl p-5">
                             <p class="presentation-number">02</p>
@@ -305,7 +305,8 @@
                             Le travail était isolé par branches de fonctionnalité, puis regroupé dans une branche d'intégration avant stabilisation. Cela limite les régressions sur la branche principale.
                         </p>
                         <div class="mt-4 flex flex-wrap gap-2">
-                            <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">main</span>
+                            <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">prod</span>
+                            <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">preprod</span>
                             <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">develop</span>
                             <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">feature/*</span>
                             <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">fix/*</span>
@@ -317,10 +318,10 @@
                             Les commits suivent une convention visuelle pour comprendre rapidement l'intention : ajout de fonctionnalité, correction, style, documentation, tests ou refactor.
                         </p>
                         <div class="mt-4 grid gap-2 text-sm font-semibold">
-                            <p><span class="presentation-accent">feat</span> : nouvelle fonctionnalité</p>
-                            <p><span class="presentation-accent">fix</span> : correction ciblée</p>
-                            <p><span class="presentation-accent">docs</span> : documentation</p>
-                            <p><span class="presentation-accent">test</span> : couverture ou validation</p>
+                            <p><span class="presentation-accent">:sparkles:</span> : nouvelle fonctionnalité</p>
+                            <p><span class="presentation-accent">:bug:</span> : correction ciblée</p>
+                            <p><span class="presentation-accent">:memo:</span> : documentation</p>
+                            <p><span class="presentation-accent">:white_check_mark:</span> : couverture ou validation</p>
                         </div>
                     </div>
                     <div class="presentation-card rounded-[1.4rem] p-6">
@@ -336,8 +337,7 @@
                     </div>
                 </div>
                 <div class="presentation-panel mt-5 rounded-[1.5rem] p-6">
-                    <p class="presentation-kicker">Lecture pour la soutenance</p>
-                    <p class="presentation-muted mt-3 leading-relaxed">
+                    <p class="presentation-muted leading-relaxed">
                         Cette organisation montre que le projet n'a pas seulement été codé : il a été planifié avec des tickets GitHub, versionné, intégré et validé progressivement, avec des arbitrages visibles entre ambition fonctionnelle, temps disponible et stabilité technique.
                     </p>
                 </div>
@@ -357,7 +357,7 @@
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div class="presentation-card rounded-xl p-5">
                             <h3 class="text-lg font-extrabold">Candidat</h3>
-                            <p class="presentation-muted mt-2 text-sm">Création de profil, compétences, expériences, formations, avatar, visibilité et publication.</p>
+                            <p class="presentation-muted mt-2 text-sm">Création de profil, compétences, expériences, formations, visibilité et publication.</p>
                         </div>
                         <div class="presentation-card rounded-xl p-5">
                             <h3 class="text-lg font-extrabold">Recruteur</h3>
@@ -458,7 +458,7 @@
                     <div class="presentation-card rounded-xl p-5">
                         <p class="presentation-accent text-3xl font-black">1</p>
                         <p class="mt-2 font-bold">Démo complète</p>
-                        <p class="presentation-muted mt-1 text-sm">Un parcours exploitable de bout en bout pour la soutenance.</p>
+                        <p class="presentation-muted mt-1 text-sm">Un parcours exploitable de bout en bout.</p>
                     </div>
                 </div>
             </div>
@@ -498,6 +498,39 @@
                             <li>Quelques éléments UI et tickets d’administration/support ont été gardés en consolidation plutôt qu’en extension.</li>
                         </ul>
                     </div>
+                </div>
+            </div>
+        </article>
+
+        <article id="tickets-ouverts" class="presentation-slide">
+            <div class="w-full">
+                <div class="mb-6">
+                    <p class="presentation-kicker">Backlog restant</p>
+                    <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">Tickets ouverts et arbitrages assumés</h2>
+                </div>
+                <div class="grid gap-5 lg:grid-cols-[1fr_1fr]">
+                    <div class="presentation-card presentation-risk rounded-[1.4rem] p-6">
+                        <h3 class="presentation-warning-text text-xl font-extrabold">Issues GitHub non terminées</h3>
+                        <ul class="presentation-list presentation-warning-text mt-4 space-y-3 text-sm leading-relaxed">
+                            <li><strong>#126 - Bug</strong> : ticket encore ouvert, conservé dans le backlog de stabilisation.</li>
+                            <li><strong>#116 - US54</strong> : système de mails pour notifications, différé car les notifications internes couvrent déjà les usages prioritaires.</li>
+                            <li><strong>#113 - US51</strong> : relier offre et conversation, à vérifier pour renforcer le suivi recruteur/candidat.</li>
+                        </ul>
+                    </div>
+                    <div class="presentation-card presentation-bug rounded-[1.4rem] p-6">
+                        <h3 class="presentation-danger-text text-xl font-extrabold">Changement de cap produit</h3>
+                        <ul class="presentation-list presentation-danger-text mt-4 space-y-3 text-sm leading-relaxed">
+                            <li><strong>#56 - US28 Tri</strong> : l'idée initiale était une home publique avec tous les profils et des filtres pour les recruteurs.</li>
+                            <li>Avec le matching, cette approche est devenue moins pertinente : chaque rôle trouve plus de valeur dans son dashboard.</li>
+                            <li>Le site est donc davantage centré sur les utilisateurs connectés que sur une exploration publique anonyme.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="presentation-panel mt-5 rounded-[1.5rem] p-6">
+                    <p class="presentation-kicker">Perspective</p>
+                    <p class="presentation-muted mt-3 leading-relaxed">
+                        La logique d'annuaire n'est pas abandonnée : une piste future serait de permettre aux candidats de consulter d'autres profils candidats pour se comparer, situer leurs compétences et mieux comprendre leur positionnement sur le marché.
+                    </p>
                 </div>
             </div>
         </article>
