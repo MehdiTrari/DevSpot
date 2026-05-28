@@ -1,0 +1,525 @@
+﻿{#
+    admin/presentation.html.twig
+    Support de présentation DevSpot pour soutenance.
+#}
+{% extends 'base.html.twig' %}
+
+{% block title %}Présentation - DevSpot{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .presentation-deck {
+            color: var(--ui-text-primary);
+        }
+
+        .presentation-slide {
+            min-height: calc(100vh - 132px);
+            display: flex;
+            align-items: center;
+            scroll-margin-top: 116px;
+            padding: 3.5rem 0;
+        }
+
+        .presentation-panel {
+            width: 100%;
+            border: 1px solid var(--premium-hero-border);
+            background: var(--premium-hero-bg);
+            box-shadow: var(--premium-hero-shadow);
+            backdrop-filter: blur(22px);
+        }
+
+        .presentation-kicker {
+            color: var(--ui-link);
+            font-size: 0.76rem;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .presentation-title {
+            color: var(--ui-heading);
+            letter-spacing: 0;
+        }
+
+        .presentation-muted {
+            color: var(--ui-text-secondary);
+        }
+
+        .presentation-card {
+            border: 1px solid var(--premium-card-border);
+            background: var(--premium-card-bg);
+            box-shadow: var(--premium-section-shadow);
+        }
+
+        .presentation-stat {
+            border-left: 3px solid var(--ui-link);
+            background: var(--ui-info-bg);
+        }
+
+        .presentation-good {
+            border-color: var(--ui-success-border);
+            background: var(--ui-success-bg);
+        }
+
+        .presentation-risk {
+            border-color: var(--ui-warning-border);
+            background: var(--ui-warning-bg);
+        }
+
+        .presentation-bug {
+            border-color: var(--ui-danger-border);
+            background: var(--ui-danger-bg);
+        }
+
+        .presentation-chip {
+            border: 1px solid var(--ui-info-border);
+            background: var(--ui-info-bg);
+            color: var(--ui-info-text);
+        }
+
+        .presentation-list li {
+            position: relative;
+            padding-left: 1.05rem;
+        }
+
+        .presentation-list li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0.72em;
+            width: 0.38rem;
+            height: 0.38rem;
+            border-radius: 999px;
+            background: var(--ui-link);
+        }
+
+        .presentation-number {
+            color: color-mix(in srgb, var(--ui-link) 28%, transparent);
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 900;
+            line-height: 0.9;
+        }
+
+        .presentation-accent {
+            color: var(--ui-link);
+        }
+
+        .presentation-success-text {
+            color: var(--ui-success-text);
+        }
+
+        .presentation-warning-text {
+            color: var(--ui-warning-text);
+        }
+
+        .presentation-danger-text {
+            color: var(--ui-danger-text);
+        }
+
+        .presentation-controls {
+            position: fixed;
+            right: 1.25rem;
+            top: 50%;
+            z-index: 9999;
+            display: grid;
+            gap: 0.6rem;
+            transform: translateY(-50%);
+        }
+
+        .presentation-nav-button {
+            display: inline-flex;
+            height: 2.75rem;
+            width: 2.75rem;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            border: 1px solid var(--header-utility-border);
+            background: var(--header-utility-bg);
+            color: var(--header-link-text);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            transition: transform 0.18s ease, opacity 0.18s ease, background-color 0.18s ease;
+        }
+
+        .presentation-nav-button:hover {
+            transform: translateY(-1px);
+            background: var(--header-utility-hover-bg);
+        }
+
+        .presentation-nav-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.35;
+        }
+
+        @media (max-width: 768px) {
+            .presentation-slide {
+                min-height: auto;
+                padding: 2rem 0;
+                scroll-margin-top: 104px;
+            }
+
+            .presentation-nav-button {
+                display: inline-flex;
+            }
+
+            .presentation-controls {
+                right: 0.75rem;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block header %}
+    <div class="presentation-controls" aria-label="Navigation de la présentation">
+        <button type="button" class="presentation-nav-button" data-presentation-nav="prev" aria-label="Section précédente" title="Section précédente">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m18 15-6-6-6 6"/>
+            </svg>
+        </button>
+        <button type="button" class="presentation-nav-button" data-presentation-nav="next" aria-label="Section suivante" title="Section suivante">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m6 9 6 6 6-6"/>
+            </svg>
+        </button>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <section class="presentation-deck w-full space-y-8">
+        <article id="introduction" class="presentation-slide">
+            <div class="presentation-panel rounded-[2rem] p-6 sm:p-9 lg:p-12">
+                <div class="grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+                    <div>
+                        <p class="presentation-kicker">DevSpot</p>
+                        <h1 class="presentation-title mt-4 text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
+                            L’intelligence sémantique au service du recrutement équitable
+                        </h1>
+                        <div class="mt-8 flex flex-wrap gap-3">
+                            <span class="presentation-chip rounded-full px-4 py-2 text-sm font-bold">Symfony 7</span>
+                            <span class="presentation-chip rounded-full px-4 py-2 text-sm font-bold">FastAPI + CamemBERT</span>
+                            <span class="presentation-chip rounded-full px-4 py-2 text-sm font-bold">PostgreSQL</span>
+                            <span class="presentation-chip rounded-full px-4 py-2 text-sm font-bold">Mercure</span>
+                        </div>
+                    </div>
+                    <div class="presentation-card rounded-[1.5rem] p-6">
+                        <p class="presentation-kicker">Problématique</p>
+                        <p class="mt-4 text-2xl font-extrabold leading-snug">
+                            Comment concevoir une plateforme de recrutement tech capable d’améliorer la pertinence de l'appariement entre offres et profils développeurs, tout en limitant les biais liés au filtrage lexical et à l'exposition des données personnelles ?
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article id="objectifs" class="presentation-slide">
+            <div class="w-full">
+                <div class="mb-6">
+                    <p class="presentation-kicker">Objectifs initiaux</p>
+                    <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">Trois axes pour cadrer le projet</h2>
+                </div>
+                <div class="grid gap-5 lg:grid-cols-3">
+                    <div class="presentation-card rounded-[1.4rem] p-6">
+                        <div class="presentation-number">01</div>
+                        <h3 class="mt-4 text-2xl font-extrabold">Plateforme métier</h3>
+                        <p class="presentation-muted mt-3 leading-relaxed">
+                            Créer une application complète avec des parcours distincts pour candidats, recruteurs et administrateurs : profils, offres, favoris, messages, notifications et supervision.
+                        </p>
+                    </div>
+                    <div class="presentation-card rounded-[1.4rem] p-6">
+                        <div class="presentation-number">02</div>
+                        <h3 class="mt-4 text-2xl font-extrabold">Matching et pertinence</h3>
+                        <p class="presentation-muted mt-3 leading-relaxed">
+                            Aider les recruteurs à identifier les profils les plus adaptés grâce aux compétences, à l’expérience et à la proximité sémantique.
+                        </p>
+                    </div>
+                    <div class="presentation-card rounded-[1.4rem] p-6">
+                        <div class="presentation-number">03</div>
+                        <h3 class="mt-4 text-2xl font-extrabold">Organisation et exploitation</h3>
+                        <p class="presentation-muted mt-3 leading-relaxed">
+                            Construire un projet maintenable : Docker, PostgreSQL, sécurité par rôles, CI/CD, documentation, tests et préparation au déploiement.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article id="gestion-projet" class="presentation-slide">
+            <div class="presentation-panel rounded-[2rem] p-6 sm:p-9 lg:p-10">
+                <div class="grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
+                    <div>
+                        <p class="presentation-kicker">Gestion de projet</p>
+                        <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">Une organisation agile : méthode SCRUM</h2>
+                    </div>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="presentation-card rounded-xl p-5">
+                            <p class="presentation-number">01</p>
+                            <h3 class="mt-3 text-lg font-extrabold">Backlog et tickets</h3>
+                            <p class="presentation-muted mt-2 text-sm">Les fonctionnalités ont été suivies via les issues GitHub.</p>
+                        </div>
+                        <div class="presentation-card rounded-xl p-5">
+                            <p class="presentation-number">02</p>
+                            <h3 class="mt-3 text-lg font-extrabold">Sprints thématiques</h3>
+                            <p class="presentation-muted mt-2 text-sm">Chaque sprint visait un lot cohérent : fondations, offres, modération, messagerie, IA, puis stabilisation.</p>
+                        </div>
+                        <div class="presentation-card rounded-xl p-5">
+                            <p class="presentation-number">03</p>
+                            <h3 class="mt-3 text-lg font-extrabold">Revues régulières</h3>
+                            <p class="presentation-muted mt-2 text-sm">Les choix ont été ajustés selon les blocages réels : Mercure, Docker, performance du matching et parcours utilisateurs.</p>
+                        </div>
+                        <div class="presentation-card rounded-xl p-5">
+                            <p class="presentation-number">04</p>
+                            <h3 class="mt-3 text-lg font-extrabold">Définition du fini</h3>
+                            <p class="presentation-muted mt-2 text-sm">Une tâche était considérée terminée quand elle était codée, testée, intégrée à l'UI et documentée si nécessaire.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article id="workflow-git" class="presentation-slide">
+            <div class="w-full">
+                <div class="mb-6">
+                    <p class="presentation-kicker">Workflow de développement</p>
+                    <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">GitFlow, Gitmoji et contrôle qualité</h2>
+                </div>
+                <div class="grid gap-5 lg:grid-cols-3">
+                    <div class="presentation-card rounded-[1.4rem] p-6">
+                        <h3 class="text-xl font-extrabold">Branches GitFlow</h3>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">prod</span>
+                            <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">preprod</span>
+                            <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">develop</span>
+                            <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">feature/*</span>
+                            <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">fix/*</span>
+                        </div>
+                    </div>
+                    <div class="presentation-card rounded-[1.4rem] p-6">
+                        <h3 class="text-xl font-extrabold">Convention Gitmoji</h3>
+                        <div class="mt-4 grid gap-2 text-sm font-semibold">
+                            <p><span class="presentation-accent">:sparkles:</span> : nouvelle fonctionnalité</p>
+                            <p><span class="presentation-accent">:bug:</span> : correction ciblée</p>
+                            <p><span class="presentation-accent">:memo:</span> : documentation</p>
+                            <p><span class="presentation-accent">:white_check_mark:</span> : couverture ou validation</p>
+                        </div>
+                    </div>
+                    <div class="presentation-card rounded-[1.4rem] p-6">
+                        <h3 class="text-xl font-extrabold">Intégration continue</h3>
+                        <ul class="presentation-list presentation-muted mt-4 space-y-3 text-sm leading-relaxed">
+                            <li>Tests PHPUnit et parcours critiques.</li>
+                            <li>PHPStan et PHP CS Fixer pour la qualité PHP.</li>
+                            <li>Build Tailwind / AssetMapper pour éviter les régressions UI.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="presentation-panel mt-5 rounded-[1.5rem] p-6">
+                    <p class="presentation-muted leading-relaxed">
+                        Cette organisation montre que le projet n'a pas seulement été codé : il a été planifié avec des tickets GitHub, versionné, intégré et validé progressivement, avec des arbitrages visibles entre ambition fonctionnelle, temps disponible et stabilité technique.
+                    </p>
+                </div>
+            </div>
+        </article>
+
+        <article id="ia" class="presentation-slide">
+            <div class="w-full">
+                <div class="mb-6">
+                    <p class="presentation-kicker">Plateforme globale</p>
+                    <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">Un site organisé autour des parcours utilisateurs</h2>
+                </div>
+                <div class="grid gap-5 lg:grid-cols-3">
+                    <div class="presentation-card rounded-[1.4rem] p-6">
+                        <h3 class="text-xl font-extrabold">Côté candidat</h3>
+                        <p class="presentation-muted mt-3 leading-relaxed">
+                            Le candidat crée un profil complet, gère sa visibilité, valorise ses compétences et suit ses messages depuis son espace.
+                        </p>
+                    </div>
+                    <div class="presentation-card rounded-[1.4rem] p-6">
+                        <h3 class="text-xl font-extrabold">Côté recruteur</h3>
+                        <p class="presentation-muted mt-3 leading-relaxed">
+                            Le recruteur gère son entreprise, publie ses offres, consulte les profils, garde des favoris et suit ses conversations.
+                        </p>
+                    </div>
+                    <div class="presentation-card rounded-[1.4rem] p-6">
+                        <h3 class="text-xl font-extrabold">Côté administrateur</h3>
+                        <p class="presentation-muted mt-3 leading-relaxed">
+                            L’administrateur supervise les utilisateurs, les rôles, les statuts, les actions sensibles et les logs.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article id="realisation" class="presentation-slide">
+            <div class="presentation-panel rounded-[2rem] p-6 sm:p-9 lg:p-10">
+                <p class="presentation-kicker">Réalisation</p>
+                <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">Objectifs principaux atteints</h2>
+                <div class="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div class="presentation-card rounded-xl p-5">
+                        <p class="presentation-accent text-3xl font-black">5</p>
+                        <p class="mt-2 font-bold">Sprints couverts</p>
+                        <p class="presentation-muted mt-1 text-sm">Fondations, recruteur, admin, temps réel, IA et consolidation.</p>
+                    </div>
+                    <div class="presentation-card rounded-xl p-5">
+                        <p class="presentation-accent text-3xl font-black">3</p>
+                        <p class="mt-2 font-bold">Espaces rôles</p>
+                        <p class="presentation-muted mt-1 text-sm">Candidat, recruteur et administrateur avec parcours dédiés.</p>
+                    </div>
+                    <div class="presentation-card rounded-xl p-5">
+                        <p class="presentation-accent text-3xl font-black">4</p>
+                        <p class="mt-2 font-bold">Services structurants</p>
+                        <p class="presentation-muted mt-1 text-sm">Symfony, PostgreSQL, Mercure, FastAPI / CamemBERT.</p>
+                    </div>
+                    <div class="presentation-card rounded-xl p-5">
+                        <p class="presentation-accent text-3xl font-black">1</p>
+                        <p class="mt-2 font-bold">Démo complète</p>
+                        <p class="presentation-muted mt-1 text-sm">Un parcours exploitable de bout en bout.</p>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article id="divergences" class="presentation-slide">
+            <div class="w-full">
+                <div class="mb-6">
+                    <p class="presentation-kicker">Divergences</p>
+                    <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">Ce qui a évolué par rapport au cadrage initial</h2>
+                </div>
+                <div class="grid gap-5 lg:grid-cols-3">
+                    <div class="presentation-card presentation-good rounded-[1.4rem] p-6">
+                        <h3 class="presentation-success-text text-xl font-extrabold">Positives</h3>
+                        <ul class="presentation-list presentation-success-text mt-4 space-y-3 text-sm leading-relaxed">
+                            <li>Socle fonctionnel plus large que le MVP : messagerie, notifications, logs, dashboards et administration.</li>
+                            <li>Architecture mieux préparée : Docker, Caddy local, cible production, MkDocs et documentation technique.</li>
+                            <li>Matching plus riche que prévu : baseline, CamemBERT, score enrichi.</li>
+                        </ul>
+                    </div>
+                    <div class="presentation-card presentation-risk rounded-[1.4rem] p-6">
+                        <h3 class="presentation-warning-text text-xl font-extrabold">Négatives ou partielles</h3>
+                        <ul class="presentation-list presentation-warning-text mt-4 space-y-3 text-sm leading-relaxed">
+                            <li>Au départ : home = profils avec des tris et filtres pour les recruteurs.</li>
+                            <li>Avec matching : moins cohérent.</li>
+                            <li>L’import automatique de CV, la fairness multi-axes et certaines statistiques avancées restent des perspectives.</li>
+                        </ul>
+                    </div>
+                    <div class="presentation-card presentation-bug rounded-[1.4rem] p-6">
+                        <h3 class="presentation-danger-text text-xl font-extrabold">Bugs et difficultés</h3>
+                        <ul class="presentation-list presentation-danger-text mt-4 space-y-3 text-sm leading-relaxed">
+                            <li>Le temps réel a nécessité des ajustements pour éviter les doubles écoutes et garder les conversations stables.</li>
+                            <li>Le matching IA a demandé des optimisations notamment du cache d’embeddings et des garde-fous contre les timeouts.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article id="conclusion" class="presentation-slide">
+            <div class="presentation-panel rounded-[2rem] p-6 sm:p-9 lg:p-12">
+                <div class="mx-auto max-w-4xl text-center">
+                    <p class="presentation-kicker">Conclusion</p>
+                    <h2 class="presentation-title mt-3 text-4xl font-black leading-tight sm:text-5xl">
+                        DevSpot
+                    </h2>
+                    <p class="presentation-muted mt-6 text-lg leading-relaxed">
+                        Le projet répond aux objectifs principaux : une plateforme de recrutement tech complète, un matching sémantique exploitable, une prise en compte de l’équité, des parcours par rôle et une architecture documentée.
+                    </p>
+                    <div class="mt-8 grid gap-4 text-left sm:grid-cols-3">
+                        <div class="presentation-card rounded-xl p-5">
+                            <h3 class="font-extrabold">Ce qui marche</h3>
+                            <p class="presentation-muted mt-2 text-sm">Parcours complets, messagerie, dashboards, IA et admin.</p>
+                        </div>
+                        <div class="presentation-card rounded-xl p-5">
+                            <h3 class="font-extrabold">Ce qui a été appris</h3>
+                            <p class="presentation-muted mt-2 text-sm">Temps réel, architecture multi-services, évaluation IA et arbitrages produit.</p>
+                        </div>
+                        <div class="presentation-card rounded-xl p-5">
+                            <h3 class="font-extrabold">Ce qui vient après</h3>
+                            <p class="presentation-muted mt-2 text-sm">CV import, fairness plus large, stats recruteur et évaluation sur données plus grandes.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </section>
+
+    <script>
+        (() => {
+            const initPresentationNavigation = () => {
+                const slides = Array.from(document.querySelectorAll('.presentation-slide'));
+                const prevButton = document.querySelector('[data-presentation-nav="prev"]');
+                const nextButton = document.querySelector('[data-presentation-nav="next"]');
+
+                if (!slides.length || !prevButton || !nextButton) {
+                    return;
+                }
+
+                const getSlideTop = (slide) => window.scrollY + slide.getBoundingClientRect().top;
+
+                const getCurrentIndex = () => {
+                    const viewportCenter = window.innerHeight / 2;
+                    let closestIndex = 0;
+                    let closestDistance = Number.POSITIVE_INFINITY;
+
+                    slides.forEach((slide, index) => {
+                        const rect = slide.getBoundingClientRect();
+                        const slideCenter = rect.top + rect.height / 2;
+                        const distance = Math.abs(slideCenter - viewportCenter);
+
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            closestIndex = index;
+                        }
+                    });
+
+                    return closestIndex;
+                };
+
+                const getNextIndex = (direction) => {
+                    return Math.max(0, Math.min(slides.length - 1, getCurrentIndex() + direction));
+                };
+
+                const centerSlide = (slide) => {
+                    const rect = slide.getBoundingClientRect();
+                    const targetTop = window.scrollY + rect.top - ((window.innerHeight - rect.height) / 2);
+
+                    window.scrollTo({
+                        top: Math.max(0, targetTop),
+                        behavior: 'smooth',
+                    });
+
+                    if (slide.id) {
+                        window.history.replaceState(null, '', `#${slide.id}`);
+                    }
+                };
+
+                const updateButtons = () => {
+                    const index = getCurrentIndex();
+                    prevButton.disabled = index <= 0;
+                    nextButton.disabled = index >= slides.length - 1;
+                };
+
+                const goToSlide = (direction) => {
+                    const nextIndex = getNextIndex(direction);
+                    centerSlide(slides[nextIndex]);
+                    window.setTimeout(updateButtons, 450);
+                };
+
+                if (prevButton.dataset.presentationNavInitialized !== 'true') {
+                    prevButton.dataset.presentationNavInitialized = 'true';
+                    prevButton.addEventListener('click', () => goToSlide(-1));
+                }
+
+                if (nextButton.dataset.presentationNavInitialized !== 'true') {
+                    nextButton.dataset.presentationNavInitialized = 'true';
+                    nextButton.addEventListener('click', () => goToSlide(1));
+                }
+
+                window.addEventListener('scroll', updateButtons, {passive: true});
+                window.addEventListener('resize', updateButtons);
+                updateButtons();
+            };
+
+            document.addEventListener('DOMContentLoaded', initPresentationNavigation);
+            document.addEventListener('turbo:load', initPresentationNavigation);
+            initPresentationNavigation();
+        })();
+    </script>
+{% endblock %}

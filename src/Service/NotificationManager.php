@@ -428,6 +428,64 @@ final class NotificationManager
         );
     }
 
+    public function notifyAdminsSensitiveUserAction(
+        User $adminUser,
+        string $actionLabel,
+        \DateTimeImmutable $occurredAt,
+        ?User $targetUser = null,
+        ?string $targetLabel = null,
+        ?string $link = null,
+    ): bool {
+        $admins = $this->userRepository->findAdmins();
+        if ([] === $admins) {
+            return false;
+        }
+
+        $resolvedTargetLabel = $targetLabel;
+        if ((null === $resolvedTargetLabel || '' === trim($resolvedTargetLabel)) && $targetUser instanceof User) {
+            $resolvedTargetLabel = $this->resolveUserDisplayName($targetUser);
+        }
+
+        if (null === $resolvedTargetLabel || '' === trim($resolvedTargetLabel)) {
+            $resolvedTargetLabel = 'Utilisateur inconnu';
+        }
+
+        $adminLabel = $this->resolveUserDisplayName($adminUser);
+        $content = sprintf(
+            'Action sensible : %s. Utilisateur concerné : %s. Administrateur : %s. Date : %s.',
+            $actionLabel,
+            $resolvedTargetLabel,
+            $adminLabel,
+            $occurredAt->format('d/m/Y H:i')
+        );
+
+        $created = false;
+        $seenAdminIds = [];
+        foreach ($admins as $admin) {
+            $adminId = $admin->getId();
+            if (null !== $adminId && isset($seenAdminIds[$adminId])) {
+                continue;
+            }
+
+            if (null !== $adminId) {
+                $seenAdminIds[$adminId] = true;
+            }
+
+            $this->createNotification(
+                $admin,
+                NotificationType::ADMIN_SENSITIVE_ACTION,
+                'Action sensible administrateur',
+                $content,
+                $link,
+                $adminUser,
+                $adminLabel
+            );
+            $created = true;
+        }
+
+        return $created;
+    }
+
     /**
      * @param iterable<User> $targetUsers
      */
