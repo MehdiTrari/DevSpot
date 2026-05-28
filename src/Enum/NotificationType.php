@@ -45,6 +45,7 @@ enum NotificationType: string
     case CONTENT_REPORTED = 'content_reported';
     case SUPPORT_REQUEST = 'support_request';
     case ADMIN_MESSAGE = 'admin_message';
+    case ADMIN_SENSITIVE_ACTION = 'admin_sensitive_action';
 
     // =========================
     // JOB OFFERS (si utilisé)
