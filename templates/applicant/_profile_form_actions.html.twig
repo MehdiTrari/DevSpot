@@ -86,15 +86,15 @@
     }
 
     .dashboard-actions-primary {
-        border-color: rgba(16, 185, 129, 0.52);
-        background: #10b981;
-        color: #022c22;
-        box-shadow: 0 12px 26px rgba(16, 185, 129, 0.2);
+        border-color: var(--ui-button-primary-bg);
+        background: var(--ui-button-primary-bg);
+        color: var(--ui-button-primary-text);
+        box-shadow: var(--premium-section-shadow);
     }
 
     .dashboard-actions-primary:hover {
-        background: #34d399;
-        border-color: rgba(52, 211, 153, 0.56);
+        background: var(--ui-button-primary-hover);
+        border-color: var(--ui-button-primary-hover);
     }
 
     .dashboard-actions-next-success {
@@ -118,7 +118,7 @@
     }
 
     [data-dashboard-exit-overlay="{{ dialog_id }}"] {
-        background: rgba(var(--indeed-shadow-rgb), 0.28);
+        background: color-mix(in srgb, var(--indeed-bg) 72%, transparent);
         backdrop-filter: blur(4px);
     }
 
@@ -148,9 +148,6 @@
         color: var(--ui-heading);
     }
 
-    :root[data-theme="dark"] [data-dashboard-exit-overlay="{{ dialog_id }}"] {
-        background: rgba(4, 8, 15, 0.72);
-    }
 </style>
 
 <script>
