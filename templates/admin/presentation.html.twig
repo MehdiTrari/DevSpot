@@ -1,10 +1,10 @@
 {#
     admin/presentation.html.twig
-    Support de presentation DevSpot pour soutenance.
+    Support de présentation DevSpot pour soutenance.
 #}
 {% extends 'base.html.twig' %}
 
-{% block title %}Presentation - DevSpot{% endblock %}
+{% block title %}Présentation - DevSpot{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -170,8 +170,8 @@
 {% endblock %}
 
 {% block header %}
-    <div class="presentation-controls" aria-label="Navigation de la presentation">
-        <button type="button" class="presentation-nav-button" data-presentation-nav="prev" aria-label="Section precedente" title="Section precedente">
+    <div class="presentation-controls" aria-label="Navigation de la présentation">
+        <button type="button" class="presentation-nav-button" data-presentation-nav="prev" aria-label="Section précédente" title="Section précédente">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="m18 15-6-6-6 6"/>
             </svg>
@@ -252,6 +252,94 @@
                             Donner aux recruteurs un vrai outil de suivi : offres, favoris, conversations, réponses, notifications et dashboard.
                         </p>
                     </div>
+                </div>
+            </div>
+        </article>
+
+        <article id="gestion-projet" class="presentation-slide">
+            <div class="presentation-panel rounded-[2rem] p-6 sm:p-9 lg:p-10">
+                <div class="grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
+                    <div>
+                        <p class="presentation-kicker">Gestion de projet</p>
+                        <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">Une organisation agile par incréments</h2>
+                        <p class="presentation-muted mt-5 leading-relaxed">
+                            Le projet a été piloté en cycles courts pour livrer progressivement un produit utilisable : cadrage, développement, tests, correction, documentation puis consolidation.
+                        </p>
+                    </div>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="presentation-card rounded-xl p-5">
+                            <p class="presentation-number">01</p>
+                            <h3 class="mt-3 text-lg font-extrabold">Backlog et tickets</h3>
+                            <p class="presentation-muted mt-2 text-sm">Les fonctionnalités ont été suivies via les issues GitHub, puis découpées par parcours : candidat, recruteur, administrateur, temps réel et matching IA.</p>
+                        </div>
+                        <div class="presentation-card rounded-xl p-5">
+                            <p class="presentation-number">02</p>
+                            <h3 class="mt-3 text-lg font-extrabold">Sprints thématiques</h3>
+                            <p class="presentation-muted mt-2 text-sm">Chaque sprint visait un lot cohérent : fondations, offres, modération, messagerie, IA, puis stabilisation.</p>
+                        </div>
+                        <div class="presentation-card rounded-xl p-5">
+                            <p class="presentation-number">03</p>
+                            <h3 class="mt-3 text-lg font-extrabold">Revues régulières</h3>
+                            <p class="presentation-muted mt-2 text-sm">Les choix ont été ajustés selon les blocages réels : Mercure, Docker, performance du matching et parcours utilisateurs.</p>
+                        </div>
+                        <div class="presentation-card rounded-xl p-5">
+                            <p class="presentation-number">04</p>
+                            <h3 class="mt-3 text-lg font-extrabold">Définition du fini</h3>
+                            <p class="presentation-muted mt-2 text-sm">Une tâche était considérée terminée quand elle était codée, testée, intégrée à l'UI et documentée si nécessaire.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+        <article id="workflow-git" class="presentation-slide">
+            <div class="w-full">
+                <div class="mb-6">
+                    <p class="presentation-kicker">Workflow de développement</p>
+                    <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">GitFlow, Gitmoji et contrôle qualité</h2>
+                </div>
+                <div class="grid gap-5 lg:grid-cols-3">
+                    <div class="presentation-card rounded-[1.4rem] p-6">
+                        <h3 class="text-xl font-extrabold">Branches GitFlow</h3>
+                        <p class="presentation-muted mt-3 leading-relaxed">
+                            Le travail était isolé par branches de fonctionnalité, puis regroupé dans une branche d'intégration avant stabilisation. Cela limite les régressions sur la branche principale.
+                        </p>
+                        <div class="mt-4 flex flex-wrap gap-2">
+                            <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">main</span>
+                            <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">develop</span>
+                            <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">feature/*</span>
+                            <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">fix/*</span>
+                        </div>
+                    </div>
+                    <div class="presentation-card rounded-[1.4rem] p-6">
+                        <h3 class="text-xl font-extrabold">Convention Gitmoji</h3>
+                        <p class="presentation-muted mt-3 leading-relaxed">
+                            Les commits suivent une convention visuelle pour comprendre rapidement l'intention : ajout de fonctionnalité, correction, style, documentation, tests ou refactor.
+                        </p>
+                        <div class="mt-4 grid gap-2 text-sm font-semibold">
+                            <p><span class="presentation-accent">feat</span> : nouvelle fonctionnalité</p>
+                            <p><span class="presentation-accent">fix</span> : correction ciblée</p>
+                            <p><span class="presentation-accent">docs</span> : documentation</p>
+                            <p><span class="presentation-accent">test</span> : couverture ou validation</p>
+                        </div>
+                    </div>
+                    <div class="presentation-card rounded-[1.4rem] p-6">
+                        <h3 class="text-xl font-extrabold">Intégration continue</h3>
+                        <p class="presentation-muted mt-3 leading-relaxed">
+                            Avant de considérer une évolution stable, le projet passe par les contrôles de qualité : syntaxe, tests applicatifs, analyse statique, front compilé et documentation.
+                        </p>
+                        <ul class="presentation-list presentation-muted mt-4 space-y-3 text-sm leading-relaxed">
+                            <li>Tests PHPUnit et parcours critiques.</li>
+                            <li>PHPStan et PHP CS Fixer pour la qualité PHP.</li>
+                            <li>Build Tailwind / AssetMapper pour éviter les régressions UI.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="presentation-panel mt-5 rounded-[1.5rem] p-6">
+                    <p class="presentation-kicker">Lecture pour la soutenance</p>
+                    <p class="presentation-muted mt-3 leading-relaxed">
+                        Cette organisation montre que le projet n'a pas seulement été codé : il a été planifié avec des tickets GitHub, versionné, intégré et validé progressivement, avec des arbitrages visibles entre ambition fonctionnelle, temps disponible et stabilité technique.
+                    </p>
                 </div>
             </div>
         </article>
