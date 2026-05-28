@@ -10,7 +10,7 @@
     {{ parent() }}
     <style>
         .presentation-deck {
-            color: #10213f;
+            color: var(--ui-text-primary);
         }
 
         .presentation-slide {
@@ -23,14 +23,14 @@
 
         .presentation-panel {
             width: 100%;
-            border: 1px solid rgba(37, 87, 214, 0.16);
-            background: rgba(255, 255, 255, 0.78);
-            box-shadow: 0 24px 80px rgba(37, 87, 214, 0.10);
+            border: 1px solid var(--premium-hero-border);
+            background: var(--premium-hero-bg);
+            box-shadow: var(--premium-hero-shadow);
             backdrop-filter: blur(22px);
         }
 
         .presentation-kicker {
-            color: #2557d6;
+            color: var(--ui-link);
             font-size: 0.76rem;
             font-weight: 800;
             letter-spacing: 0.16em;
@@ -38,44 +38,44 @@
         }
 
         .presentation-title {
-            color: #10213f;
+            color: var(--ui-heading);
             letter-spacing: 0;
         }
 
         .presentation-muted {
-            color: rgba(16, 33, 63, 0.70);
+            color: var(--ui-text-secondary);
         }
 
         .presentation-card {
-            border: 1px solid rgba(37, 87, 214, 0.14);
-            background: rgba(255, 255, 255, 0.72);
-            box-shadow: 0 16px 48px rgba(37, 87, 214, 0.08);
+            border: 1px solid var(--premium-card-border);
+            background: var(--premium-card-bg);
+            box-shadow: var(--premium-section-shadow);
         }
 
         .presentation-stat {
-            border-left: 3px solid #2557d6;
-            background: rgba(37, 87, 214, 0.07);
+            border-left: 3px solid var(--ui-link);
+            background: var(--ui-info-bg);
         }
 
         .presentation-good {
-            border-color: rgba(16, 185, 129, 0.26);
-            background: rgba(236, 253, 245, 0.76);
+            border-color: var(--ui-success-border);
+            background: var(--ui-success-bg);
         }
 
         .presentation-risk {
-            border-color: rgba(245, 158, 11, 0.30);
-            background: rgba(255, 251, 235, 0.78);
+            border-color: var(--ui-warning-border);
+            background: var(--ui-warning-bg);
         }
 
         .presentation-bug {
-            border-color: rgba(239, 68, 68, 0.24);
-            background: rgba(254, 242, 242, 0.78);
+            border-color: var(--ui-danger-border);
+            background: var(--ui-danger-bg);
         }
 
         .presentation-chip {
-            border: 1px solid rgba(37, 87, 214, 0.16);
-            background: rgba(37, 87, 214, 0.07);
-            color: #1f469c;
+            border: 1px solid var(--ui-info-border);
+            background: var(--ui-info-bg);
+            color: var(--ui-info-text);
         }
 
         .presentation-list li {
@@ -91,14 +91,30 @@
             width: 0.38rem;
             height: 0.38rem;
             border-radius: 999px;
-            background: #2557d6;
+            background: var(--ui-link);
         }
 
         .presentation-number {
-            color: rgba(37, 87, 214, 0.16);
+            color: color-mix(in srgb, var(--ui-link) 28%, transparent);
             font-size: clamp(3rem, 8vw, 6rem);
             font-weight: 900;
             line-height: 0.9;
+        }
+
+        .presentation-accent {
+            color: var(--ui-link);
+        }
+
+        .presentation-success-text {
+            color: var(--ui-success-text);
+        }
+
+        .presentation-warning-text {
+            color: var(--ui-warning-text);
+        }
+
+        .presentation-danger-text {
+            color: var(--ui-danger-text);
         }
 
         .presentation-controls {
@@ -127,7 +143,7 @@
 
         .presentation-nav-button:hover {
             transform: translateY(-1px);
-            background: rgba(255, 255, 255, 0.94);
+            background: var(--header-utility-hover-bg);
         }
 
         .presentation-nav-button:disabled {
@@ -195,11 +211,11 @@
                         </p>
                         <div class="mt-6 grid gap-3">
                             <div class="presentation-stat rounded-xl p-4">
-                                <p class="text-sm font-bold text-[#2557d6]">Constat</p>
+                                <p class="presentation-accent text-sm font-bold">Constat</p>
                                 <p class="presentation-muted mt-1 text-sm">Les CV et offres ne parlent pas toujours avec les mêmes mots.</p>
                             </div>
                             <div class="presentation-stat rounded-xl p-4">
-                                <p class="text-sm font-bold text-[#2557d6]">Enjeu</p>
+                                <p class="presentation-accent text-sm font-bold">Enjeu</p>
                                 <p class="presentation-muted mt-1 text-sm">Ne pas laisser les biais ou les parcours atypiques fausser la première évaluation.</p>
                             </div>
                         </div>
@@ -337,22 +353,22 @@
                 <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">Objectifs principaux atteints</h2>
                 <div class="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div class="presentation-card rounded-xl p-5">
-                        <p class="text-3xl font-black text-[#2557d6]">5</p>
+                        <p class="presentation-accent text-3xl font-black">5</p>
                         <p class="mt-2 font-bold">Sprints couverts</p>
                         <p class="presentation-muted mt-1 text-sm">Fondations, recruteur, admin, temps réel, IA et consolidation.</p>
                     </div>
                     <div class="presentation-card rounded-xl p-5">
-                        <p class="text-3xl font-black text-[#2557d6]">3</p>
+                        <p class="presentation-accent text-3xl font-black">3</p>
                         <p class="mt-2 font-bold">Espaces rôles</p>
                         <p class="presentation-muted mt-1 text-sm">Candidat, recruteur et administrateur avec parcours dédiés.</p>
                     </div>
                     <div class="presentation-card rounded-xl p-5">
-                        <p class="text-3xl font-black text-[#2557d6]">4</p>
+                        <p class="presentation-accent text-3xl font-black">4</p>
                         <p class="mt-2 font-bold">Services structurants</p>
                         <p class="presentation-muted mt-1 text-sm">Symfony, PostgreSQL, Mercure, FastAPI / CamemBERT.</p>
                     </div>
                     <div class="presentation-card rounded-xl p-5">
-                        <p class="text-3xl font-black text-[#2557d6]">1</p>
+                        <p class="presentation-accent text-3xl font-black">1</p>
                         <p class="mt-2 font-bold">Démo complète</p>
                         <p class="presentation-muted mt-1 text-sm">Un parcours exploitable de bout en bout pour la soutenance.</p>
                     </div>
@@ -368,8 +384,8 @@
                 </div>
                 <div class="grid gap-5 lg:grid-cols-3">
                     <div class="presentation-card presentation-good rounded-[1.4rem] p-6">
-                        <h3 class="text-xl font-extrabold text-emerald-800">Positives</h3>
-                        <ul class="presentation-list mt-4 space-y-3 text-sm leading-relaxed text-emerald-950">
+                        <h3 class="presentation-success-text text-xl font-extrabold">Positives</h3>
+                        <ul class="presentation-list presentation-success-text mt-4 space-y-3 text-sm leading-relaxed">
                             <li>Socle fonctionnel plus large que le MVP : messagerie, notifications, logs, dashboards et administration.</li>
                             <li>Architecture mieux préparée : Docker, Caddy local, cible production, MkDocs et documentation technique.</li>
                             <li>Matching plus riche que prévu : baseline, CamemBERT, score enrichi, compétences implicites et audit junior.</li>
@@ -377,8 +393,8 @@
                         </ul>
                     </div>
                     <div class="presentation-card presentation-risk rounded-[1.4rem] p-6">
-                        <h3 class="text-xl font-extrabold text-amber-800">Négatives ou partielles</h3>
-                        <ul class="presentation-list mt-4 space-y-3 text-sm leading-relaxed text-amber-950">
+                        <h3 class="presentation-warning-text text-xl font-extrabold">Négatives ou partielles</h3>
+                        <ul class="presentation-list presentation-warning-text mt-4 space-y-3 text-sm leading-relaxed">
                             <li>Au départ, la home devait surtout afficher les profils avec des tris et filtres pour les recruteurs.</li>
                             <li>Avec le matching, ce modèle est devenu moins cohérent : chaque rôle a maintenant plus de valeur dans son dashboard.</li>
                             <li>Le site est donc moins orienté visiteur non connecté et plus centré sur les parcours authentifiés.</li>
@@ -386,8 +402,8 @@
                         </ul>
                     </div>
                     <div class="presentation-card presentation-bug rounded-[1.4rem] p-6">
-                        <h3 class="text-xl font-extrabold text-red-800">Bugs et difficultés</h3>
-                        <ul class="presentation-list mt-4 space-y-3 text-sm leading-relaxed text-red-950">
+                        <h3 class="presentation-danger-text text-xl font-extrabold">Bugs et difficultés</h3>
+                        <ul class="presentation-list presentation-danger-text mt-4 space-y-3 text-sm leading-relaxed">
                             <li>Mercure a été un vrai point dur : URLs publiques/internes, Caddy, topics, authentification et compatibilité locale.</li>
                             <li>Le temps réel a nécessité des ajustements pour éviter les doubles écoutes et garder les conversations stables.</li>
                             <li>Le matching IA a demandé des optimisations top-k, du cache d’embeddings et des garde-fous contre les timeouts.</li>
@@ -524,10 +540,6 @@
                 };
 
                 const getNextIndex = (direction) => {
-                    if (direction > 0 && window.scrollY < getSlideTop(slides[0]) - 8) {
-                        return 0;
-                    }
-
                     return Math.max(0, Math.min(slides.length - 1, getCurrentIndex() + direction));
                 };
 
@@ -548,7 +560,7 @@
                 const updateButtons = () => {
                     const index = getCurrentIndex();
                     prevButton.disabled = index <= 0;
-                    nextButton.disabled = index >= slides.length - 1 && window.scrollY >= getSlideTop(slides[0]) - 8;
+                    nextButton.disabled = index >= slides.length - 1;
                 };
 
                 const goToSlide = (direction) => {
