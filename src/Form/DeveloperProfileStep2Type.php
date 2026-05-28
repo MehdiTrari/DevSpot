@@ -7,6 +7,8 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Count;
+use Symfony\Component\Validator\Constraints\Valid;
 
 class DeveloperProfileStep2Type extends AbstractType
 {
@@ -19,8 +21,12 @@ class DeveloperProfileStep2Type extends AbstractType
                 'allow_add' => true,
                 'allow_delete' => true,
                 'by_reference' => false,
-                'required' => false,
+                'required' => true,
                 'prototype' => true,
+                'constraints' => [
+                    new Count(min: 1, minMessage: 'Ajoute au moins une competence.'),
+                    new Valid(),
+                ],
             ])
             ->add('experiences', CollectionType::class, [
                 'entry_type' => ExperienceType::class,
@@ -28,8 +34,12 @@ class DeveloperProfileStep2Type extends AbstractType
                 'allow_add' => true,
                 'allow_delete' => true,
                 'by_reference' => false,
-                'required' => false,
+                'required' => true,
                 'prototype' => true,
+                'constraints' => [
+                    new Count(min: 1, minMessage: 'Ajoute au moins une experience.'),
+                    new Valid(),
+                ],
             ])
             ->add('education', CollectionType::class, [
                 'entry_type' => EducationType::class,
@@ -37,8 +47,12 @@ class DeveloperProfileStep2Type extends AbstractType
                 'allow_add' => true,
                 'allow_delete' => true,
                 'by_reference' => false,
-                'required' => false,
+                'required' => true,
                 'prototype' => true,
+                'constraints' => [
+                    new Count(min: 1, minMessage: 'Ajoute au moins une formation.'),
+                    new Valid(),
+                ],
             ])
         ;
     }

@@ -66,6 +66,46 @@ final class ApplicantProfileFlowTest extends WebTestCase
         self::assertNotEmpty($profile->getSlug());
     }
 
+    public function testApplicantCannotCreateDeveloperProfileWithoutPresentation(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('profile_no_bio_%s@example.com', bin2hex(random_bytes(8)));
+        $password = 'password123';
+        $this->createUserWithStatus($email, $password, UserStatus::ACTIVE, ['ROLE_APPLICANT']);
+
+        $crawler = $client->request('GET', '/login');
+        $client->submit($crawler->selectButton('Se connecter')->form([
+            'email' => $email,
+            'password' => $password,
+        ]));
+        self::assertResponseRedirects('/applicant/dashboard');
+        $client->followRedirect();
+
+        $crawler = $client->request('GET', '/applicant/profile/create');
+        self::assertResponseIsSuccessful();
+
+        $client->submit($crawler->selectButton('Étape suivante')->form([
+            'developer_profile[firstName]' => 'Mylene',
+            'developer_profile[lastName]' => 'Martin',
+            'developer_profile[headline]' => 'Developpeuse Symfony',
+            'developer_profile[bio]' => '',
+            'developer_profile[city]' => 'Lyon',
+            'developer_profile[country]' => 'France',
+            'developer_profile[locationType]' => 'remote',
+            'developer_profile[experienceLevel]' => 'junior',
+            'developer_profile[yearsExperience]' => '2',
+        ]));
+
+        self::assertResponseStatusCodeSame(422);
+        self::assertSelectorTextContains('body', 'La presentation est obligatoire.');
+
+        /** @var DeveloperProfileRepository $profiles */
+        $profiles = static::getContainer()->get(DeveloperProfileRepository::class);
+        $profile = $profiles->findOneBy(['user' => static::getContainer()->get(UserRepository::class)->findOneBy(['email' => $email])]);
+
+        self::assertNull($profile);
+    }
+
     public function testApplicantCanCreateDeveloperProfileWithAvatarUpload(): void
     {
         $client = static::createClient();

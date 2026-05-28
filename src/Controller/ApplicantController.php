@@ -396,6 +396,13 @@ final class ApplicantController extends AbstractController
             return $this->redirectToRoute('app_applicant_profile_create');
         }
 
+        $checklist = $this->buildChecklist($profile);
+        if (!$checklist['step1']['done']) {
+            $this->addFlash('info', 'Complete d\'abord l\'etape 1 avant de passer a l\'etape 2.');
+
+            return $this->redirectToRoute('app_applicant_profile_step1');
+        }
+
         $form = $this->createForm(DeveloperProfileStep2Type::class, $profile);
         $form->handleRequest($request);
 
@@ -436,7 +443,13 @@ final class ApplicantController extends AbstractController
         }
 
         $checklist = $this->buildChecklist($profile);
-        if (!$checklist['step2']['done'] && !$checklist['step3']['done'] && !$checklist['step4']['done']) {
+        if (!$checklist['step1']['done']) {
+            $this->addFlash('info', 'Complete d\'abord l\'etape 1 avant de passer a l\'etape 3.');
+
+            return $this->redirectToRoute('app_applicant_profile_step1');
+        }
+
+        if (!$checklist['step2']['done']) {
             $this->addFlash('info', 'Impossible de passer à l\'étape 3 : il faut au moins une compétence et une formation.');
 
             return $this->redirectToRoute('app_applicant_profile_step2');
@@ -479,6 +492,25 @@ final class ApplicantController extends AbstractController
         $profile = $this->getApplicantUser()->getDeveloperProfile();
         if (!$profile instanceof DeveloperProfile) {
             return $this->redirectToRoute('app_applicant_profile_create');
+        }
+
+        $checklist = $this->buildChecklist($profile);
+        if (!$checklist['step1']['done']) {
+            $this->addFlash('info', 'Complete d\'abord l\'etape 1 avant de passer a l\'etape 4.');
+
+            return $this->redirectToRoute('app_applicant_profile_step1');
+        }
+
+        if (!$checklist['step2']['done']) {
+            $this->addFlash('info', 'Complete d\'abord l\'etape 2 avant de passer a l\'etape 4.');
+
+            return $this->redirectToRoute('app_applicant_profile_step2');
+        }
+
+        if (!$checklist['step3']['done']) {
+            $this->addFlash('info', 'Complete d\'abord l\'etape 3 avant de passer a l\'etape 4.');
+
+            return $this->redirectToRoute('app_applicant_profile_step3');
         }
 
         $form = $this->createForm(DeveloperProfileStep4Type::class, $profile);
@@ -1304,12 +1336,13 @@ final class ApplicantController extends AbstractController
 
             $step2Done =
                 $profile->getEducation()->count() > 0
+                && $profile->getExperiences()->count() > 0
                 && $profile->getProfileSkills()->count() > 0;
 
             $step3Done =
                 '' !== trim((string) ($profile->getGithubUrl() ?? ''))
-                || '' !== trim((string) ($profile->getLinkedinUrl() ?? ''))
-                || '' !== trim((string) ($profile->getPortfolioUrl() ?? ''));
+                && '' !== trim((string) ($profile->getLinkedinUrl() ?? ''))
+                && '' !== trim((string) ($profile->getPortfolioUrl() ?? ''));
 
             $step4Done = $profile->getDesiredPositions()->count() > 0;
         }

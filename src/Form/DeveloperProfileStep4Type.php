@@ -8,6 +8,7 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Count;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class DeveloperProfileStep4Type extends AbstractType
@@ -21,17 +22,20 @@ class DeveloperProfileStep4Type extends AbstractType
         $builder
             ->add('desiredPositions', EntityType::class, [
                 'class' => Position::class,
-                'label' => 'Postes recherchés',
+                'label' => 'Postes recherches',
                 'choice_label' => fn (Position $position) => $this->translateEntityName('position', $position->getName()),
-                'required' => false,
+                'required' => true,
                 'multiple' => true,
                 'expanded' => false,
-                'help' => 'Sélection directe, sans Ctrl ni Cmd.',
+                'help' => 'Selection directe, sans Ctrl ni Cmd.',
+                'constraints' => [
+                    new Count(min: 1, minMessage: 'Selectionne au moins un poste recherche.'),
+                ],
                 'attr' => [
                     'data-multiselect-accent' => 'emerald',
                     'data-multiselect-search-placeholder' => 'Rechercher un poste',
                     'data-multiselect-selection-placeholder' => 'Choisir un ou plusieurs postes',
-                    'data-multiselect-empty' => 'Aucun poste ne correspond à cette recherche.',
+                    'data-multiselect-empty' => 'Aucun poste ne correspond a cette recherche.',
                     'data-multiselect-selected-singular' => 'poste',
                     'data-multiselect-selected-plural' => 'postes',
                 ],
