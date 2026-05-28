@@ -922,6 +922,7 @@
             {% set faqPath = path('app_faq') %}
 
             {# HEADER stable (sans animation) #}
+            {% block header %}
             <header class="relative z-[70]">
                 <div class="mx-auto w-full max-w-[84rem] px-3 pt-3 sm:px-4 lg:px-5">
                     <nav class="site-header-shell {{ isFavoritesRoute ? 'site-header-shell-favorites' : '' }} rounded-[2rem] px-3.5 py-1.5 sm:px-4.5 sm:py-2">
@@ -1164,6 +1165,7 @@
                     </nav>
                 </div>
             </header>
+            {% endblock %}
 
             {% set flashAutoDismiss = app.environment != 'test' %}
             {% set flashDuration = flashAutoDismiss ? '4000' : null %}
