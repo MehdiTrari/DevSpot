@@ -7,6 +7,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Regex;
 use Symfony\Component\Validator\Constraints\Url;
 
@@ -16,13 +17,14 @@ class DeveloperProfileStep3Type extends AbstractType
     {
         $builder
             ->add('githubUrl', UrlType::class, [
-                'required' => false,
+                'required' => true,
                 'label' => 'GitHub',
                 'help' => 'Lien public vers ton profil GitHub.',
                 'constraints' => [
+                    new NotBlank(message: 'Le lien GitHub est obligatoire.'),
                     new Url(
                         protocols: ['https'],
-                        message: 'Le lien GitHub doit être une URL HTTPS valide.',
+                        message: 'Le lien GitHub doit etre une URL HTTPS valide.',
                     ),
                     new Regex(
                         pattern: '#^$|^https://github\.com/.+#i',
@@ -31,13 +33,14 @@ class DeveloperProfileStep3Type extends AbstractType
                 ],
             ])
             ->add('linkedinUrl', UrlType::class, [
-                'required' => false,
+                'required' => true,
                 'label' => 'LinkedIn',
                 'help' => 'Lien public vers ton profil LinkedIn.',
                 'constraints' => [
+                    new NotBlank(message: 'Le lien LinkedIn est obligatoire.'),
                     new Url(
                         protocols: ['https'],
-                        message: 'Le lien LinkedIn doit être une URL HTTPS valide.',
+                        message: 'Le lien LinkedIn doit etre une URL HTTPS valide.',
                     ),
                     new Regex(
                         pattern: '#^$|^https://www\.linkedin\.com/in/.+#i',
@@ -46,13 +49,14 @@ class DeveloperProfileStep3Type extends AbstractType
                 ],
             ])
             ->add('portfolioUrl', UrlType::class, [
-                'required' => false,
+                'required' => true,
                 'label' => 'Portfolio externe',
-                'help' => 'Optionnel si ton portfolio principal est déjà généré sur DevSpot.',
+                'help' => 'Lien public vers ton portfolio.',
                 'constraints' => [
+                    new NotBlank(message: 'Le portfolio est obligatoire.'),
                     new Url(
                         protocols: ['https'],
-                        message: 'Le portfolio doit être une URL HTTPS valide (https://...).',
+                        message: 'Le portfolio doit etre une URL HTTPS valide (https://...).',
                     ),
                 ],
             ])
