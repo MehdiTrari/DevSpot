@@ -121,7 +121,7 @@ final class SupportRequestManagerTest extends TestCase
         ], $recipients);
 
         foreach ($sentEmails as $email) {
-            self::assertSame('mailer@devspot.com', $email->getFrom()[0]->getAddress());
+            self::assertSame('no-reply@devspot.software', $email->getFrom()[0]->getAddress());
             self::assertSame('DevSpot Support Bot', $email->getFrom()[0]->getName());
             self::assertSame('Nouvelle demande de support : Probleme de notifications', $email->getSubject());
             self::assertSame('emails/support_request_admin.html.twig', $email->getHtmlTemplate());

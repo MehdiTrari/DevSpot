@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Service;
 use App\Entity\DeveloperProfile;
 use App\Entity\ProfileSkill;
 use App\Entity\Skill;
+use App\Repository\DeveloperProfileRepository;
 use App\Service\AiMatchingClientInterface;
 use App\Service\CandidateProfileEmbeddingService;
 use App\Service\CandidateTextPreprocessor;
@@ -38,7 +39,20 @@ final class CandidateProfileEmbeddingServiceTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::once())->method('flush');
 
-        $service = new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $entityManager);
+        $developerProfileRepository = $this->createMock(DeveloperProfileRepository::class);
+        $developerProfileRepository
+            ->expects(self::once())
+            ->method('findStoredMatchingEmbeddingsByProfileIds')
+            ->with([101])
+            ->willReturn([
+                101 => [
+                    'embedding' => [0.1, 0.2],
+                    'dimension' => 2,
+                    'textHash' => hash('sha256', (new CandidateTextPreprocessor())->buildCandidateText($profile)),
+                ],
+            ]);
+
+        $service = new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $developerProfileRepository, $entityManager);
 
         $firstRun = $service->refreshEmbeddings([$profile], false, true);
         $secondRun = $service->refreshEmbeddings([$profile], false, true);
@@ -89,7 +103,20 @@ final class CandidateProfileEmbeddingServiceTest extends TestCase
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $entityManager->expects(self::never())->method('flush');
 
-        $service = new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $entityManager);
+        $developerProfileRepository = $this->createMock(DeveloperProfileRepository::class);
+        $developerProfileRepository
+            ->expects(self::once())
+            ->method('findStoredMatchingEmbeddingsByProfileIds')
+            ->with([202])
+            ->willReturn([
+                202 => [
+                    'embedding' => [1.0, 0.0],
+                    'dimension' => 2,
+                    'textHash' => 'stale-hash',
+                ],
+            ]);
+
+        $service = new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $developerProfileRepository, $entityManager);
 
         self::assertSame([], $service->storedEmbeddingsForProfiles([$profile]));
     }

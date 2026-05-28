@@ -101,7 +101,7 @@ final class SeedMatchingDemoCommandTest extends TestCase
 
         $passwordHasher = $this->createMock(UserPasswordHasherInterface::class);
         $passwordHasher
-            ->expects(self::exactly(2))
+            ->expects(self::once())
             ->method('hashPassword')
             ->willReturnCallback(static fn (): string => 'hashed-password');
 
