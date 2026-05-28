@@ -11,6 +11,9 @@ use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Count;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class ExperienceType extends AbstractType
@@ -25,15 +28,24 @@ class ExperienceType extends AbstractType
             ->add('companyName', null, [
                 'required' => true,
                 'label' => 'Entreprise',
+                'constraints' => [
+                    new NotBlank(message: 'L\'entreprise est obligatoire.'),
+                ],
             ])
             ->add('title', null, [
                 'required' => true,
                 'label' => 'Poste',
+                'constraints' => [
+                    new NotBlank(message: 'Le poste est obligatoire.'),
+                ],
             ])
             ->add('startDate', DateType::class, [
                 'required' => true,
-                'label' => 'Date de début',
+                'label' => 'Date de debut',
                 'widget' => 'single_text',
+                'constraints' => [
+                    new NotNull(message: 'La date de debut est obligatoire.'),
+                ],
             ])
             ->add('endDate', DateType::class, [
                 'label' => 'Date de fin (non applicable si poste actuel)',
@@ -53,19 +65,25 @@ class ExperienceType extends AbstractType
             ->add('description', TextareaType::class, [
                 'label' => 'Description',
                 'required' => true,
+                'constraints' => [
+                    new NotBlank(message: 'La description de l\'experience est obligatoire.'),
+                ],
             ])
             ->add('technologies', EntityType::class, [
                 'label' => 'Technologies',
                 'class' => Technology::class,
                 'choice_label' => fn (Technology $technology) => $this->translateEntityName('technology', $technology->getName()),
-                'required' => false,
+                'required' => true,
                 'multiple' => true,
                 'expanded' => false,
+                'constraints' => [
+                    new Count(min: 1, minMessage: 'Ajoute au moins une technologie.'),
+                ],
                 'attr' => [
                     'data-multiselect-accent' => 'emerald',
                     'data-multiselect-search-placeholder' => 'Rechercher une technologie',
-                    'data-multiselect-selection-placeholder' => 'Choisir les technologies utilisées',
-                    'data-multiselect-empty' => 'Aucune technologie ne correspond à cette recherche.',
+                    'data-multiselect-selection-placeholder' => 'Choisir les technologies utilisees',
+                    'data-multiselect-empty' => 'Aucune technologie ne correspond a cette recherche.',
                     'data-multiselect-selected-singular' => 'technologie',
                     'data-multiselect-selected-plural' => 'technologies',
                 ],

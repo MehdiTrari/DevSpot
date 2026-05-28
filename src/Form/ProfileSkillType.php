@@ -11,6 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\Constraints\PositiveOrZero;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -25,28 +26,35 @@ class ProfileSkillType extends AbstractType
         $builder
             ->add('skill', EntityType::class, [
                 'required' => true,
-                'label' => 'Compétence',
+                'label' => 'Competence',
                 'class' => Skill::class,
                 'choice_label' => fn (Skill $skill) => $this->translateEntityName('skill', $skill->getName()),
-                'placeholder' => 'Choisir une compétence',
+                'placeholder' => 'Choisir une competence',
+                'constraints' => [
+                    new NotNull(message: 'La competence est obligatoire.'),
+                ],
             ])
             ->add('level', EnumType::class, [
                 'label' => 'Niveau',
                 'class' => SkillLevel::class,
-                'required' => false,
+                'required' => true,
                 'placeholder' => 'Niveau',
+                'constraints' => [
+                    new NotNull(message: 'Le niveau de competence est obligatoire.'),
+                ],
                 'choice_label' => static fn (SkillLevel $choice) => match ($choice) {
-                    SkillLevel::BEGINNER => 'Débutant',
-                    SkillLevel::INTERMEDIATE => 'Intermédiaire',
-                    SkillLevel::ADVANCED => 'Avancé',
+                    SkillLevel::BEGINNER => 'Debutant',
+                    SkillLevel::INTERMEDIATE => 'Intermediaire',
+                    SkillLevel::ADVANCED => 'Avance',
                     SkillLevel::EXPERT => 'Expert',
                 },
             ])
             ->add('years', IntegerType::class, [
-                'label' => 'Années d\'expérience',
-                'required' => false,
+                'label' => 'Annees d\'experience',
+                'required' => true,
                 'constraints' => [
-                    new PositiveOrZero(message: 'Le nombre d\'années doit être positif ou nul.'),
+                    new NotNull(message: 'Le nombre d\'annees est obligatoire.'),
+                    new PositiveOrZero(message: 'Le nombre d\'annees doit etre positif ou nul.'),
                 ],
                 'attr' => [
                     'min' => 0,

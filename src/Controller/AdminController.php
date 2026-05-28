@@ -305,9 +305,15 @@ final class AdminController extends AbstractController
             $user->setIsVerified(true);
         }
 
-        $notificationManager->notifyUserStatusChanged($user, $previousStatus, $status);
         if ($currentUser instanceof User) {
-            $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $status);
+            $notificationManager->notifyUserStatusChanged($user, $previousStatus, $status);
+            if ($this->isSensitiveStatusAction($previousStatus, $status)) {
+                $this->notifyAdminsSensitiveAction($notificationManager, $currentUser, $user, $this->resolveSensitiveStatusActionLabel($previousStatus, $status));
+            } else {
+                $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $status);
+            }
+        } else {
+            $notificationManager->notifyUserStatusChanged($user, $previousStatus, $status);
         }
 
         if ($currentUser instanceof User) {
@@ -349,7 +355,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/users/{id}/reject', name: 'app_admin_users_reject', methods: ['POST'])]
-    public function rejectPendingUser(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    public function rejectPendingUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
         if (!$this->isCsrfTokenValid('admin_user_reject_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
@@ -369,6 +375,16 @@ final class AdminController extends AbstractController
         $userEmail = $user->getEmail();
 
         try {
+            if ($currentUser instanceof User) {
+                $this->notifyAdminsSensitiveAction(
+                    $notificationManager,
+                    $currentUser,
+                    $user,
+                    'refus d\'un compte en attente',
+                    $userEmail
+                );
+            }
+
             $this->removeUserDataGraph($user, $entityManager);
             $this->logAdminAction($entityManager, 'user.rejected', null, [
                 'targetUserId' => $userId,
@@ -394,7 +410,7 @@ final class AdminController extends AbstractController
     }
 
     #[Route('/users/{id}/delete', name: 'app_admin_users_delete', methods: ['POST'])]
-    public function deleteUser(User $user, Request $request, EntityManagerInterface $entityManager): Response
+    public function deleteUser(User $user, Request $request, EntityManagerInterface $entityManager, NotificationManager $notificationManager): Response
     {
         if (!$this->isCsrfTokenValid('admin_user_delete_' . $user->getId(), (string) $request->request->get('_token'))) {
             $this->addFlash('error', 'Jeton CSRF invalide.');
@@ -412,8 +428,19 @@ final class AdminController extends AbstractController
         $previousStatus = $user->getStatus()?->value;
         $userId = $user->getId();
         $userEmail = $user->getEmail();
+        $hasProfile = null !== $user->getDeveloperProfile() || null !== $user->getRecruiterProfile();
 
         try {
+            if ($hasProfile && $currentUser instanceof User) {
+                $this->notifyAdminsSensitiveAction(
+                    $notificationManager,
+                    $currentUser,
+                    $user,
+                    'suppression d\'un profil utilisateur',
+                    $userEmail
+                );
+            }
+
             $this->removeUserDataGraph($user, $entityManager);
             $this->logAdminAction($entityManager, 'user.deleted', null, [
                 'targetUserId' => $userId,
@@ -618,9 +645,15 @@ final class AdminController extends AbstractController
             $user->setIsVerified(true);
         }
 
-        $notificationManager->notifyUserStatusChanged($user, $previousStatus, $newStatus);
         if ($currentUser instanceof User) {
-            $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $newStatus);
+            $notificationManager->notifyUserStatusChanged($user, $previousStatus, $newStatus);
+            if ($this->isSensitiveStatusAction($previousStatus, $newStatus)) {
+                $this->notifyAdminsSensitiveAction($notificationManager, $currentUser, $user, $this->resolveSensitiveStatusActionLabel($previousStatus, $newStatus));
+            } else {
+                $notificationManager->notifyAdminStatusAction($currentUser, $user, $previousStatus, $newStatus);
+            }
+        } else {
+            $notificationManager->notifyUserStatusChanged($user, $previousStatus, $newStatus);
         }
 
         if ($currentUser instanceof User) {
@@ -641,6 +674,62 @@ final class AdminController extends AbstractController
         $this->addFlash('success', $successMessage);
 
         return $this->redirectToRefererOrRoute($request, 'app_admin_users');
+    }
+
+    private function notifyAdminsSensitiveAction(
+        NotificationManager $notificationManager,
+        User $adminUser,
+        ?User $targetUser,
+        string $actionLabel,
+        ?string $targetLabel = null,
+    ): void {
+        try {
+            $notificationManager->notifyAdminsSensitiveUserAction(
+                $adminUser,
+                $actionLabel,
+                new \DateTimeImmutable(),
+                $targetUser,
+                $targetLabel,
+                $this->generateUrl('app_admin_users', ['q' => $targetLabel ?? $targetUser?->getEmail()])
+            );
+        } catch (\Throwable $exception) {
+            $this->logger->error('La notification administrateur d\'action sensible a echoue.', [
+                'action' => $actionLabel,
+                'targetUserId' => $targetUser?->getId(),
+                'targetLabel' => $targetLabel,
+                'adminUserId' => $adminUser->getId(),
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    private function isSensitiveStatusAction(?string $previousStatus, UserStatus $newStatus): bool
+    {
+        return UserStatus::BANNED === $newStatus
+            || UserStatus::SUSPENDED === $newStatus
+            || (UserStatus::ACTIVE === $newStatus && UserStatus::PENDING->value === $previousStatus)
+            || (UserStatus::DELETED === $newStatus && UserStatus::PENDING->value === $previousStatus);
+    }
+
+    private function resolveSensitiveStatusActionLabel(?string $previousStatus, UserStatus $newStatus): string
+    {
+        if (UserStatus::ACTIVE === $newStatus && UserStatus::PENDING->value === $previousStatus) {
+            return 'validation d\'un compte en attente';
+        }
+
+        if (UserStatus::DELETED === $newStatus && UserStatus::PENDING->value === $previousStatus) {
+            return 'refus d\'un compte en attente';
+        }
+
+        if (UserStatus::BANNED === $newStatus) {
+            return 'bannissement d\'un utilisateur';
+        }
+
+        if (UserStatus::SUSPENDED === $newStatus) {
+            return 'suspension d\'un utilisateur';
+        }
+
+        return 'modification sensible d\'un compte utilisateur';
     }
 
     private function extractPrimaryRole(User $user): string
