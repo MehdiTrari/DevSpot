@@ -12,7 +12,19 @@ DevSpot est une application Symfony de mise en relation entre recruteurs et dév
 - PHPStan / PHP CS Fixer
 - Service ML Python dans `ml/` pour le matching sémantique
 
-## Démarrage local
+## Tutoriel d'installation locale
+
+### Lien GitHub
+
+```text
+https://github.com/MehdiTrari/DevSpot.git
+```
+
+### Site de production
+
+```text
+https://devspot.software/
+```
 
 ### Prérequis
 
@@ -21,9 +33,14 @@ DevSpot est une application Symfony de mise en relation entre recruteurs et dév
 - Composer
 - Symfony CLI (optionnel)
 
-### Installation
+### 1. Récupérer le projet
 
-1. Installer les dépendances PHP
+```bash
+git clone https://github.com/MehdiTrari/DevSpot.git
+cd DevSpot
+```
+
+### 2. Installer les dépendances PHP
 
 ```bash
 composer install
@@ -31,7 +48,7 @@ composer install
 
 Cette étape est utile si tu exécutes aussi les commandes Composer, PHPUnit ou PHPStan sur l'hôte. Si tu travailles uniquement via Docker, le conteneur `app` peut installer ses dépendances au démarrage.
 
-2. Démarrer toute la stack locale
+### 3. Lancer l'environnement Docker
 
 ```bash
 docker compose up -d --build
@@ -39,34 +56,74 @@ docker compose up -d --build
 
 Cette commande démarre l'application Symfony, Caddy, PostgreSQL, Mercure, Mailpit, le service ML, la documentation MkDocs et Adminer.
 
-3. Vérifier que la stack est démarrée
+Vérifier que les conteneurs sont bien démarrés :
 
 ```bash
 docker compose ps
 ```
 
-4. Préparer la base si nécessaire
+### 4. Préparer la base de données
+
+Vérifier l'état des migrations :
 
 ```bash
 docker compose exec app php bin/console doctrine:migrations:status
+```
+
+Appliquer les migrations :
+
+```bash
 docker compose exec app php bin/console doctrine:migrations:migrate --no-interaction
 ```
 
-Si tu dois invalider manuellement le cache Symfony :
+### 5. Accéder à l'application
+
+Une fois la stack démarrée, l'application est disponible ici :
+
+- `http://devspot.localhost`
+- `http://localhost:8000` en URL de compatibilité
+
+Les autres services locaux utiles :
+
+- Documentation : `http://localhost:8002/DevSpot/`
+- Adminer : `http://localhost:8081`
+- Mailpit : `http://localhost:8025`
+- Service ML : `http://localhost:8001`
+- Santé du service ML : `http://localhost:8001/health`
+
+### 6. Commandes utiles
+
+Voir les conteneurs :
+
+```bash
+docker compose ps
+```
+
+Suivre les logs :
+
+```bash
+docker compose logs -f
+```
+
+Arrêter la stack :
+
+```bash
+docker compose down
+```
+
+Vider le cache Symfony :
 
 ```bash
 docker compose exec app php bin/console cache:clear
 ```
 
-5. Lancer Tailwind en watch si tu modifies le style
+Lancer Tailwind en watch si tu modifies le style :
 
 ```bash
 docker compose exec app php bin/console tailwind:build --watch
 ```
 
-### Réinitialiser le frontend local
-
-Si le rendu front est cassé ou incohérent localement :
+Réinitialiser le frontend local si le rendu est cassé ou incohérent :
 
 ```bash
 composer reset:front
