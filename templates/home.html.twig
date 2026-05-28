@@ -75,7 +75,7 @@
             width: min(16rem, 54%);
             height: 2px;
             border-radius: 999px;
-            background: linear-gradient(90deg, rgba(37, 87, 214, 0), rgba(37, 87, 214, 0.52), rgba(16, 185, 129, 0));
+            background: linear-gradient(90deg, transparent, var(--ui-link), transparent);
             transform: translate(-50%, -50%);
             overflow: hidden;
         }
@@ -86,16 +86,16 @@
             inset-block: 0;
             width: 35%;
             border-radius: inherit;
-            background: rgba(16, 185, 129, 0.8);
+            background: var(--ui-success-text);
             animation: landingPulseLine 2.8s ease-in-out infinite;
         }
 
         .landing-match-node {
             position: absolute;
             width: min(15.25rem, 45%);
-            border: 1px solid var(--ui-panel-border, rgba(132, 162, 224, 0.42));
-            background: var(--ui-panel-bg, rgba(255, 255, 255, 0.82));
-            box-shadow: var(--ui-panel-shadow, 0 18px 48px rgba(var(--indeed-shadow-rgb), 0.12));
+            border: 1px solid var(--premium-card-border);
+            background: var(--premium-card-strong-bg);
+            box-shadow: var(--premium-card-hover-shadow);
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
         }
@@ -118,23 +118,23 @@
             bottom: 0.5rem;
             width: min(23rem, 100%);
             transform: translateX(-50%);
-            border: 1px solid var(--ui-note-border, rgba(16, 185, 129, 0.24));
-            background: var(--ui-note-bg, rgba(236, 253, 245, 0.78));
-            box-shadow: var(--ui-note-shadow, 0 18px 44px rgba(16, 185, 129, 0.12));
+            border: 1px solid var(--ui-note-border);
+            background: var(--ui-note-bg);
+            box-shadow: var(--premium-section-shadow);
         }
 
         .landing-signal-bar {
             height: 0.45rem;
             overflow: hidden;
             border-radius: 999px;
-            background: rgba(37, 87, 214, 0.12);
+            background: var(--ui-progress-track);
         }
 
         .landing-signal-value {
             display: block;
             height: 100%;
             border-radius: inherit;
-            background: linear-gradient(90deg, #2557d6, #10b981);
+            background: var(--ui-progress-fill);
             transform-origin: left;
             animation: landingSignal 3.8s ease-in-out infinite;
         }
@@ -142,10 +142,8 @@
         .landing-process-band {
             position: relative;
             border: 1px solid var(--ui-note-border);
-            background:
-                radial-gradient(circle at top left, rgba(37, 87, 214, 0.12), transparent 34%),
-                linear-gradient(180deg, var(--ui-note-bg), var(--ui-panel-subtle-bg));
-            box-shadow: 0 18px 48px rgba(var(--indeed-shadow-rgb), 0.1);
+            background: var(--premium-section-overlay), var(--premium-section-bg);
+            box-shadow: var(--premium-section-shadow);
         }
 
         @keyframes landingPulseLine {
