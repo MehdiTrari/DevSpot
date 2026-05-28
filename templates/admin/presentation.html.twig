@@ -194,9 +194,6 @@
                         <h1 class="presentation-title mt-4 text-4xl font-black leading-tight sm:text-5xl lg:text-6xl">
                             L’intelligence sémantique au service du recrutement équitable
                         </h1>
-                        <p class="presentation-muted mt-6 max-w-3xl text-lg leading-relaxed">
-                            DevSpot est une plateforme de recrutement tech qui aide les candidats à valoriser leurs compétences et les recruteurs à identifier des profils pertinents sans rester bloqués sur les mots-clés ou les données personnelles visibles trop tôt.
-                        </p>
                         <div class="mt-8 flex flex-wrap gap-3">
                             <span class="presentation-chip rounded-full px-4 py-2 text-sm font-bold">Symfony 7</span>
                             <span class="presentation-chip rounded-full px-4 py-2 text-sm font-bold">FastAPI + CamemBERT</span>
@@ -207,18 +204,8 @@
                     <div class="presentation-card rounded-[1.5rem] p-6">
                         <p class="presentation-kicker">Problématique</p>
                         <p class="mt-4 text-2xl font-extrabold leading-snug">
-                            Comment mieux rapprocher offres et profils développeurs, tout en limitant les biais liés aux filtres lexicaux et aux données personnelles ?
+                            Comment concevoir une plateforme de recrutement tech capable d’améliorer la pertinence de l'appariement entre offres et profils développeurs, tout en limitant les biais liés au filtrage lexical et à l'exposition des données personnelles ?
                         </p>
-                        <div class="mt-6 grid gap-3">
-                            <div class="presentation-stat rounded-xl p-4">
-                                <p class="presentation-accent text-sm font-bold">Constat</p>
-                                <p class="presentation-muted mt-1 text-sm">Les CV et offres ne parlent pas toujours avec les mêmes mots.</p>
-                            </div>
-                            <div class="presentation-stat rounded-xl p-4">
-                                <p class="presentation-accent text-sm font-bold">Enjeu</p>
-                                <p class="presentation-muted mt-1 text-sm">Ne pas laisser les biais ou les parcours atypiques fausser la première évaluation.</p>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -261,10 +248,7 @@
                 <div class="grid gap-8 lg:grid-cols-[0.85fr_1.15fr]">
                     <div>
                         <p class="presentation-kicker">Gestion de projet</p>
-                        <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">Une organisation agile par incréments</h2>
-                        <p class="presentation-muted mt-5 leading-relaxed">
-                            Le projet a été piloté en cycles courts pour livrer progressivement un produit utilisable : cadrage, développement, tests, correction, documentation puis consolidation.
-                        </p>
+                        <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">Une organisation agile : méthode SCRUM</h2>
                     </div>
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div class="presentation-card rounded-xl p-5">
@@ -301,9 +285,6 @@
                 <div class="grid gap-5 lg:grid-cols-3">
                     <div class="presentation-card rounded-[1.4rem] p-6">
                         <h3 class="text-xl font-extrabold">Branches GitFlow</h3>
-                        <p class="presentation-muted mt-3 leading-relaxed">
-                            Le travail était isolé par branches de fonctionnalité, puis regroupé dans une branche d'intégration avant stabilisation. Cela limite les régressions sur la branche principale.
-                        </p>
                         <div class="mt-4 flex flex-wrap gap-2">
                             <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">prod</span>
                             <span class="presentation-chip rounded-full px-3 py-1 text-xs font-bold">preprod</span>
@@ -314,9 +295,6 @@
                     </div>
                     <div class="presentation-card rounded-[1.4rem] p-6">
                         <h3 class="text-xl font-extrabold">Convention Gitmoji</h3>
-                        <p class="presentation-muted mt-3 leading-relaxed">
-                            Les commits suivent une convention visuelle pour comprendre rapidement l'intention : ajout de fonctionnalité, correction, style, documentation, tests ou refactor.
-                        </p>
                         <div class="mt-4 grid gap-2 text-sm font-semibold">
                             <p><span class="presentation-accent">:sparkles:</span> : nouvelle fonctionnalité</p>
                             <p><span class="presentation-accent">:bug:</span> : correction ciblée</p>
@@ -326,9 +304,6 @@
                     </div>
                     <div class="presentation-card rounded-[1.4rem] p-6">
                         <h3 class="text-xl font-extrabold">Intégration continue</h3>
-                        <p class="presentation-muted mt-3 leading-relaxed">
-                            Avant de considérer une évolution stable, le projet passe par les contrôles de qualité : syntaxe, tests applicatifs, analyse statique, front compilé et documentation.
-                        </p>
                         <ul class="presentation-list presentation-muted mt-4 space-y-3 text-sm leading-relaxed">
                             <li>Tests PHPUnit et parcours critiques.</li>
                             <li>PHPStan et PHP CS Fixer pour la qualité PHP.</li>
@@ -340,38 +315,6 @@
                     <p class="presentation-muted leading-relaxed">
                         Cette organisation montre que le projet n'a pas seulement été codé : il a été planifié avec des tickets GitHub, versionné, intégré et validé progressivement, avec des arbitrages visibles entre ambition fonctionnelle, temps disponible et stabilité technique.
                     </p>
-                </div>
-            </div>
-        </article>
-
-        <article id="solution" class="presentation-slide">
-            <div class="presentation-panel rounded-[2rem] p-6 sm:p-9 lg:p-10">
-                <div class="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-                    <div>
-                        <p class="presentation-kicker">Solution réalisée</p>
-                        <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">Une application complète, pas seulement un prototype</h2>
-                        <p class="presentation-muted mt-5 leading-relaxed">
-                            La plateforme est structurée autour de trois espaces utilisateurs et d’une architecture modulaire : Symfony porte le produit, PostgreSQL stocke les données, Mercure gère le temps réel et FastAPI isole la partie IA.
-                        </p>
-                    </div>
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <div class="presentation-card rounded-xl p-5">
-                            <h3 class="text-lg font-extrabold">Candidat</h3>
-                            <p class="presentation-muted mt-2 text-sm">Création de profil, compétences, expériences, formations, visibilité et publication.</p>
-                        </div>
-                        <div class="presentation-card rounded-xl p-5">
-                            <h3 class="text-lg font-extrabold">Recruteur</h3>
-                            <p class="presentation-muted mt-2 text-sm">Entreprise, offres, recherche, favoris, contact, messages et suivi des interactions.</p>
-                        </div>
-                        <div class="presentation-card rounded-xl p-5">
-                            <h3 class="text-lg font-extrabold">Administrateur</h3>
-                            <p class="presentation-muted mt-2 text-sm">Gestion utilisateurs, rôles, statuts, modération, logs et supervision.</p>
-                        </div>
-                        <div class="presentation-card rounded-xl p-5">
-                            <h3 class="text-lg font-extrabold">Socle technique</h3>
-                            <p class="presentation-muted mt-2 text-sm">Docker, Caddy, MkDocs, tests, CI/CD, logs, sécurité et documentation technique.</p>
-                        </div>
-                    </div>
                 </div>
             </div>
         </article>
@@ -399,36 +342,6 @@
                         <h3 class="text-xl font-extrabold">Côté administrateur</h3>
                         <p class="presentation-muted mt-3 leading-relaxed">
                             L’administrateur supervise les utilisateurs, les rôles, les statuts, les actions sensibles et les logs.
-                        </p>
-                    </div>
-                </div>
-                <div class="mt-5 grid gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-                    <div class="presentation-panel rounded-[1.5rem] p-6">
-                        <p class="presentation-kicker">Vie du site</p>
-                        <div class="mt-4 grid gap-4 sm:grid-cols-2">
-                            <div>
-                                <h3 class="font-extrabold">Dashboards par rôle</h3>
-                                <p class="presentation-muted mt-2 text-sm">Chaque utilisateur arrive sur un espace adapté à ce qu’il doit faire.</p>
-                            </div>
-                            <div>
-                                <h3 class="font-extrabold">Messagerie temps réel</h3>
-                                <p class="presentation-muted mt-2 text-sm">Les candidats et recruteurs peuvent échanger directement via Mercure.</p>
-                            </div>
-                            <div>
-                                <h3 class="font-extrabold">Notifications</h3>
-                                <p class="presentation-muted mt-2 text-sm">Les événements importants sont visibles sans confondre notification et log d’audit.</p>
-                            </div>
-                            <div>
-                                <h3 class="font-extrabold">Sécurité</h3>
-                                <p class="presentation-muted mt-2 text-sm">Les accès sont séparés par rôle et les parcours sensibles sont contrôlés.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="presentation-card rounded-[1.5rem] p-6">
-                        <p class="presentation-kicker">Rôle du matching</p>
-                        <h3 class="mt-3 text-2xl font-black">Une aide à la décision</h3>
-                        <p class="presentation-muted mt-3 leading-relaxed">
-                            L’IA n’est pas le site entier : elle sert surtout à classer les profils par pertinence pour une offre, en combinant mots-clés, sens des textes et compétences implicites.
                         </p>
                     </div>
                 </div>
@@ -476,126 +389,25 @@
                         <ul class="presentation-list presentation-success-text mt-4 space-y-3 text-sm leading-relaxed">
                             <li>Socle fonctionnel plus large que le MVP : messagerie, notifications, logs, dashboards et administration.</li>
                             <li>Architecture mieux préparée : Docker, Caddy local, cible production, MkDocs et documentation technique.</li>
-                            <li>Matching plus riche que prévu : baseline, CamemBERT, score enrichi, compétences implicites et audit junior.</li>
-                            <li>Les dashboards par rôle sont devenus plus pertinents qu’une simple home publique avec annuaire.</li>
+                            <li>Matching plus riche que prévu : baseline, CamemBERT, score enrichi.</li>
                         </ul>
                     </div>
                     <div class="presentation-card presentation-risk rounded-[1.4rem] p-6">
                         <h3 class="presentation-warning-text text-xl font-extrabold">Négatives ou partielles</h3>
                         <ul class="presentation-list presentation-warning-text mt-4 space-y-3 text-sm leading-relaxed">
-                            <li>Au départ, la home devait surtout afficher les profils avec des tris et filtres pour les recruteurs.</li>
-                            <li>Avec le matching, ce modèle est devenu moins cohérent : chaque rôle a maintenant plus de valeur dans son dashboard.</li>
-                            <li>Le site est donc moins orienté visiteur non connecté et plus centré sur les parcours authentifiés.</li>
+                            <li>Au départ : home = profils avec des tris et filtres pour les recruteurs.</li>
+                            <li>Avec matching : moins cohérent.</li>
                             <li>L’import automatique de CV, la fairness multi-axes et certaines statistiques avancées restent des perspectives.</li>
                         </ul>
                     </div>
                     <div class="presentation-card presentation-bug rounded-[1.4rem] p-6">
                         <h3 class="presentation-danger-text text-xl font-extrabold">Bugs et difficultés</h3>
                         <ul class="presentation-list presentation-danger-text mt-4 space-y-3 text-sm leading-relaxed">
-                            <li>Mercure a été un vrai point dur : URLs publiques/internes, Caddy, topics, authentification et compatibilité locale.</li>
                             <li>Le temps réel a nécessité des ajustements pour éviter les doubles écoutes et garder les conversations stables.</li>
-                            <li>Le matching IA a demandé des optimisations top-k, du cache d’embeddings et des garde-fous contre les timeouts.</li>
-                            <li>Quelques éléments UI et tickets d’administration/support ont été gardés en consolidation plutôt qu’en extension.</li>
+                            <li>Le matching IA a demandé des optimisations notamment du cache d’embeddings et des garde-fous contre les timeouts.</li>
                         </ul>
                     </div>
                 </div>
-            </div>
-        </article>
-
-        <article id="tickets-ouverts" class="presentation-slide">
-            <div class="w-full">
-                <div class="mb-6">
-                    <p class="presentation-kicker">Backlog restant</p>
-                    <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">Tickets ouverts et arbitrages assumés</h2>
-                </div>
-                <div class="grid gap-5 lg:grid-cols-[1fr_1fr]">
-                    <div class="presentation-card presentation-risk rounded-[1.4rem] p-6">
-                        <h3 class="presentation-warning-text text-xl font-extrabold">Issues GitHub non terminées</h3>
-                        <ul class="presentation-list presentation-warning-text mt-4 space-y-3 text-sm leading-relaxed">
-                            <li><strong>#126 - Bug</strong> : ticket encore ouvert, conservé dans le backlog de stabilisation.</li>
-                            <li><strong>#116 - US54</strong> : système de mails pour notifications, différé car les notifications internes couvrent déjà les usages prioritaires.</li>
-                            <li><strong>#113 - US51</strong> : relier offre et conversation, à vérifier pour renforcer le suivi recruteur/candidat.</li>
-                        </ul>
-                    </div>
-                    <div class="presentation-card presentation-bug rounded-[1.4rem] p-6">
-                        <h3 class="presentation-danger-text text-xl font-extrabold">Changement de cap produit</h3>
-                        <ul class="presentation-list presentation-danger-text mt-4 space-y-3 text-sm leading-relaxed">
-                            <li><strong>#56 - US28 Tri</strong> : l'idée initiale était une home publique avec tous les profils et des filtres pour les recruteurs.</li>
-                            <li>Avec le matching, cette approche est devenue moins pertinente : chaque rôle trouve plus de valeur dans son dashboard.</li>
-                            <li>Le site est donc davantage centré sur les utilisateurs connectés que sur une exploration publique anonyme.</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="presentation-panel mt-5 rounded-[1.5rem] p-6">
-                    <p class="presentation-kicker">Perspective</p>
-                    <p class="presentation-muted mt-3 leading-relaxed">
-                        La logique d'annuaire n'est pas abandonnée : une piste future serait de permettre aux candidats de consulter d'autres profils candidats pour se comparer, situer leurs compétences et mieux comprendre leur positionnement sur le marché.
-                    </p>
-                </div>
-            </div>
-        </article>
-
-        <article id="tests" class="presentation-slide">
-            <div class="presentation-panel rounded-[2rem] p-6 sm:p-9 lg:p-10">
-                <div class="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-                    <div>
-                        <p class="presentation-kicker">Validation</p>
-                        <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">Ce que nous avons vérifié</h2>
-                        <p class="presentation-muted mt-5 leading-relaxed">
-                            Les tests et contrôles ont été concentrés sur les parcours critiques et la non-régression des briques sensibles.
-                        </p>
-                    </div>
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <div class="presentation-card rounded-xl p-5">
-                            <h3 class="font-extrabold">Parcours candidat</h3>
-                            <p class="presentation-muted mt-2 text-sm">Inscription, profil, compétences, publication et visibilité.</p>
-                        </div>
-                        <div class="presentation-card rounded-xl p-5">
-                            <h3 class="font-extrabold">Parcours recruteur</h3>
-                            <p class="presentation-muted mt-2 text-sm">Entreprise, offres, recherche, favoris, messages et dashboard.</p>
-                        </div>
-                        <div class="presentation-card rounded-xl p-5">
-                            <h3 class="font-extrabold">Sécurité</h3>
-                            <p class="presentation-muted mt-2 text-sm">Rôles, pages protégées, CSRF, validation serveur et fichiers uploadés.</p>
-                        </div>
-                        <div class="presentation-card rounded-xl p-5">
-                            <h3 class="font-extrabold">Qualité</h3>
-                            <p class="presentation-muted mt-2 text-sm">Tests PHPUnit, contrôles CI/CD, documentation et vérification Twig/PHP.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </article>
-
-        <article id="demo" class="presentation-slide">
-            <div class="w-full">
-                <p class="presentation-kicker">Démonstration</p>
-                <h2 class="presentation-title mt-2 text-3xl font-black sm:text-4xl">Scénario conseillé pour la soutenance</h2>
-                <div class="mt-7 grid gap-4 lg:grid-cols-5">
-                    <div class="presentation-card rounded-xl p-5">
-                        <p class="presentation-number">1</p>
-                        <p class="mt-3 font-extrabold">Accueil et rôles</p>
-                    </div>
-                    <div class="presentation-card rounded-xl p-5">
-                        <p class="presentation-number">2</p>
-                        <p class="mt-3 font-extrabold">Profil candidat</p>
-                    </div>
-                    <div class="presentation-card rounded-xl p-5">
-                        <p class="presentation-number">3</p>
-                        <p class="mt-3 font-extrabold">Offre recruteur</p>
-                    </div>
-                    <div class="presentation-card rounded-xl p-5">
-                        <p class="presentation-number">4</p>
-                        <p class="mt-3 font-extrabold">Matching et favoris</p>
-                    </div>
-                    <div class="presentation-card rounded-xl p-5">
-                        <p class="presentation-number">5</p>
-                        <p class="mt-3 font-extrabold">Message temps réel</p>
-                    </div>
-                </div>
-                <p class="presentation-muted mt-6 max-w-3xl leading-relaxed">
-                    Terminer par l’administration, les logs, puis les limites assumées : Mercure, anonymisation partielle, évaluation IA encore perfectible et perspectives.
-                </p>
             </div>
         </article>
 
@@ -604,10 +416,10 @@
                 <div class="mx-auto max-w-4xl text-center">
                     <p class="presentation-kicker">Conclusion</p>
                     <h2 class="presentation-title mt-3 text-4xl font-black leading-tight sm:text-5xl">
-                        DevSpot est une base fonctionnelle, démontrable et évolutive
+                        DevSpot
                     </h2>
                     <p class="presentation-muted mt-6 text-lg leading-relaxed">
-                        Le projet répond aux objectifs principaux : une plateforme de recrutement tech complète, un matching sémantique exploitable, une prise en compte de l’équité, des parcours par rôle et une architecture documentée. Les limites restantes ne remettent pas en cause le socle : elles cadrent les futures évolutions du produit.
+                        Le projet répond aux objectifs principaux : une plateforme de recrutement tech complète, un matching sémantique exploitable, une prise en compte de l’équité, des parcours par rôle et une architecture documentée.
                     </p>
                     <div class="mt-8 grid gap-4 text-left sm:grid-cols-3">
                         <div class="presentation-card rounded-xl p-5">
