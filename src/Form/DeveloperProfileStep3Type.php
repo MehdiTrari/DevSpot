@@ -24,7 +24,7 @@ class DeveloperProfileStep3Type extends AbstractType
                     new NotBlank(message: 'Le lien GitHub est obligatoire.'),
                     new Url(
                         protocols: ['https'],
-                        message: 'Le lien GitHub doit etre une URL HTTPS valide.',
+                        message: 'Le lien GitHub doit être une URL HTTPS valide.',
                     ),
                     new Regex(
                         pattern: '#^$|^https://github\.com/.+#i',
