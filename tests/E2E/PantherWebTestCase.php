@@ -393,7 +393,7 @@ abstract class PantherWebTestCase extends PantherTestCase
         $this->click($client, '[data-collection-add="#profile-skills-list"]');
         $client->waitFor('#developer_profile_profileSkills_0_skill');
         $this->selectOptionByValue($client, '#developer_profile_profileSkills_0_skill', (string) $catalog['skill']->getId());
-        $this->selectOptionByText($client, '#developer_profile_profileSkills_0_level', 'Avancé');
+        $this->selectOptionByValue($client, '#developer_profile_profileSkills_0_level', 'advanced');
         $this->type($client, '#developer_profile_profileSkills_0_years', '5');
 
         $this->click($client, '[data-collection-add="#experiences-list"]');

@@ -106,6 +106,20 @@ final class SecurityPagesTest extends WebTestCase
 
         self::assertResponseRedirects('/applicant/dashboard');
     }
+    public function testAuthenticatedUserRequestingLoginIsRedirectedAway(): void
+    {
+        $client = static::createClient();
+        $email = sprintf('login_redirect_%s@example.com', bin2hex(random_bytes(8)));
+        $user = $this->createUserWithStatus($email, 'password123', UserStatus::ACTIVE, ['ROLE_RECRUITER']);
+
+        $client->loginUser($user);
+        $client->request('GET', '/login');
+
+        self::assertResponseRedirects('/');
+        $client->followRedirect();
+        self::assertResponseRedirects('/recruiter/dashboard');
+    }
+
 
     public function testAdminCannotSeeOrAccessRoleSettings(): void
     {
