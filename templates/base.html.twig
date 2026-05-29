@@ -871,10 +871,13 @@
         {% endblock %}
     </head>
     
+    {% set currentRoute = app.request.attributes.get('_route')|default('') %}
+    {% set isChatPageRoute = currentRoute in ['app_applicant_messages', 'app_applicant_message_show', 'app_recruiter_messages', 'app_recruiter_message_show'] %}
+
     {# Theme global blanc/bleu #}
     <body
         class="indeed-theme min-h-screen font-sans antialiased selection:bg-blue-600 selection:text-white"
-        {% if app.user and mercureTopics is defined and mercureTopics is not empty %}
+        {% if app.user and mercureTopics is defined and mercureTopics is not empty and not isChatPageRoute %}
             data-global-mercure-url="{{ mercure(mercureTopics, (mercureNeedsCredentials|default(false)) ? {subscribe: mercureTopics} : {}) }}"
             data-global-mercure-credentials="{{ (mercureNeedsCredentials|default(false)) ? 'true' : 'false' }}"
         {% endif %}

@@ -21,7 +21,7 @@
             <p class="text-sm leading-relaxed text-slate-400">Au moins un lien suffit. Les erreurs de format indiquent précisément l'URL attendue.</p>
         </div>
 
-        {{ form_start(profileForm, {attr: {class: 'space-y-8', id: 'profile-step3-form'}}) }}
+        {{ form_start(profileForm, {attr: {class: 'space-y-8', id: 'profile-step3-form', novalidate: 'novalidate'}}) }}
             <div class="rounded-[2rem] border border-white/10 bg-white/5 p-6 sm:p-8">
                 <div class="mb-6">
                     <h2 class="text-xl font-semibold tracking-tight text-white">Liens professionnels</h2>
