@@ -21,10 +21,10 @@ use Symfony\Component\String\UnicodeString;
 
 final class OfferMatchingService
 {
-    private const DEFAULT_SEMANTIC_RERANK_LIMIT = 20;
-    private const DEFAULT_VECTOR_RETRIEVAL_LIMIT = 40;
-    private const DEFAULT_LIVE_SEMANTIC_FALLBACK_LIMIT = 8;
-    private const DEFAULT_ENRICHED_RERANK_LIMIT = 12;
+    private const DEFAULT_SEMANTIC_RERANK_LIMIT = 100;
+    private const DEFAULT_VECTOR_RETRIEVAL_LIMIT = 100;
+    private const DEFAULT_LIVE_SEMANTIC_FALLBACK_LIMIT = 100;
+    private const DEFAULT_ENRICHED_RERANK_LIMIT = 100;
 
     /** @var list<Skill>|null */
     private ?array $skills = null;
