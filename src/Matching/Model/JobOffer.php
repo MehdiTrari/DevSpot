@@ -16,6 +16,7 @@ final readonly class JobOffer
         public array $requiredHardSkills,
         public array $desiredSoftSkills,
         public string $description,
+        public int $requiredYears = 0,
     ) {
     }
 }

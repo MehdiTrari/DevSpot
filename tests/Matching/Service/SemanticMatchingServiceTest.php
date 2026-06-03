@@ -60,6 +60,11 @@ final class SemanticMatchingServiceTest extends TestCase
             {
                 return null;
             }
+
+            public function rerank(array $items): ?array
+            {
+                return null;
+            }
         });
 
         $offer = new JobOffer('offer-1', 'Offre', [], [], 'Symfony API');
@@ -104,6 +109,11 @@ final class SemanticMatchingServiceTest extends TestCase
             }
 
             public function inferSkillsBatch(array $texts): ?array
+            {
+                return null;
+            }
+
+            public function rerank(array $items): ?array
             {
                 return null;
             }

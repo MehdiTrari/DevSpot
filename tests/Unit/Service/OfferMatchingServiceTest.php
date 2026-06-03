@@ -27,6 +27,7 @@ use App\Service\CandidateSkillInferenceService;
 use App\Service\CandidateTextPreprocessor;
 use App\Service\EnrichedMatchingService;
 use App\Service\OfferMatchingService;
+use App\Service\RerankerMatchingService;
 use App\Service\SemanticMatchingService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -52,6 +53,7 @@ final class OfferMatchingServiceTest extends TestCase
             new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $developerProfileRepository, $entityManager),
             new SemanticMatchingService($client),
             new EnrichedMatchingService(new CandidateSkillInferenceService($client), new SemanticMatchingService($client)),
+            new RerankerMatchingService($client),
             $skillRepository,
             $technologyRepository,
             $positionRepository,
@@ -173,6 +175,7 @@ final class OfferMatchingServiceTest extends TestCase
             new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $developerProfileRepository, $entityManager),
             new SemanticMatchingService($client),
             new EnrichedMatchingService(new CandidateSkillInferenceService($client), new SemanticMatchingService($client)),
+            new RerankerMatchingService($client),
             $skillRepository,
             $technologyRepository,
             $positionRepository,
@@ -214,6 +217,7 @@ final class OfferMatchingServiceTest extends TestCase
             new CandidateProfileEmbeddingService($client, new CandidateTextPreprocessor(), $developerProfileRepository, $entityManager),
             new SemanticMatchingService($client),
             new EnrichedMatchingService(new CandidateSkillInferenceService($client), new SemanticMatchingService($client)),
+            new RerankerMatchingService($client),
             $skillRepository,
             $technologyRepository,
             $positionRepository,
@@ -328,6 +332,7 @@ final class OfferMatchingServiceTest extends TestCase
             new CandidateProfileEmbeddingService($client, $preprocessor, $developerProfileRepository, $entityManager),
             new SemanticMatchingService($client),
             new EnrichedMatchingService(new CandidateSkillInferenceService($client), new SemanticMatchingService($client)),
+            new RerankerMatchingService($client),
             $skillRepository,
             $technologyRepository,
             $positionRepository,

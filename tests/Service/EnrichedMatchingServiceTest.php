@@ -79,6 +79,11 @@ final class EnrichedMatchingServiceTest extends TestCase
             {
                 return array_map(fn (string $text): array => $this->inferSkills($text) ?? [], $texts);
             }
+
+            public function rerank(array $items): ?array
+            {
+                return null;
+            }
         };
 
         $service = new EnrichedMatchingService(

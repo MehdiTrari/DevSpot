@@ -58,6 +58,7 @@ final class OfferMatchingService
         private readonly CandidateProfileEmbeddingService $candidateProfileEmbeddingService,
         private readonly SemanticMatchingService $semanticMatchingService,
         private readonly EnrichedMatchingService $enrichedMatchingService,
+        private readonly RerankerMatchingService $rerankerMatchingService,
         private readonly SkillRepository $skillRepository,
         private readonly TechnologyRepository $technologyRepository,
         private readonly PositionRepository $positionRepository,
@@ -77,6 +78,7 @@ final class OfferMatchingService
      *     fairness: array<string, float|int|string>,
      *     semantic: array{available: bool, fairness: array<string, float|int|string>},
      *     enriched: array{available: bool, fairness: array<string, float|int|string>},
+     *     reranker: array{available: bool, fairness: array<string, float|int|string>},
      *     matches: list<array{
      *         developerId: int|null,
      *         slug: ?string,
@@ -91,6 +93,8 @@ final class OfferMatchingService
      *         semanticEnrichedPercentage: ?float,
      *         semanticEnrichedScore: ?float,
      *         semanticEnrichedDimension: ?int,
+     *         rerankerPercentage: ?float,
+     *         rerankerScore: ?float,
      *         scoreBreakdown: array<string, float>,
      *         matchedHardSkills: list<string>,
      *         matchedSoftSkills: list<string>,
@@ -120,6 +124,7 @@ final class OfferMatchingService
      *     fairness: array<string, float|int|string>,
      *     semantic: array{available: bool, fairness: array<string, float|int|string>},
      *     enriched: array{available: bool, fairness: array<string, float|int|string>},
+     *     reranker: array{available: bool, fairness: array<string, float|int|string>},
      *     matches: list<array<string, mixed>>
      * }
      */
@@ -138,6 +143,7 @@ final class OfferMatchingService
         $semanticRerankDevelopers = $this->semanticRerankDevelopers($semanticRerankCandidates, $developerById);
         $semanticMatches = $this->semanticScoresForAllCandidates($matchingOffer, $candidates, $semanticRerankCandidates, $semanticRerankDevelopers);
         $enrichedMatches = $this->enrichedScoresForAllCandidates($matchingOffer, $candidates, $semanticRerankCandidates, $semanticMatches['scores']);
+        $rerankerMatches = $this->rerankerMatchingService->scoreCandidates($matchingOffer, $results, $semanticMatches['scores'], $enrichedMatches['scores']);
 
         $semanticFairness = $this->fairnessAuditor->auditCandidateScores(array_map(
             static fn ($result): array => [
@@ -153,8 +159,15 @@ final class OfferMatchingService
             ],
             $results,
         ));
+        $rerankerFairness = $this->fairnessAuditor->auditCandidateScores(array_map(
+            static fn ($result): array => [
+                'yearsOfExperience' => $result->candidate->yearsOfExperience,
+                'score' => $rerankerMatches['scores'][$result->candidate->id]['score'] ?? null,
+            ],
+            $results,
+        ));
 
-        $matches = array_map(function ($result) use ($matchingOffer, $developerById, $semanticMatches, $enrichedMatches): array {
+        $matches = array_map(function ($result) use ($matchingOffer, $developerById, $semanticMatches, $enrichedMatches, $rerankerMatches): array {
             $developer = $developerById[$result->candidate->id] ?? null;
             $candidateHardSkills = array_map('mb_strtolower', $result->candidate->hardSkills);
             $candidateSoftSkills = array_map('mb_strtolower', $result->candidate->softSkills);
@@ -171,6 +184,10 @@ final class OfferMatchingService
                 'inferredTransferableSkills' => [],
                 'inferredTechnicalSkills' => [],
             ];
+            $rerankerScore = $rerankerMatches['scores'][$result->candidate->id] ?? [
+                'score' => null,
+                'percentage' => null,
+            ];
 
             return [
                 'developerId' => $developer?->getId(),
@@ -186,6 +203,8 @@ final class OfferMatchingService
                 'semanticEnrichedPercentage' => $enrichedScore['percentage'],
                 'semanticEnrichedScore' => $enrichedScore['score'],
                 'semanticEnrichedDimension' => $enrichedScore['dimension'],
+                'rerankerPercentage' => $rerankerScore['percentage'],
+                'rerankerScore' => $rerankerScore['score'],
                 'scoreBreakdown' => $result->scoreBreakdown,
                 'matchedHardSkills' => array_values(array_map(
                     static fn (string $skill): string => $skill,
@@ -201,7 +220,7 @@ final class OfferMatchingService
                 'anonymizedCv' => $result->candidate->rawCv,
             ];
         }, $results);
-        $this->sortMatchesByEnrichedScore($matches);
+        $this->sortMatchesByBestRuntimeScore($matches);
 
         return [
             'offer' => [
@@ -225,6 +244,10 @@ final class OfferMatchingService
                 'available' => $enrichedMatches['available'],
                 'fairness' => $enrichedFairness,
             ],
+            'reranker' => [
+                'available' => $rerankerMatches['available'],
+                'fairness' => $rerankerFairness,
+            ],
             'matches' => $matches,
         ];
     }
@@ -239,15 +262,22 @@ final class OfferMatchingService
             $this->extractHardSkills($text),
             $this->extractSoftSkills($text),
             (string) $offer->getDescription(),
+            (int) ($offer->getExperienceLevel() ?? 0),
         );
     }
 
     /**
      * @param list<array{semanticEnrichedScore: ?float, semanticScore: ?float, score: float, fullName: string}> $matches
      */
-    private function sortMatchesByEnrichedScore(array &$matches): void
+    private function sortMatchesByBestRuntimeScore(array &$matches): void
     {
         usort($matches, static function (array $left, array $right): int {
+            $leftReranker = $left['rerankerScore'] ?? -1.0;
+            $rightReranker = $right['rerankerScore'] ?? -1.0;
+            if ($leftReranker !== $rightReranker) {
+                return $rightReranker <=> $leftReranker;
+            }
+
             $leftEnriched = $left['semanticEnrichedScore'] ?? -1.0;
             $rightEnriched = $right['semanticEnrichedScore'] ?? -1.0;
             if ($leftEnriched !== $rightEnriched) {

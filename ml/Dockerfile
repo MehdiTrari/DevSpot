@@ -17,6 +17,7 @@ COPY requirements.txt ./requirements.txt
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY app ./app
+COPY models ./models
 
 EXPOSE 8001
 

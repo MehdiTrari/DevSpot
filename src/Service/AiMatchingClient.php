@@ -41,6 +41,8 @@ final class AiMatchingClient implements AiMatchingClientInterface
             'status' => $status,
             'model' => $model,
             'dimension' => (int) $dimension,
+            'rerankerAvailable' => (bool) ($payload['reranker_available'] ?? false),
+            'rerankerModel' => is_string($payload['reranker_model'] ?? null) ? $payload['reranker_model'] : null,
         ];
     }
 
@@ -103,6 +105,43 @@ final class AiMatchingClient implements AiMatchingClientInterface
             fn (array $payload): ?array => $this->normalizeBatchInferencePayload($payload),
             fn (string $text): ?array => ($r = $this->request('POST', '/infer-skills', ['text' => $text])) !== null ? $this->normalizeInferencePayload($r) : null,
         );
+    }
+
+    public function rerank(array $items): ?array
+    {
+        if ([] === $items) {
+            return [];
+        }
+
+        $payloadItems = [];
+        foreach ($items as $item) {
+            $candidateId = $item['candidateId'] ?? null;
+            $features = $item['features'] ?? null;
+            if (!is_string($candidateId) || !is_array($features)) {
+                return null;
+            }
+
+            $vector = [];
+            foreach ($features as $feature) {
+                if (!is_numeric($feature)) {
+                    return null;
+                }
+
+                $vector[] = (float) $feature;
+            }
+
+            $payloadItems[] = [
+                'candidate_id' => $candidateId,
+                'features' => $vector,
+            ];
+        }
+
+        $payload = $this->request('POST', '/rerank', ['items' => $payloadItems]);
+        if (null === $payload) {
+            return null;
+        }
+
+        return $this->normalizeRerankPayload($payload);
     }
 
     /**
@@ -353,6 +392,36 @@ final class AiMatchingClient implements AiMatchingClientInterface
             'confidence' => $confidenceMap,
             'normalizedText' => $normalizedText,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     *
+     * @return array<string, float>|null
+     */
+    private function normalizeRerankPayload(array $payload): ?array
+    {
+        $items = $payload['items'] ?? null;
+        if (!is_array($items)) {
+            return null;
+        }
+
+        $scores = [];
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                return null;
+            }
+
+            $candidateId = $item['candidate_id'] ?? null;
+            $score = $item['score'] ?? null;
+            if (!is_string($candidateId) || !is_numeric($score)) {
+                return null;
+            }
+
+            $scores[$candidateId] = max(0.0, min(1.0, (float) $score));
+        }
+
+        return $scores;
     }
 
     /**

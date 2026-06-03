@@ -50,6 +50,11 @@ final class CandidateSkillInferenceServiceTest extends TestCase
             {
                 return array_map(fn (string $text): array => $this->inferSkills($text) ?? [], $texts);
             }
+
+            public function rerank(array $items): ?array
+            {
+                return null;
+            }
         });
 
         $result = $service->inferFromText('Projet de groupe avec soutenance et correction de bugs.');
@@ -90,6 +95,11 @@ final class CandidateSkillInferenceServiceTest extends TestCase
             }
 
             public function inferSkillsBatch(array $texts): ?array
+            {
+                return null;
+            }
+
+            public function rerank(array $items): ?array
             {
                 return null;
             }

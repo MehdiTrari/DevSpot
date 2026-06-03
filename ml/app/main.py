@@ -5,7 +5,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from .inference import get_embedding_service
-from .schemas import BatchEmbedItem, BatchEmbedRequest, BatchEmbedResponse, BatchInferSkillsItem, BatchInferSkillsRequest, BatchInferSkillsResponse, EmbedRequest, EmbedResponse, HealthResponse, InferSkillsRequest, InferSkillsResponse, InferredTechnicalSkill, MatchRequest, MatchResponse
+from .reranker import get_reranker_service
+from .schemas import BatchEmbedItem, BatchEmbedRequest, BatchEmbedResponse, BatchInferSkillsItem, BatchInferSkillsRequest, BatchInferSkillsResponse, EmbedRequest, EmbedResponse, HealthResponse, InferSkillsRequest, InferSkillsResponse, InferredTechnicalSkill, MatchRequest, MatchResponse, RerankRequest, RerankResponse, RerankResponseItem
 from .skill_inference import infer_skills
 
 
@@ -21,11 +22,14 @@ app = FastAPI(title="DevSpot CamemBERT Service", version="1.0.0", lifespan=lifes
 @app.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     service = get_embedding_service()
+    reranker = get_reranker_service()
 
     return HealthResponse(
         status="ok",
         model=service.model_name,
         dimension=service.embedding_dimension(),
+        reranker_available=reranker.available,
+        reranker_model=reranker.model_path,
     )
 
 
@@ -103,3 +107,16 @@ def infer_candidate_skills_batch(request: BatchInferSkillsRequest) -> BatchInfer
         ))
 
     return BatchInferSkillsResponse(items=items)
+
+
+@app.post("/rerank", response_model=RerankResponse)
+def rerank(request: RerankRequest) -> RerankResponse:
+    service = get_reranker_service()
+    scores = service.score_features([item.features for item in request.items])
+
+    return RerankResponse(
+        items=[
+            RerankResponseItem(candidate_id=item.candidate_id, score=score)
+            for item, score in zip(request.items, scores, strict=True)
+        ]
+    )

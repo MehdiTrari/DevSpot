@@ -7,6 +7,8 @@ class HealthResponse(BaseModel):
     status: str
     model: str
     dimension: int
+    reranker_available: bool | None = None
+    reranker_model: str | None = None
 
 
 class EmbedRequest(BaseModel):
@@ -78,3 +80,21 @@ class BatchInferSkillsItem(BaseModel):
 
 class BatchInferSkillsResponse(BaseModel):
     items: list[BatchInferSkillsItem]
+
+
+class RerankItem(BaseModel):
+    candidate_id: str
+    features: list[float] = Field(min_length=20, max_length=20)
+
+
+class RerankRequest(BaseModel):
+    items: list[RerankItem] = Field(min_length=1)
+
+
+class RerankResponseItem(BaseModel):
+    candidate_id: str
+    score: float
+
+
+class RerankResponse(BaseModel):
+    items: list[RerankResponseItem]

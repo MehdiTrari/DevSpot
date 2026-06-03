@@ -503,6 +503,19 @@ final class RecruiterOffersTest extends WebTestCase
                     $texts,
                 );
             }
+
+            public function rerank(array $items): ?array
+            {
+                $scores = [];
+                foreach ($items as $item) {
+                    $candidateId = $item['candidateId'] ?? null;
+                    if (is_string($candidateId)) {
+                        $scores[$candidateId] = 0.75;
+                    }
+                }
+
+                return $scores;
+            }
         });
     }
 

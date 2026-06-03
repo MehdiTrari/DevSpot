@@ -11,7 +11,7 @@
             <h1 class="mt-4 text-4xl font-semibold tracking-tight text-white">Offres, profils complets et pourcentages de matching</h1>
             <p class="mt-3 max-w-3xl text-[15px] leading-relaxed text-slate-400">
                 Cette page exploite les vraies entités DevSpot en base. Les développeurs reprennent les champs exacts du site
-                (identité, bio, localisation, expérience, compétences, expériences, formations et postes recherchés), puis chaque offre est comparée aux profils avec un score baseline et un score sémantique CamemBERT.
+                (identité, bio, localisation, expérience, compétences, expériences, formations et postes recherchés), puis chaque offre est comparée aux profils avec baseline, CamemBERT, score enrichi et reranker supervisé.
             </p>
         </div>
 
@@ -101,7 +101,7 @@
                             {% endif %}
                         </div>
                     </div>
-                    <div class="grid gap-3 sm:grid-cols-3">
+                    <div class="grid gap-3 sm:grid-cols-4">
                         <div class="rounded-[1.5rem] border border-emerald-500/20 bg-emerald-500/10 p-5">
                             <p class="text-xs font-semibold uppercase tracking-wider text-emerald-200">Fairness baseline</p>
                             <p class="mt-2 text-2xl font-semibold text-white">{{ offerMatch.fairness.disparate_impact_ratio }}</p>
@@ -138,6 +138,23 @@
                                     après inférence de compétences
                                 {% else %}
                                     service ML indisponible
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="rounded-[1.5rem] border border-cyan-500/20 bg-cyan-500/10 p-5">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-cyan-200">Fairness reranker</p>
+                            <p class="mt-2 text-2xl font-semibold text-white">
+                                {% if offerMatch.reranker.available %}
+                                    {{ offerMatch.reranker.fairness.disparate_impact_ratio }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </p>
+                            <p class="mt-1 text-sm text-cyan-100/80">
+                                {% if offerMatch.reranker.available %}
+                                    modèle supervisé léger
+                                {% else %}
+                                    fallback sur score enrichi
                                 {% endif %}
                             </p>
                         </div>
@@ -184,7 +201,15 @@
                                     <p class="mt-2 text-sm text-slate-400">{{ match.yearsExperience }} an(s) d'expérience</p>
                                 </div>
                                 <div class="rounded-[1.5rem] border border-emerald-500/20 bg-emerald-500/10 px-5 py-4 text-right">
-                                    <p class="text-xs font-semibold uppercase tracking-wider text-emerald-200">Matching enrichi</p>
+                                    <p class="text-xs font-semibold uppercase tracking-wider text-cyan-200">Reranker supervisé</p>
+                                    <p class="mt-1 text-3xl font-semibold text-white">
+                                        {% if match.rerankerPercentage is not null %}
+                                            {{ match.rerankerPercentage }}%
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </p>
+                                    <p class="mt-3 text-xs font-semibold uppercase tracking-wider text-emerald-200">Matching enrichi</p>
                                     <p class="mt-1 text-3xl font-semibold text-white">{% if match.semanticEnrichedPercentage is not null %}
                                             {{ match.semanticEnrichedPercentage }}%
                                         {% else %}
@@ -203,7 +228,7 @@
                                 </div>
                             </div>
 
-                            <div class="mt-4 grid gap-3 sm:grid-cols-5">
+                            <div class="mt-4 grid gap-3 sm:grid-cols-6">
                                 <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
                                     <p class="text-xs uppercase tracking-wider text-slate-400">Hard skills</p>
                                     <p class="mt-2 text-sm font-semibold text-white">{{ (match.scoreBreakdown.hard_skills * 100)|number_format(1, '.', ' ') }}%</p>
@@ -233,6 +258,16 @@
                                             {{ match.semanticEnrichedPercentage|number_format(1, '.', ' ') }}%
                                         {% else %}
                                             Service indisponible
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                                    <p class="text-xs uppercase tracking-wider text-slate-400">Reranker</p>
+                                    <p class="mt-2 text-sm font-semibold text-white">
+                                        {% if match.rerankerPercentage is not null %}
+                                            {{ match.rerankerPercentage|number_format(1, '.', ' ') }}%
+                                        {% else %}
+                                            Fallback enrichi
                                         {% endif %}
                                     </p>
                                 </div>

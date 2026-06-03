@@ -10,6 +10,7 @@ use App\Service\CandidateProfileEmbeddingService;
 use App\Service\CandidateTextPreprocessor;
 use App\Service\EnrichedMatchingService;
 use App\Service\OfferMatchingService;
+use App\Service\RerankerMatchingService;
 use App\Service\SemanticMatchingService;
 use App\Matching\Service\CvAnonymizer;
 use App\Matching\Service\FairnessAuditor;
@@ -41,6 +42,7 @@ final class BenchmarkMatchingCommand extends Command
         private readonly CandidateProfileEmbeddingService $candidateProfileEmbeddingService,
         private readonly SemanticMatchingService $semanticMatchingService,
         private readonly EnrichedMatchingService $enrichedMatchingService,
+        private readonly RerankerMatchingService $rerankerMatchingService,
         private readonly SkillRepository $skillRepository,
         private readonly TechnologyRepository $technologyRepository,
         private readonly PositionRepository $positionRepository,
@@ -111,6 +113,7 @@ final class BenchmarkMatchingCommand extends Command
                 $this->candidateProfileEmbeddingService,
                 $this->semanticMatchingService,
                 $this->enrichedMatchingService,
+                $this->rerankerMatchingService,
                 $this->skillRepository,
                 $this->technologyRepository,
                 $this->positionRepository,
